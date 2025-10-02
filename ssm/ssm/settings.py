@@ -125,3 +125,4 @@ ANYMAIL = {
 
 # Default from email
 DEFAULT_FROM_EMAIL = "test-z0vklo6r391l7qrx.mlsender.net"
+#LOGIN_URL = 'student_login'

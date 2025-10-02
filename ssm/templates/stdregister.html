@@ -236,422 +236,224 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-        
-            // --- Function to recalculate accordion height ---
-            function updateActiveAccordionHeight() {
-                const activeItem = document.querySelector('.accordion-item.active');
-                if (activeItem) {
-                    const content = activeItem.querySelector('.accordion-content');
-                    setTimeout(() => {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                    }, 50);
-                }
+    document.addEventListener('DOMContentLoaded', function () {
+    
+        // VARIABLE TO HOLD THE DATA (This was missing)
+        let subCasteData = {};
+
+        // --- Function to recalculate accordion height ---
+        function updateActiveAccordionHeight() {
+            const activeItem = document.querySelector('.accordion-item.active');
+            if (activeItem) {
+                const content = activeItem.querySelector('.accordion-content');
+                setTimeout(() => {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }, 50);
             }
+        }
 
-            // --- 1. ACCORDION LOGIC ---
-            const accordionItems = document.querySelectorAll('.accordion-item');
-            if (accordionItems.length > 0) {
-                const firstItem = accordionItems[0];
-                firstItem.classList.add('active');
-                const firstContent = firstItem.querySelector('.accordion-content');
-                if (firstContent) {
-                    firstContent.style.maxHeight = firstContent.scrollHeight + "px";
-                }
+        // --- 1. ACCORDION LOGIC (Your code is fine) ---
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        if (accordionItems.length > 0) {
+            const firstItem = accordionItems[0];
+            firstItem.classList.add('active');
+            const firstContent = firstItem.querySelector('.accordion-content');
+            if (firstContent) {
+                firstContent.style.maxHeight = firstContent.scrollHeight + "px";
             }
-            accordionItems.forEach(item => {
-                const header = item.querySelector('.accordion-header');
-                if (header) {
-                    header.addEventListener('click', () => {
-                        const content = item.querySelector('.accordion-content');
-                        if (item.classList.contains('active')) {
-                            item.classList.remove('active');
-                            content.style.maxHeight = '0px';
-                        } else {
-                            document.querySelectorAll('.accordion-item.active').forEach(openItem => {
-                                openItem.classList.remove('active');
-                                openItem.querySelector('.accordion-content').style.maxHeight = '0px';
-                            });
-                            item.classList.add('active');
-                            content.style.maxHeight = content.scrollHeight + "px";
-                        }
-                    });
-                }
-            });
-
-            // --- 2. YEAR PICKER LOGIC ---
-            document.querySelectorAll('.year-picker').forEach(dropdown => {
-                const currentYear = new Date().getFullYear();
-                const startYear = currentYear - 40;
-                const placeholder = document.createElement('option');
-                placeholder.value = "";
-                placeholder.textContent = "-- Select Year --";
-                dropdown.appendChild(placeholder);
-                for (let year = currentYear; year >= startYear; year--) {
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    dropdown.appendChild(option);
-                }
-            });
-
-            // --- 3. DEPENDENT CASTE DROPDOWN LOGIC ---
-const subCasteData = {
-    'ST': [
-        "Adiyan", "Aranadan", "Eravallan", "Irular", "Kadar", 
-        "Kammar (excluding Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", 
-        "Kanikaran, Kanikkar (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", 
-        "Kaniyan, Kanyan", "Kattunayakan", "Kochu Velan", "Konda Kapus", "Kondareddis", 
-        "Koraga", "Kota (excluding Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", 
-        "Kudiya, Melakudi", "Kurichchan", "Kurumbas (in the Nilgiris District)", "Kurumans", 
-        "Maha Malasar", "Malai Arayan", "Malai Pandaram", "Malai Vedan", "Malakkuravan", 
-        "Malasar", "Malayali (in Dharmapuri, North Arcot, Pudukkottai, Salem, South Arcot and Tiruchirapalli Districts)", 
-        "Malayakandi", "Mannan", "Mudugar, Mudvan", "Muthuvan", "Pallayan", "Palliyan", 
-        "Palliyar", "Paniyan", "Sholaga", 
-        "Toda (excluding Kanyakamari District and Shenlottah Taluk of Tirunelveli District)", "Uraly"
-    ],
-    'SC': [
-        "Adi Dravida", "Adi Karnataka", "Ajila", 
-        "Ayyanavar (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Baira", 
-        "Bakuda", "Bandi", "Bellara", 
-        "Bharatar (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Chalavadi", 
-        "Chamar, Muchi", "Chandala", "Cheruman", 
-        "Devendrakula Velalar [Devendrakulathan, Kadaiyan(excluding in the coastal areas of Tirunelveli, Thoothukudi, Ramanathapuram, pudukottai, Thanjavur, Tiruvarur and Nagapattinam districts), kalladi, Kudumban, Pallan, pannadi, Vathiriyan]", 
-        "Dom, Dombar, Paidi, Pano", "Domban", "Godagali", "Godda", "Gosargi", "Holeya", "Jaggali", 
-        "Jambuvulu", "Kadaiyan (in the districts of Tirunelveli, Thoothukudi, Ramanathapuram, Pudukottai, Thanjavur, Tiruvarur and Nagapattinam)", 
-        "Kakkalan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", 
-        "Kanakkan, Padanna (in the Nilgiris District)", "Karimpalan", 
-        "Kavara (in Kanyakumari District and Shenkottah, Taluk of Tirunelveli District)", "Koliyan", "Koosa", 
-        "Kootan, Koodan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", 
-        "Kuravan, Sidhanar", "Maila", "Mala", 
-        "Mannan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Mavilan", "Moger", 
-        "Mundala", "Nalakeyava", "Nayadi", 
-        "Padannan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Palluvan", 
-        "Pambada", "Panan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Panchama", 
-        "Panniandi", "Paraiyan, Parayan,Sambavar", 
-        "Paravan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", 
-        "Pathiyan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Pulayan,Cheramar", 
-        "PuthiraiVannan", "Raneyar", "Samagara", "Samban", "Sapari", "Semman", 
-        "Thandan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Tiruvalluvar", 
-        "Vallon", "Valluvan", "Vannan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", 
-        "Velan", "Vetan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Vettiyan", 
-        "Vettuvan (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)", "Madiga"
-    ],
-    'SCA': [
-        "AdiAndhra", "Arunthathiyar", "Chakkiliyan", "Madari", "Madiga", "Pagadai", "Thoti"
-    ],
-    'MBC': [
-        "Ambalakarar", "Andipandaram", "Arayar (in Kanyakumari District)", "Bestha, Siviar", 
-        "Bhatraju (Other than Kshatriya Raju)", "Boyar, Oddar", "Dasari", "Dommara", 
-        "Eravallar(except in Kanyakumari District and Shenkottah Taluk of Tirunelveli District Wherethe Community is a Scheduled Tribe)", 
-        "Isaivellalar", "Jambuvanodai", "Jangam", "Jogi", 
-        "Kongu Chettia ( in Coimbatore and Erode Districts only)", "Koracha", 
-        "Kulala (including Kuyavar and Kumbarar)", "Kulnnuvar Mannadi", "Kurumba, Kurumba Gounder", 
-        "Kuruhini Chetty", "Latin Catholic Christian Vannar (in Kanyakumari District)", 
-        "Maruthuvar, Navithar, Mangala, Velakattalavar, Velakatalanair and Pronopakari", 
-        "Mond Golla", "Moundadan Chetty", "Mahendra, Medara", "Narikoravar (Kurivikars)", "Nokkar", 
-        "A Panisaivan / Panisivan", 
-        "Vanniakula Kshatriya (including Vanniyar, Vanniya, Vannia Gounder, Gounder or Kander, Padayachi, Palli & Agnikula Kshatriya)", 
-        "Paravar (except in Kanyakumari District and Shenkottah Taluk of Tirunelveli District where the Community is Scheduled Caste)", 
-        "Paravar converts to Christianity including the Paravar converts to Christianity of Kanyakumari District and Shenkottah Taluk in Tirunelveli District)", 
-        "Meenavar(Parvatharajakulam, Pattanavar, Sembadavar) (including converts to Christianity)", 
-        "Mukkuvar or Mukayar (including converts to Christianity)", "Punnan Vettuva Gounder", 
-        "Pannayar(other than Kathikarar in Kanyakumari District)", 
-        "Sathatha Srivaishnava (including Sathani, Chattadi and Chattada Srivaishnava)", "Sozhia Chetty", 
-        "Telugupatty Chetty", 
-        "Thotti Naicker (including Rajakambalam, Gollavar, Sillavar, Thockalavar, Thozhuva Naicker and Erragollar)", 
-        "Thondaman", "Thoraiyar(Nilgiris)", "Thoraiyar(Plains)", 
-        "Transgender or Eunuch (Thirunangai or Aravani)", "Valaiyar(including Chettinad Valayars)", 
-        "Vannar (Salaivai Thozhilalar) (including Agasa, Madivala, Ekali, Rajakula, Veluthadar & Rajaka) (except in Kanyakumari District and Shenkottah Taluk of Titunelveli District where the Community is a Scheduled Caste)", 
-        "Vettaikarar", "Vettuva Gounder", "Yogeeswarar", 
-        "Attur Kilnad Koravars (Salem, Namakkal, Cuddalore, Villupuram, Ramanathapuram, Sivaganga and Virudhunagar Districts)", 
-        "Attur Melnad Koravars (Salem and Namakkal District)", 
-        "Appanad Kondayam Kottai Maravar (Sivaganga, Virudhunagar, Ramanathapuram, Madurai, Theni and Dindigul Districts)", 
-        "Ambalakarar (Thanjavur, Nagapattinam, Tiruvarur, Tiruchirappalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Ambalakkarar (Suriyanur, Tiruchirapalli District)", 
-        "Boyas (Tiruchirapalli, Karur, Perambalur, Pudukkottai, The Nilgiris, Salem, Namakkal, Dharmapuri and Krishnagiri Districts)", 
-        "Battu Turkas", "C K Koravars (Cuddalore and Villupuram Districts)", 
-        "Chakkala(Sivaganga, Virudhunagar, Ramanathapuram, Thanjavur, Nagapattinam,Thiruvarur, Pudukkottai, Tiruchirapalli, Karur, Perambalur, Madurai, Theni, Dindigul and the Nilgiris Districts)", 
-        "Changyampudi Koravars (vellore and Thiruvannamalai Districts)", 
-        "Chettinad Valayars (Sivaganga,Virudhunagar and Ramanathapuram Districts)", 
-        "Dombs (Pudukkottai, Tiruchirapalli, Karur and Perambalur Districts)", 
-        "Dobba Koravars (Salem and Namakkal Districts)", 
-        "Dommars (Thanjavur, Nagapattinam, Thiruvarur, Pudukkottai, Vellore and Thiruvannamalai Districts)", 
-        "Donga Boya", "Donga Ur Korachas", "Devagudi Talayaris", 
-        "Dobbai Korachas (Tiruchirapalli, Karur Perambalur and Pudukkottai Districts)", 
-        "Dabi Koravars (Thanjavur, Nagapattinam, Thiruvarur, Tiruchirapalli, Karur, Perambalur, Pudukkottai, Vellore and Thiruvannamalai Districts)", 
-        "Donga Dasaris (Kancheepuram, Tiruvallur, Tiruchirapalli, Karur, Perambalur, Pudukkottai, Chennai, Salem and Namakkal Districts)", 
-        "Gorrela Dodda Boya", "Gudu Dasaris", 
-        "Gandarvakottai Koravars (Thanjavur, Nagapattinam, Thiruvarur, Tiruchirapalli, Karur, Perambalur, Pudukkottai, Cuddalore and Villupuram Districts)", 
-        "Gandarvakottai Kallars (Thanjavur, Nagapattinam, Thiruvarur and Pudukkotttai Districts)", 
-        "Inji Koravars (Thanjavur, Nagapattinam, Thiruvarur, Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Jogis (Kancheepuram, Tiruvallur, Chennai, Cuddalore, Villupuram, Vellore and Thiruvannamalai Districts)", 
-        "Jambavanodai", 
-        "Kaladis (Sivaganga, Virudhunagar, Ramanathapuram, Madurai, Theni, Dindigul, Thanjavur, Nagapattinam, Thiruvarur, Pudukkottai, Tiruchirapalli, Karur and Perambalur Districts)", 
-        "Kal Oddars (Kancheepuram, Thiruvallur, Ramanathapuram, Sivaganga, Virudhunagar, Madurai, Theni Dindigul, Pudukkottai, Thanjavur, Nagapattinam, Tiruvarur, Tiruchirapalli, Karur, Perambalur, Tirunelveli, Thoothukudi, Salem and Namakkal Districts)", 
-        "Koravars (Kancheepuram Tiruvallur, Ramanathapuram, Sivaganga, Virudhunagar, Pudukkottai, Thanjavur, Nagapattinam, Thiruvarur,Tiruchirapalli, Karur, Perambalur, Tirunelveli, Thoothukudi, Chennai, Madurai, Theni, Dindigul and The Nilgiris Districts)", 
-        "Kalinji Dabikoravars (Thanjavur, Nagapattinam, Tiruvarur and Pudukkottai Districts)", 
-        "Kootappal Kalllars (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Kala Koravars (Thanjavur, Nagapattinam, Thiruvarur, Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Kalavathila Boyas", 
-        "Kepmaris (Kancheepuram, Tiruvallur, Pudukkottai, Tiruchirapalli, Karur and Perambalur Districts)", 
-        "Maravars (Thanjavur, Nagapattinam, Thiruvarur, Pudukkottai, Ramanathapuram, Sivaganga, Virudhunagar, Tirunelveli and Thoothukudi Districts)", 
-        "Monda Koravars", "Monda Golla (Salem and Namakkal Districts)", 
-        "Mutlakampatti (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Nokkars (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Nellorepet Oddars ( Vellore and Thiruvannamalai Districts)", 
-        "Oddars (Thanjavur Nagapattinam Thiruvarur Tiruchirapalli, Karur, Perambalur, Pudukkottai, Madurai, Theni and Dindigul Districts)", 
-        "Pedda Boyas (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Ponnai Koravars (Vellore and Thiruvannamalai Districts)", 
-        "Piramalai Kallars (Sivagangai, Virudhunagar, Ramanathapuram, Madurai, Theni, Dindigul, Pudukkottai, Thanjavur, Nagapattinam and Thiruvarur Districts)", 
-        "Peria Suriyur Kallars(Tiruchirapalli, Karur, Perambalur, and Pudukkottai Districts)", 
-        "Padayachi (Vellayan Kuppam in Cuddalore District and Tennore in Tiruchirapalli District)", 
-        "Punnan Vettuva Gounder(Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Servai (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Salem Melnad Koravars (Madurai, Theni, Dindigul, Coimbatore, Erode, Pudukkottai, Tiruchirapalli, Karur, Perambalur, Salem, Namakkal, Vellore and Thiruvannamalai Districts)", 
-        "Salem Uppu Koravars (Salem & Namakkal Districts)", 
-        "Sakkaraithamadai Koravars (Vellore and Thiruvannamalai Districts)", 
-        "Saranga Palli Koravars", "Sooramari Oddars (Salem and Namakkal Districts)", 
-        "Sembanad Maravars (Sivaganga, Virudhunagar and Ramanathapuram Districts)", 
-        "Thalli Koravars (Salem and Namakkal Districts)", 
-        "Telungapatti Chetis (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Thottia Naickers (Sivaganga, Virudhunagar, Ramanathapuram, Kancheepuram, Tiruvallur, Thanjavur, Nagapattinam, Thiruvarur, Tiruchirapalli, Karur, Perambalur, Pudukkottai,Tirunelveli, Thoothukudi, Salem, Namakkal, Vellore, Thiruvannamalai, Coimbatore Erode & Districts)", 
-        "Thogamalai Koravars or Kepmaris (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Uppukoravars or Settipalli Koravars (Thanjavur, Nagapattinam, Thiruvarur, Pudukkottai, Madurai, Theni, Dindigu, Vellore and Thiruvannamalai Districts)", 
-        "Urali Gounders (Tiruchirapalli, Karur, Perambalur, Ariyalur and Pudukkottai Districts)", 
-        "Wayalpad or Nawalpeta Korachas", 
-        "Vaduvarpatti Koravars (Madurai, Theni, Dindigul, Ramanathapuram, Sivaganga, Virudhunagar, Tirunelveli, Thoothukudi, Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Valayars (Madurai, Theni, Dindigul, Tiruchirapalli, Karur, Perambalur, pudukkottai, Erode and Coimbatore Districts)", 
-        "Vettaikarar (Thanjavur, Nagapattinam, Thiruvarur and Pudukkottai Districts)", 
-        "Vetta koravars (Salem and Namakkal Districts)", 
-        "Varaganeri Koravars (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)", 
-        "Vettuva Gounder (Tiruchirapalli, Karur, Perambalur and Pudukkottai Districts)"
-    ],
-    'BC': [
-        "Agamudayar including Thozhu or Thuluva Vellala", "Agaram Vellan Chettiar", 
-        "Alwar, Azhavar and Alavar (in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", 
-        "Servai(except Tiruchirapalli, Karur, Perambalur and Pudukottai Districts )", 
-        "Nulayar(in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", "Archakarai Vellala", 
-        "Aryavathi(in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", "Ayira Vaisyar", 
-        "Badagar", "Billava", "Bondil", 
-        "Boyas (except Tiruchirapalli, Karur, Perambalur, Pudukottai, The Nilgiris, Salem ,Namakkal Dharmapuri and Krishnagiri Districts), Pedda Boyar (except Tiruchirapalli, Karur , Perambalur and Pudukottai Districts), Oddars (except Thanjavur, Nagapattinam, Districts), Kaloddars (except Kancheepuram, Tiruvallur, Ranathapuram, Sivaganga, Viruthunagar, Madurai, Theni, Dindigul, Purdukkottai, Tiruchirappalli, Karur, Perambalur, Tirunelveli, Thoothukudi, Salam and Namakkal Districts), Nellorepet oddars (except Vellore and Tiruvannamalai Districts) Sooramari oddars( except Salem and Namakkal Districts)Pudukottai, Madurai, Theni and Dindigul Tiruchirapalli, Karur, Perambalur,Tiruvarur,", 
-        "Chakkala (except Sivaganga, Virudhunagar, Ramanathapuram, Thanjavur, Nagapattinam,Tiruvarur, Pudukottai, Tiruchirapalli, Karur, Perambalur, Madurai, Theni, Dindigul and the Nilgiris Districts)", 
-        "Chavalakarar (in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", 
-        "Chettu or Chetty (including Kottar Chetty, Elur Chetty, Pathira Chetty, Valayal Chetty,Pudukadai Chetty ) ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", 
-        "Chowdry", 
-        "Converts to Christianity from Scheduled Castes irrespective of the generation of conversion for the purpose of reservation of seats in Educational Institutions and for seats in Public Services", 
-        "C S I formerly S I U C (in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", 
-        "Donga Dasaris ( except Kancheepuram, Tiruvallur, Trichirapalli, Karur, Parambalur, Pudukottai, Chennai, Salem and Namakkal Districts", 
-        "Devangar, Sedar", "Dombs (except Pudukottai, Tiruchirapalli, Karur and Perambalur Districts)", 
-        "Dommars (except Thanjavur, Nagapattinam,Tiruvarur, Pudukottai,Vellore and Thiruvannamalai Districts)", 
-        "Enadi", "Ezhavathy(in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", 
-        "Ezhuthachar (in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", 
-        "Ezhuva(in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", "Gangavar", 
-        "Gavara, Gavarai and Vadugar (Vaduvar) (other than Kamma, Kapu, Balija and Reddi)", "Gounder", 
-        "Gowda (including Gammala, Kalali and Anuppa Gounder)", "Hegde", "Idiga", 
-        "IllathuPillaimar, Illuvar, Ezhuvar and Illathar", "Jhetty", 
-        "Jogis (Except Kancheepuram, Tiruvallur, Madurai, Theni, Dindigul, Cuddalore, Villupuram, Vellore and Tiruvannamalai Districts)", 
-        "Kabbera", "Kaikolar, Sengunthar", 
-        "Kaladi (except Sivaganga, Virudhunagar, Ramanathapuram, Madurai, Theni, Dindigul,Thanjavur, Nagapattinam,Tiruvarur, Pudukottai, Tiruchirapalli, Karur and Perambalur Districts)", 
-        "Kalari Kurup including Kalari Panicker (in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", 
-        "Kalingi", 
-        "Kallar, Easanattu Kallar, Gandharva Kottai Kallars(except Thanjavur, Nagapattinam, Tiruvarur and Pudukottai Districts), Kootappal Kallars-(except Pudukottai, Tiruchirapalli, Karur and Perambalur Districts), Piramalai Kallars- (except Sivaganga,Virudhunagar, Ramanathapuram Madurai Theni, Dindigul, Nagapattinam and Tiruvarur Districts) Pudukottai, Thanjavur, Periyasooriyur Kallars- (except Tiruchirapalli, Karur, Perambalur and Pudukottai Districts)", 
-        "Kallar Kula Thondaman", "Kalveli Gounder", "Kambar", 
-        "Kammalar or Viswakarma , Viswakarmala (including Thattar, Porkollar, Kannar, Karumar, Kollar, Thacher, Kal Thacher, Kamsala and Viswa brahmin )", 
-        "Kani, Kanisu, Kaniyar Panicker", "Kaniyala Vellalar", 
-        "Kannada Saineegar ,Kannadiyar (Throughout the State) and Dasapalanjika (Coimbatore, Erode and the Nilgiris Districts)", 
-        "Kannadiya Naidu", "Karpoora Chettiar", 
-        "Karuneegar (Seer Karuneegar, Sri Karuneegar, Sarattu Karuneegar, Kaikatti Karuneegar, Mathuvazhi Kanakkar, Sozhi Kanakkar, and Sunnambu Karuneegar)", 
-        "Kasukkara Chettiar", "Katesar, Pattamkatti", "Kavuthiyar", "Kerala Mudali", "Kharvi", "Khatri", 
-        "Kongu Vaishnava", 
-        "Kongu Vellalars( including Vellala Gounder, Nattu Gounder, Narambukkatti Gounder, Tirumudi Vellalar, Thondu Vellalar, Pala Gounder, Poosari Gounder, Anuppa Vellala Gounder, Padaithalai Gounder, Chendalai Gounder, Pavalankatti Vellala Gounder,Palavellala Gounder, Sanku Vellala Gounder and Rathinagiri Gounder)", 
-        "KoppalaVelama", "Koteyar", 
-        "Krishnanvaka (in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", "Kudikara Vellalar", 
-        "Kudumbi ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", "Kuga Vellalar", 
-        "Kunchidigar", "Latin Catholics except Latin Catholic Vannar in Kanniyakumari District", 
-        "Lathin Catholics in Shencottah Taluk of Tirunelveli District", "Lambadi", "Lingayat (Jangama)", 
-        "Mahratta (Non-Brahmin) (including Namdev Mahratta)", "Malayar", "Male", "Maniagar", 
-        "Maravars (except Thanjavur, Nagapattinum, Tiruvarur, Pudukottai, Ramanathapuram, Sivaganga, Virudhunagar, Tirunelveli and Toothukudi Districts), Karumaravars Appanad Kondayam kottai Maravar ?(except Sivaganga, Virudhunagar, Ramanathapuram, Madurai, Theni and Dindigul Districts ) Sembanad Maravars- (except Sivaganga, Virudhunagar, and Ramanathapuram Districts)", 
-        "Moondrumandai Enbathunalu ( ) Ur Sozhia Vellalar", "Mooppan", "Muthuraja, Muthuracha, Muttiriyar, Mutharaiyar", 
-        "Nadar, Shanar and Gramani", "Nagaram", 
-        "Naikkar (in Kanniyakumari District and Shencottah Taluk of Tirunelveli District)", "Nangudi Vellalar", 
-        "Nanjil Mudali ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", 
-        "Odar ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", "Odiya", 
-        "Oottruvalanattu Vellalar", "O P S Vellalar", "Ovachar", "Paiyur Kotta Vellalar", "Pamulu", 
-        "Panar ( except in Kanniyakumari District and Shencottah Taluk of Tirunelveli District where the community is a Scheduled Caste )", 
-        "Pandiya Vellalar", "Kathikarar in Kanniyakumari District", 
-        "Pannirandam Chettiar or Uthama Chettiar", 
-        "Parkavakulam ( including Surithimar, Nathamar, Malayamar, Moopanar and Nainar )", 
-        "Perike ( including Perike Balija )", 
-        "Perumkollar ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", "Podikara Vellalar", 
-        "Pooluva Gounder", "Poraya", "Pulavar ( in Coimbatore and Erode Districts )", "Pulluvar or Pooluvar", 
-        "Pusala", "Reddy ( Ganjam )", "Sadhu Chetty ( including Telugu Chetty, Twenty four Manai Telugu Chetty)", 
-        "Sakkaravar or Kavathi ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", "Salivagana", 
-        "Saliyar, Padmasaliyar, Pattusaliyar, Pattariyar, and Adhaviyar", "Savalakkarar", 
-        "Senaithalaivar, Senaikudiyar and Illaivaniar", "Serakula Vellalar", "Sourashtra ( Patnulkarar )", 
-        "Sozhiavellalar ( including Sozha Vellalar, Vetrilaikarar, Kodikalkarar and Keeraikarar )", "Srisayar", 
-        "Sundaram Chetty", "Thogatta Veerakshatriya", 
-        "Tholkollar ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", 
-        "Tholuva Naicker and Vetalakara Naicker", "Thoraiyar", "Thoriyar", "Ukkirakula Kshatriya Naicker", 
-        "Uppara, Uppillia and Sagara", 
-        "Urali Gounder ( except Tiruchirapalli, Karur, Perambalur and Pudukottai District) and Orudaya Gounder or Oorudaya Gounder ( in Madurai ,Theni, Dindigul, Coimbatore, Erode, Tiruchirapalli, Karur , Perambalur, Pudukottai, Salem and Namakkal Districts )", 
-        "Urikkara Nayakkar", "Virakodi Vellala", "Vallambar", "Vallanattu Chettiar", "Valmiki", 
-        "Vaniyar, Vania Chettiar ( including Gandla, Ganika, Telikula and Chekkalar)", 
-        "Veduvar and Vedar ( except in Kanniyakumari District and Shencottah Taluk of Tirunelveli District where the community is a Scheduled Castes)", 
-        "Veerasaiva ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", "Velar", 
-        "Vellan Chettiar", 
-        "Veluthodathu Nair ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )", 
-        "Vokkaligar ( including Vakkaligar, Okkaligar, Kappiliyar, Kappiliya, Okkaliga Gowda, Okkaliya- Gowda, Okkaliya- Gowder, Okkaliya Gowda )", 
-        "Wynad Chetty ( The Nilgiris District )", 
-        "Yadhava ( including Idaiyar, Telugu Speaking Idaiyar known as Vaduga Ayar or Vaduga Idaiyar or Golla and Asthanthra Golla)", 
-        "Yavana", "Yerukula", 
-        "Orphans and destitute children who have lost their parents before reaching the age of ten and are destitutes; and who have nobody else to take care of them either by law or custom; and also who are admitted into any of the schools or orphanages run by the Government or recognized by the Government", 
-        "Thiyya", 
-        "Converts to Christianity from any Hindu Backward Classes Community or Most Backward Classes Community or Denotified Communities (except the Converts to Christianity from Meenavar, Parvatharajakulam, Pattanavar, Sembadavar, Mukkuvar or Mukayar and Paravar)",
-        "Ansar", "Dekkani Muslims", "Dudekula", "Labbais including Rowthar and Marakayar (whether their spoken language is Tamil or Urdu)", "Mapilla", "Sheik", "Syed", "pattapu"
-    ],
-    'OC': [
-        "Not Applicable"
-    ]
-};
-
-            const communitySelect = document.getElementById('community');
-            const casteSelect = document.getElementById('caste');
-            const casteOtherGroup = document.getElementById('caste-other-group');
-
-            function updateCasteOptions() {
-                const selectedCommunity = communitySelect.value;
-                const castes = subCasteData[selectedCommunity] || [];
-                casteSelect.innerHTML = '';
-                casteOtherGroup.style.display = 'none';
-
-                if (castes.length === 0) {
-                    const defaultOption = document.createElement('option');
-                    defaultOption.value = 'Not Applicable';
-                    defaultOption.textContent = 'Not Applicable';
-                    casteSelect.appendChild(defaultOption);
-                } else {
-                    const placeholder = document.createElement('option');
-                    placeholder.value = '';
-                    placeholder.textContent = '-- Select your caste --';
-                    casteSelect.appendChild(placeholder);
-                    castes.forEach(caste => {
-                        const option = document.createElement('option');
-                        option.value = caste;
-                        option.textContent = caste;
-                        casteSelect.appendChild(option);
-                    });
-                    const otherOption = document.createElement('option');
-                    otherOption.value = 'Other';
-                    otherOption.textContent = 'Other (Please specify)';
-                    casteSelect.appendChild(otherOption);
-                }
-            }
-
-            function handleCasteChange() {
-                if (casteSelect.value === 'Other') {
-                    casteOtherGroup.style.display = 'block';
-                } else {
-                    casteOtherGroup.style.display = 'none';
-                }
-                updateActiveAccordionHeight();
-            }
-
-            if (communitySelect && casteSelect) {
-                communitySelect.addEventListener('change', updateCasteOptions);
-                casteSelect.addEventListener('change', handleCasteChange);
-                updateCasteOptions();
-            }
-
-            // --- 4. CONDITIONAL SECTIONS LOGIC ---
-            const programLevelSelect = document.getElementById('program_level');
-            const ugEntryTypeSection = document.getElementById('ug-entry-type-section');
-            const ugEntryTypeSelect = document.getElementById('ug_entry_type');
-            const sslcSection = document.getElementById('sslc-details-section');
-            const hscSection = document.getElementById('hsc-details-section');
-            const diplomaSection = document.getElementById('diploma-details-section');
-            const ugSection = document.getElementById('ug-details-section');
-            const pgSection = document.getElementById('pg-details-section');
-            const phdSection = document.getElementById('phd-details-section');
-            const scholarshipRadios = document.querySelectorAll('input[name="has_scholarship"]');
-            const scholarshipAccordion = document.getElementById('scholarship-accordion-item');
-            const privateSchCheckbox = document.getElementById('sch_private');
-            const privateSchNameSection = document.getElementById('private-scholarship-name-section');
-            const fgCheckbox = document.getElementById('is_first_graduate_sch');
-            const fgCertUploadSection = document.getElementById('fg-cert-upload-section');
-
-            function handleProgramChange() {
-                const level = programLevelSelect.value;
-                ugEntryTypeSection.style.display = level === 'UG' ? 'block' : 'none';
-                
-                // Reset dependent fields when program level changes
-                ugEntryTypeSelect.value = '';
-                handleEntryTypeChange(); // This will hide HSC/Diploma sections
-                
-                sslcSection.style.display = 'none'; // Hide SSLC by default
-                ugSection.style.display = (level === 'PG' || level === 'PHD') ? 'block' : 'none';
-                pgSection.style.display = level === 'PHD' ? 'block' : 'none';
-                phdSection.style.display = level === 'PHD' ? 'block' : 'none';
-                
-                updateActiveAccordionHeight();
-            }
-
-            function handleEntryTypeChange() {
-                const entryType = ugEntryTypeSelect.value;
-                sslcSection.style.display = (entryType === 'Regular' || entryType === 'Lateral') ? 'block' : 'none';
-                hscSection.style.display = entryType === 'Regular' ? 'block' : 'none';
-                diplomaSection.style.display = entryType === 'Lateral' ? 'block' : 'none';
-                updateActiveAccordionHeight();
-            }
-
-            function handleScholarshipChange() {
-                const wantsScholarship = document.querySelector('input[name="has_scholarship"]:checked').value === 'yes';
-                scholarshipAccordion.style.display = wantsScholarship ? 'block' : 'none';
-            }
-
-            if (programLevelSelect) programLevelSelect.addEventListener('change', handleProgramChange);
-            if (ugEntryTypeSelect) ugEntryTypeSelect.addEventListener('change', handleEntryTypeChange);
-            scholarshipRadios.forEach(radio => radio.addEventListener('change', handleScholarshipChange));
-            if (privateSchCheckbox) privateSchCheckbox.addEventListener('change', () => { privateSchNameSection.style.display = privateSchCheckbox.checked ? 'block' : 'none'; updateActiveAccordionHeight(); });
-            if (fgCheckbox) fgCheckbox.addEventListener('change', () => { fgCertUploadSection.style.display = fgCheckbox.checked ? 'block' : 'none'; updateActiveAccordionHeight(); });
-
-            // Initial setup
-            handleScholarshipChange();
-            handleProgramChange();
-            
-            // --- 5. FORM SUBMISSION LOGIC ---
-            const form = document.getElementById('registration-form');
-            if (form) {
-                form.addEventListener('submit', async function(event) {
-                    event.preventDefault();
-                    const password = document.getElementById('password').value;
-                    const confirmPassword = document.getElementById('confirm-password').value;
-                    if (password !== confirmPassword) {
-                        alert("Passwords do not match.");
-                        return;
-                    }
-                    const formData = new FormData(form);
-                    try {
-                        const response = await fetch("{% url 'api_register_student' %}", {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRFToken': '{{ csrf_token }}' // Important for Django API calls
-                            }
+        }
+        accordionItems.forEach(item => {
+            const header = item.querySelector('.accordion-header');
+            if (header) {
+                header.addEventListener('click', () => {
+                    const content = item.querySelector('.accordion-content');
+                    if (item.classList.contains('active')) {
+                        item.classList.remove('active');
+                        content.style.maxHeight = '0px';
+                    } else {
+                        document.querySelectorAll('.accordion-item.active').forEach(openItem => {
+                            openItem.classList.remove('active');
+                            openItem.querySelector('.accordion-content').style.maxHeight = '0px';
                         });
-                        const result = await response.json();
-                        if (response.ok) {
-                            window.location.href = "{% url 'registration_success' %}";
-                        } else {
-                            alert('Error: ' + result.error);
-                        }
-                    } catch (error) {
-                        console.error('Submission Error:', error);
-                        alert('A network error occurred.');
+                        item.classList.add('active');
+                        content.style.maxHeight = content.scrollHeight + "px";
                     }
                 });
             }
         });
-    </script>
+
+        // --- 2. YEAR PICKER LOGIC (Your code is fine) ---
+        document.querySelectorAll('.year-picker').forEach(dropdown => {
+            const currentYear = new Date().getFullYear();
+            const startYear = currentYear - 40;
+            const placeholder = document.createElement('option');
+            placeholder.value = "";
+            placeholder.textContent = "-- Select Year --";
+            dropdown.appendChild(placeholder);
+            for (let year = currentYear; year >= startYear; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                dropdown.appendChild(option);
+            }
+        });
+
+        // --- 3. DEPENDENT CASTE DROPDOWN LOGIC ---
+        const communitySelect = document.getElementById('community');
+        const casteSelect = document.getElementById('caste');
+        const casteOtherGroup = document.getElementById('caste-other-group');
+
+        function updateCasteOptions() {
+            const selectedCommunity = communitySelect.value;
+
+    // ---- START: DEBUGGING LINES ----
+    console.log("Looking for key:", `'${selectedCommunity}'`); // This will show us the exact key being used, e.g., 'MBC'
+    console.log("In data object:", subCasteData);        // This will show us the entire data object and all available keys
+    // ---- END: DEBUGGING LINES ----
+
+    const castes = subCasteData[selectedCommunity] || [];
+    casteSelect.innerHTML = '';
+    casteOtherGroup.style.display = 'none';
+
+    if (castes.length === 0 || Object.keys(subCasteData).length === 0) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select Community First';
+        casteSelect.appendChild(defaultOption);
+    } else {
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '-- Select your caste --';
+        casteSelect.appendChild(placeholder);
+        castes.forEach(caste => {
+            const option = document.createElement('option');
+            option.value = caste;
+            option.textContent = caste;
+            casteSelect.appendChild(option);
+        });
+        const otherOption = document.createElement('option');
+        otherOption.value = 'Other';
+        otherOption.textContent = 'Other (Please specify)';
+        casteSelect.appendChild(otherOption);
+    }
+        }
+
+        function handleCasteChange() {
+            if (casteSelect.value === 'Other') {
+                casteOtherGroup.style.display = 'block';
+            } else {
+                casteOtherGroup.style.display = 'none';
+            }
+            updateActiveAccordionHeight();
+        }
+
+        if (communitySelect && casteSelect) {
+            communitySelect.addEventListener('change', updateCasteOptions);
+            casteSelect.addEventListener('change', handleCasteChange);
+        }
+
+        // --- 4. CONDITIONAL SECTIONS LOGIC (Your code is fine) ---
+        const programLevelSelect = document.getElementById('program_level');
+        const ugEntryTypeSection = document.getElementById('ug-entry-type-section');
+        const ugEntryTypeSelect = document.getElementById('ug_entry_type');
+        const sslcSection = document.getElementById('sslc-details-section');
+        const hscSection = document.getElementById('hsc-details-section');
+        const diplomaSection = document.getElementById('diploma-details-section');
+        const ugSection = document.getElementById('ug-details-section');
+        const pgSection = document.getElementById('pg-details-section');
+        const phdSection = document.getElementById('phd-details-section');
+        const scholarshipRadios = document.querySelectorAll('input[name="has_scholarship"]');
+        const scholarshipAccordion = document.getElementById('scholarship-accordion-item');
+        const privateSchCheckbox = document.getElementById('sch_private');
+        const privateSchNameSection = document.getElementById('private-scholarship-name-section');
+        const fgCheckbox = document.getElementById('is_first_graduate_sch');
+        const fgCertUploadSection = document.getElementById('fg-cert-upload-section');
+
+        function handleProgramChange() {
+            const level = programLevelSelect.value;
+            ugEntryTypeSection.style.display = level === 'UG' ? 'block' : 'none';
+            ugEntryTypeSelect.value = '';
+            handleEntryTypeChange();
+            sslcSection.style.display = 'none';
+            ugSection.style.display = (level === 'PG' || level === 'PHD') ? 'block' : 'none';
+            pgSection.style.display = level === 'PHD' ? 'block' : 'none';
+            phdSection.style.display = level === 'PHD' ? 'block' : 'none';
+            updateActiveAccordionHeight();
+        }
+
+        function handleEntryTypeChange() {
+            const entryType = ugEntryTypeSelect.value;
+            sslcSection.style.display = (entryType === 'Regular' || entryType === 'Lateral') ? 'block' : 'none';
+            hscSection.style.display = entryType === 'Regular' ? 'block' : 'none';
+            diplomaSection.style.display = entryType === 'Lateral' ? 'block' : 'none';
+            updateActiveAccordionHeight();
+        }
+
+        function handleScholarshipChange() {
+            const wantsScholarship = document.querySelector('input[name="has_scholarship"]:checked').value === 'yes';
+            scholarshipAccordion.style.display = wantsScholarship ? 'block' : 'none';
+        }
+
+        if (programLevelSelect) programLevelSelect.addEventListener('change', handleProgramChange);
+        if (ugEntryTypeSelect) ugEntryTypeSelect.addEventListener('change', handleEntryTypeChange);
+        scholarshipRadios.forEach(radio => radio.addEventListener('change', handleScholarshipChange));
+        if (privateSchCheckbox) privateSchCheckbox.addEventListener('change', () => { privateSchNameSection.style.display = privateSchCheckbox.checked ? 'block' : 'none'; updateActiveAccordionHeight(); });
+        if (fgCheckbox) fgCheckbox.addEventListener('change', () => { fgCertUploadSection.style.display = fgCheckbox.checked ? 'block' : 'none'; updateActiveAccordionHeight(); });
+
+        
+        // --- 5. FORM SUBMISSION LOGIC (Your code is fine) ---
+        const form = document.getElementById('registration-form');
+        if (form) {
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                if (password !== confirmPassword) {
+                    alert("Passwords do not match.");
+                    return;
+                }
+                const formData = new FormData(form);
+                try {
+                    const response = await fetch("{% url 'api_register_student' %}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        window.location.href = "{% url 'registration_success' %}";
+                    } else {
+                        alert('Error: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Submission Error:', error);
+                    alert('A network error occurred.');
+                }
+            });
+        }
+
+        // --- NEW: FUNCTION TO FETCH DATA FROM DJANGO (This was missing) ---
+        async function fetchCasteData() {
+            try {
+                const response = await fetch("{% url 'api_get_castes' %}");
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok. Status: ${response.status}`);
+                }
+                subCasteData = await response.json();
+                updateCasteOptions(); // Populate dropdown after data is loaded
+            } catch (error) {
+                console.error('Failed to fetch caste data:', error);
+                casteSelect.innerHTML = '<option value="">Error loading castes</option>';
+            }
+        }
+
+        // --- INITIAL SETUP ---
+        handleScholarshipChange();
+        handleProgramChange();
+        fetchCasteData(); // CALL THE FUNCTION TO LOAD DATA (This was missing)
+    });
+</script>
 </body>
 </html>

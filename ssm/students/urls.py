@@ -41,5 +41,6 @@ urlpatterns = [
     path('support/', views.help_and_support, name='help_and_support'),
     path('exam-timetable/', views.exam_timetable, name='exam_timetable'),
     path('edit_profile/', views.student_editprofile, name='student_editprofile'),
-    path('api/get-castes/', views.get_castes, name='get_castes'),
+    #path('api/get-castes/', views.get_castes, name='get_castes'),
+    path('api/get-castes/', views.get_caste_data_api, name='api_get_castes'),
 ]

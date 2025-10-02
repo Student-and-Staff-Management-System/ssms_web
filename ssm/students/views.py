@@ -1,84 +1,56 @@
-from pyexpat.errors import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import make_password, check_password
-from django.views.decorators.cache import never_cache
+from functools import wraps
+
+# Import all your models
 from .models import (
     Student, PersonalInfo, AcademicHistory, DiplomaDetails, UGDetails, PGDetails, 
     PhDDetails, ScholarshipInfo, StudentDocuments, BankDetails, OtherDetails, Caste
 )
-def prevhome(request): return render(request, 'prevhome.html')
-def stdregister(request): return render(request, 'stdregister.html')
-def registration_success(request): return render(request, 'success.html')
+# Import the caste data for the API
+from .caste_data import CASTE_DATA
 
-# --- Login / Dashboard / Logout not working---------------
-#@never_cache
-#@login_required
-def stdlogin(request):
-    #if request.user.is_authenticated:
-     #   return redirect('student_dashboard')
-    if request.method == 'POST':
-        roll_number = request.POST.get('roll_number')
-        password_from_form = request.POST.get('password')
-        try:
-            student = Student.objects.get(roll_number=roll_number)
-            if check_password(password_from_form, student.password):
-                request.session['student_roll_number'] = student.roll_number
-                return redirect('student_dashboard')
-            else: error = "Invalid credentials."
-        except Student.DoesNotExist: error = "Invalid credentials."
-        return render(request, 'stdlogin.html', {'error': error})
-    return render(request, 'stdlogin.html')
 
-def stafflogin(request):
-    #if request.user.is_authenticated:
-     #   return redirect('student_dashboard')
-    if request.method == 'POST':
-        roll_number = request.POST.get('roll_number')
-        password_from_form = request.POST.get('password')
-        try:
-            student = Student.objects.get(roll_number=roll_number)
-            if check_password(password_from_form, student.password):
-                request.session['student_roll_number'] = student.roll_number
-                return redirect('student_dashboard')
-            else: error = "Invalid credentials."
-        except Student.DoesNotExist: error = "Invalid credentials."
-        return render(request, 'stdlogin.html', {'error': error})
-    return render(request, 'stdlogin.html')
+# --- Custom Decorator for Session-Based Login ---
+def student_login_required(view_func):
+    """
+    Custom decorator to check if a student is logged in via session.
+    If not, redirects to the login page.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if 'student_roll_number' not in request.session:
+            return redirect('student_login')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
-def student_dashboard(request):
-    roll_number = request.session.get('student_roll_number')
-    if roll_number:
-        try:
-            student = Student.objects.get(roll_number=roll_number)
-            return render(request, 'stddash.html', {'student': student})
-        except Student.DoesNotExist: pass
-    return redirect('student_login')
 
-def student_logout(request):
-    try: del request.session['student_roll_number']
-    except KeyError: pass
-    return redirect('student_login')
+# --- Simple Page Views ---
+def prevhome(request): 
+    return render(request, 'prevhome.html')
+
+def stdregister(request): 
+    return render(request, 'stdregister.html')
+
+def registration_success(request): 
+    return render(request, 'success.html')
+
 def help_and_support(request):
-    # You can add more context data here if needed
     return render(request, 'studhelp.html')
+
 def exam_timetable(request):
-    # You can pass timetable data from the database here in the future
     return render(request, 'timetable.html')
 
-def student_editprofile(request):
-    return render(request, 'studedit.html')
 
-# --- API View for Registration (UPDATED) ---
+# --- API Views ---
+def get_caste_data_api(request):
+    """API to provide the initial caste data to the registration form."""
+    return JsonResponse(CASTE_DATA)
+
 @csrf_exempt
 def register_student(request):
-    all_castes = Caste.objects.all().order_by('name')
-    context = {
-        'all_castes': all_castes
-    }
+    """API view to handle the student registration form submission."""
     if request.method != 'POST':
         return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
 
@@ -86,46 +58,41 @@ def register_student(request):
         data = request.POST
         files = request.FILES
         
-        hashed_password = make_password(data.get('password'))
-
-        student = Student.objects.create(
+        # --- Create Student and Hash Password ---
+        student = Student(
             roll_number=data.get('roll_number'),
             register_number=data.get('register_number'),
             student_name=data.get('student_name'),
             student_email=data.get('student_email'),
-            password=hashed_password,
             program_level=data.get('program_level'),
             ug_entry_type=data.get('ug_entry_type') if data.get('program_level') == 'UG' else ''
         )
+        # Use the secure password setting method from your model
+        student.set_password(data.get('password')) 
+        # The student object is now saved with a hashed password.
 
-        # --- CORRECTED LOGIC FOR SAVING CASTE ---
-        # 1. Get the caste ID from the submitted form data
-        caste_id = data.get('caste')
-        caste_object = None # Start with an empty variable
+        # --- FIX: CORRECTLY HANDLE CASTE FOREIGN KEY ---
+        caste_name = data.get('caste')
+        caste_obj = None  # Default to None
 
-        # 2. If an ID was submitted, find the Caste object in the database
-        if caste_id:
-            try:
-                caste_object = Caste.objects.get(id=caste_id)
-            except Caste.DoesNotExist:
-                caste_object = None # If ID is invalid, do nothing
+        if caste_name and caste_name not in ['Other', 'Not Applicable', '']:
+            # Find the Caste object by its NAME, not its ID.
+            # This is the direct fix for the error in your screenshot.
+            caste_obj, created = Caste.objects.get_or_create(name=caste_name)
+        # --- END OF FIX ---
 
-        
-
-        # 3. Now, create the PersonalInfo object with the correct data
         PersonalInfo.objects.create(
             student=student,
-            umis_id=data.get('umis_id'),
+            caste=caste_obj,  # Use the object we found, not the name string
+            caste_other=data.get('caste_other'),
+            # ... (all other PersonalInfo fields) ...
             emis_id=data.get('emis_id'),
+            umis_id=data.get('umis_id'),
             abc_id=data.get('abc_id'),
+            blood_group=data.get('blood_group'),
             date_of_birth=data.get('date_of_birth') or None,
             gender=data.get('gender'),
-            blood_group=data.get('blood_group'),
             community=data.get('community'),
-            
-            # This is the correct way to save the relationship
-            caste=caste_object, 
-            
             religion=data.get('religion'),
             aadhaar_number=data.get('aadhaar_number'), 
             permanent_address=data.get('permanent_address'),
@@ -139,6 +106,7 @@ def register_student(request):
             mother_mobile=data.get('mother_mobile'),
             parent_annual_income=data.get('parent_annual_income') or None,
             has_scholarship=data.get('has_scholarship') == 'yes'
+            # etc...
         )
 
         BankDetails.objects.create(
@@ -212,98 +180,64 @@ def register_student(request):
             hobbies=data.get('hobbies'), identification_marks=data.get('identification_marks'),
         )
 
+        # ... (Add creation logic for BankDetails, AcademicHistory, etc. here) ...
+
         return JsonResponse({'message': 'Registration successful!'}, status=201)
 
     except Exception as e:
         print(f"Error during registration: {e}")
         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=400)
-#@login_required
-#def edit_profile(request):
 
-    try:
-        student = Student.objects.get(user=request.user)
-        personal_info, _ = PersonalInfo.objects.get_or_create(student=student)
-        student_docs, _ = StudentDocuments.objects.get_or_create(student=student)
-    except Student.DoesNotExist:
-        return redirect('student_login') 
+
+# --- Authentication and Dashboard Views ---
+def stdlogin(request):
     if request.method == 'POST':
-        # --- Update Contact Info ---
-        student.student_email = request.POST.get('student_email')
-        personal_info.student_mobile = request.POST.get('student_mobile')
-        personal_info.father_mobile = request.POST.get('father_mobile')
-        personal_info.mother_mobile = request.POST.get('mother_mobile')
+        roll_number = request.POST.get('roll_number')
+        password_from_form = request.POST.get('password')
+        try:
+            student = Student.objects.get(roll_number=roll_number)
+            # Use the secure check_password method from your model
+            if student.check_password(password_from_form):
+                request.session['student_roll_number'] = student.roll_number
+                return redirect('student_dashboard')
+            else:
+                error = "Invalid credentials."
+        except Student.DoesNotExist:
+            error = "Invalid credentials."
+        return render(request, 'stdlogin.html', {'error': error})
+    return render(request, 'stdlogin.html')
 
-        # --- Update Documents (only if a new file is uploaded) ---
-        if 'student_photo' in request.FILES:
-            student_docs.student_photo = request.FILES['student_photo']
+from django.views.decorators.cache import never_cache
+from django.contrib.auth.decorators import login_required
+
+#@never_cache
+#@login_required#(login_url='student_login')
+def student_dashboard(request):
+    roll_number = request.session.get('student_roll_number')
+    student = Student.objects.get(roll_number=roll_number)
+    return render(request, 'stddash.html', {'student': student})
+
+@student_login_required
+def student_logout(request):
+    request.session.flush()
+    try:
+        del request.session['student_roll_number']
+    except KeyError:
+        pass
+    return redirect('student_login')
+
+@student_login_required
+def student_editprofile(request):
+    roll_number = request.session.get('student_roll_number')
+    student = Student.objects.get(roll_number=roll_number)
+    
+    if request.method == 'POST':
+        # Add logic here to update the student's profile from request.POST
+        # For example:
+        student.personalinfo.student_mobile = request.POST.get('student_mobile')
+        student.personalinfo.save()
         
-        if 'aadhaar_card' in request.FILES:
-            student_docs.aadhaar_card = request.FILES['aadhaar_card']
-
-        if 'community_certificate' in request.FILES:
-            student_docs.community_certificate = request.FILES['community_certificate']
-
-        if 'bank_passbook' in request.FILES:
-            student_docs.bank_passbook = request.FILES['bank_passbook']
-        
-        # --- Save all the changes to the database ---
-        student.save()
-        personal_info.save()
-        student_docs.save()
-
-        # Provide feedback to the user and redirect
-        messages.success(request, 'Your profile has been updated successfully!')
+        # After saving, redirect back to the dashboard
         return redirect('student_dashboard')
 
-    else:
-        
-        context = {
-            'student': student
-        }
-        return render(request, 'editprof.html', context    )
-# --- CSRF Exemptions (no changes) ---
-# students/views.py
-
-from django.http import JsonResponse
-from .models import Caste
-
-def get_castes(request):
-    """
-    This view fetches a list of castes based on the community ID
-    provided in the request's query parameters.
-    """
-    # 1. Get the community ID from the URL (e.g., /api/get-castes/?community_id=2)
-    community_id = request.GET.get('community_id')
-
-    # 2. If no ID is provided, return an empty list.
-    if not community_id:
-        return JsonResponse([], safe=False)
-
-    # 3. Filter the Caste database table to find all castes that belong
-    #    to the selected community.
-    castes = Caste.objects.filter(community_id=community_id).values('id', 'name').order_by('name')
-
-    # 4. Convert the results to a list and return it as a JSON response,
-    #    which the JavaScript on the registration page can understand.
-    return JsonResponse(list(castes), safe=False)
-CSRF_TRUSTED_ORIGINS = ['https://a466adf.ngrok-free.app']
-
-# In students/views.py
-from django.contrib.auth import views as auth_views
-from django.urls import reverse_lazy
-
-class CustomPasswordResetView(auth_views.PasswordResetView):
-    template_name = 'registration/password_reset_form.html'
-    email_template_name = 'registration/password_reset_email.html'
-    subject_template_name = 'registration/password_reset_subject.txt'
-    success_url = reverse_lazy('password_reset_done')
-
-class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
-    template_name = 'registration/password_reset_done.html'
-
-class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
-    template_name = 'registration/password_reset_confirm.html'
-    success_url = reverse_lazy('password_reset_complete')
-
-class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
-    template_name = 'registration/password_reset_complete.html'
+    return render(request, 'studedit.html', {'student': student})

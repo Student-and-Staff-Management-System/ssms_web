@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login - Department of IT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #f8f9fa;
+            --secondary-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #5a7d7c;
+            --accent-color-hover: #4a6b69;
+            --error-color: #dc3545;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--primary-bg); color: var(--text-primary); margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .login-container { display: flex; width: 100%; max-width: 900px; background-color: var(--secondary-bg); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.07); overflow: hidden; border: 1px solid var(--border-color); }
+        .branding-panel { flex: 1; background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover)); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px; color: white; }
+        .branding-panel img { width: 120px; height: auto; margin-bottom: 20px; filter: brightness(0) invert(1); }
+        .branding-panel h1 { font-size: 1.8em; margin: 0; }
+        .branding-panel p { opacity: 0.8; font-size: 1em; font-weight: 400; max-width: 300px; }
+        .login-panel { flex: 1.2; display: flex; flex-direction: column; justify-content: center; padding: 50px; }
+        .login-panel h2 { font-size: 2em; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+        .login-panel .subtitle { color: var(--text-secondary); margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500; font-size: 0.9em; }
+        .input-group input { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; color: #ffffff; background-color: var(--accent-color); margin-top: 10px; transition: background-color 0.3s; }
+        .btn-login:hover { background-color: var(--accent-color-hover); }
+        .error-message { color: var(--error-color); background-color: rgba(220, 53, 69, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 20px; text-align: center; font-size: 0.9em; }
+        .home-link { text-align: center; margin-top: 20px; }
+        .home-link a { color: var(--accent-color); text-decoration: none; font-weight: 500; font-size: 0.9em; }
+        @media (max-width: 768px) { .branding-panel { display: none; } .login-panel { padding: 40px; } }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="branding-panel">
+            <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="University Logo"/>
+            <h1>Staff Portal</h1>
+            <p>Department of Information Technology</p>
+        </div>
+        <div class="login-panel">
+            <h2>Staff Login</h2>
+            <p class="subtitle">Please enter your credentials to proceed.</p>
+            {% if error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+            <form method="POST">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="staff_id">Staff ID / Email</label>
+                    <input type="text" id="staff_id" name="staff_id" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+            <div class="home-link">
+                <a href="{% url 'students:homepage' %}">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
