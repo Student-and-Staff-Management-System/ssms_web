@@ -49,5 +49,6 @@ urlpatterns = [
     path('password-reset/identify/', views.password_reset_identify, name='password_reset_identify'),
     path('password-reset/verify/', views.password_reset_verify, name='password_reset_verify'),
     path('password-reset/confirm/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('service-unavailable/', views.service_unavailable, name='service_unavailable'),
 
 ]

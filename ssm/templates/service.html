@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Unavailable</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <style>
+        :root {
+            --primary-bg: #f8f9fa;
+            --secondary-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #5a7d7c;
+            --accent-color-hover: #4a6b69;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--primary-bg); 
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+        .logo-section {
+            margin-bottom: 30px;
+        }
+        .logo-section img {
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        .logo-section h1 {
+            font-size: 1.8em;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+        .content p {
+            color: var(--text-secondary);
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .action-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .action-btn:hover {
+            background-color: var(--accent-color-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-section">
+            <img src="{% static 'imgs/aublack.png' %}" alt="University Logo" width="150" height="auto"/>
+            <h1>Feature Under Development</h1>
+        </div>
+
+        <div class="content">
+            <p>
+                We're working hard to bring you this feature. Please check back later. 
+                Thank you for your patience!
+            </p>
+            
+            <a href="javascript:history.back()" class="action-btn">Go Back</a>
+        </div>
+    </div>
+</body>
+</html>

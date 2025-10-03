@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+
+    <style>
+        :root { --primary-bg: #f8f9fa; --secondary-bg: #ffffff; --text-primary: #212529; --text-secondary: #6c757d; --border-color: #dee2e6; --accent-color: #5a7d7c; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--primary-bg); color: var(--text-primary); margin: 40px; }
+        .container { max-width: 1200px; margin: auto; background-color: var(--secondary-bg); padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
+        h1 { color: var(--accent-color); }
+        .logout-btn { background-color: var(--accent-color); color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome, {{ staff.name }}</h1>
+            <a href="{% url 'staffs:staff_logout' %}" class="logout-btn">Logout</a>
+        </div>
+        <p>This is the staff dashboard. You can add staff-specific features here, like viewing student records, managing attendance, etc.</p>
+    </div>
+</body>
+</html>

@@ -327,13 +327,14 @@
                     <div class="essential-links">
                         <a href="{% url 'exam_timetable' %}">📅 Timetable</a>
                         <a href="https://annamalaiuniversity.ac.in/aucoe/rs_view.php" target="_blank">🎓 Results</a>
-                        <a href="#">✅ Attendance</a>
+                        {% comment %} <a href="{% url 'service_unavailable' %}">✅ Attendance</a> {% endcomment %}
+                        <a href="{% url 'service_unavailable' %}">✅ Attendance</a>
                         <a href="https://annamalaiuniversity.ac.in/" target="_blank">🏫 AU Main Site</a>
                         <a href="https://annamalaiuniversity.ac.in/studport/epayment_rgl_hfee.php?mode=oNln" target="_blank">💳 Hostel Fees</a>
                         <a href="https://annamalaiuniversity.ac.in/studport/tf_general_pharmacy.php?fee=tf" target="_blank">💳 Tuition Fees</a>
                         <a href="{% url 'student_editprofile' %}">✏️ Edit Profile</a>
                         <a href="{% url 'help_and_support' %}">❓ Support</a>
-                        <a href="{% url 'student_editprofile' %}">🗒️AI Resume Generation</a>
+                        <a href="{% url 'service_unavailable' %}">🗒️AI Resume Generation</a>
                     </div>
                 </div>
             </div>

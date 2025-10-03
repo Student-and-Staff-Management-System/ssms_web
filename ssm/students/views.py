@@ -41,6 +41,8 @@ def help_and_support(request):
 
 def exam_timetable(request):
     return render(request, 'timetable.html')
+def service_unavailable(request):
+    return render(request, 'service.html')
 
 
 # --- API Views ---

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+
+    <style>
+        :root { --primary-bg: #f8f9fa; --secondary-bg: #ffffff; --text-primary: #212529; --text-secondary: #6c757d; --border-color: #dee2e6; --accent-color: #5a7d7c; --accent-color-hover: #4a6b69; --error-bg: #f8d7da; --error-text: #842029; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--primary-bg); color: var(--text-primary); margin: 0; padding: 40px 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .form-header { text-align: center; margin-bottom: 40px; }
+        .form-header img { height: 60px; margin-bottom: 20px; }
+        .form-header h1 { font-size: 2.5em; margin: 0; }
+        .form-header p { color: var(--text-secondary); font-size: 1.1em; }
+        .messages { list-style: none; padding: 0; margin-bottom: 20px; }
+        .messages li.error { padding: 12px 15px; border-radius: 6px; background-color: var(--error-bg); color: var(--error-text); border: 1px solid #f1aeb5; }
+        .accordion-item { background-color: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .accordion-header { padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-header h2 { margin: 0; font-size: 1.2em; font-weight: 600; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; padding: 0 20px; }
+        .accordion-item.active .accordion-content { padding: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { margin-bottom: 8px; font-weight: 500; color: var(--text-secondary); }
+        .input-group input, .input-group select, .input-group textarea { background-color: #fff; border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 6px; font-family: 'Poppins', sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; }
+        .input-group textarea { resize: vertical; min-height: 100px; }
+        .button-group { display: flex; gap: 15px; margin-top: 30px; }
+        .submit-btn, .cancel-btn { flex: 1; border: none; padding: 15px; font-size: 1.1em; font-weight: 600; border-radius: 6px; cursor: pointer; text-align: center; text-decoration: none; }
+        .submit-btn { background-color: var(--accent-color); color: #ffffff; }
+        .cancel-btn { background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-header">
+            <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo">
+            <h1>Staff Registration</h1>
+            <p>Enter the details for the new staff member.</p>
+        </div>
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="accordion-item">
+                <div class="accordion-header"><h2>Login & Basic Information</h2></div>
+                <div class="accordion-content">
+                    <div class="form-grid">
+                        <div class="input-group"><label for="staff_id">Staff ID</label><input type="text" id="staff_id" name="staff_id" required></div>
+                        <div class="input-group"><label for="name">Full Name</label><input type="text" id="name" name="name" required></div>
+                        <div class="input-group"><label for="email">Email</label><input type="email" id="email" name="email" required></div>
+                        <div class="input-group"><label for="password">Password</label><input type="password" id="password" name="password" required></div>
+                        <div class="input-group"><label for="photo">Staff Photo</label><input type="file" id="photo" name="photo" accept="image/*"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header"><h2>Professional Details</h2></div>
+                <div class="accordion-content">
+                    <div class="form-grid">
+                        <div class="input-group"><label for="salutation">Salutation</label><select id="salutation" name="salutation"><option value="Dr.">Dr.</option><option value="Prof.">Prof.</option><option value="Mr.">Mr.</option><option value="Ms.">Ms.</option></select></div>
+                        <div class="input-group"><label for="designation">Designation</label><input type="text" id="designation" name="designation" placeholder="e.g., Assistant Professor" required></div>
+                        <div class="input-group"><label for="department">Department</label><input type="text" id="department" name="department" value="Information Technology"></div>
+                        <div class="input-group"><label for="qualification">Qualification</label><input type="text" id="qualification" name="qualification" placeholder="e.g., M.Tech, Ph.D"></div>
+                        <div class="input-group"><label for="specialization">Area of Specialization</label><input type="text" id="specialization" name="specialization"></div>
+                        <div class="input-group"><label for="date_of_birth">Date of Birth</label><input type="date" id="date_of_birth" name="date_of_birth"></div>
+                        <div class="input-group"><label for="date_of_joining">Date of Joining</label><input type="date" id="date_of_joining" name="date_of_joining"></div>
+                        <div class="input-group" style="grid-column: 1 / -1;"><label for="address">Address for Communication</label><textarea id="address" name="address"></textarea></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header"><h2>Academic & Professional Accomplishments</h2></div>
+                <div class="accordion-content">
+                    <div class="form-grid" style="grid-template-columns: 1fr;">
+                        <div class="input-group"><label for="academic_details">Academic Details</label><textarea id="academic_details" name="academic_details" placeholder="List degrees and qualifications, one per line."></textarea></div>
+                        <div class="input-group"><label for="experience">Experience</label><textarea id="experience" name="experience" placeholder="List previous positions and years of experience."></textarea></div>
+                        <div class="input-group"><label for="publications">Publications</label><textarea id="publications" name="publications" placeholder="List key publications, one per line."></textarea></div>
+                        <div class="input-group"><label for="awards_and_memberships">Awards / Honours / Memberships</label><textarea id="awards_and_memberships" name="awards_and_memberships" placeholder="List items, one per line."></textarea></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="{% url 'staffs:stafflogin' %}" class="cancel-btn">Cancel</a>
+                <button type="submit" class="submit-btn">Register Staff</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            if (accordionItems.length > 0) {
+                accordionItems[0].classList.add('active');
+                const firstContent = accordionItems[0].querySelector('.accordion-content');
+                if (firstContent) firstContent.style.maxHeight = firstContent.scrollHeight + "px";
+            }
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                header.addEventListener('click', () => {
+                    const content = item.querySelector('.accordion-content');
+                    const isActive = item.classList.contains('active');
+                    document.querySelectorAll('.accordion-item.active').forEach(openItem => {
+                        openItem.classList.remove('active');
+                        openItem.querySelector('.accordion-content').style.maxHeight = '0px';
+                    });
+                    if (!isActive) {
+                        item.classList.add('active');
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
