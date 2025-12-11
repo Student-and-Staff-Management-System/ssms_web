@@ -211,10 +211,32 @@ from django.contrib.auth.decorators import login_required
 
 #@never_cache
 #@login_required#(login_url='student_login')
+@student_login_required
 def student_dashboard(request):
     roll_number = request.session.get('student_roll_number')
-    student = Student.objects.get(roll_number=roll_number)
-    return render(request, 'stddash.html', {'student': student})
+    try:
+        student = Student.objects.get(roll_number=roll_number)
+    except Student.DoesNotExist:
+        # Session could be stale or invalid
+        request.session.flush()
+        return redirect('student_login')
+    
+    # helper to safely get related objects
+    def get_related_or_none(model_class, student_obj):
+        try:
+            return model_class.objects.get(student=student_obj)
+        except model_class.DoesNotExist:
+            return None
+
+    context = {
+        'student': student,
+        'diploma': get_related_or_none(DiplomaDetails, student),
+        'ug': get_related_or_none(UGDetails, student),
+        'pg': get_related_or_none(PGDetails, student),
+        'phd': get_related_or_none(PhDDetails, student),
+        'other_details': get_related_or_none(OtherDetails, student),
+    }
+    return render(request, 'stddash.html', context)
 
 @student_login_required
 def student_logout(request):

@@ -24,3 +24,4 @@ class StaticFilesHeadersMiddleware(MiddlewareMixin):
         return response
 
 
+
