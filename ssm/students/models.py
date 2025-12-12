@@ -63,7 +63,7 @@ class PersonalInfo(models.Model):
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES, blank=True)
     community = models.CharField(max_length=50, choices=COMMUNITY_CHOICES, blank=True)
     caste = models.ForeignKey(Caste, on_delete=models.SET_NULL, blank=True, null=True)
-    caste_other = models.CharField(max_length=100, blank=True, null=True) # F
+    caste_other = models.CharField(max_length=100, blank=True, null=True)
     religion = models.CharField(max_length=50, choices=RELIGION_CHOICES, blank=True)
     aadhaar_number = models.CharField(max_length=12, blank=True)
     permanent_address = models.TextField(blank=True)

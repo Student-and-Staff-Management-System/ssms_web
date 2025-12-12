@@ -86,6 +86,16 @@
             margin-bottom: 20px;
             font-weight: 500;
         }
+
+        .status-good {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+
+        .status-bad {
+            color: #e74c3c;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -152,7 +162,8 @@
                 <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
                     {% for date in working_dates %}
                     <span
-                        style="background: #e0e0e0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">{{date|date:"d M Y" }}</span>
+                        style="background: #e0e0e0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">{{date|date:"d
+                        M Y" }}</span>
                     {% endfor %}
                 </div>
             </details>
@@ -177,8 +188,7 @@
                     <td style="color: #2ecc71; font-weight: 600;">{{ data.present }}</td>
                     <td style="color: #7c0c00; font-weight: 600;">{{ data.absent }}</td>
                     <td>
-                        <span
-                            style="font-weight: 600; color: {% if data.percentage < 75 %}#e74c3c{% else %}#2ecc71{% endif %};">
+                        <span class="{% if data.percentage < 75 %}status-bad{% else %}status-good{% endif %}">
                             {{ data.percentage }}%
                         </span>
                     </td>
