@@ -609,6 +609,69 @@ def export_attendance_csv(request, subject_id):
 
     return response
 
+def export_marks_csv(request, subject_id):
+    """Exports student marks for a specific subject to CSV."""
+    import csv
+    from django.http import HttpResponse
+    from .models import Subject
+    from students.models import StudentMarks
+
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    subject = get_object_or_404(Subject, id=subject_id)
+    students = Student.objects.filter(current_semester=subject.semester).order_by('roll_number')
+
+    # Prepare CSV response
+    response = HttpResponse(content_type='text/csv')
+    filename = f"{subject.code}_marks.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    # Fetch all marks for efficiency
+    marks_entries = StudentMarks.objects.filter(subject=subject) # Keep queryset for checking existence
+    marks_map = {m.student.roll_number: m for m in marks_entries}
+
+    # Determine which columns have data
+    has_test1 = any(m.test1_marks is not None for m in marks_entries)
+    has_test2 = any(m.test2_marks is not None for m in marks_entries)
+    has_internal = any(m.internal_marks is not None for m in marks_entries)
+
+    # Dynamic Header
+    header = ['Roll Number', 'Student Name']
+    if has_test1: header.append('Test 1')
+    if has_test2: header.append('Test 2')
+    if has_internal: header.append('Internal')
+    # Removed Total as requested ("remove totals")
+    
+    writer = csv.writer(response)
+    writer.writerow(header)
+
+    for student in students:
+        marks = marks_map.get(student.roll_number)
+        
+        # Last 3 digits of roll number, clean number (no quote requested: "and ` in roll no, just number is")
+        roll_short = student.roll_number[-3:] if len(student.roll_number) >= 3 else student.roll_number
+        if roll_short.isdigit():
+             # If it's a pure number, Excel might strip leading zeros. 
+             # User said "just number is", implying they don't want the quote hack. 
+             # We will just write the string. Excel handles CSV digits as numbers usually (stripping 0).
+             # If they want to keep 023 as 023 without quote, it's tricky in CSV for Excel.
+             # But "just number is" suggests removing the quote wrapper.
+             pass
+        
+        row = [roll_short, student.student_name]
+
+        if has_test1:
+             row.append(marks.test1_marks if marks and marks.test1_marks is not None else '')
+        if has_test2:
+             row.append(marks.test2_marks if marks and marks.test2_marks is not None else '')
+        if has_internal:
+             row.append(marks.internal_marks if marks and marks.internal_marks is not None else '')
+        
+        writer.writerow(row)
+
+    return response
+
 def staff_list(request):
     """Displays a list of staff members with search functionality."""
     if 'staff_id' not in request.session:

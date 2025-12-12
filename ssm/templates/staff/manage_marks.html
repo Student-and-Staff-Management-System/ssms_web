@@ -8,6 +8,8 @@
     <title>Manage Marks | {{ subject.name }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
     <style>
         :root {
             --primary-color: #5a7d7c;
@@ -126,7 +128,11 @@
                 <h1>Manage Marks</h1>
                 <p style="margin: 5px 0 0; color: #7f8c8d;">{{ subject.name }} ({{ subject.code }})</p>
             </div>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">Back to Dashboard</a>
+            <div>
+                <a href="{% url 'staffs:export_marks_csv' subject.id %}" class="btn-back"
+                    style="background-color: #27ae60; margin-right: 10px;">Export</a>
+                <a href="{% url 'staffs:manage_subjects' %}" class="btn-back">Back to Courses</a>
+            </div>
         </div>
 
         {% if messages %}
