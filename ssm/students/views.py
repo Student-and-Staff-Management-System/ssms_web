@@ -378,6 +378,7 @@ def password_reset_confirm(request):
             messages.error(request, 'Passwords do not match or are empty.')
             return render(request, 'p3.html', {'student': student})
 
+
         student.set_password(password)
         student.save()
 
@@ -390,3 +391,177 @@ def password_reset_confirm(request):
         return redirect('student_login')
         
     return render(request, 'p3.html', {'student': student})
+
+
+@student_login_required
+def student_attendance(request):
+    """Displays student's attendance data course-wise."""
+    roll_number = request.session.get('student_roll_number')
+    try:
+        student = Student.objects.get(roll_number=roll_number)
+    except Student.DoesNotExist:
+        request.session.flush()
+        return redirect('student_login')
+    
+    from staffs.models import Subject
+    from .models import StudentAttendance
+    
+    subjects = Subject.objects.filter(semester=student.current_semester).order_by('code')
+    
+    attendance_data = []
+    
+    # Chart Data Arrays
+    chart_labels = []
+    chart_present = []
+    chart_absent = []
+    
+    total_classes_overall = 0
+    present_total_overall = 0
+    
+    for subject in subjects:
+        attendance_entries = StudentAttendance.objects.filter(
+            student=student,
+            subject=subject
+        )
+        total_classes = attendance_entries.count()
+        present_count = attendance_entries.filter(status='Present').count()
+        absent_count = attendance_entries.filter(status='Absent').count()
+        
+        if total_classes > 0:
+            percentage = (present_count / total_classes) * 100
+        else:
+            percentage = 0
+            
+        attendance_data.append({
+            'subject': subject,
+            'total_classes': total_classes,
+            'present': present_count,
+            'absent': absent_count,
+            'percentage': round(percentage, 2),
+            'status_color': 'success' if percentage >= 75 else 'warning' if percentage >= 65 else 'danger'
+        })
+        
+        # Populate Chart Data if classes exist
+        if total_classes > 0:
+            chart_labels.append(subject.code)
+            chart_present.append(present_count)
+            chart_absent.append(absent_count)
+            
+            total_classes_overall += total_classes
+            present_total_overall += present_count
+
+    # Overall Statistics
+    overall_percentage = 0
+    if total_classes_overall > 0:
+        overall_percentage = round((present_total_overall / total_classes_overall) * 100, 2)
+
+    context = {
+        'student': student,
+        'attendance_data': attendance_data,
+        'overall_stats': {
+            'total_classes': total_classes_overall,
+            'present_count': present_total_overall,
+            'overall_percentage': overall_percentage,
+            'attendance_status': 'Good' if overall_percentage >= 75 else 'Average' if overall_percentage >= 65 else 'Low'
+        },
+        'chart_data': {
+            'labels': chart_labels,
+            'present': chart_present,
+            'absent': chart_absent
+        }
+    }
+    
+    return render(request, 'student_attendance.html', context)
+
+
+@student_login_required
+def student_marks(request):
+    """Displays student's marks with pre-processed chart data."""
+    roll_number = request.session.get('student_roll_number')
+    try:
+        student = Student.objects.get(roll_number=roll_number)
+    except Student.DoesNotExist:
+        request.session.flush()
+        return redirect('student_login')
+    
+    from staffs.models import Subject
+    from .models import StudentMarks
+    
+    subjects = Subject.objects.filter(semester=student.current_semester).order_by('code')
+    
+    marks_data = []
+    
+    # Chart Data Arrays
+    radar_labels = []
+    radar_test1 = []
+    radar_test2 = []
+    radar_internal = []
+    
+    has_any_data = False
+    
+    for subject in subjects:
+        try:
+            marks = StudentMarks.objects.get(student=student, subject=subject)
+            
+            # Normalize marks (None -> 0 for calculations)
+            t1 = marks.test1_marks if marks.test1_marks is not None else 0
+            t2 = marks.test2_marks if marks.test2_marks is not None else 0
+            internal = marks.internal_marks if marks.internal_marks is not None else 0
+            
+            has_data = True
+            has_any_data = True
+            
+            marks_data.append({
+                'subject': {
+                    'name': subject.name,
+                    'code': subject.code,
+                    'semester': subject.semester
+                },
+                'test1': marks.test1_marks, # Keep None for display as "-"
+                'test2': marks.test2_marks,
+                'internal': marks.internal_marks,
+                'has_data': True
+            })
+            
+            # Populate Chart Data
+            radar_labels.append(subject.code)
+            radar_test1.append(t1)
+            radar_test2.append(t2)
+            radar_internal.append(internal)
+            
+        except StudentMarks.DoesNotExist:
+            marks_data.append({
+                'subject': {
+                    'name': subject.name,
+                    'code': subject.code,
+                    'semester': subject.semester
+                },
+                'test1': None,
+                'test2': None,
+                'internal': None,
+                'has_data': False
+            })
+            # Still add label for radar to show missing subject gap
+            radar_labels.append(subject.code)
+            radar_test1.append(0)
+            radar_test2.append(0)
+            radar_internal.append(0)
+    
+    # Filter empty charts if essentially no data
+    if not has_any_data:
+        radar_labels = [] # Prevents empty chart rendering
+
+    context = {
+        'student': student,
+        'marks_data': marks_data,
+        'has_any_data': has_any_data,
+        'chart_data': {
+            'labels': radar_labels,
+            'test1': radar_test1,
+            'test2': radar_test2,
+            'internal': radar_internal
+        }
+    }
+    
+    return render(request, 'student_marks.html', context)
+

@@ -1,0 +1,365 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Attendance - {{ student.student_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: #f8f9fa;
+            --secondary-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --accent-color: #5a7d7c;
+            --accent-hover: #4a6b69;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+            --danger: #e74c3c;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: var(--secondary-bg);
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: var(--accent-color);
+            font-size: 1.5em;
+        }
+
+        .btn-back {
+            background: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .btn-back:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        /* Charts Section */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: var(--secondary-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            min-height: 400px;
+        }
+
+        .chart-card h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Subject Cards */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .subject-card {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border-left: 5px solid var(--accent-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .subject-card.success {
+            border-left-color: var(--success);
+        }
+
+        .subject-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .subject-card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .subject-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .subject-code {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar-bg {
+            background: #eee;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .attendance-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 900px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>📝 My Attendance</h1>
+            <a href="{% url 'student_dashboard' %}" class="btn-back">← Back to Dashboard</a>
+        </header>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Overall Attendance</div>
+                <div class="stat-value"
+                    style="color: {% if overall_stats.overall_percentage >= 75 %}var(--success){% elif overall_stats.overall_percentage >= 65 %}var(--warning){% else %}var(--danger){% endif %}">
+                    {{ overall_stats.overall_percentage }}%
+                </div>
+                <div class="stat-label">Status: {{ overall_stats.attendance_status }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Classes</div>
+                <div class="stat-value">{{ overall_stats.total_classes }}</div>
+                <div class="stat-label">Sessions Conducted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Classes Attended</div>
+                <div class="stat-value">{{ overall_stats.present_count }}</div>
+                <div class="stat-label">Sessions Present</div>
+            </div>
+        </div>
+
+        {% if attendance_data %}
+        <div class="charts-row">
+            <!-- Overall Radial Gauge -->
+            <div class="chart-card">
+                <h3>Overall Performance</h3>
+                <div class="chart-container">
+                    <canvas id="overallGauge"></canvas>
+                </div>
+            </div>
+            <!-- Course-wise Bar Chart -->
+            <div class="chart-card">
+                <h3>Subject-wise Breakdown</h3>
+                <div class="chart-container">
+                    <canvas id="subjectBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <h3>Course Details</h3>
+        <div class="subjects-grid">
+            {% for item in attendance_data %}
+            <div class="subject-card {{ item.status_color }}">
+                <div>
+                    <div class="subject-title">{{ item.subject.name }}</div>
+                    <div class="subject-code">{{ item.subject.code }}</div>
+                </div>
+                <div>
+                    <div style="display:flex; justify-content:space-between; font-weight:600;">
+                        <span>{{ item.percentage }}%</span>
+                        <span>{{ item.present }}/{{ item.total_classes }}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill"
+                            style="width:{{ item.percentage }}%; background-color: var(--{{ item.status_color }})">
+                        </div>
+                    </div>
+                    <div class="attendance-details">
+                        <span>Present: {{ item.present }}</span>
+                        <span>Absent: {{ item.absent }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="stat-card">
+            <h3>No attendance records found for this semester.</h3>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pass Data Safely to JS -->
+    {{ chart_data|json_script:"chart-data" }}
+    {{ overall_stats|json_script:"overall-stats" }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+            const overallStats = JSON.parse(document.getElementById('overall-stats').textContent);
+
+            if (!chartData.labels || chartData.labels.length === 0) return;
+
+            // 1. Overall Radial Gauge (Donut)
+            const overallCtx = document.getElementById('overallGauge').getContext('2d');
+            new Chart(overallCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Present', 'Absent'],
+                    datasets: [{
+                        data: [overallStats.overall_percentage, 100 - overallStats.overall_percentage],
+                        backgroundColor: [
+                            overallStats.overall_percentage >= 75 ? '#2ecc71' : (overallStats.overall_percentage >= 65 ? '#f1c40f' : '#e74c3c'),
+                            '#ecf0f1'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    circumference: 180,
+                    rotation: -90,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },
+                        title: {
+                            display: true,
+                            text: overallStats.overall_percentage + '% Attendance',
+                            position: 'bottom',
+                            font: { size: 20 }
+                        }
+                    }
+                }
+            });
+
+            // 2. Subject Bar Chart
+            const barCtx = document.getElementById('subjectBarChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: 'Present',
+                            data: chartData.present,
+                            backgroundColor: '#2ecc71',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Absent',
+                            data: chartData.absent,
+                            backgroundColor: '#e74c3c',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -11,23 +11,23 @@
         type="image/png">
     <style>
         :root {
-    --primary-bg: #f8f9fa;
-    --secondary-bg: #ffffff;
-    
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
-    
-    --border-color: #dee2e6;
-    
-    /* The specific teal shade you used */
-    --accent-color: #5a7d7c;
-    --accent-color-hover: #4a6b69;
-    --light-accent-bg: #eef2f2;
-    
-    /* Standard utility colors (kept from your snippet as they fit well) */
-    --danger-color: #dc3545;
-    --success-color: #28a745;
-            
+            --primary-bg: #f8f9fa;
+            --secondary-bg: #ffffff;
+
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+
+            --border-color: #dee2e6;
+
+            /* The specific teal shade you used */
+            --accent-color: #5a7d7c;
+            --accent-color-hover: #4a6b69;
+            --light-accent-bg: #eef2f2;
+
+            /* Standard utility colors (kept from your snippet as they fit well) */
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+
             /* Dynamic spacing variables */
             --sidebar-width: clamp(280px, 20vw, 320px);
             --container-padding: clamp(15px, 2vw, 25px);
@@ -527,13 +527,14 @@
                 <a href="{% url 'exam_timetable' %}"><span class="emoji">📅</span> Exam Timetable</a>
                 <a href="https://annamalaiuniversity.ac.in/aucoe/rs_view.php" target="_blank" rel="noopener"><span
                         class="emoji">📊</span> Exam Results</a>
-                <a href="{% url 'service_unavailable' %}"><span class="emoji">📝</span> Attendance</a>
+                <a href="{% url 'student_attendance' %}"><span class="emoji">📝</span> Attendance</a>
+                <a href="{% url 'student_marks' %}"><span class="emoji">📈</span> Marks</a>
                 <a href="https://annamalaiuniversity.ac.in/" target="_blank" rel="noopener"><span
                         class="emoji">🌐</span> AU Main Site</a>
-                <a href="https://annamalaiuniversity.ac.in/studport/epayment_rgl_hfee.php?mode=oNln"
-                    target="_blank" rel="noopener"><span class="emoji">🏠</span> Hostel Fees</a>
-                <a href="https://annamalaiuniversity.ac.in/studport/tf_general_pharmacy.php?fee=tf"
-                    target="_blank" rel="noopener"><span class="emoji">💰</span> Tuition Fees</a>
+                <a href="https://annamalaiuniversity.ac.in/studport/epayment_rgl_hfee.php?mode=oNln" target="_blank"
+                    rel="noopener"><span class="emoji">🏠</span> Hostel Fees</a>
+                <a href="https://annamalaiuniversity.ac.in/studport/tf_general_pharmacy.php?fee=tf" target="_blank"
+                    rel="noopener"><span class="emoji">💰</span> Tuition Fees</a>
                 <a href="{% url 'student_editprofile' %}"><span class="emoji">✏️</span> Edit Profile</a>
                 <a href="{% url 'help_and_support' %}"><span class="emoji">❓</span> Help & Support</a>
                 <a href="{% url 'service_unavailable' %}"><span class="emoji">📄</span> AI Resume Gen</a>
@@ -562,15 +563,15 @@
                 <div class="card">
                     <h2 class="card-title">👤 Personal Information</h2>
                     <div class="details-grid">
-                        <div class="detail-item"><strong>Email</strong> <span>{{ student.student_email|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Mobile</strong> <span>{{ student.personalinfo.student_mobile|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>DOB</strong> <span>{{ student.personalinfo.date_of_birth|date:"d M Y"|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Gender</strong> <span>{{ student.personalinfo.get_gender_display|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Community</strong> <span>{{ student.personalinfo.community|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Caste</strong> <span>{% if student.personalinfo.caste %}{{ student.personalinfo.caste.name }}{% elif student.personalinfo.caste_other %}{{ student.personalinfo.caste_other }}{% else %}-{% endif %}</span></div>
-                        <div class="detail-item"><strong>Blood Group</strong> <span>{{ student.personalinfo.get_blood_group_display|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Aadhaar</strong> <span>{{ student.personalinfo.aadhaar_number|default:"-" }}</span></div>
-                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Address</strong> <span>{{ student.personalinfo.present_address|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Email</strong> <span>{{ student.student_email|default:"-"}}</span></div>
+                        <div class="detail-item"><strong>Mobile</strong> <span>{{student.personalinfo.student_mobile|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>DOB</strong> <span>{{student.personalinfo.date_of_birth|date:"d M Y"|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Gender</strong> <span>{{student.personalinfo.get_gender_display|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Community</strong> <span>{{student.personalinfo.community|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Caste</strong> <span>{% if student.personalinfo.caste %}{{student.personalinfo.caste.name }}{% elif student.personalinfo.caste_other %}{{student.personalinfo.caste_other }}{% else %}-{% endif %}</span></div>
+                        <div class="detail-item"><strong>Blood Group</strong> <span>{{student.personalinfo.get_blood_group_display|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Aadhaar</strong> <span>{{student.personalinfo.aadhaar_number|default:"-" }}</span></div>
+                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Address</strong> <span>{{student.personalinfo.present_address|default:"-" }}</span></div>
                     </div>
                 </div>
 
@@ -593,8 +594,8 @@
                     <div class="academic-section">
                         <h4>HSC / 12th Details</h4>
                         <div class="details-grid">
-                            <div class="detail-item"><strong>School</strong> <span>{{ student.academichistory.hsc_school_name }}</span></div>
-                            <div class="detail-item"><strong>Percentage</strong> <span>{{ student.academichistory.hsc_percentage }}%</span></div>
+                            <div class="detail-item"><strong>School</strong> <span>{{student.academichistory.hsc_school_name }}</span></div>
+                            <div class="detail-item"><strong>Percentage</strong> <span>{{student.academichistory.hsc_percentage }}%</span></div>
                         </div>
                     </div>
                     {% endif %}
@@ -602,8 +603,8 @@
                     <div class="academic-section">
                         <h4>SSLC / 10th Details</h4>
                         <div class="details-grid">
-                            <div class="detail-item"><strong>School</strong> <span>{{ student.academichistory.sslc_school_name }}</span></div>
-                            <div class="detail-item"><strong>Percentage</strong> <span>{{ student.academichistory.sslc_percentage }}%</span></div>
+                            <div class="detail-item"><strong>School</strong> <span>{{student.academichistory.sslc_school_name }}</span></div>
+                            <div class="detail-item"><strong>Percentage</strong> <span>{{student.academichistory.sslc_percentage }}%</span></div>
                         </div>
                     </div>
                     {% endif %}
@@ -613,11 +614,11 @@
                 <div class="card">
                     <h2 class="card-title">👨‍👩‍👦 Parent Details</h2>
                     <div class="details-grid">
-                        <div class="detail-item"><strong>Father</strong> <span>{{ student.personalinfo.father_name|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>F. Mobile</strong> <span>{{ student.personalinfo.father_mobile|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Mother</strong> <span>{{ student.personalinfo.mother_name|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>M. Mobile</strong> <span>{{ student.personalinfo.mother_mobile|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Income</strong> <span>{% if student.personalinfo.parent_annual_income %}Rs. {{ student.personalinfo.parent_annual_income }}{% else %}-{% endif %}</span></div>
+                        <div class="detail-item"><strong>Father</strong> <span>{{student.personalinfo.father_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>F. Mobile</strong> <span>{{student.personalinfo.father_mobile|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Mother</strong> <span>{{student.personalinfo.mother_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>M. Mobile</strong> <span>{{student.personalinfo.mother_mobile|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Income</strong> <span>{% if student.personalinfo.parent_annual_income %}Rs. {{student.personalinfo.parent_annual_income }}{% else %}-{% endif %}</span></div>
                     </div>
                 </div>
 
@@ -628,7 +629,8 @@
                         <div class="document-link-item">
                             <strong>ID Card</strong>
                             {% if student.studentdocuments.student_id_card %}
-                            <a href="{{ student.studentdocuments.student_id_card.url }}" target="_blank" rel="noopener">View</a>
+                            <a href="{{ student.studentdocuments.student_id_card.url }}" target="_blank"
+                                rel="noopener">View</a>
                             {% else %}
                             <span>Not Uploaded</span>
                             {% endif %}
@@ -636,7 +638,8 @@
                         <div class="document-link-item">
                             <strong>Community Cert</strong>
                             {% if student.studentdocuments.community_certificate %}
-                            <a href="{{ student.studentdocuments.community_certificate.url }}" target="_blank" rel="noopener">View</a>
+                            <a href="{{ student.studentdocuments.community_certificate.url }}" target="_blank"
+                                rel="noopener">View</a>
                             {% else %}
                             <span>Not Uploaded</span>
                             {% endif %}
@@ -644,7 +647,8 @@
                         <div class="document-link-item">
                             <strong>HSC Marksheet</strong>
                             {% if student.studentdocuments.hsc_marksheet %}
-                            <a href="{{ student.studentdocuments.hsc_marksheet.url }}" target="_blank" rel="noopener">View</a>
+                            <a href="{{ student.studentdocuments.hsc_marksheet.url }}" target="_blank"
+                                rel="noopener">View</a>
                             {% else %}
                             <span>Not Uploaded</span>
                             {% endif %}
@@ -658,7 +662,7 @@
                     <div class="details-grid">
                         <div class="detail-item">
                             <strong>Status</strong>
-                            <span>{% if student.personalinfo.has_scholarship %}Applied{% else %}Not Applied{% endif %}</span>
+                            <span>{% if student.personalinfo.has_scholarship %}Applied{% else %}Not Applied{% endif%}</span>
                         </div>
                         {% if student.personalinfo.has_scholarship %}
                         <div class="detail-item" style="grid-column: 1 / -1;">
@@ -677,10 +681,10 @@
                 <div class="card">
                     <h2 class="card-title">🏦 Bank Details</h2>
                     <div class="details-grid">
-                        <div class="detail-item"><strong>Account Name</strong> <span>{{ student.bankdetails.account_holder_name|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Account No</strong> <span>{{ student.bankdetails.account_number|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>IFSC</strong> <span>{{ student.bankdetails.ifsc_code|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Bank</strong> <span>{{ student.bankdetails.bank_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Account Name</strong> <span>{{student.bankdetails.account_holder_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Account No</strong> <span>{{student.bankdetails.account_number|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>IFSC</strong> <span>{{student.bankdetails.ifsc_code|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Bank</strong> <span>{{student.bankdetails.bank_name|default:"-" }}</span></div>
                     </div>
                 </div>
 

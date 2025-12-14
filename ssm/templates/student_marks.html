@@ -1,0 +1,352 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Marks - {{ student.student_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: #f8f9fa;
+            --secondary-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --accent-color: #5a7d7c;
+            --accent-hover: #4a6b69;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --test1-color: #3498db;
+            --test2-color: #9b59b6;
+            --internal-color: #e67e22;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: var(--secondary-bg);
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: var(--accent-color);
+            font-size: 1.5em;
+        }
+
+        .btn-back {
+            background: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .btn-back:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: var(--secondary-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+
+        .chart-header {
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: var(--text-primary);
+        }
+
+        .overall-chart-wrapper {
+            height: 400px;
+            position: relative;
+        }
+
+        /* Subject Cards */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .subject-card {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .subject-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .subject-code {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-bottom: 20px;
+        }
+
+        .marks-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+
+        .marks-table th {
+            text-align: left;
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding-bottom: 8px;
+            font-size: 0.85em;
+            text-transform: uppercase;
+        }
+
+        .marks-table td {
+            font-weight: 600;
+            padding: 8px 0;
+            border-top: 1px solid #f1f1f1;
+        }
+
+        .val-test1 {
+            color: var(--test1-color);
+        }
+
+        .val-test2 {
+            color: var(--test2-color);
+        }
+
+        .val-internal {
+            color: var(--internal-color);
+        }
+
+        .no-data-msg {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .overall-chart-wrapper {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>📈 My Marks</h1>
+            <a href="{% url 'student_dashboard' %}" class="btn-back">← Back to Dashboard</a>
+        </header>
+
+        {% if has_any_data %}
+        <!-- Overall Performance Chart -->
+        <div class="chart-section">
+            <h2 class="chart-header">Overall Performance Comparison</h2>
+            <div class="overall-chart-wrapper">
+                <canvas id="overallChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <h3>Course-wise Details</h3>
+        <div class="subjects-grid">
+            {% for item in marks_data %}
+            <div class="subject-card">
+                <div class="subject-title">{{ item.subject.name }}</div>
+                <div class="subject-code">{{ item.subject.code }} • Semester {{ item.subject.semester }}</div>
+
+                {% if item.has_data %}
+                <div style="height: 180px; margin-bottom: 15px;">
+                    <canvas id="chart-{{ forloop.counter }}"></canvas>
+                </div>
+
+                <table class="marks-table">
+                    <thead>
+                        <tr>
+                            <th>Test 1</th>
+                            <th>Test 2</th>
+                            <th>Internal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="val-test1">{{ item.test1|default:"-" }}</td>
+                            <td class="val-test2">{{ item.test2|default:"-" }}</td>
+                            <td class="val-internal">{{ item.internal|default:"-" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="no-data-msg">
+                    Marks not uploaded yet.
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not marks_data %}
+        <div class="no-data-msg" style="margin-top: 50px; font-size: 1.2em;">
+            No subjects found for your current semester.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pass Data Safely using json_script -->
+    {{ chart_data|json_script:"chart-data" }}
+    {{ marks_data|json_script:"marks-data-raw" }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+            const marksData = JSON.parse(document.getElementById('marks-data-raw').textContent);
+
+            Chart.defaults.font.family = 'Poppins';
+
+            // 1. Overall Radar Chart
+            if (chartData.labels && chartData.labels.length > 0) {
+                const overallCtx = document.getElementById('overallChart').getContext('2d');
+                new Chart(overallCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [
+                            {
+                                label: 'Test 1',
+                                data: chartData.test1,
+                                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                                borderColor: '#3498db',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#3498db'
+                            },
+                            {
+                                label: 'Test 2',
+                                data: chartData.test2,
+                                backgroundColor: 'rgba(155, 89, 182, 0.2)',
+                                borderColor: '#9b59b6',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#9b59b6'
+                            },
+                            {
+                                label: 'Internal',
+                                data: chartData.internal,
+                                backgroundColor: 'rgba(230, 126, 34, 0.2)',
+                                borderColor: '#e67e22',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#e67e22'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                grid: { color: '#eef2f2' },
+                                pointLabels: { font: { size: 12 } }
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            // 2. Individual Subject Bar Charts
+            marksData.forEach((item, index) => {
+                if (item.has_data) {
+                    const canvas = document.getElementById(`chart-${index + 1}`);
+                    if (!canvas) return;
+
+                    const ctx = canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Test 1', 'Test 2', 'Internal'],
+                            datasets: [{
+                                label: 'Marks',
+                                data: [
+                                    item.test1 !== null ? item.test1 : 0,
+                                    item.test2 !== null ? item.test2 : 0,
+                                    item.internal !== null ? item.internal : 0
+                                ],
+                                backgroundColor: ['#3498db', '#9b59b6', '#e67e22'],
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) { return context.parsed.y + ' Marks'; }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { display: false }
+                                },
+                                x: { grid: { display: false } }
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

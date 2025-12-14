@@ -50,5 +50,9 @@ urlpatterns = [
     path('password-reset/verify/', views.password_reset_verify, name='password_reset_verify'),
     path('password-reset/confirm/', views.password_reset_confirm, name='password_reset_confirm'),
     path('service-unavailable/', views.service_unavailable, name='service_unavailable'),
+    
+    # Student attendance and marks
+    path('attendance/', views.student_attendance, name='student_attendance'),
+    path('marks/', views.student_marks, name='student_marks'),
 
 ]
