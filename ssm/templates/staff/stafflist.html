@@ -218,14 +218,14 @@
         <form method="GET" class="search-container">
             <input type="text" name="q" class="search-input" placeholder="Search by name, ID or email..."
                 value="{{ query|default:'' }}">
-            <select name="department" class="search-input" style="flex: 0 0 200px;">
+            <!-- <select name="department" class="search-input" style="flex: 0 0 200px;">
                 <option value="">All Departments</option>
                 {% for dept in departments %}
                 {% if dept %}
                 <option value="{{ dept }}" {% if request.GET.department == dept %}selected{% endif %}>{{ dept }}</option>
                 {% endif %}
                 {% endfor %}
-            </select>
+            </select> -->
             <button type="submit" class="search-btn">Search</button>
             {% if query or request.GET.department %}
             <a href="{% url 'staffs:staff_list' %}"
