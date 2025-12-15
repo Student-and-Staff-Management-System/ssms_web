@@ -329,6 +329,14 @@
                     <div class="info-item"><span class="info-label">Percentage</span><span class="info-value">{% if academic_history.hsc_percentage %}{{ academic_history.hsc_percentage }}%{% else %}-{% endif %}</span></div>
                     <div class="info-item"><span class="info-label">Year</span><span class="info-value">{% if academic_history.hsc_year_of_passing %}{{ academic_history.hsc_year_of_passing }}{% else %}-{% endif %}</span></div>
                 </div>
+                <strong>Batch : </strong>
+                <span>
+                                {% if student.joining_year and student.ending_year %}
+                                {{ student.joining_year }} - {{ student.ending_year }}
+                                {% else %}
+                                -
+                                {% endif %}
+                </span>
             </div>
             {% endif %}
 
