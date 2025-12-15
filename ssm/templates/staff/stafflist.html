@@ -244,7 +244,12 @@
                 {% endif %}
 
                 <div class="staff-name">{{ staff.salutation }} {{ staff.name }}</div>
-                <div class="staff-role">{{ staff.designation }}</div>
+                <div class="staff-role">
+                    {{ staff.designation }}
+                    {% if staff.role == 'Class Incharge' and staff.assigned_semester %}
+                    <span style="font-size: 0.8em; margin-left: 5px;">(Sem {{ staff.assigned_semester }})</span>
+                    {% endif %}
+                </div>
                 <div class="staff-dept">{{ staff.department }}</div>
 
                 <div class="staff-info">
