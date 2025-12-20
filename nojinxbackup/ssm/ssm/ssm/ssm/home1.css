@@ -1,8 +1,0 @@
-.site-header {
-            display: flex;
-            align-items: center;
-            padding: 15px 40px;
-            background-color: #002147; /* A classic dark blue for universities */
-            color: #ffffff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
