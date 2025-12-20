@@ -74,40 +74,22 @@ def staff_logout(request):
     messages.success(request, "You have been successfully logged out.")
     return redirect('staffs:stafflogin')
 
+from .forms import StaffRegistrationForm
+
 def staff_register(request):
-    """Handles the creation of a new staff member."""
     if request.method == 'POST':
-        staff_id = request.POST.get('staff_id')
-        
-        if Staff.objects.filter(staff_id=staff_id).exists():
-            messages.error(request, f"A staff member with the ID '{staff_id}' already exists.")
-            return render(request, 'staff/staffreg.html')
-        
-        new_staff = Staff(
-            staff_id=staff_id,
-            name=request.POST.get('name'),
-            email=request.POST.get('email'),
-            photo=request.FILES.get('photo'),
-            salutation=request.POST.get('salutation'),
-            designation=request.POST.get('designation'),
-            department=request.POST.get('department'),
-            qualification=request.POST.get('qualification'),
-            specialization=request.POST.get('specialization'),
-            # role=request.POST.get('role'), REMOVED: Role is assigned by Admin, defaults to HOD in model
-            date_of_birth=request.POST.get('date_of_birth') or None,
-            date_of_joining=request.POST.get('date_of_joining') or None,
-            address=request.POST.get('address'),
-            academic_details=request.POST.get('academic_details'),
-            experience=request.POST.get('experience'),
-            publications=request.POST.get('publications'),
-            awards_and_memberships=request.POST.get('awards_and_memberships'),
-        )
-        
-        new_staff.set_password(request.POST.get('password'))
-        new_staff.save()
-        
-        messages.success(request, f"Staff member {new_staff.name} has been registered successfully.")
-        return redirect('staffs:stafflogin')
+        form = StaffRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_staff = form.save()
+            messages.success(request, f"Staff member {new_staff.name} has been registered successfully.")
+            return redirect('staffs:stafflogin')
+        else:
+            # Pass form errors to messages so they appear in the UI
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.title()}: {error}")
+            # Render the form again with the entered data (optional, but good UX)
+            return render(request, 'staff/staffreg.html', {'form': form})
 
     return render(request, 'staff/staffreg.html')
 

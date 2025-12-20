@@ -185,7 +185,7 @@
         </ul>
         {% endif %}
 
-        <form method="POST" enctype="multipart/form-data">
+        <form id="staff-reg-form" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div class="accordion-item">
@@ -272,6 +272,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // --- Accordion Logic ---
             const accordionItems = document.querySelectorAll('.accordion-item');
             if (accordionItems.length > 0) {
                 accordionItems[0].classList.add('active');
@@ -293,6 +294,39 @@
                     }
                 });
             });
+
+            // --- Form Validation Logic ---
+            const form = document.getElementById('staff-reg-form');
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    let errors = [];
+
+                    // 1. Password Strength
+                    const password = document.getElementById('password').value;
+                    if (password.length < 6) {
+                        errors.push("Password must be at least 6 characters long.");
+                    }
+
+                    // 2. Email Validation
+                    const email = document.getElementById('email').value;
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        errors.push("Please enter a valid email address.");
+                    }
+
+                    // 3. Staff ID Validation (Alphanumeric only ideally, or not empty)
+                    const staffId = document.getElementById('staff_id').value;
+                    if (!staffId.trim()) {
+                        errors.push("Staff ID is required.");
+                    }
+
+                    // If errors exist, prevent submission
+                    if (errors.length > 0) {
+                        event.preventDefault();
+                        alert("Validation Errors:\n" + errors.join("\n"));
+                    }
+                });
+            }
         });
     </script>
 </body>

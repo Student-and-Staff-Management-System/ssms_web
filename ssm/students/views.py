@@ -1,14 +1,26 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from django.contrib import messages
+from django.db.models import Q, Count, F
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
+from django.contrib.auth.decorators import login_required
 from functools import wraps
+import datetime
+import csv
 
 from .models import (
-    Student, PersonalInfo, AcademicHistory, DiplomaDetails, UGDetails, PGDetails, 
-    PhDDetails, ScholarshipInfo, StudentDocuments, BankDetails, OtherDetails, Caste
+    Student, PersonalInfo, BankDetails, AcademicHistory, DiplomaDetails, UGDetails, PGDetails, PhDDetails,
+    ScholarshipInfo, StudentDocuments, OtherDetails, Caste, StudentMarks, StudentAttendance
 )
 # Import the caste data for the API
 from .caste_data import CASTE_DATA
+from .forms import (
+    StudentForm, PersonalInfoForm, BankDetailsForm, AcademicHistoryForm,
+    DiplomaDetailsForm, UGDetailsForm, PGDetailsForm, PhDDetailsForm,
+    ScholarshipInfoForm, StudentDocumentsForm, OtherDetailsForm
+)
 
 
 # --- Custom Decorator for Session-Based Login ---
@@ -88,136 +100,105 @@ def register_student(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
 
+    # Validation via Django Forms
     try:
         data = request.POST
         files = request.FILES
         
-        # --- Create Student and Hash Password ---
-        student = Student(
-            roll_number=data.get('roll_number'),
-            register_number=data.get('register_number'),
-            student_name=data.get('student_name'),
-            student_email=data.get('student_email'),
-            program_level=data.get('program_level'),
-            ug_entry_type=data.get('ug_entry_type') if data.get('program_level') == 'UG' else '',
-            current_semester=data.get('current_semester') or 1,  # Add semester, default to 1
-            joining_year=data.get('joining_year') or None,
-            ending_year=data.get('ending_year') or None
-        )
-        # Use the secure password setting method from your model
-        student.set_password(data.get('password')) 
-        # The student object is now saved with a hashed password.
+        # 1. Initialize all forms
+        student_form = StudentForm(data)
+        personal_form = PersonalInfoForm(data)
+        bank_form = BankDetailsForm(data)
+        docs_form = StudentDocumentsForm(data, files)
+        other_form = OtherDetailsForm(data)
 
-        # --- FIX: CORRECTLY HANDLE CASTE FOREIGN KEY ---
-        caste_name = data.get('caste')
-        caste_obj = None  # Default to None
+        # Conditional forms
+        scholarship_form = ScholarshipInfoForm(data)
+        academic_form = AcademicHistoryForm(data)
+        diploma_form = DiplomaDetailsForm(data)
+        ug_form = UGDetailsForm(data)
+        pg_form = PGDetailsForm(data)
+        phd_form = PhDDetailsForm(data)
 
-        if caste_name and caste_name not in ['Other', 'Not Applicable', '']:
-            # Find the Caste object by its NAME, not its ID.
-            # This is the direct fix for the error in your screenshot.
-            caste_obj, created = Caste.objects.get_or_create(name=caste_name)
-        # --- END OF FIX ---
-
-        PersonalInfo.objects.create(
-            student=student,
-            caste=caste_obj,  # Use the object we found, not the name string
-            caste_other=data.get('caste_other'),
-            emis_id=data.get('emis_id'),
-            umis_id=data.get('umis_id'),
-            abc_id=data.get('abc_id'),
-            blood_group=data.get('blood_group'),
-            date_of_birth=data.get('date_of_birth') or None,
-            gender=data.get('gender'),
-            community=data.get('community'),
-            religion=data.get('religion'),
-            aadhaar_number=data.get('aadhaar_number'), 
-            permanent_address=data.get('permanent_address'),
-            present_address=data.get('present_address'),
-            student_mobile=data.get('student_mobile'),
-            father_name=data.get('father_name'),
-            father_occupation=data.get('father_occupation'),
-            father_mobile=data.get('father_mobile'),
-            mother_name=data.get('mother_name'),
-            mother_occupation=data.get('mother_occupation'),
-            mother_mobile=data.get('mother_mobile'),
-            parent_annual_income=data.get('parent_annual_income') or None,
-            has_scholarship=data.get('has_scholarship') == 'yes'
-            # etc...
-        )
-
-        BankDetails.objects.create(
-            student=student, 
-            account_holder_name=data.get('account_holder_name'),
-            account_number=data.get('account_number'),
-            bank_name=data.get('bank_name'), 
-            branch_name=data.get('branch_name'),
-            ifsc_code=data.get('ifsc_code'),
-        )
+        # 2. Collect forms to validate
+        forms_to_validate = [student_form, personal_form, bank_form, docs_form, other_form, academic_form]
         
-
-
+        # Add conditional forms based on logic similar to original view
         if data.get('has_scholarship') == 'yes':
-            ScholarshipInfo.objects.create(
-                student=student,
-                is_first_graduate='is_first_graduate' in data,
-                sch_bcmbc='sch_bcmbc' in data, sch_postmetric='sch_postmetric' in data,
-                sch_pm='sch_pm' in data, sch_govt='sch_govt' in data,
-                sch_pudhumai='sch_pudhumai' in data, sch_tamizh='sch_tamizh' in data,
-                sch_private='sch_private' in data,
-                private_scholarship_name=data.get('private_scholarship_name')
-            )
-
-        AcademicHistory.objects.create(
-            student=student, 
-            sslc_register_number=data.get('sslc_register_number'),
-            sslc_percentage=data.get('sslc_percentage') or None, 
-            sslc_year_of_passing=data.get('sslc_year_of_passing'),
-            sslc_school_name=data.get('sslc_school_name'), 
-            sslc_school_address=data.get('sslc_school_address'),
-            hsc_register_number=data.get('hsc_register_number'),
-            hsc_percentage=data.get('hsc_percentage') or None, 
-            hsc_year_of_passing=data.get('hsc_year_of_passing'),
-            hsc_school_name=data.get('hsc_school_name'), 
-            hsc_school_address=data.get('hsc_school_address'),
-        )
-
+             forms_to_validate.append(scholarship_form)
+        
         program_level = data.get('program_level')
+        ug_entry_type = data.get('ug_entry_type')
         
-        if program_level == 'UG' and data.get('ug_entry_type') == 'Lateral':
-            DiplomaDetails.objects.create(
-                student=student, 
-                diploma_register_number=data.get('diploma_register_number'), 
-                diploma_percentage=data.get('diploma_percentage') or None, 
-                diploma_year_of_passing=data.get('diploma_year_of_passing'), 
-                diploma_college_name=data.get('diploma_college_name'), 
-                diploma_college_address=data.get('diploma_college_address')
-            )
-
-        if program_level in ['PG', 'PHD']:
-            UGDetails.objects.create(student=student, ug_course=data.get('ug_course'), ug_university=data.get('ug_university'), ug_ogpa=data.get('ug_ogpa') or None, ug_year_of_passing=data.get('ug_year_of_passing'))
+        if program_level == 'UG' and ug_entry_type == 'Lateral':
+            forms_to_validate.append(diploma_form)
         
         if program_level in ['PG', 'PHD']:
-             PGDetails.objects.create(student=student, pg_course=data.get('pg_course'), pg_university=data.get('pg_university'), pg_ogpa=data.get('pg_ogpa') or None, pg_year_of_passing=data.get('pg_year_of_passing'))
+            forms_to_validate.append(ug_form) # PG students have UG details
+            if program_level == 'PHD':
+                forms_to_validate.append(pg_form) # PhD students have PG details
         
         if program_level == 'PHD':
-            PhDDetails.objects.create(student=student, phd_specialization=data.get('phd_specialization'), phd_university=data.get('phd_university'), phd_year_of_joining=data.get('phd_year_of_joining'))
+             forms_to_validate.append(phd_form)
 
-        StudentDocuments.objects.create(
-            student=student, student_photo=files.get('student_photo'), student_id_card=files.get('student_id_card'),
-            community_certificate=files.get('community_certificate'), aadhaar_card=files.get('aadhaar_card'),
-            first_graduate_certificate=files.get('first_graduate_certificate'), sslc_marksheet=files.get('sslc_marksheet'),
-            hsc_marksheet=files.get('hsc_marksheet'), income_certificate=files.get('income_certificate'),
-            bank_passbook=files.get('bank_passbook'), driving_license=files.get('driving_license'),
-        )
+        # 3. Check validity
+        if all(f.is_valid() for f in forms_to_validate):
+            with transaction.atomic():
+                # Save Student (Root)
+                student = student_form.save()
+
+                # Handle Caste Logic (Custom)
+                caste_name = data.get('caste')
+                if caste_name == 'Other':
+                    caste_name = data.get('caste_other')
+                
+                caste_obj = None
+                if caste_name and caste_name not in ['Not Applicable', '']:
+                     # Caste is already imported at the top from .models
+                     caste_obj, _ = Caste.objects.get_or_create(name=caste_name)
+
+                # Save Personal Info
+                personal = personal_form.save(commit=False)
+                personal.student = student
+                personal.caste = caste_obj
+                personal.save()
+
+                # Save others
+                def save_related(form_instance):
+                    obj = form_instance.save(commit=False)
+                    obj.student = student
+                    obj.save()
+
+                save_related(bank_form)
+                save_related(docs_form)
+                save_related(other_form)
+                save_related(academic_form)
+
+                if data.get('has_scholarship') == 'yes':
+                    save_related(scholarship_form)
+                
+                if program_level == 'UG' and ug_entry_type == 'Lateral':
+                    save_related(diploma_form)
+                
+                if program_level in ['PG', 'PHD']:
+                    save_related(ug_form)
+                    if program_level == 'PHD': # See logic note in plan, strictly following request handling
+                        save_related(pg_form)
+                
+                if program_level == 'PHD':
+                    save_related(phd_form)
+
+            return JsonResponse({'message': 'Registration successful! Redirecting...'})
         
-        OtherDetails.objects.create(
-            student=student, ambition=data.get('ambition'), role_model=data.get('role_model'),
-            hobbies=data.get('hobbies'), identification_marks=data.get('identification_marks'),
-        )
-
-  
-
-        return JsonResponse({'message': 'Registration successful!'}, status=201)
+        else:
+            # Collect and format errors
+            error_messages = []
+            for f in forms_to_validate:
+                for field, errors in f.errors.items():
+                    for error in errors:
+                        error_messages.append(f"{field}: {error}")
+            
+            return JsonResponse({'error': " | ".join(error_messages)}, status=400)
 
     except Exception as e:
         print(f"Error during registration: {e}")
