@@ -22,6 +22,7 @@
             --radius: 12px;
             --danger-color: #e74c3c;
             --success-color: #2ecc71;
+            --warning-color: #f1c40f;
         }
 
         body {
@@ -186,6 +187,16 @@
             font-size: 0.8rem;
         }
 
+        .badge-theory {
+            background-color: #95a5a6;
+            /* Grey for Theory */
+        }
+
+        .badge-lab {
+            background-color: var(--warning-color);
+            /* Yellow/Orange for Lab */
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -331,6 +342,14 @@
                     </div>
 
                     <div class="form-group">
+                        <label>Subject Type</label>
+                        <select name="type" class="form-control">
+                            <option value="Theory">Theory</option>
+                            <option value="Lab">Lab</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label>Semester</label>
                         <select name="semester" class="form-control" required>
                             <option value="">Select Semester</option>
@@ -369,7 +388,13 @@
                         <tbody>
                             {% for subject in subjects %}
                             <tr>
-                                <td><strong>{{ subject.code }}</strong></td>
+                                <td>
+                                    <strong>{{ subject.code }}</strong>
+                                    <span class="semester-badge badge-{{ subject.subject_type|lower }}"
+                                        style="font-size: 0.7em; padding: 2px 6px; margin-left: 5px;">
+                                        {{ subject.subject_type }}
+                                    </span>
+                                </td>
                                 <td>{{ subject.name }}</td>
                                 <td>
                                     <form method="POST" class="staff-select-form">

@@ -425,7 +425,9 @@ def student_attendance(request):
     
     subjects = Subject.objects.filter(semester=student.current_semester).order_by('code')
     
-    attendance_data = []
+    attendance_data = [] # Keeping this for legacy/chart compatibility if needed
+    theory_data = []
+    lab_data = []
     
     # Chart Data Arrays
     chart_labels = []
@@ -449,14 +451,23 @@ def student_attendance(request):
         else:
             percentage = 0
             
-        attendance_data.append({
+        subject_data = {
             'subject': subject,
             'total_classes': total_classes,
             'present': present_count,
             'absent': absent_count,
             'percentage': round(percentage, 2),
             'status_color': 'success' if percentage >= 75 else 'warning' if percentage >= 65 else 'danger'
-        })
+        }
+        
+        # Add to comprehensive list
+        attendance_data.append(subject_data)
+        
+        # Split based on Type
+        if subject.subject_type == 'Lab':
+            lab_data.append(subject_data)
+        else:
+            theory_data.append(subject_data)
         
         # Populate Chart Data if classes exist
         if total_classes > 0:
@@ -474,7 +485,9 @@ def student_attendance(request):
 
     context = {
         'student': student,
-        'attendance_data': attendance_data,
+        'attendance_data': attendance_data, # Kept for backward compat if template uses it for iter
+        'theory_data': theory_data,
+        'lab_data': lab_data,
         'overall_stats': {
             'total_classes': total_classes_overall,
             'present_count': present_total_overall,

@@ -279,9 +279,10 @@
             </div>
         </div>
 
-        <h3>Course Details</h3>
+        <h3>Theory Courses</h3>
+        {% if theory_data %}
         <div class="subjects-grid">
-            {% for item in attendance_data %}
+            {% for item in theory_data %}
             <div class="subject-card {{ item.status_color }}">
                 <div>
                     <div class="subject-title">{{ item.subject.name }}</div>
@@ -306,8 +307,35 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="stat-card">
-            <h3>No attendance records found for this semester.</h3>
+        <p class="text-muted">No theory courses found.</p>
+        {% endif %}
+
+        {% if lab_data %}
+        <h3 style="margin-top: 40px;">Laboratory Courses</h3>
+        <div class="subjects-grid">
+            {% for item in lab_data %}
+            <div class="subject-card {{ item.status_color }}">
+                <div>
+                    <div class="subject-title">{{ item.subject.name }}</div>
+                    <div class="subject-code">{{ item.subject.code }}</div>
+                </div>
+                <div>
+                    <div style="display:flex; justify-content:space-between; font-weight:600;">
+                        <span>{{ item.percentage }}%</span>
+                        <span>{{ item.present }}/{{ item.total_classes }}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill bg-{{ item.status_color }}"
+                            style="--prog-width: {{ item.percentage }}%; width: var(--prog-width);">
+                        </div>
+                    </div>
+                    <div class="attendance-details">
+                        <span>Present: {{ item.present }}</span>
+                        <span>Absent: {{ item.absent }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
     </div>

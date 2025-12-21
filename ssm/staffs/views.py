@@ -250,10 +250,11 @@ def manage_subjects(request):
             name = request.POST.get('name')
             code = request.POST.get('code')
             semester = request.POST.get('semester')
+            subject_type = request.POST.get('type', 'Theory')
             
             if name and code and semester:
-                Subject.objects.create(name=name, code=code, semester=semester)
-                messages.success(request, f"Subject '{name}' added successfully.")
+                Subject.objects.create(name=name, code=code, semester=semester, subject_type=subject_type)
+                messages.success(request, f"{subject_type} '{name}' added successfully.")
             else:
                  messages.error(request, "All fields are required to add a subject.")
                  
