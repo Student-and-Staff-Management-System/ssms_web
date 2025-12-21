@@ -24,6 +24,31 @@
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
+        /* Utility Classes */
+        .text-success {
+            color: var(--success);
+        }
+
+        .text-warning {
+            color: var(--warning);
+        }
+
+        .text-danger {
+            color: var(--danger);
+        }
+
+        .bg-success {
+            background-color: var(--success);
+        }
+
+        .bg-warning {
+            background-color: var(--warning);
+        }
+
+        .bg-danger {
+            background-color: var(--danger);
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--primary-bg);
@@ -218,8 +243,8 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Overall Attendance</div>
-                <div class="stat-value"
-                    style="color: {% if overall_stats.overall_percentage >= 75 %}var(--success){% elif overall_stats.overall_percentage >= 65 %}var(--warning){% else %}var(--danger){% endif %}">
+                <div
+                    class="stat-value {% if overall_stats.overall_percentage >= 75 %}text-success{% elif overall_stats.overall_percentage >= 65 %}text-warning{% else %}text-danger{% endif %}">
                     {{ overall_stats.overall_percentage }}%
                 </div>
                 <div class="stat-label">Status: {{ overall_stats.attendance_status }}</div>
@@ -268,8 +293,8 @@
                         <span>{{ item.present }}/{{ item.total_classes }}</span>
                     </div>
                     <div class="progress-bar-bg">
-                        <div class="progress-bar-fill"
-                            style="width:{{ item.percentage }}%; background-color: var(--{{ item.status_color }})">
+                        <div class="progress-bar-fill bg-{{ item.status_color }}"
+                            style="--prog-width: {{ item.percentage }}%; width: var(--prog-width);">
                         </div>
                     </div>
                     <div class="attendance-details">
