@@ -3,14 +3,14 @@ Django settings for ssm project.
 """
 from pathlib import Path
 import os
-
+import dj_database_url
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-h)g6-a+cdh^rhpxsfhi5#8#a=++iq0z%*61-l%$nh6$^9e+r#s'
 DEBUG = True
-ALLOWED_HOSTS = ['10.165.244.80', 'localhost', '127.0.0.1','*','401dea466adf.ngrok-free.app']
+ALLOWED_HOSTS = ['10.165.244.80', 'localhost', '127.0.0.1','*']
 
 
 # --- APPLICATION DEFINITION ---
@@ -70,15 +70,26 @@ WSGI_APPLICATION = 'ssm.wsgi.application'
 
 # --- DATABASE ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'students',
-        'USER': 'root',
-        'PASSWORD': 'dbms',
-        'HOST': 'localhost',
-        'PORT': '3306',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "ssm",
+        "USER": "postgres",
+        "PASSWORD": "dbms",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
+
+
+# CRITICAL FOR RENDER:
+# If Render provides a 'DATABASE_URL' (like for a Managed Postgres DB),
+# this line overrides the MySQL settings above automatically.
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True,
+    )
 
 # --- PASSWORD VALIDATION ---
 AUTH_PASSWORD_VALIDATORS = [
