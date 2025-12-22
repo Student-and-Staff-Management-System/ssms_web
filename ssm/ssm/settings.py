@@ -84,13 +84,10 @@ DATABASES = {
 # CRITICAL FOR RENDER:
 # If Render provides a 'DATABASE_URL' (like for a Managed Postgres DB),
 # this line overrides the MySQL settings above automatically.
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=True,
-    )
 
+# ...
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 # --- PASSWORD VALIDATION ---
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
