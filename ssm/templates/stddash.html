@@ -624,7 +624,7 @@
                 <a href="{% url 'class_timetable' %}"><span class="emoji">👩🏻‍🏫</span> Class Timetable</a>
                 <a href="{% url 'student_attendance' %}"><span class="emoji">📝</span> Attendance</a>
                 <a href="{% url 'student_marks' %}"><span class="emoji">📈</span> Marks</a>
-                <a href="{% url 'resume_builder' %}"><span class="emoji">📄</span> Resume Builder</a>
+                <!-- Resume Builder moved to AI Resume Gen below -->
                 <a href="{% url 'student_editprofile' %}"><span class="emoji">✏️</span> Edit Profile</a>
                 <a href="https://annamalaiuniversity.ac.in/" target="_blank" rel="noopener"><span
                         class="emoji">🌐</span> AU Main Site</a>
@@ -633,7 +633,7 @@
                 <a href="https://annamalaiuniversity.ac.in/studport/tf_general_pharmacy.php?fee=tf" target="_blank"
                     rel="noopener"><span class="emoji">💰</span> Tuition Fees</a>
                 <a href="{% url 'help_and_support' %}"><span class="emoji">❓</span> Help & Support</a>
-                <a href="{% url 'service_unavailable' %}"><span class="emoji">📄</span> AI Resume Gen</a>
+                <a href="{% url 'resume_builder' %}"><span class="emoji">🤖</span> AI Resume Gen</a>
             </nav>
         </aside>
 
@@ -777,8 +777,7 @@
                         <div class="detail-item"><strong>M. Mobile</strong>
                             <span>{{student.personalinfo.mother_mobile|default:"-" }}</span>
                         </div>
-                        <div class="detail-item"><strong>Income</strong> <span>{% if student.personalinfo.parent_annual_income %}Rs.
-                                {{student.personalinfo.parent_annual_income }}{% else %}-{% endif %}</span></div>
+                        <div class="detail-item"><strong>Income</strong> <span>{% if student.personalinfo.parent_annual_income %}Rs. {{student.personalinfo.parent_annual_income }}{% else %}-{% endif %}</span></div>
                     </div>
                 </div>
 

@@ -85,13 +85,25 @@
         align-items: center;
         margin-bottom: 20px;
     }
+
+    /* Hide the Dashboard Print Button on this page */
+    .page-header .action-btn[onclick="window.print()"] {
+        display: none !important;
+    }
 </style>
 
 <div class="rb-header">
-    <h2 style="margin:0; color:var(--accent-color);">Resume Builder</h2>
-    <a href="{% url 'generate_resume_pdf' %}" class="action-btn">
-        <span class="emoji">📄</span> Download PDF
-    </a>
+    <h2 style="margin:0; color:var(--accent-color);"> Resume Builder</h2>
+    <div class="header-actions">
+        <!-- New Feature Link -->
+        <a href="{% url 'service_unavailable' %}" class="action-btn"
+            style="background-color: #6c757d; font-size: 0.9em;">
+            <span class="emoji">🧠</span> AI Resume Builder
+        </a>
+        <a href="{% url 'generate_resume_pdf' %}" class="action-btn">
+            <span class="emoji">📄</span> Download My Resume
+        </a>
+    </div>
 </div>
 
 <div class="content-grid">
@@ -100,7 +112,7 @@
         <h2 class="card-title">
             <span>🛠️</span> Technical Skills
             <button onclick="autoGenerateSummary()" style="margin-left:auto; font-size: 0.7em;" class="action-btn">
-                ✨ AI Suggest
+                ✨ Suggestions
             </button>
         </h2>
 
@@ -164,7 +176,7 @@
                     <input type="text" name="role" class="form-control" placeholder="e.g. Developer">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Tech Stack</label>
+                    <label class="form-label">Technologies Used</label>
                     <input type="text" name="technologies" class="form-control" placeholder="e.g. Django">
                 </div>
             </div>
@@ -178,7 +190,8 @@
                     <div class="list-item-title">{{ project.title }} <span
                             style="font-weight:normal; color:var(--text-secondary);">({{ project.role }})</span></div>
                     <div class="list-item-subtitle">{{ project.technologies }}</div>
-                    <div style="font-size: 0.85em; margin-top: 4px; color: var(--text-primary);">{{ project.description|truncatechars:60 }}</div>
+                    <div style="font-size: 0.85em; margin-top: 4px; color: var(--text-primary);">
+                        {{project.description|truncatechars:60 }}</div>
                 </div>
                 <form method="post" style="margin:0;">
                     {% csrf_token %}
