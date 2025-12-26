@@ -59,6 +59,7 @@ urlpatterns = [
     # Resume Builder
     path('resume-builder/', views.resume_builder, name='resume_builder'),
     path('resume-builder/download/', views.generate_resume_pdf, name='generate_resume_pdf'),
+    path('resume-builder/ai-generate/', views.ai_generate_resume, name='ai_generate_resume'),
 
     path('student/export/marks/', views.export_student_marks_csv, name='export_marks_csv'),
     path('student/export/attendance/', views.export_student_attendance_csv, name='export_attendance_csv'),

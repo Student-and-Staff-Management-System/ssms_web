@@ -15,6 +15,7 @@ from .models import (
     ScholarshipInfo, StudentDocuments, OtherDetails, Caste, StudentMarks, StudentAttendance,
     StudentSkill, StudentProject
 )
+from . import ai_utils
 # Import the caste data for the API
 from .caste_data import CASTE_DATA
 from .forms import (
@@ -730,6 +731,51 @@ def resume_builder(request):
     return render(request, 'resume_builder.html', context)
 
 @student_login_required
+def ai_generate_resume(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+        
+    roll_number = request.session.get('student_roll_number')
+    try:
+        student = Student.objects.get(roll_number=roll_number)
+    except Student.DoesNotExist:
+        return JsonResponse({'error': 'Student not found'}, status=404)
+
+    # 1. Gather Data for AI
+    skills = [s.skill_name + (f" ({s.proficiency})" if s.proficiency else "") for s in student.skills.all()]
+    
+    projects = []
+    for p in student.projects.all():
+        projects.append({
+            'title': p.title,
+            'role': p.role,
+            'description': p.description,
+            'technologies': p.technologies
+        })
+        
+    student_data = {
+        'name': student.student_name,
+        'degree': student.program_level, # e.g. UG
+        'department': getattr(student.ugdetails, 'ug_course', '') if hasattr(student, 'ugdetails') else '',
+        'skills': skills,
+        'projects': projects
+        # Add academic history if needed for more context
+    }
+    
+    # 2. Call AI
+    ai_result = ai_utils.generate_resume_content(student_data)
+    
+    if 'error' in ai_result:
+        return JsonResponse({'error': ai_result['error']}, status=500)
+        
+    # 3. Store in Session
+    request.session['ai_resume_data'] = ai_result
+    request.session.modified = True
+    
+    return JsonResponse({'message': 'Resume generated successfully!', 'data': ai_result})
+
+
+@student_login_required
 def generate_resume_pdf(request):
     roll_number = request.session.get('student_roll_number')
     student = Student.objects.get(roll_number=roll_number)
@@ -737,6 +783,9 @@ def generate_resume_pdf(request):
     # Fetch subjects for coursework section
     from staffs.models import Subject
     subjects = Subject.objects.filter(semester=student.current_semester)
+    
+    # Check for AI Data in Session
+    ai_data = request.session.get('ai_resume_data', None)
     
     # Gather all data
     context = {
@@ -752,6 +801,7 @@ def generate_resume_pdf(request):
         'other': getattr(student, 'otherdetails', None),
         'coursework': subjects, # Added coursework
         'MEDIA_ROOT': settings.MEDIA_ROOT,
+        'ai_data': ai_data, # Pass AI data to template
     }
     
     template_path = 'resume_template.html'

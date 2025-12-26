@@ -251,3 +251,4 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
+GEMINI_API_KEY = "AIzaSyCWO00b15Lh5ig-HWpDFNoT35MdLLiRwNQ"

@@ -104,9 +104,9 @@
     <h2 style="margin:0; color:var(--accent-color);">Resume Builder</h2>
     <div class="header-actions">
         <!-- New Feature Link -->
-        <a href="{% url 'service_unavailable' %}" class="action-btn"
-            style="background-color: #6c757d; font-size: 0.9em;">
-            <span class="emoji">🧠</span> AI Resume Builder
+        <a href="#" id="ai-generate-btn" class="action-btn"
+            style="background-color: #6f42c1; font-size: 0.9em; border: 1px solid #5a32a3;">
+            <span class="emoji">✨</span> Enchance with AI
         </a>
         <a href="{% url 'generate_resume_pdf' %}" class="action-btn">
             <span class="emoji">📄</span> Download My Resume
@@ -243,5 +243,46 @@
         // Display the suggestion to the user
         alert("Suggested Summary:\n\n" + summary);
     }
+
+    document.getElementById('ai-generate-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+        const btn = this;
+        const originalText = btn.innerHTML;
+
+        if (!confirm("This will use AI to expand your projects and skills into a full professional resume. Proceed?")) return;
+
+        btn.innerHTML = '<span class="emoji">⏳</span> Generating...';
+        btn.style.opacity = '0.7';
+        btn.style.pointerEvents = 'none';
+
+        fetch('{% url "ai_generate_resume" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+            .then(response => response.json())
+            .then(data => {
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+
+                if (data.error) {
+                    alert("Error: " + data.error);
+                } else {
+                    alert("✨ Success! Your resume has been enhanced with AI content.\n\nClick 'Download My Resume' to get the full PDF.");
+                    btn.innerHTML = '<span class="emoji">🔄</span> Regenerate AI Resume';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                alert("Something went wrong. Please try again.");
+            });
+    });
 </script>
 {% endblock %}

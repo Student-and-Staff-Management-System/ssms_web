@@ -176,11 +176,11 @@
     </div>
 
     <!-- Objective / Summary -->
-    {% if other.ambition %}
+    {% if ai_data.summary or other.ambition %}
     <div class="section">
         <div class="section-title">Professional Summary</div>
         <div class="content-block" style="text-align: justify;">
-            {{ other.ambition }}
+            {{ ai_data.summary|default:other.ambition }}
         </div>
     </div>
     {% endif %}
@@ -253,14 +253,36 @@
     </div>
 
     <!-- Technical Skills -->
-    {% if skills %}
+    {% if ai_data.hard_skills or skills %}
     <div class="section">
         <div class="section-title">Technical Skills</div>
         <div class="skills-list">
+            {% if ai_data.hard_skills %}
+            {% for skill in ai_data.hard_skills %}
+            <span class="skill-item">
+                <span class="bullet">&bull;</span> {{ skill }}
+            </span>
+            {% endfor %}
+            {% else %}
             {% for skill in skills %}
             <span class="skill-item">
                 <span class="bullet">&bull;</span> {{ skill.skill_name }}
                 <span style="color:#777; font-size:9pt;">({{ skill.proficiency }})</span>
+            </span>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Soft Skills (AI Only) -->
+    {% if ai_data.soft_skills %}
+    <div class="section">
+        <div class="section-title">Soft Skills</div>
+        <div class="skills-list">
+            {% for skill in ai_data.soft_skills %}
+            <span class="skill-item" style="background-color: #fcfcfc; border: 1px dashed #ccc;">
+                <span class="bullet">&bull;</span> {{ skill }}
             </span>
             {% endfor %}
         </div>
@@ -268,9 +290,23 @@
     {% endif %}
 
     <!-- Academic Projects -->
-    {% if projects %}
+    {% if ai_data.projects_enhanced or projects %}
     <div class="section">
         <div class="section-title">Academic Projects</div>
+
+        {% if ai_data.projects_enhanced %}
+        {% for project in ai_data.projects_enhanced %}
+        <div class="content-block">
+            <div class="block-title">
+                {{ project.title }}
+            </div>
+            <div class="block-subtitle">Role: {{ project.role }}</div>
+            <div class="block-desc">
+                {{ project.description|linebreaksbr }}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
         {% for project in projects %}
         <div class="content-block">
             <div class="block-title">
@@ -286,19 +322,28 @@
             </div>
         </div>
         {% endfor %}
+        {% endif %}
     </div>
     {% endif %}
 
     <!-- Relevant Coursework (New Filler Section) -->
-    {% if coursework %}
+    {% if ai_data.coursework_highlight or coursework %}
     <div class="section">
         <div class="section-title">Relevant Coursework</div>
         <div class="course-grid">
+            {% if ai_data.coursework_highlight %}
+            {% for subject in ai_data.coursework_highlight %}
+            <div class="course-item">
+                <span class="bullet">&raquo;</span> {{ subject }}
+            </div>
+            {% endfor %}
+            {% else %}
             {% for subject in coursework %}
             <div class="course-item">
                 <span class="bullet">&raquo;</span> {{ subject.name }}
             </div>
             {% endfor %}
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -319,7 +364,8 @@
         <br>
         <table width="100%">
             <tr>
-                <td align="left"><strong>Place:</strong> {{ personal.present_address|truncatewords:2|default:"Annamalai Nagar" }}</td>
+                <td align="left"><strong>Place:</strong> {{ personal.present_address|truncatewords:2|default:"Annamalai
+                    Nagar" }}</td>
                 <td align="right"><strong>({{ student.student_name }})</strong></td>
             </tr>
             <tr>
