@@ -11,7 +11,7 @@ def generate_resume_content(student_data):
     """
     Generates professional resume content using Gemini AI based on student data.
     """
-    api_key = ""
+    
     if not api_key:
         logger.error("GEMINI_API_KEY is not set in settings.")
         return {"error": "API Key not configured."}
