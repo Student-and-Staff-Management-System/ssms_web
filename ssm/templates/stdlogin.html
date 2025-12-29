@@ -1,326 +1,95 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student Login - Dept of IT</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Login - Dept of IT</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
 
-    <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+  <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
 
-    <style>
-    :root {
-      /* --- GLOBAL THEME --- */
-      --primary-bg: #f8f9fa;
-      --secondary-bg: #ffffff;
-      --text-primary: #212529;
-      --text-secondary: #6c757d;
-      --accent-color: #5a7d7c; /* Base Teal */
-      --accent-color-light: #7FB4B2; /* Lighter Teal for gradient */
-      --accent-color-hover: #4a6b69;
-      --border-color: #dee2e6;
-      --header-text-color: #ffffff;
-      --error-color: #dc3545;
-    }
-
-    html { box-sizing: border-box; }
-    *, *:before, *:after { box-sizing: inherit; }
-
-    /* --- OVERALL PAGE LAYOUT (STICKY FOOTER) --- */
-    body {
-      font-family: "Poppins", sans-serif;
-      background-color: var(--primary-bg);
-      color: var(--text-primary);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* --- HEADER STYLES (NEW DESIGN) --- */
-    .site-header {
-      /* Gradient background */
-      background: linear-gradient(100deg, var(--accent-color) 0%, var(--accent-color-light) 100%);
-      color: var(--header-text-color);
-      padding: 15px 40px;
-      width: 100%;
-      box-sizing: border-box;
-      flex-shrink: 0;
-      /* Shadow and rounded corners */
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      border-bottom-left-radius: 2px;
-      border-bottom-right-radius: 2px;
-      /* Gold accent line */
-      border-top: 3px solid var(--accent-gold);
-    }
-    .header-content {
-      width: 90%;
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 20px;
-    }
-    .header-logo {
-      height: 65px; /* Reduced size */
-      width: auto;
-      flex-shrink: 0;
-    }
-    /* New container for stacked titles */
-    .header-titles {
-        display: flex;
-        flex-direction: column;
-    }
-    .university-name {
-        font-size: 2.3em;
-        font-weight: 700; /* Bold */
-        line-height: 1.2;
-    }
-    .department-name {
-        font-size: 1.1em;
-        font-weight: 400; /* Lighter weight (regular) */
-        opacity: 0.9; /* Subtle transparency */
-    }
-
-
-    /* --- MAIN CONTENT AREA (FOR LOGIN PAGE) --- */
-    .login-main-content {
-      flex-grow: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-    }
-
-    /* --- LOGIN PANEL STYLES --- */
-    .page-container {
-      display: flex;
-      width: 100%;
-      max-width: 1100px;
-      min-height: 600px;
-      background-color: var(--secondary-bg);
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-    .branding-panel {
-      flex: 1;
-      background: #f1f3f5;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 40px;
-    }
-    .branding-panel img {
-      width: 350px;
-      height: auto;
-      margin-bottom: 0;
-    }
-    .branding-panel p {
-      color: var(--text-secondary);
-      font-size: 1.1em;
-      font-weight: 400;
-      margin-top: 10px;
-      max-width: 300px;
-    }
-    .login-panel {
-      flex: 1.2;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 60px;
-    }
-    .login-panel h2 {
-      font-size: 2em;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-    .login-panel .subtitle {
-      color: var(--text-secondary);
-      margin-bottom: 40px;
-    }
-    .input-group { margin-bottom: 25px; }
-    .input-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text-secondary);
-      font-weight: 500;
-      font-size: 0.9em;
-    }
-    .input-group input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 1em;
-    }
-    .password-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .forgot-password-link {
-      font-size: 0.8em;
-      color: var(--accent-color);
-      text-decoration: none;
-    }
-    .btn-login {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1em;
-      font-weight: 600;
-      cursor: pointer;
-      color: #ffffff;
-      background-color: var(--accent-color);
-      margin-top: 10px;
-    }
-    .register-link {
-      text-align: center;
-      margin-top: 30px;
-      color: var(--text-secondary);
-    }
-    .register-link a {
-      color: var(--accent-color);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .error-message {
-      color: var(--error-color);
-      background-color: rgba(220, 53, 69, 0.1);
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    /* --- FOOTER STYLES --- */
-    .site-footer {
-      border-top: 1px solid var(--border-color);
-      background-color: var(--secondary-bg);
-      padding: 30px 0;
-      flex-shrink: 0;
-    }
-    .footer-content {
-      width: 90%;
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9em;
-      color: var(--text-secondary);
-    }
-    .footer-content p { margin: 0; }
-    .social-links a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      margin-left: 20px;
-      font-weight: 500;
-    }
-
-    /* --- RESPONSIVE ADJUSTMENTS --- */
-    @media (max-width: 992px) {
-      .page-container {
-        flex-direction: column;
-        min-height: auto;
-        width: 100%;
-        max-width: 450px;
-      }
-      .branding-panel { display: none; }
-      .login-panel { padding: 40px 30px; }
-    }
-    @media (max-width: 768px) {
-      .header-content { text-align: center; justify-content: center;}
-      .university-name { font-size: 1.5em; }
-      .department-name { font-size: 1em; }
-      .header-logo { height: 60px; }
-      .footer-content { flex-direction: column; gap: 15px; }
-    }
-    </style>
+  <!-- Custom Student CSS -->
+  <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
 </head>
+
 <body>
 
-    <header class="site-header">
-        <div class="header-content">
-            <img 
-                src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" 
-                alt="University Logo" 
-                class="header-logo"
-            >
-            <div class="header-titles">
-                <span class="university-name">Annamalai University</span>
-                <span class="department-name">Department of Information Technology</span>
-            </div>
-        </div>
-    </header>
+  <header class="site-header">
+    <div class="header-content">
+      <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        alt="University Logo" class="header-logo">
+      <div class="header-titles">
+        <span class="university-name">Annamalai University</span>
+        <span class="department-name">Department of Information Technology</span>
+      </div>
+    </div>
+  </header>
 
-    <main class="login-main-content">
-        <div class="page-container">
-            <div class="branding-panel">
-                <img src="{% static 'imgs/aublack.png' %}" alt="University Logo" />
-                <p>Department of Information Technology</p>
-            </div>
-    
-            <div class="login-panel">
-                <h2>Student Portal Login</h2>
-                <p class="subtitle">Please enter your credentials to continue.</p>
-    
-                {% if error %}
-                    <div class="error-message">{{ error }}</div>
-                {% endif %}
-    
-                <form id="login-form" action="{% url 'student_login' %}" method="post">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        <label for="roll_number">Roll Number</label>
-                        <input type="text" id="roll_number" name="roll_number" required />
-                    </div>
-                    <div class="input-group">
-                        <div class="password-header">
-                            <label for="password">Password</label>
-                            <a href="{% url 'password_reset_identify' %}" class="forgot-password-link">Forgot Password?</a>
-                        </div>
-                        <input type="password" id="password" name="password" required />
-                    </div>
-                    <button type="submit" class="btn-login">Login</button>
-                </form>
-    
-                <div class="register-link">
-                    Don't have an account?
-                    <a href="{% url 'student_register' %}" id="register-btn">Register</a>
-                </div>
-                <div class="register-link">
-                      <a href="{% url 'homepage' %}">← Go to Main Site</a>
-                </div>
-                
-            </div>
-        </div>
-    </main>
+  <main class="login-main-content">
+    <div class="page-container">
+      <div class="branding-panel">
+        <img src="{% static 'imgs/aublack.png' %}" alt="University Logo" />
+        <p>Department of Information Technology</p>
+      </div>
 
-    <footer class="site-footer">
-        <div class="footer-content">
-            <p>&copy; 2025 AU Dept of Information Technology. All Rights Reserved.</p>
-            <div class="social-links">
-                <a href="https://annamalaiuniversity.ac.in/index.php" title="AU MAIN SITE">University Site</a>
-                <a href="https://annamalaiuniversity.ac.in/studport/index.php" title="AU STUDENT PORTAL">University Student Portal</a>
-                <a href="{% url 'homepage'%}" title="Home Page">Home</a>
+      <div class="login-panel">
+        <h2>Student Portal Login</h2>
+        <p class="subtitle">Please enter your credentials to continue.</p>
+
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form id="login-form" action="{% url 'student_login' %}" method="post">
+          {% csrf_token %}
+          <div class="input-group">
+            <label for="roll_number">Roll Number</label>
+            <input type="text" id="roll_number" name="roll_number" required />
+          </div>
+          <div class="input-group">
+            <div class="password-header">
+              <label for="password">Password</label>
+              <a href="{% url 'password_reset_identify' %}" class="forgot-password-link">Forgot Password?</a>
             </div>
+            <input type="password" id="password" name="password" required />
+          </div>
+          <button type="submit" class="btn-login">Login</button>
+        </form>
+
+        <div class="register-link">
+          Don't have an account?
+          <a href="{% url 'student_register' %}" id="register-btn">Register</a>
         </div>
-    </footer>
+        <div class="register-link">
+          <a href="{% url 'homepage' %}">← Go to Main Site</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <p>&copy; 2025 AU Dept of Information Technology. All Rights Reserved.</p>
+      <div class="social-links">
+        <a href="https://annamalaiuniversity.ac.in/index.php" title="AU MAIN SITE">University Site</a>
+        <a href="https://annamalaiuniversity.ac.in/studport/index.php" title="AU STUDENT PORTAL">University Student
+          Portal</a>
+        <a href="{% url 'homepage'%}" title="Home Page">Home</a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 {% comment %} <div class="back-link" style="text-align: center; margin-top: 15px;">
-    <a href="{% url 'password_reset_identify' %}" style="color: var(--accent-color); text-decoration: none; font-weight: 500;">Forgot Password?</a>
+  <a href="{% url 'password_reset_identify' %}"
+    style="color: var(--accent-color); text-decoration: none; font-weight: 500;">Forgot Password?</a>
 </div> {% endcomment %}
+
 </html>

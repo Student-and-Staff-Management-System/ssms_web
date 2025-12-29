@@ -2,11 +2,10 @@
 {% load static %}
 
 {% block header_actions %}
-<a href="{% url 'student_dashboard' %}" class="action-btn"
-    style="background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color); margin-right: 10px;">
+<a href="{% url 'student_dashboard' %}" class="action-btn btn-outline" style="margin-right: 10px;">
     ⬅️ Back to Dashboard
 </a>
-<a href="{% url 'student_logout' %}" class="action-btn" style="background-color: var(--danger-color);">Logout</a>
+<a href="{% url 'student_logout' %}" class="action-btn btn-danger">Logout</a>
 {% endblock %}
 
 {% block content %}
@@ -94,6 +93,19 @@
         margin-bottom: 20px;
     }
 
+    /* New AI Button Style */
+    .btn-ai {
+        background-color: #6f42c1;
+        color: white;
+        border: 1px solid #5a32a3;
+    }
+
+    .btn-ai:hover {
+        background-color: #5a32a3;
+        color: white;
+        box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
+    }
+
     /* Hide the Dashboard Print Button on this page */
     .page-header .action-btn[onclick="window.print()"] {
         display: none !important;
@@ -104,11 +116,10 @@
     <h2 style="margin:0; color:var(--accent-color);">Resume Builder</h2>
     <div class="header-actions">
         <!-- New Feature Link -->
-        <a href="#" id="ai-generate-btn" class="action-btn"
-            style="background-color: #6f42c1; font-size: 0.9em; border: 1px solid #5a32a3;">
+        <a href="#" id="ai-generate-btn" class="action-btn btn-ai" style="font-size: 0.9em;">
             <span class="emoji">✨</span> Enhance with AI
         </a>
-        <a href="{% url 'generate_resume_pdf' %}" class="action-btn">
+        <a href="{% url 'generate_resume_pdf' %}" class="action-btn btn-primary">
             <span class="emoji">📄</span> Download My Resume
         </a>
     </div>
@@ -119,7 +130,8 @@
     <div class="card">
         <h2 class="card-title">
             <span>🛠️</span> Technical Skills
-            <button onclick="autoGenerateSummary()" style="margin-left:auto; font-size: 0.7em;" class="action-btn">
+            <button onclick="autoGenerateSummary()" style="margin-left:auto; font-size: 0.7em;"
+                class="action-btn btn-primary">
                 ✨ Suggestions
             </button>
         </h2>
@@ -140,7 +152,8 @@
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" name="add_skill" class="action-btn" style="width:100%">+ Add Skill</button>
+            <button type="submit" name="add_skill" class="action-btn btn-primary" style="width:100%">+ Add
+                Skill</button>
         </form>
 
         <div class="skills-list">
@@ -188,7 +201,8 @@
                     <input type="text" name="technologies" class="form-control" placeholder="e.g. Django">
                 </div>
             </div>
-            <button type="submit" name="add_project" class="action-btn" style="width:100%">+ Add Project</button>
+            <button type="submit" name="add_project" class="action-btn btn-primary" style="width:100%">+ Add
+                Project</button>
         </form>
 
         <div class="projects-list">
