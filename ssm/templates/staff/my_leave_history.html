@@ -185,6 +185,33 @@
             font-weight: 600;
         }
 
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .alert-success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .alert-error {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        .alert-warning {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+        }
+
+        .alert-info {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+
         @media (max-width: 900px) {
             .dashboard-container {
                 grid-template-columns: 1fr;
@@ -235,10 +262,7 @@
 
             {% if messages %}
             {% for message in messages %}
-            <div
-                style="padding: 15px; margin-bottom: 20px; border-radius: 8px; 
-                    background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#e2e3e5{% endif %};
-                    color: {% if message.tags == 'success' %}#155724{% elif message.tags == 'error' %}#721c24{% else %}#383d41{% endif %};">
+            <div class="alert alert-{{ message.tags }}">
                 {{ message }}
             </div>
             {% endfor %}
