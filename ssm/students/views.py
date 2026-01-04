@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Q, Count, F
 from django.db import transaction
@@ -9,6 +10,10 @@ from django.contrib.auth.decorators import login_required
 from functools import wraps
 import datetime
 import csv
+import logging
+from django.views.decorators.http import require_http_methods
+
+logger = logging.getLogger(__name__)
 
 from .models import (
     Student, PersonalInfo, BankDetails, AcademicHistory, DiplomaDetails, UGDetails, PGDetails, PhDDetails,
@@ -730,50 +735,6 @@ def resume_builder(request):
     }
     return render(request, 'resume_builder.html', context)
 
-@student_login_required
-def ai_generate_resume(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-        
-    roll_number = request.session.get('student_roll_number')
-    try:
-        student = Student.objects.get(roll_number=roll_number)
-    except Student.DoesNotExist:
-        return JsonResponse({'error': 'Student not found'}, status=404)
-
-    # 1. Gather Data for AI
-    skills = [s.skill_name + (f" ({s.proficiency})" if s.proficiency else "") for s in student.skills.all()]
-    
-    projects = []
-    for p in student.projects.all():
-        projects.append({
-            'title': p.title,
-            'role': p.role,
-            'description': p.description,
-            'technologies': p.technologies
-        })
-        
-    student_data = {
-        'name': student.student_name,
-        'degree': student.program_level, # e.g. UG
-        'department': getattr(student.ugdetails, 'ug_course', '') if hasattr(student, 'ugdetails') else '',
-        'skills': skills,
-        'projects': projects
-        # Add academic history if needed for more context
-    }
-    
-    # 2. Call AI
-    ai_result = ai_utils.generate_resume_content(student_data)
-    
-    if 'error' in ai_result:
-        return JsonResponse({'error': ai_result['error']}, status=500)
-        
-    # 3. Store in Session
-    request.session['ai_resume_data'] = ai_result
-    request.session.modified = True
-    
-    return JsonResponse({'message': 'Resume generated successfully!', 'data': ai_result})
-
 
 @student_login_required
 def generate_resume_pdf(request):
@@ -798,6 +759,9 @@ def generate_resume_pdf(request):
         'phd': getattr(student, 'phddetails', None),
         'skills': student.skills.all(),
         'projects': student.projects.all(),
+        'ai_data': ai_data,
+        'other': getattr(student, 'otherdetails', None), 
+        'coursework': subjects,
     }
     
     # 3. Create PDF
@@ -817,6 +781,169 @@ def generate_resume_pdf(request):
     if pisa_status.err:
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
+
+
+@require_http_methods(["POST"])
+def ai_generate_resume(request):
+    """
+    Generate AI-enhanced resume content for the logged-in student.
+    """
+    # 1. Authentication check
+    roll_number = request.session.get('student_roll_number')
+    if not roll_number:
+        return JsonResponse({
+            'error': 'Authentication required',
+            'message': 'Please log in to generate your resume.'
+        }, status=401)
+    
+    try:
+        student = Student.objects.select_related(
+            'ugdetails', 'pgdetails', 'phddetails', 'personalinfo'
+        ).prefetch_related(
+            'skills', 'projects'
+        ).get(roll_number=roll_number)
+    except Student.DoesNotExist:
+        return JsonResponse({
+            'error': 'Student not found',
+            'message': 'Your student profile could not be found.'
+        }, status=404)
+    
+    # 2. Gather comprehensive student data
+    try:
+        student_data = _prepare_student_data(student)
+    except Exception as e:
+        logger.error(f"Error preparing student data for {roll_number}: {str(e)}")
+        return JsonResponse({
+            'error': 'Data preparation failed',
+            'message': 'Unable to prepare your information. Please try again.'
+        }, status=500)
+    
+    # 3. Check if minimum data exists
+    if not student_data['department']:
+        return JsonResponse({
+            'error': 'Incomplete profile',
+            'message': 'Please complete your academic information before generating a resume.'
+        }, status=400)
+    
+    # 4. Call AI service
+    logger.info(f"Generating AI resume for {student.student_name} ({roll_number})")
+    ai_result = ai_utils.generate_resume_content(student_data)
+    
+    # 5. Handle AI service errors
+    if 'error' in ai_result:
+        logger.error(f"AI generation failed for {roll_number}: {ai_result['error']}")
+        return JsonResponse({
+            'error': 'AI generation failed',
+            'message': ai_result['error'],
+            'fallback': 'You can still download your resume with existing data.'
+        }, status=500)
+    
+    # 6. Store in session with metadata
+    request.session['ai_resume_data'] = {
+        **ai_result,
+        'generated_at': str(timezone.now()),
+        'student_name': student.student_name,
+        'version': '2.0'
+    }
+    request.session.modified = True
+    
+    # 7. Return success with preview data
+    return JsonResponse({
+        'success': True,
+        'message': 'Resume generated successfully!',
+        'data': {
+            'summary_preview': ai_result.get('summary', '')[:150] + '...',
+            'project_count': len(ai_result.get('projects_enhanced', [])),
+            'skill_count': len(ai_result.get('hard_skills', [])),
+            'generated_at': str(timezone.now())
+        }
+    })
+
+
+def _prepare_student_data(student):
+    """
+    Extract and structure all relevant student data for AI processing.
+    """
+    # Get skills with proficiency levels
+    skills = []
+    for skill in student.skills.all():
+        skill_str = skill.skill_name
+        if skill.proficiency:
+            skill_str += f" ({skill.proficiency})"
+        skills.append(skill_str)
+    
+    # Get projects with full details
+    projects = []
+    for project in student.projects.all():
+        projects.append({
+            'title': project.title,
+            'role': project.role or 'Developer',
+            'description': project.description,
+            'technologies': project.technologies or '',
+            'link': project.link if hasattr(project, 'link') else None
+        })
+    
+    # Determine department/specialization
+    department = _get_student_department(student)
+    
+    return {
+        'name': student.student_name,
+        'email': student.student_email,
+        'degree': student.program_level,
+        'department': department,
+        'skills': skills,
+        'projects': projects,
+        'joining_year': student.joining_year if hasattr(student, 'joining_year') else None
+    }
+
+
+def _get_student_department(student):
+    """
+    Extract department/specialization based on program level.
+    """
+    if student.program_level == 'UG' and hasattr(student, 'ugdetails'):
+        return student.ugdetails.ug_course or 'Engineering'
+    elif student.program_level == 'PG' and hasattr(student, 'pgdetails'):
+        return student.pgdetails.pg_course or 'Postgraduate Studies'
+    elif student.program_level == 'PHD' and hasattr(student, 'phddetails'):
+        return student.phddetails.phd_specialization or 'Doctoral Research'
+    return 'Engineering'  # Fallback
+
+
+@require_http_methods(["POST"])
+def clear_ai_resume(request):
+    """
+    Clear AI-generated resume data from session.
+    """
+    if 'ai_resume_data' in request.session:
+        del request.session['ai_resume_data']
+        request.session.modified = True
+        return JsonResponse({'success': True, 'message': 'AI resume data cleared.'})
+    
+    return JsonResponse({'success': False, 'message': 'No AI resume data to clear.'})
+
+
+@require_http_methods(["GET"])
+def get_ai_resume_status(request):
+    """
+    Check if AI-generated resume exists in session.
+    """
+    ai_data = request.session.get('ai_resume_data')
+    
+    if ai_data:
+        return JsonResponse({
+            'exists': True,
+            'generated_at': ai_data.get('generated_at'),
+            'version': ai_data.get('version'),
+            'preview': {
+                'summary': ai_data.get('summary', '')[:100] + '...',
+                'project_count': len(ai_data.get('projects_enhanced', [])),
+                'skill_count': len(ai_data.get('hard_skills', []))
+            }
+        })
+    
+    return JsonResponse({'exists': False})
 
 # --- Leave Request Views ---
 

@@ -9,119 +9,39 @@
 {% endblock %}
 
 {% block content %}
-<!-- Custom Form Styles to match Dashboard Theme -->
-<style>
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .form-label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 500;
-        color: var(--text-secondary);
-        font-size: 0.9em;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        font-family: 'Poppins', sans-serif;
-        font-size: 0.95em;
-        transition: border-color 0.2s;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 3px var(--light-accent-bg);
-    }
-
-    .btn-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .list-item {
-        background: var(--light-accent-bg);
-        padding: 10px 15px;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .list-item-content {
-        flex: 1;
-    }
-
-    .list-item-title {
-        font-weight: 600;
-        color: var(--text-primary);
-        font-size: 0.95em;
-    }
-
-    .list-item-subtitle {
-        font-size: 0.85em;
-        color: var(--text-secondary);
-    }
-
-    .delete-btn {
-        background: none;
-        border: none;
-        color: var(--danger-color);
-        cursor: pointer;
-        padding: 5px;
-        font-size: 1.1em;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-    }
-
-    .delete-btn:hover {
-        opacity: 1;
-    }
-
-    /* Layout overrides */
-    .rb-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    /* New AI Button Style */
-    .btn-ai {
-        background-color: #6f42c1;
-        color: white;
-        border: 1px solid #5a32a3;
-    }
-
-    .btn-ai:hover {
-        background-color: #5a32a3;
-        color: white;
-        box-shadow: 0 4px 10px rgba(111, 66, 193, 0.3);
-    }
-
-    /* Hide the Dashboard Print Button on this page */
-    .page-header .action-btn[onclick="window.print()"] {
-        display: none !important;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/resume_builder.css' %}">
 
 <div class="rb-header">
     <h2 style="margin:0; color:var(--accent-color);">Resume Builder</h2>
     <div class="header-actions">
-        <!-- New Feature Link -->
+        <!-- Status Indicator (Hidden by default) -->
+        <span id="ai-status-indicator" class="status-time" style="display:none; font-size:0.85em; color:green;">
+            ✨ AI Resume Active
+        </span>
+
+        <!-- Clear AI Button -->
+        <button id="ai-clear-btn" class="btn-secondary-outline" style="display:none;">
+            ✖ Clear AI Data
+        </button>
+
+        <!-- Generate AI Button -->
         <a href="#" id="ai-generate-btn" class="action-btn btn-ai" style="font-size: 0.9em;">
             <span class="emoji">✨</span> Enhance with AI
         </a>
+
         <a href="{% url 'generate_resume_pdf' %}" class="action-btn btn-primary">
-            <span class="emoji">📄</span> Download My Resume
+            <span class="emoji">📄</span> Download PDF
         </a>
+    </div>
+</div>
+
+<!-- Last Generated Status Box -->
+<div id="ai-status-box" class="ai-status-box" style="display:none;">
+    <div>
+        <strong>Professional Resume Generated</strong> on <span id="generated-time"></span>
+        <div style="font-size:0.85em; margin-top:4px;">
+            Contains <span id="versions-info">enhanced projects and skills</span>.
+        </div>
     </div>
 </div>
 
@@ -130,14 +50,9 @@
     <div class="card">
         <h2 class="card-title">
             <span>🛠️</span> Technical Skills
-            <button onclick="autoGenerateSummary()" style="margin-left:auto; font-size: 0.7em;"
-                class="action-btn btn-primary">
-                ✨ Suggestions
-            </button>
         </h2>
 
-        <form method="post"
-            style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+        <form method="post" class="resume-form-section">
             {% csrf_token %}
             <div class="form-group">
                 <label class="form-label">Skill Name</label>
@@ -170,7 +85,8 @@
                 </form>
             </div>
             {% empty %}
-            <p style="color: var(--text-secondary); text-align: center; font-style: italic;">No skills added yet.</p>
+            <p style="color: var(--text-secondary); text-align: center; font-style: italic; padding: 15px;">No skills
+                added yet.</p>
             {% endfor %}
         </div>
     </div>
@@ -179,8 +95,7 @@
     <div class="card">
         <h2 class="card-title"><span>🚀</span> Academic Projects</h2>
 
-        <form method="post"
-            style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);">
+        <form method="post" class="resume-form-section">
             {% csrf_token %}
             <div class="form-group">
                 <label class="form-label">Project Title</label>
@@ -222,53 +137,63 @@
                 </form>
             </div>
             {% empty %}
-            <p style="color: var(--text-secondary); text-align: center; font-style: italic;">No projects added yet.</p>
+            <p style="color: var(--text-secondary); text-align: center; font-style: italic; padding: 15px;">No projects
+                added yet.</p>
             {% endfor %}
         </div>
     </div>
 </div>
 
-<script id="skills-data" type="application/json">
-    [
-        {% for skill in skills %}
-        "{{ skill.skill_name|escapejs }}"{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ]
-</script>
-
 <!-- SweetAlert2 for Premium Alerts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    function autoGenerateSummary() {
-        const skillsElements = document.getElementById('skills-data');
-        let skills = [];
-        if (skillsElements) {
-            try {
-                skills = JSON.parse(skillsElements.textContent);
-            } catch (e) {
-                console.error('Error parsing skills data', e);
-            }
-        }
+    document.addEventListener('DOMContentLoaded', function () {
+        checkAIStatus();
+    });
 
-        let summary = "Motivated student";
-        if (skills.length > 0) {
-            summary += " with proficiency in " + skills.join(", ");
-        }
-        summary += ". Eager to apply academic knowledge to real-world projects.";
-
-        Swal.fire({
-            title: '✨ Suggested Summary',
-            text: summary,
-            icon: 'info',
-
-            showCancelButton: true,
-            confirmButtonColor: '#5a7d7c'
-        }).then((result) => {
-
-        });
+    function checkAIStatus() {
+        fetch('{% url "ai_resume_status" %}')
+            .then(res => res.json())
+            .then(data => {
+                if (data.exists) {
+                    document.getElementById('ai-status-box').style.display = 'flex';
+                    document.getElementById('ai-clear-btn').style.display = 'inline-block';
+                    document.getElementById('generated-time').innerText = new Date(data.generated_at).toLocaleString();
+                    document.getElementById('ai-generate-btn').innerHTML = '<span class="emoji">🔄</span> Regenerate AI';
+                } else {
+                    document.getElementById('ai-status-box').style.display = 'none';
+                    document.getElementById('ai-clear-btn').style.display = 'none';
+                    document.getElementById('ai-generate-btn').innerHTML = '<span class="emoji">✨</span> Enhance with AI';
+                }
+            });
     }
 
+    // Clear AI Data
+    document.getElementById('ai-clear-btn').addEventListener('click', function () {
+        Swal.fire({
+            title: 'Clear AI Data?',
+            text: "This will remove the enhanced version and revert to your raw manual data.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, Clear it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('{% url "clear_ai_resume" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        checkAIStatus();
+                        Swal.fire('Cleared', 'AI resume data has been removed.', 'success');
+                    });
+            }
+        });
+    });
+
+    // Generate AI Resume
     document.getElementById('ai-generate-btn').addEventListener('click', function (e) {
         e.preventDefault();
         const btn = this;
@@ -276,12 +201,11 @@
 
         Swal.fire({
             title: 'Enhance with AI?',
-            text: "This will use advanced AI to expand your projects, skills, and summary into a professional, high-impact resume and your details will be shared with AI for better results, please proceed under your own risk.",
-            icon: 'question',
+            text: "AI will analyze your profile to create a professional, ATS-optimized resume. This works best if you have added at least one project or skill.",
+            icon: 'info',
             showCancelButton: true,
             confirmButtonColor: '#6f42c1',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes,Do It! ✨'
+            confirmButtonText: 'Yes, Enhance it! ✨'
         }).then((result) => {
             if (result.isConfirmed) {
 
@@ -290,18 +214,12 @@
                 btn.style.opacity = '0.7';
                 btn.style.pointerEvents = 'none';
 
-                let timerInterval;
                 Swal.fire({
                     title: 'Crafting Your Masterpiece...',
-                    html: 'Consulting top career strategists... <b></b>%',
-                    timer: 15000, // Fallback timer
+                    html: 'Consulting top career strategists...',
                     timerProgressBar: true,
-                    allowOutsideClick: false,
                     didOpen: () => {
                         Swal.showLoading();
-                    },
-                    willClose: () => {
-                        clearInterval(timerInterval);
                     }
                 });
 
@@ -318,19 +236,18 @@
                         btn.innerHTML = originalText;
                         btn.style.opacity = '1';
                         btn.style.pointerEvents = 'auto';
-                        Swal.close(); // Close loader
 
                         if (data.error) {
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Oops...',
-                                text: 'AI Error: ' + data.error,
+                                title: 'Generation Failed',
+                                text: data.message || data.error,
                             });
                         } else {
-                            // Success Alert
+                            checkAIStatus();
                             Swal.fire({
                                 title: '✨ Resume Enhanced!',
-                                text: 'Your resume has been professionally rewritten with high-impact content.',
+                                text: 'Your resume has been professionally rewritten. Click download to see the result.',
                                 icon: 'success',
                                 confirmButtonText: 'Download PDF',
                                 confirmButtonColor: '#28a745'
@@ -339,8 +256,6 @@
                                     window.location.href = "{% url 'generate_resume_pdf' %}";
                                 }
                             });
-
-                            btn.innerHTML = '<span class="emoji">🔄</span> Regenerate AI Resume';
                         }
                     })
                     .catch(error => {
@@ -348,11 +263,7 @@
                         btn.innerHTML = originalText;
                         btn.style.opacity = '1';
                         btn.style.pointerEvents = 'auto';
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Network Error',
-                            text: 'Something went wrong. Please try again.',
-                        });
+                        Swal.fire('Error', 'Network request failed. Please try again.', 'error');
                     });
             }
         });

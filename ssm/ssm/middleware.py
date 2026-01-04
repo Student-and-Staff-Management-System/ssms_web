@@ -26,3 +26,4 @@ class StaticFilesHeadersMiddleware(MiddlewareMixin):
 
 
 
+

@@ -59,7 +59,9 @@ urlpatterns = [
     # Resume Builder
     path('resume-builder/', views.resume_builder, name='resume_builder'),
     path('generate-resume-pdf/', views.generate_resume_pdf, name='generate_resume_pdf'),
-    path('ai-generate-resume/', views.ai_generate_resume, name='ai_generate_resume'),
+    path('ai-generate/', views.ai_generate_resume, name='ai_generate_resume'),
+    path('ai-clear/', views.clear_ai_resume, name='clear_ai_resume'),
+    path('ai-status/', views.get_ai_resume_status, name='ai_resume_status'),
 
     # Leave Requests
     path('leave/apply/', views.apply_leave, name='apply_leave'),
