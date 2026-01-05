@@ -146,15 +146,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = ["null"]
 
-# settings.py
+# ==========================================
+# EMAIL CONFIGURATION - GMAIL SMTP
+# ==========================================
 
-# your_project/settings.py
-
-# Add this for development/testing
-# Email Configuration (Development - Prints to Console)
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# For production, uncomment and configure these:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -163,26 +158,6 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 
-# ANYMAIL = {
-#     "MAILGUN_API_KEY": "",
-#     "MAILGUN_SENDER_DOMAIN": "sandboxb5c88b3d41574fd2b90292f18775d58e.mailgun.org",  # e.g., mg.yourdomain.com
-# }
-# # Default from email
-# DEFAULT_FROM_EMAIL = "sandboxb5c88b3d41574fd2b90292f18775d58e.mailgun.org" 
-# SERVER_EMAIL = "sandboxb5c88b3d41574fd2b90292f18775d58e.mailgun.org" # For error reports
-# #LOGIN_URL = 'student_login'
-
-# # settings.py
-# from decouple import config
-
-# # Email Configuration with Mailgun
-# EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
-# ANYMAIL = {
-#     #"MAILGUN_API_KEY": config("774826f10a768fc1a4ca2d5b753e4c5d-8b22cbee-45c2a532"),  # Your Mailgun API key
-#     "MAILGUN_SENDER_DOMAIN": config('sandboxb5c88b3d41574fd2b90292f18775d58e.mailgun.org'),
-# }
-# DEFAULT_FROM_EMAIL = config('sam@sandboxb5c88b3d41574fd2b90292f18775d58e.mailgun.org', default='rash@sandboxb5c88b3d41574fd2b90292f18775d58e.mailgun.org')
-# SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 JAZZMIN_SETTINGS = {
     "site_title": "Annamalai University Admin",

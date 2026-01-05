@@ -183,25 +183,51 @@
         <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist"
             style="list-style: none; padding: 0; display: flex; gap: 10px;">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pills-legacy-tab" data-toggle="pill" data-target="#pills-legacy"
+                <button class="nav-link active" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp"
                     type="button" role="tab" aria-selected="true"
                     style="padding: 10px 20px; border: 1px solid var(--border-color); background: var(--secondary-bg); cursor: pointer; border-radius: 5px; font-family: 'Poppins', sans-serif;">
-                    Mobile + Aadhaar
+                    Mobile + Email (OTP)
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp" type="button"
-                    role="tab" aria-selected="false"
+                <button class="nav-link" id="pills-legacy-tab" data-toggle="pill" data-target="#pills-legacy"
+                    type="button" role="tab" aria-selected="false"
                     style="padding: 10px 20px; border: 1px solid var(--border-color); background: var(--secondary-bg); cursor: pointer; border-radius: 5px; font-family: 'Poppins', sans-serif;">
-                    Mobile + Email (OTP)
+                    Mobile + Aadhaar
                 </button>
             </li>
         </ul>
 
         <div class="tab-content" id="pills-tabContent">
 
-            <!-- Method 1: Mobile + Aadhaar -->
-            <div class="tab-pane fade show active" id="pills-legacy" role="tabpanel">
+            <!-- Method 1: Mobile + Email (Primary) -->
+            <div class="tab-pane fade show active" id="pills-otp" role="tabpanel">
+                <form method="POST">
+                    {% csrf_token %}
+                    {% if student %}
+                    <div class="form-group">
+                        <label>Student Name</label>
+                        <input type="text" class="readonly-input" value="{{ student.student_name }}" readonly>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="student_mobile_2">Registered Mobile Number</label>
+                        <input type="tel" id="student_mobile_2" name="student_mobile" required
+                            placeholder="Enter mobile number">
+                    </div>
+                    <div class="form-group">
+                        <label for="student_email">Registered Email Address</label>
+                        <input type="email" id="student_email" name="student_email" required
+                            placeholder="Enter email address">
+                    </div>
+
+                    <button type="submit" class="submit-btn" name="action" value="send_otp">Send OTP</button>
+                </form>
+            </div>
+
+            <!-- Method 2: Mobile + Aadhaar (Secondary) -->
+            <div class="tab-pane fade" id="pills-legacy" role="tabpanel" style="display: none;">
                 <form method="POST">
                     {% csrf_token %}
                     {% if student %}
@@ -224,33 +250,6 @@
 
                     <button type="submit" class="submit-btn" name="action" value="verify_details">Verify &
                         Reset</button>
-                </form>
-            </div>
-
-            <!-- Method 2: Mobile + Email -->
-            <div class="tab-pane fade" id="pills-otp" role="tabpanel" style="display: none;">
-                <form method="POST">
-                    {% csrf_token %}
-                    {% if student %}
-                    <div class="form-group">
-                        <label>Student Name</label>
-                        <input type="text" class="readonly-input" value="{{ student.student_name }}" readonly>
-                    </div>
-                    {% endif %}
-
-                    <div class="form-group">
-                        <label for="student_mobile_2">Registered Mobile Number</label>
-                        <input type="tel" id="student_mobile_2" name="student_mobile" required
-                            placeholder="Enter mobile number">
-                    </div>
-                    <div class="form-group">
-                        <label for="student_email">Registered Email Address</label>
-                        <input type="email" id="student_email" name="student_email" required
-                            placeholder="Enter email address">
-                    </div>
-
-                    <button type="submit" class="submit-btn" name="action" value="send_otp"
-                        style="background-color: #6c757d;">Send OTP</button>
                 </form>
             </div>
 
@@ -277,7 +276,7 @@
             });
 
             // Trigger click on load to set initial state styles
-            document.getElementById('pills-legacy-tab').click();
+            document.getElementById('pills-otp-tab').click();
         </script>
 
         <div class="back-link">

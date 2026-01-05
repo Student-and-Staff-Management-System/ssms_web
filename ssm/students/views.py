@@ -392,12 +392,23 @@ def password_reset_verify(request):
                 
                 # Send Email
                 from django.core.mail import send_mail
+                from django.template.loader import render_to_string
+                from django.utils.html import strip_tags
+                
+                # Render HTML content
+                html_content = render_to_string('emails/password_reset_email.html', {
+                    'otp': otp,
+                    'student_name': student.student_name
+                })
+                plain_message = strip_tags(html_content) # Create text fallback
+
                 try:
                     send_mail(
-                        subject='Password Reset OTP - SSM',
-                        message=f'Your OTP for password reset is: {otp}. It is valid for 10 minutes.',
+                            subject = "Password Reset OTP – Annamalai University - IT Department Student Portal",
+                            message = plain_message,
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[student.student_email],
+                        html_message=html_content,
                         fail_silently=False,
                     )
                     messages.success(request, f'OTP sent to registered email.')

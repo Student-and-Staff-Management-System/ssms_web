@@ -198,7 +198,7 @@
         {% endif %}
 
         <div class="otp-info">
-            Sent to email: <strong>{{ email_mask }}</strong>
+            Sent to email ending in: <strong>{{ email_mask }}</strong>
         </div>
 
         <form method="POST" action="{% url 'password_reset_otp_verify' %}">
