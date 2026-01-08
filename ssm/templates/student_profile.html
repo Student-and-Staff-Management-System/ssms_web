@@ -15,6 +15,8 @@
 
 <body>
     <div class="dashboard-container">
+        <!-- Mobile Overlay -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
         <!-- Sidebar (Same as Dashboard for consistency) -->
         <aside class="profile-sidebar no-print">
@@ -63,6 +65,7 @@
             <!-- Header -->
             <header class="page-header no-print">
                 <div class="title-group">
+                    <button class="menu-toggle-btn no-print" style="display: none;" onclick="toggleSidebar()">☰</button>
                     <h1>Full Profile</h1>
                 </div>
                 <div class="header-actions">
@@ -260,6 +263,13 @@
             </div>
         </main>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.profile-sidebar').classList.toggle('mobile-active');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+    </script>
 </body>
 
 </html>

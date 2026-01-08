@@ -18,9 +18,21 @@
             --text-main: #2c3e50;
             --text-muted: #7f8c8d;
             --border-color: #e2e8f0;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --radius: 12px;
         }
+
+        /* Default hidden toggle button */
+        .menu-toggle-btn {
+            display: none;
+        }
+
+        /* Default hidden overlay */
+        .sidebar-overlay {
+            display: none;
+        }
+
+
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -229,13 +241,67 @@
 
         @media (max-width: 900px) {
             .dashboard-container {
-                grid-template-columns: 1fr;
+                display: block;
+                position: relative;
             }
 
+            /* Off-canvas Sidebar */
             .sidebar {
-                position: static;
+                position: fixed;
+                top: 0;
+                left: -360px;
+                width: 300px;
+                height: 100vh;
+                z-index: 1000;
+                overflow-y: auto;
+                transition: left 0.3s ease-in-out;
+                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+                border-radius: 0;
+                margin: 0;
+            }
+
+            .sidebar.mobile-active {
+                left: 0;
+            }
+
+            /* Overlay */
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
                 width: 100%;
-                box-sizing: border-box;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                display: none;
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+                opacity: 1;
+            }
+
+            /* Toggle Button */
+            .menu-toggle-btn {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: 1px solid var(--border-color);
+                color: var(--text-main);
+                font-size: 1.5rem;
+                width: 40px;
+                height: 40px;
+                border-radius: 8px;
+                cursor: pointer;
+                margin-right: 15px;
+            }
+
+            .header-brand {
+                display: flex;
+                align-items: center;
             }
         }
 
@@ -384,9 +450,12 @@
 <body>
 
     <div class="dashboard-container">
+        <!-- Mobile Overlay -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
         <!-- Header -->
         <header class="page-header">
             <div class="header-brand">
+                <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
                 <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo"
                     style="height: 45px;">
                 <h1>Class Incharge Dashboard</h1>
@@ -573,6 +642,14 @@
 
         </main>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('mobile-active');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+    </script>
+
 
 </body>
 

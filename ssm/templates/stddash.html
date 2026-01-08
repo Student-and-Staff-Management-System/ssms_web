@@ -88,6 +88,8 @@
 
 <body>
     <div class="dashboard-container">
+        <!-- Mobile Overlay -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
         <!-- Sidebar -->
         <aside class="profile-sidebar no-print">
@@ -134,6 +136,7 @@
             <!-- Page Header -->
             <header class="page-header no-print">
                 <div class="title-group">
+                    <button class="menu-toggle-btn no-print" style="display: none;" onclick="toggleSidebar()">☰</button>
                     <h1>Student Dashboard</h1>
                 </div>
                 <!-- Top Right Actions -->
@@ -150,7 +153,8 @@
                 <div style="display: flex; gap: 40px; color: #475569; font-size: 0.95rem;">
                     <div title="Semester"><span style="margin-right: 5px;">🎓</span> Sem {{ student.current_semester }}
                     </div>
-                    <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} - {{student.ending_year }}</div>
+                    <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -
+                        {{student.ending_year }}</div>
                     <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
                     </div>
                     <div title="Mobile"><span style="margin-right: 5px;">📱</span>
@@ -234,6 +238,13 @@
                         }
                     }
                 });
+            </script>
+
+            <script>
+                function toggleSidebar() {
+                    document.querySelector('.profile-sidebar').classList.toggle('mobile-active');
+                    document.querySelector('.sidebar-overlay').classList.toggle('active');
+                }
             </script>
 
             {% endblock %}
