@@ -213,44 +213,98 @@
                 style="width:100%; box-sizing:border-box; display:block;">Dashboard</a>
             <br>
             <a href="{% url 'staffs:staff_leave_history' %}" class="action-btn"
-                style="width:100%; box-sizing:border-box; display:block; background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);">History</a>
+                style="width:100%; box-sizing:border-box; display:block; background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);">📜 Leave
+                    History</a>
+            <br>
         </aside>
 
         <main class="main-content">
-            <a href="{% url 'staffs:staff_dashboard' %}" class="back-link">← Back to Dashboard</a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <a href="{% url 'staffs:staff_dashboard' %}" class="back-link" style="margin-bottom: 0;">← Back to
+                    Dashboard</a>
+                <!-- <a href="{% url 'staffs:staff_leave_history' %}" class="back-link" style="margin-bottom: 0;">📜 Leave
+                    History</a> -->
+            </div>
 
             <!-- Leave Balance Summary -->
+            <h3 style="margin-top: 0; color: var(--primary-color); margin-bottom: 20px;">Leave Balances (Academic Year)
+            </h3>
             <div
-                style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <h3 style="margin-top: 0; color: var(--primary-color);">Casual Leave (CL) Status</h3>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 0.9em; color: #7f8c8d;">Allowed</div>
-                        <div style="font-size: 1.5em; font-weight: 600; color: #2c3e50;">12</div>
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+
+                <!-- Casual Leave (CL) -->
+                <div
+                    style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #27ae60;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="margin: 0; color: #2c3e50;">Casual Leave (CL)</h4>
+                        <span
+                            style="background: #e8f5e9; color: #27ae60; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 700;">{{cl_balance}} Left</span>
                     </div>
-                    <div style="background: #eef2f7; padding: 15px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 0.9em; color: #7f8c8d;">Used (Approved)</div>
-                        <div style="font-size: 1.5em; font-weight: 600; color: #e67e22;">{{ cl_used }}</div>
-                    </div>
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 1.5em; font-weight: 600; color: #27ae60;">{{ cl_balance }}</div>
+                    <div style="display: flex; gap: 15px; font-size: 0.9em;">
+                        <div
+                            style="flex: 1; text-align: center; background: #f8fafc; padding: 10px; border-radius: 6px;">
+                            <div style="color: #7f8c8d; font-size: 0.8em;">Total</div>
+                            <div style="font-weight: 600; font-size: 1.2em;">12</div>
+                        </div>
+                        <div
+                            style="flex: 1; text-align: center; background: #fff3e0; padding: 10px; border-radius: 6px;">
+                            <div style="color: #e67e22; font-size: 0.8em;">Used</div>
+                            <div style="font-weight: 600; font-size: 1.2em;">{{ cl_used }}</div>
+                        </div>
                     </div>
                 </div>
 
-                {% if cl_taken_dates %}
-                <div style="font-size: 0.9em; color: var(--text-muted);">
-                    <strong>Taken Dates:</strong>
-                    <ul style="margin: 5px 0 0 20px; color: var(--text-main);">
-                        {% for date_range in cl_taken_dates %}
-                        <li>{{ date_range.start|date:"d M Y" }} - {{ date_range.end|date:"d M Y" }} ({{ date_range.days }} day{{ date_range.days|pluralize }})</li>
-                        {% endfor %}
-                    </ul>
+                <!-- Religious Holiday (RH) -->
+                <div
+                    style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #9b59b6;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="margin: 0; color: #2c3e50;">Religious Holiday</h4>
+                        <span
+                            style="background: #f3e5f5; color: #8e44ad; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 700;">{{rh_balance }} Left</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; font-size: 0.9em;">
+                        <div
+                            style="flex: 1; text-align: center; background: #f8fafc; padding: 10px; border-radius: 6px;">
+                            <div style="color: #7f8c8d; font-size: 0.8em;">Total</div>
+                            <div style="font-weight: 600; font-size: 1.2em;">3</div>
+                        </div>
+                        <div
+                            style="flex: 1; text-align: center; background: #fff3e0; padding: 10px; border-radius: 6px;">
+                            <div style="color: #e67e22; font-size: 0.8em;">Used</div>
+                            <div style="font-weight: 600; font-size: 1.2em;">{{ rh_used }}</div>
+                        </div>
+                    </div>
                 </div>
-                {% endif %}
+
+                <!-- Special Casual Leave -->
+                <div
+                    style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #2980b9;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="margin: 0; color: #2c3e50;">Special Casual Leave</h4>
+                        <span
+                            style="background: #e1f5fe; color: #2980b9; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 700;">{{special_balance}} Left</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; font-size: 0.9em;">
+                        <div
+                            style="flex: 1; text-align: center; background: #f8fafc; padding: 10px; border-radius: 6px;">
+                            <div style="color: #7f8c8d; font-size: 0.8em;">Total</div>
+                            <div style="font-weight: 600; font-size: 1.2em;">15</div>
+                        </div>
+                        <div
+                            style="flex: 1; text-align: center; background: #fff3e0; padding: 10px; border-radius: 6px;">
+                            <div style="color: #e67e22; font-size: 0.8em;">Used</div>
+                            <div style="font-weight: 600; font-size: 1.2em;">{{ special_used }}</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="form-card">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="form-group">
                         <label class="form-label">Leave Type</label>
@@ -273,19 +327,109 @@
                         {{ form.reason }}
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label">Supporting Document <small>(Required for Medical/OD)</small></label>
+                        {{ form.document }}
+                    </div>
+
                     <div style="text-align: right; margin-top: 20px;">
                         <button type="submit" class="action-btn">Submit Application</button>
                     </div>
-                </form>
             </div>
         </main>
     </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const inputs = document.querySelectorAll('input, select, textarea');
             inputs.forEach(input => {
                 input.classList.add('form-control');
+            });
+
+            // Pass Django variables to JS
+            const balances = {
+                'CL': Number("{{ cl_balance|default:0 }}"),
+                'Religious': Number("{{ rh_balance|default:0 }}"),
+                'Special': Number("{{ special_balance|default:0 }}")
+            };
+
+            // Document Upload Logic
+            const leaveTypeSelect = document.querySelector('select[name="leave_type"]');
+            const docField = document.querySelector('input[name="document"]');
+            const docContainer = docField.closest('.form-group');
+            const form = document.querySelector('form');
+            const startDateInput = document.querySelector('input[name="start_date"]');
+            const endDateInput = document.querySelector('input[name="end_date"]');
+
+            function toggleDocField() {
+                const type = leaveTypeSelect.value;
+                if (type === 'Medical' || type === 'OD') {
+                    docContainer.style.display = 'block';
+                } else {
+                    docContainer.style.display = 'none';
+                    docField.value = ''; // Reset file if hidden
+                }
+            }
+
+            // Helper: Calculate days between two dates (inclusive)
+            function calculateDays(start, end) {
+                const s = new Date(start);
+                const e = new Date(end);
+                // Set to noon to avoid timezone issues
+                s.setHours(12, 0, 0, 0);
+                e.setHours(12, 0, 0, 0);
+
+                const diffTime = e - s;
+                if (diffTime < 0) return 0;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                return diffDays;
+            }
+
+            // Initial check
+            if (leaveTypeSelect) {
+                toggleDocField();
+                leaveTypeSelect.addEventListener('change', toggleDocField);
+            }
+
+            // Form Submit Validation
+            form.addEventListener('submit', function (e) {
+                const type = leaveTypeSelect.value;
+
+                // 1. Document Validation
+                if ((type === 'Medical' || type === 'OD') && docField.files.length === 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Document Required',
+                        text: `Please upload the required supporting document for ${type} leave.`,
+                        confirmButtonColor: '#5a7d7c'
+                    });
+                    return; // Stop further validation
+                }
+
+                // 2. Balance Validation
+                if (balances.hasOwnProperty(type)) {
+                    const startVal = startDateInput.value;
+                    const endVal = endDateInput.value;
+
+                    if (startVal && endVal) {
+                        const days = calculateDays(startVal, endVal);
+                        const balance = balances[type];
+
+                        if (days > balance) {
+                            e.preventDefault();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Insufficient Balance',
+                                html: `You requested <b>${days} days</b>, but you only have <b>${balance} days</b> remaining for ${type}.`,
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    }
+                }
             });
         });
     </script>

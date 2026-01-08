@@ -34,7 +34,7 @@
         /* Layout */
         .dashboard-container {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 350px 1fr;
             /* Fixed sidebar, fluid content */
             gap: 30px;
             max-width: 95%;
@@ -87,12 +87,20 @@
         .sidebar {
             background: var(--card-bg);
             border-radius: var(--radius);
-            padding: 40px 30px;
+            padding: 20px 15px;
+            /* Compact padding */
             text-align: center;
             box-shadow: var(--shadow);
             height: fit-content;
             position: sticky;
             top: 30px;
+            width: 350px;
+            /* Fixed Width */
+            box-sizing: border-box;
+            /* PREVENTS OVERLAP */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .profile-img {
@@ -102,6 +110,39 @@
             object-fit: cover;
             border: 4px solid var(--bg-color);
             margin-bottom: 20px;
+        }
+
+        /* --- Sidebar News Integration (Fixes Nested Card Look) --- */
+        .sidebar .news-ticker-panel {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin-top: 10px !important;
+        }
+
+        .sidebar .news-header {
+            padding: 10px 0 !important;
+            background: transparent !important;
+            color: var(--text-main) !important;
+            border-bottom: 2px solid var(--border-color) !important;
+            border-radius: 0 !important;
+        }
+
+        .sidebar .news-header h3 {
+            color: var(--primary-color) !important;
+            justify-content: flex-start !important;
+            font-size: 1rem !important;
+        }
+
+        .sidebar .news-scroll-window {
+            height: 350px !important;
+            /* Fit within sidebar height nicely */
+            background: transparent !important;
+        }
+
+        .sidebar .news-scroll-window::after {
+            background: linear-gradient(to top, var(--card-bg, #fff), transparent) !important;
         }
 
         .profile-name {
@@ -143,7 +184,8 @@
 
         .action-card {
             background: var(--card-bg);
-            padding: 30px;
+            padding: 15px;
+            /* Compact Padding */
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             border-left: 5px solid var(--primary-color);
@@ -158,9 +200,11 @@
         }
 
         .action-title {
-            font-size: 1.2rem;
+            font-size: 1rem;
+            /* Compact Title */
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            /* Tighter margin */
             display: flex;
             align-items: center;
             gap: 10px;
@@ -168,8 +212,10 @@
         }
 
         .action-desc {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            /* Compact Description */
             color: var(--text-muted);
+            line-height: 1.4;
         }
 
         /* Info Sections */
@@ -223,9 +269,8 @@
 
             .sidebar {
                 position: static;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+                width: 100%;
+                box-sizing: border-box;
             }
         }
     </style>
@@ -246,18 +291,32 @@
 
         <!-- Sidebar -->
         <aside class="sidebar">
-            {% if staff.photo %}
-            <img src="{{ staff.photo.url }}" alt="{{ staff.name }}" class="profile-img">
-            {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=random&size=200"
-                alt="{{ staff.name }}" class="profile-img">
-            {% endif %}
+            <!-- Compact Horizontal Profile -->
+            <div
+                style="display: flex; align-items: center; gap: 15px; text-align: left; margin-bottom: 10px; width: 100%;">
+                {% if staff.photo %}
+                <img src="{{ staff.photo.url }}" alt="{{ staff.name }}" class="profile-img"
+                    style="margin: 0 !important; width: 60px !important; height: 60px !important; border-width: 2px !important;">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=random&size=200"
+                    alt="{{ staff.name }}" class="profile-img"
+                    style="margin: 0 !important; width: 60px !important; height: 60px !important; border-width: 2px !important;">
+                {% endif %}
 
-            <div class="profile-name">{{ staff.salutation }} {{ staff.name }}</div>
-            <div class="profile-role">Course Incharge</div>
-            <div class="profile-meta">{{ staff.designation }}</div>
-            <div class="profile-meta">{{ staff.department }}</div>
-            <div class="profile-meta" style="margin-top: 15px; font-size: 0.8rem;">ID: {{ staff.staff_id }}</div>
+                <div style="flex: 1; overflow: hidden;">
+                    <div class="profile-name"
+                        style="font-size: 1rem !important; margin: 0 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ staff.salutation }} {{ staff.name }}</div>
+                    <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 600; line-height: 1.2;">
+                        Course Incharge</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">{{ staff.department }}
+                        &bull; {{ staff.staff_id }}</div>
+                </div>
+            </div>
+
+            <!-- News Scroll Moved to Sidebar -->
+            <hr style="width: 100%; border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
+            {% include 'news_component.html' %}
         </aside>
 
         <!-- Main Content -->
@@ -279,8 +338,6 @@
                 </a>
             </section>
 
-            <!-- Personal Information -->
-
             <!-- Assigned Subjects -->
             {% if assigned_subjects %}
             <section class="content-section">
@@ -290,8 +347,8 @@
                     <div
                         style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-weight: 600; font-size: 1.05rem; color: var(--text-main);">{{subject.name}}
-                            </div>
+                            <div style="font-weight: 600; font-size: 1.05rem; color: var(--text-main);">
+                                {{ subject.name}}</div>
                             <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
                                 Code: <strong>{{ subject.code }}</strong> &bull; Semester {{ subject.semester }}
                             </div>

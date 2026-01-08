@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/register/', views.register_student, name='api_register_student'),
     path('success/', views.registration_success, name='registration_success'),
     path('dashboard/', views.student_dashboard, name='student_dashboard'),
+    path('profile/', views.student_profile, name='student_profile'),
     path('logout/', views.student_logout, name='student_logout'),
 
     # 1. Request password reset

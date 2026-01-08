@@ -214,13 +214,13 @@ class StudentProject(models.Model):
 
 class LeaveRequest(models.Model):
     LEAVE_TYPES = [
-        ('Medical', 'Medical Leave'),
-        ('Casual', 'Casual Leave'),
-        ('OD', 'On Duty (OD)'),
-        ('Others', 'Others')
+        ('OD', 'On Other Duty - Doc Required'),
+        ('Medical', 'Medical Leave - Doc Required'),
+        ('Permission', 'Leave on Permission')
     ]
     STATUS_CHOICES = [
-        ('Pending', 'Pending'),
+        ('Pending Class Incharge', 'Pending Class Incharge'),
+        ('Pending HOD', 'Pending HOD'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected')
     ]
@@ -230,13 +230,15 @@ class LeaveRequest(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.TextField()
+    document = models.FileField(upload_to='student_leave_docs/', blank=True, null=True, help_text="Required for Medical and OD")
     
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending Class Incharge')
     rejection_reason = models.TextField(blank=True, null=True)
+    rejected_by = models.CharField(max_length=100, blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.student.student_name} - {self.leave_type} ({self.status})"
+        return f"{self.student.student_name} - {self.get_leave_type_display()} ({self.status})"
 

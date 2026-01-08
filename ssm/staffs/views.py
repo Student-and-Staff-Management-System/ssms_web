@@ -59,10 +59,31 @@ def staff_dashboard(request):
     # Fetch assigned subjects for this staff member
     assigned_subjects = staff.subjects.all().order_by('semester', 'code')
         
+    # Calculate pending leaves for notification badge
+    from students.models import LeaveRequest
+    from staffs.models import StaffLeaveRequest, News
+    pending_leaves_count = 0
+    pending_staff_leaves_count = 0
+    
+    # Fetch News
+    news_list = News.objects.filter(is_active=True, target__in=['All', 'Staff']).order_by('-date', '-id')
+    
+    if staff.role == 'HOD':
+        pending_leaves_count = LeaveRequest.objects.filter(status='Pending HOD').count()
+        pending_staff_leaves_count = StaffLeaveRequest.objects.filter(status='Pending').count()
+    elif staff.role == 'Class Incharge' and staff.assigned_semester:
+        pending_leaves_count = LeaveRequest.objects.filter(
+            status='Pending Class Incharge',
+            student__current_semester=staff.assigned_semester
+        ).count()
+
     return render(request, template_name, {
         'staff': staff, 
         'student_count': student_count,
-        'assigned_subjects': assigned_subjects
+        'assigned_subjects': assigned_subjects,
+        'pending_leaves_count': pending_leaves_count,
+        'pending_staff_leaves_count': pending_staff_leaves_count,
+        'news_list': news_list
     })
 
 def staff_logout(request):
@@ -791,19 +812,20 @@ def view_leave_requests(request):
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     from students.models import LeaveRequest
     
-    # Filter pending requests
-    leave_requests = LeaveRequest.objects.filter(status='Pending').order_by('created_at')
-    
-    # Filter by assigned semester if Class Incharge
+    # Filter requests based on role
     if staff.role == 'Class Incharge' and staff.assigned_semester:
-        leave_requests = leave_requests.filter(student__current_semester=staff.assigned_semester)
+        # Class Incharge sees 'Pending Class Incharge' for their semester
+        leave_requests = LeaveRequest.objects.filter(
+            status='Pending Class Incharge',
+            student__current_semester=staff.assigned_semester
+        ).order_by('created_at')
     elif staff.role == 'HOD':
-        pass # HOD sees all
+        # HOD sees 'Pending HOD' (approved by Class Incharge)
+        leave_requests = LeaveRequest.objects.filter(
+            status='Pending HOD'
+        ).order_by('created_at')
     else:
-        # Other staff might not see any or only assigned? Assuming restriction to Class Incharge/HOD
-        # But for now, let's allow them to see nothing if not assigned
-        if not staff.role == 'HOD':
-             leave_requests = leave_requests.none()
+        leave_requests = LeaveRequest.objects.none()
 
     return render(request, 'staff/staff_leave_list.html', {
         'staff': staff,
@@ -822,12 +844,20 @@ def update_leave_status(request, request_id):
         action = request.POST.get('action')
         reason = request.POST.get('rejection_reason', '')
         
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+        
         if action == 'approve':
-            leave_request.status = 'Approved'
-            messages.success(request, f"Leave approved for {leave_request.student.student_name}.")
+            if staff.role == 'Class Incharge':
+                 leave_request.status = 'Pending HOD'
+                 messages.success(request, f"Leave forwarded to HOD for {leave_request.student.student_name}.")
+            elif staff.role == 'HOD':
+                leave_request.status = 'Approved'
+                messages.success(request, f"Leave approved for {leave_request.student.student_name}.")
+                
         elif action == 'reject':
             leave_request.status = 'Rejected'
             leave_request.rejection_reason = reason
+            leave_request.rejected_by = f"{staff.name} ({staff.role})"
             messages.warning(request, f"Leave rejected for {leave_request.student.student_name}.")
         
         leave_request.save()
@@ -856,41 +886,43 @@ def staff_apply_leave(request):
     else:
         form = StaffLeaveRequestForm(staff=staff)
     
-    # Calculate Casual Leave Balance
+    # Calculate Leave Balances
     import datetime
     today = datetime.date.today()
-    if today.month >= 6: 
-        ay_start = datetime.date(today.year, 6, 1)
-    else: 
-        ay_start = datetime.date(today.year - 1, 6, 1)
-        
-    casual_leaves = StaffLeaveRequest.objects.filter(
-        staff=staff,
-        leave_type='Casual',
-        status='Approved', # Only count approved for taken, maybe pending restricts balance? Let's check logic. 
-        # Actually logic in form checks Pending+Approved. Let's show used (Approved) and Locked (Pending).
-        start_date__gte=ay_start
-    ).order_by('start_date')
+    ay_start = datetime.date(today.year, 1, 1)
     
-    used_days = 0
-    taken_dates = []
-    for leave in casual_leaves:
-        days = (leave.end_date - leave.start_date).days + 1
-        used_days += days
-        taken_dates.append({
-            'start': leave.start_date,
-            'end': leave.end_date,
-            'days': days
-        })
+    def get_leave_status(leave_code, limit):
+        leaves = StaffLeaveRequest.objects.filter(
+            staff=staff,
+            leave_type=leave_code,
+            status='Approved',
+            start_date__gte=ay_start
+        ).order_by('start_date')
         
-    balance = max(0, 12 - used_days)
+        used = 0
+        dates = []
+        for l in leaves:
+            d = (l.end_date - l.start_date).days + 1
+            used += d
+            dates.append({'start': l.start_date, 'end': l.end_date, 'days': d})
+            
+        balance = max(0, limit - used)
+        return used, balance, dates
+
+    cl_used, cl_balance, cl_dates = get_leave_status('CL', 12)
+    rh_used, rh_balance, rh_dates = get_leave_status('Religious', 3)
+    special_used, special_balance, special_dates = get_leave_status('Special', 15)
         
     return render(request, 'staff/apply_leave.html', {
         'form': form, 
         'staff': staff,
-        'cl_balance': balance,
-        'cl_used': used_days,
-        'cl_taken_dates': taken_dates
+        'cl_balance': cl_balance,
+        'cl_used': cl_used,
+        'cl_taken_dates': cl_dates,
+        'rh_balance': rh_balance,
+        'rh_used': rh_used,
+        'special_balance': special_balance,
+        'special_used': special_used,
     })
 
 def staff_leave_history(request):

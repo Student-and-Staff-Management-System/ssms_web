@@ -195,7 +195,7 @@ class StudentProjectForm(forms.ModelForm):
 class LeaveRequestForm(forms.ModelForm):
     class Meta:
         model = LeaveRequest
-        fields = ['leave_type', 'start_date', 'end_date', 'reason']
+        fields = ['leave_type', 'start_date', 'end_date', 'reason', 'document']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
@@ -206,8 +206,14 @@ class LeaveRequestForm(forms.ModelForm):
         cleaned_data = super().clean()
         start = cleaned_data.get('start_date')
         end = cleaned_data.get('end_date')
+        leave_type = cleaned_data.get('leave_type')
+        document = cleaned_data.get('document')
         
         if start and end and end < start:
             self.add_error('end_date', "End date cannot be before start date.")
+        
+        # Document Validation
+        if leave_type in ['Medical', 'OD'] and not document:
+             self.add_error('document', f"Document is required for {dict(LeaveRequest.LEAVE_TYPES).get(leave_type)}.")
         
         return cleaned_data

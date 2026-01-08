@@ -89,9 +89,19 @@
                 📅 {{ leave.start_date|date:"M d, Y" }} - {{ leave.end_date|date:"M d, Y" }}
             </div>
             <div class="leave-reason">"{{ leave.reason }}"</div>
-            {% if leave.status == 'Rejected' and leave.rejection_reason %}
-            <div style="color: var(--danger-color); font-size: 0.85em; margin-top: 5px;">
-                <strong>Rejection Reason:</strong> {{ leave.rejection_reason }}
+            {% if leave.status == 'Rejected' %}
+            <div
+                style="background: #fff5f5; border-left: 3px solid var(--danger-color); padding: 8px; margin-top: 8px; border-radius: 4px;">
+                {% if leave.rejection_reason %}
+                <div style="color: var(--danger-color); font-size: 0.85em;">
+                    <strong>Reason:</strong> {{ leave.rejection_reason }}
+                </div>
+                {% endif %}
+                {% if leave.rejected_by %}
+                <div style="color: #666; font-size: 0.8em; margin-top: 2px;">
+                    <strong>Rejected By:</strong> {{ leave.rejected_by }}
+                </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>

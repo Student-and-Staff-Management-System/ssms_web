@@ -258,7 +258,16 @@
         </aside>
 
         <main class="main-content">
-            <a href="{% url 'staffs:staff_dashboard' %}" class="back-link">← Back to Dashboard</a>
+            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 25px;">
+                <!-- <a href="{% url 'staffs:staff_dashboard' %}" class="back-link"
+                    style="margin-bottom: 0; background: #e2e8f0; padding: 8px 16px; border-radius: 6px; color: #2c3e50; text-decoration: none; transition: 0.3s;">
+                    ← Back to Dashboard
+                </a> -->
+                <a href="{% url 'staffs:staff_apply_leave' %}" class="back-link"
+                    style="margin-bottom: 0; background: var(--primary-color); padding: 8px 16px; border-radius: 6px; color: white; text-decoration: none; transition: 0.3s; border: 1px solid var(--primary-color);">
+                    ← Back to Apply Leave Page 📝
+                </a>
+            </div>
 
             {% if messages %}
             {% for message in messages %}

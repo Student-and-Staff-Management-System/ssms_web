@@ -49,8 +49,12 @@ def student_login_required(view_func):
     return _wrapped_view
 
 
+from staffs.models import News
+
 def prevhome(request): 
-    return render(request, 'prevhome.html')
+    # Fetch public news for the home page
+    news_list = News.objects.filter(is_active=True, target='All').order_by('-date', '-id')
+    return render(request, 'prevhome.html', {'news_list': news_list})
 
 def stdregister(request): 
     return render(request, 'stdregister.html')
@@ -251,6 +255,40 @@ def student_dashboard(request):
         return redirect('student_login')
     
     # helper to safely get related objects
+    from staffs.models import News
+    def get_related_or_none(model_class, student_obj):
+        try:
+            return model_class.objects.get(student=student_obj)
+        except model_class.DoesNotExist:
+            return None
+
+    # Fetch News
+    news_list = News.objects.filter(is_active=True, target__in=['All', 'Student']).order_by('-date', '-id')
+
+    # Calculate Attendance
+    total_classes = StudentAttendance.objects.filter(student=student).count()
+    present_classes = StudentAttendance.objects.filter(student=student, status='Present').count()
+    attendance_percentage = 0
+    if total_classes > 0:
+        attendance_percentage = round((present_classes / total_classes) * 100, 1)
+
+    context = {
+        'student': student,
+        'news_list': news_list,
+        'attendance_percentage': attendance_percentage
+    }
+    return render(request, 'stddash.html', context)
+
+@student_login_required
+def student_profile(request):
+    """
+    Displays the full profile (bio-data) of the student.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+    
+    # Copy of the fetching logic from old dashboard
+    from staffs.models import News
     def get_related_or_none(model_class, student_obj):
         try:
             return model_class.objects.get(student=student_obj)
@@ -265,7 +303,7 @@ def student_dashboard(request):
         'phd': get_related_or_none(PhDDetails, student),
         'other_details': get_related_or_none(OtherDetails, student),
     }
-    return render(request, 'stddash.html', context)
+    return render(request, 'student_profile.html', context)
 
 @student_login_required
 def student_logout(request):
@@ -1047,7 +1085,7 @@ def apply_leave(request):
     student = Student.objects.get(roll_number=roll_number)
     
     if request.method == 'POST':
-        form = LeaveRequestForm(request.POST)
+        form = LeaveRequestForm(request.POST, request.FILES)
         if form.is_valid():
             leave_request = form.save(commit=False)
             leave_request.student = student

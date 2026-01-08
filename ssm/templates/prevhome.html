@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +8,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
 
     <style>
         :root {
@@ -35,7 +37,8 @@
         }
 
         .page-wrapper {
-            flex-grow: 1; /* Pushes footer down */
+            flex-grow: 1;
+            /* Pushes footer down */
             padding: 40px 20px;
         }
 
@@ -124,7 +127,7 @@
             padding-bottom: 10px;
             margin-top: 0;
         }
-        
+
         .vision-mission-container h2:not(:first-child) {
             margin-top: 40px;
         }
@@ -142,7 +145,8 @@
             padding: 20px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            height: 360px; /* Matched to slideshow height for alignment */
+            height: 360px;
+            /* Matched to slideshow height for alignment */
         }
 
         .news-ticker-container h2 {
@@ -198,8 +202,10 @@
             from {
                 transform: translateY(0);
             }
+
             to {
-                transform: translateY(-50%); /* Adjust based on content height */
+                transform: translateY(-50%);
+                /* Adjust based on content height */
             }
         }
 
@@ -208,7 +214,8 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin-top: 60px; /* More space above buttons */
+            margin-top: 60px;
+            /* More space above buttons */
         }
 
         .action-btn {
@@ -226,7 +233,7 @@
         .action-btn:hover {
             background-color: var(--accent-color-hover);
             transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         /* --- Footer --- */
@@ -234,7 +241,8 @@
             border-top: 1px solid var(--border-color);
             background-color: var(--secondary-bg);
             padding: 30px 0;
-            flex-shrink: 0; /* Prevents footer from shrinking */
+            flex-shrink: 0;
+            /* Prevents footer from shrinking */
         }
 
         .footer-content {
@@ -267,6 +275,7 @@
                 grid-template-columns: 1fr;
                 gap: 40px;
             }
+
             .vision-mission-container {
                 text-align: center;
             }
@@ -278,33 +287,40 @@
                 gap: 10px;
                 text-align: center;
             }
+
             .header-title {
                 font-size: 1.8em;
             }
+
             .header-logo {
                 height: 70px;
             }
+
             .footer-content {
                 flex-direction: column;
                 gap: 15px;
             }
+
             .social-links {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 gap: 10px;
             }
+
             .social-links a {
                 margin-left: 0;
             }
         }
     </style>
 </head>
+
 <body>
 
     <header class="site-header">
         <div class="container header-content">
-            <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="University Logo" class="header-logo" />
+            <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+                alt="University Logo" class="header-logo" />
             <h1 class="header-title">Department of Information Technology</h1>
         </div>
     </header>
@@ -315,13 +331,16 @@
 
                 <div class="slideshow-container">
                     <div class="slide active">
-                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1755185751/au1_fofmwb.jpg" alt="University Campus">
+                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1755185751/au1_fofmwb.jpg"
+                            alt="University Campus">
                     </div>
                     <div class="slide">
-                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1755185882/OIP_qf0ui4.webp" alt="Students in a technology lab">
+                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1755185882/OIP_qf0ui4.webp"
+                            alt="Students in a technology lab">
                     </div>
                     <div class="slide">
-                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1755185883/m_Chidambaram_annamalai_University_1_l_482_640_xetqzi.avif" alt="Modern classroom setting">
+                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1755185883/m_Chidambaram_annamalai_University_1_l_482_640_xetqzi.avif"
+                            alt="Modern classroom setting">
                     </div>
                 </div>
 
@@ -337,7 +356,8 @@
                     <p>
                         To impart high-quality education in Information Technology, fostering
                         a spirit of research and innovation to equip students with the
-                        skills and knowledge needed to excel in their careers and to make significant contributions to technological advancements in the ever-evolving digital world.
+                        skills and knowledge needed to excel in their careers and to make significant contributions to
+                        technological advancements in the ever-evolving digital world.
                     </p>
                 </div>
 
@@ -345,43 +365,30 @@
                     <h2>Latest News</h2>
                     <div class="news-window">
                         <div class="news-content">
+                            {% if news_list %}
+                            {% for news in news_list %}
                             <div class="news-item">
-                                <span class="date">AUG 20, 2025</span>
-                                <p>Semester examinations for all UG and PG programs set to commence.</p>
+                                <span class="date">{{ news.date|date:"M d, Y" }} &bull; {{ news.date|time:"h:i A"}}</span>
+                                <p>
+                                    {% if news.link %}
+                                    <a href="{{ news.link }}" target="_blank"
+                                        style="color: inherit; text-decoration: underline;">{{ news.content }}</a>
+                                    {% else %}
+                                    {{ news.content }}
+                                    {% endif %}
+                                </p>
                             </div>
+                            {% endfor %}
+                            {% else %}
                             <div class="news-item">
-                                <span class="date">SEP 05, 2025</span>
-                                <p>National-level Technical Symposium "Innovate 2025" announced.</p>
+                                <p>No announcements at the moment.</p>
                             </div>
-                            <div class="news-item">
-                                <span class="date">SEP 15, 2025</span>
-                                <p>Workshop on "Cloud Computing and DevOps" open for registration.</p>
-                            </div>
-                            <div class="news-item">
-                                <span class="date">OCT 01, 2025</span>
-                                <p>Guest lecture on "The Future of Artificial Intelligence" scheduled.</p>
-                            </div>
-                            <div class="news-item">
-                                <span class="date">AUG 20, 2025</span>
-                                <p>Semester examinations for all UG and PG programs set to commence.</p>
-                            </div>
-                            <div class="news-item">
-                                <span class="date">SEP 05, 2025</span>
-                                <p>National-level Technical Symposium "Innovate 2025" announced.</p>
-                            </div>
-                            <div class="news-item">
-                                <span class="date">SEP 15, 2025</span>
-                                <p>Workshop on "Cloud Computing and DevOps" open for registration.</p>
-                            </div>
-                            <div class="news-item">
-                                <span class="date">OCT 01, 2025</span>
-                                <p>Guest lecture on "The Future of Artificial Intelligence" scheduled.</p>
-                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </main>
-            
+
             <div class="button-container">
                 <a href="{% url 'student_login' %}" class="action-btn">I'm a Student</a>
                 <a href="{% url 'staffs:stafflogin' %}" class="action-btn">I'm a Staff</a>
@@ -394,14 +401,15 @@
             <p>&copy; 2025 AU Dept of Information Technology. All Rights Reserved.</p>
             <div class="social-links">
                 <a href="https://annamalaiuniversity.ac.in/index.php" title="AU MAIN SITE">University Site</a>
-                <a href="https://annamalaiuniversity.ac.in/studport/index.php" title="AU STUDENT PORTAL">Student Portal</a>
+                <a href="https://annamalaiuniversity.ac.in/studport/index.php" title="AU STUDENT PORTAL">Student
+                    Portal</a>
                 <a href="#" title="Home Page">Home</a>
             </div>
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const slides = document.querySelectorAll('.slideshow-container .slide');
             if (slides.length > 0) {
                 let currentSlide = 0;
@@ -414,7 +422,7 @@
 
                 // Initial setup
                 slides[0].classList.add('active');
-                
+
                 // Change image every 5 seconds
                 setInterval(showNextSlide, 5000);
             }
@@ -422,4 +430,5 @@
     </script>
 
 </body>
+
 </html>

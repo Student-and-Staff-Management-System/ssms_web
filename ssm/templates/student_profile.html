@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Student Profile - {{ student.student_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <!-- Custom Student CSS -->
+    <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+</head>
+
+<body>
+    <div class="dashboard-container">
+
+        <!-- Sidebar (Same as Dashboard for consistency) -->
+        <aside class="profile-sidebar no-print">
+            {% if student.studentdocuments.student_photo %}
+            <img src="{{ student.studentdocuments.student_photo.url }}" alt="Student Photo" class="profile-photo">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ student.student_name|urlencode }}&background=5a7d7c&color=fff&size=200"
+                alt="Profile Photo" class="profile-photo">
+            {% endif %}
+
+            <div class="profile-name">{{ student.student_name }}</div>
+            <div class="profile-meta">{{ student.roll_number }}</div>
+            <div class="profile-meta">{{ student.get_program_level_display }}</div>
+
+            <div style="margin-top: 20px;">
+                <a href="{% url 'student_dashboard' %}" class="action-btn"
+                    style="width: 100%; display: block; text-align: center; box-sizing: border-box; background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color);">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Print Only Header -->
+            <div class="print-header">
+                <div>
+                    {% if student.studentdocuments.student_photo %}
+                    <img src="{{ student.studentdocuments.student_photo.url }}" alt="Student Photo" class="print-photo">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ student.student_name|urlencode }}&background=5a7d7c&color=fff&size=200"
+                        alt="Profile Photo" class="print-photo">
+                    {% endif %}
+                </div>
+                <div class="print-info">
+                    <div style="font-size: 14pt; font-weight: 700; color: #000; margin-bottom: 2px;">
+                        {{student.student_name }}</div>
+                    <div class="print-meta" style="font-size: 10pt;">
+                        Roll No: {{ student.roll_number }} &nbsp;|&nbsp;
+                        {{ student.get_program_level_display }} - Sem {{ student.current_semester }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header -->
+            <header class="page-header no-print">
+                <div class="title-group">
+                    <h1>Full Profile</h1>
+                </div>
+                <div class="header-actions">
+                    <button onclick="window.print()" class="action-btn btn-primary">🖨️ Print Bio Data</button>
+                    <a href="{% url 'student_editprofile' %}" class="action-btn">✏️ Edit</a>
+                </div>
+            </header>
+
+            <!-- Content Grid (Full Details) -->
+            <div class="content-grid">
+
+                <!-- Personal Info -->
+                <div class="card">
+                    <h2 class="card-title"><span class="no-print">👤</span> Personal Information</h2>
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>Email</strong>
+                            <span>{{student.student_email|default:"-"}}</span>
+                        </div>
+                        <div class="detail-item"><strong>Mobile</strong>
+                            <span>{{student.personalinfo.student_mobile|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>DOB</strong> <span>{{student.personalinfo.date_of_birth|date:"d M Y"|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Gender</strong>
+                            <span>{{student.personalinfo.get_gender_display|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>Community</strong>
+                            <span>{{student.personalinfo.community|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>Caste</strong> <span>{% if student.personalinfo.caste%}{{student.personalinfo.caste.name }}{% elif student.personalinfo.caste_other %}{{student.personalinfo.caste_other }}{% else %}-{% endif %}</span></div>
+                        <div class="detail-item"><strong>Blood Group</strong>
+                            <span>{{student.personalinfo.get_blood_group_display|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>Aadhaar</strong>
+                            <span>{{student.personalinfo.aadhaar_number|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Address</strong>
+                            <span>{{student.personalinfo.present_address|default:"-" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Info -->
+                <div class="card">
+                    <h2 class="card-title"><span class="no-print">🎓</span> Academic History</h2>
+                    <div class="details-grid" style="margin-bottom: clamp(12px, 1.3vw, 16px);">
+                        <div class="detail-item">
+                            <strong>Current Status</strong>
+                            <span>
+                                {% if student.current_semester > 8 %}
+                                <span style="color: var(--success-color); font-weight: 600;">Course Completed</span>
+                                {% else %}
+                                Semester {{ student.current_semester }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Batch</strong>
+                            <span>
+                                {% if student.joining_year and student.ending_year %}
+                                {{ student.joining_year }} - {{ student.ending_year }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% if student.academichistory.hsc_school_name %}
+                    <div class="academic-section">
+                        <h4>HSC / 12th Details</h4>
+                        <div class="details-grid">
+                            <div class="detail-item"><strong>School</strong>
+                                <span>{{student.academichistory.hsc_school_name }}</span>
+                            </div>
+                            <div class="detail-item"><strong>Percentage</strong>
+                                <span>{{student.academichistory.hsc_percentage }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if student.academichistory.sslc_school_name %}
+                    <div class="academic-section">
+                        <h4>SSLC / 10th Details</h4>
+                        <div class="details-grid">
+                            <div class="detail-item"><strong>School</strong>
+                                <span>{{student.academichistory.sslc_school_name }}</span>
+                            </div>
+                            <div class="detail-item"><strong>Percentage</strong>
+                                <span>{{student.academichistory.sslc_percentage }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Parent Info -->
+                <div class="card">
+                    <h2 class="card-title"><span class="no-print">👨‍👩‍👦</span> Parent Details</h2>
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>Father</strong>
+                            <span>{{student.personalinfo.father_name|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>F. Mobile</strong>
+                            <span>{{student.personalinfo.father_mobile|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>Mother</strong>
+                            <span>{{student.personalinfo.mother_name|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>M. Mobile</strong>
+                            <span>{{student.personalinfo.mother_mobile|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>Income</strong> <span>{% if student.personalinfo.parent_annual_income %}Rs. {{student.personalinfo.parent_annual_income }}{% else %}-{% endif %}</span></div>
+                    </div>
+                </div>
+
+                <!-- Uploaded Documents -->
+                <div class="card no-print">
+                    <h2 class="card-title">📂 Uploaded Documents</h2>
+                    <div class="document-links">
+                        <div class="document-link-item">
+                            <strong>ID Card</strong>
+                            {% if student.studentdocuments.student_id_card %}
+                            <a href="{{ student.studentdocuments.student_id_card.url }}" target="_blank"
+                                rel="noopener">View</a>
+                            {% else %}
+                            <span>Not Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="document-link-item">
+                            <strong>Community Cert</strong>
+                            {% if student.studentdocuments.community_certificate %}
+                            <a href="{{ student.studentdocuments.community_certificate.url }}" target="_blank"
+                                rel="noopener">View</a>
+                            {% else %}
+                            <span>Not Uploaded</span>
+                            {% endif %}
+                        </div>
+                        <div class="document-link-item">
+                            <strong>HSC Marksheet</strong>
+                            {% if student.studentdocuments.hsc_marksheet %}
+                            <a href="{{ student.studentdocuments.hsc_marksheet.url }}" target="_blank"
+                                rel="noopener">View</a>
+                            {% else %}
+                            <span>Not Uploaded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scholarship -->
+                <div class="card">
+                    <h2 class="card-title"><span class="no-print">🎓</span> Scholarship</h2>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <strong>Status</strong>
+                            <span>{% if student.personalinfo.has_scholarship %}Applied{% else %}Not
+                                Applied{%endif%}</span>
+                        </div>
+                        {% if student.personalinfo.has_scholarship %}
+                        <div class="detail-item" style="grid-column: 1 / -1;">
+                            <strong>Schemes</strong>
+                            <ul class="scholarship-list">
+                                {% if student.scholarshipinfo.is_first_graduate %}<li>First Graduate</li>{% endif %}
+                                {% if student.scholarshipinfo.sch_govt %}<li>Govt 7.5% Quota</li>{% endif %}
+                                {% if student.scholarshipinfo.sch_postmetric %}<li>Post-Matric</li>{% endif %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Bank Info -->
+                <div class="card">
+                    <h2 class="card-title"><span class="no-print">🏦</span> Bank Details</h2>
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>Account Name</strong>
+                            <span>{{student.bankdetails.account_holder_name|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>Account No</strong>
+                            <span>{{student.bankdetails.account_number|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item"><strong>IFSC</strong>
+                            <span>{{student.bankdetails.ifsc_code|default:"-"}}</span>
+                        </div>
+                        <div class="detail-item"><strong>Bank</strong>
+                            <span>{{student.bankdetails.bank_name|default:"-"}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Print Only Footer -->
+                <div class="print-footer">
+                    <div>Generated on: {% now "d M Y" %}</div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

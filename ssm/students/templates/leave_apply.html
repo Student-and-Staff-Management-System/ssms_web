@@ -58,7 +58,7 @@
 </div>
 
 <div class="form-card">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="form-group">
@@ -83,6 +83,11 @@
             {{ form.reason }}
         </div>
 
+        <div class="form-group">
+            <label class="form-label">Supporting Document <small>(Required for Medical/OD)</small></label>
+            {{ form.document }}
+        </div>
+
         <div style="text-align: right; margin-top: 30px;">
             <button type="submit" class="action-btn btn-primary" style="padding: 12px 30px; font-size: 1em;">
                 Submit Request
@@ -92,11 +97,50 @@
 </div>
 
 <!-- Apply CSS classes to form fields via JS or widget attrs -->
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const inputs = document.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
             input.classList.add('form-control');
+        });
+
+        // Document Upload Logic
+        const leaveTypeSelect = document.querySelector('select[name="leave_type"]');
+        const docField = document.querySelector('input[name="document"]');
+        const docContainer = docField.closest('.form-group');
+        const form = document.querySelector('form');
+
+        function toggleDocField() {
+            const type = leaveTypeSelect.value;
+            // Student types: Medical, OD
+            if (type === 'Medical' || type === 'OD') {
+                docContainer.style.display = 'block';
+            } else {
+                docContainer.style.display = 'none';
+                docField.value = '';
+            }
+        }
+
+        if (leaveTypeSelect) {
+            toggleDocField();
+            leaveTypeSelect.addEventListener('change', toggleDocField);
+        }
+
+        form.addEventListener('submit', function (e) {
+            const type = leaveTypeSelect.value;
+            if ((type === 'Medical' || type === 'OD') && docField.files.length === 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Document Required',
+                    text: `A supporting document is required for ${type} leave requests. Please upload one to proceed.`,
+                    confirmButtonColor: '#ffc107',
+                    confirmButtonText: 'OK'
+                });
+            }
         });
     });
 </script>

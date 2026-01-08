@@ -98,10 +98,12 @@ class Timetable(models.Model):
 
 class StaffLeaveRequest(models.Model):
     LEAVE_TYPES = [
+        ('CL', 'Casual Leave (CL)'),
+        ('Religious', 'Religious Holiday'),
         ('Medical', 'Medical Leave'),
-        ('Casual', 'Casual Leave'),
-        ('OD', 'On Duty'),
-        ('Other', 'Other'),
+        ('Earned', 'Earned Leave'),
+        ('OD', 'On Other Duty'),
+        ('Special', 'Special Casual Leave'),
     ]
     
     STATUS_CHOICES = [
@@ -115,6 +117,7 @@ class StaffLeaveRequest(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.TextField()
+    document = models.FileField(upload_to='leave_docs/', blank=True, null=True, help_text="Required for Medical Leave and On Other Duty")
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     rejection_reason = models.TextField(blank=True, null=True)
@@ -123,5 +126,25 @@ class StaffLeaveRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.staff.name} - {self.leave_type} ({self.status})"
+        return f"{self.staff.name} - {self.get_leave_type_display()} ({self.status})"
+
+class News(models.Model):
+    TARGET_CHOICES = [
+        ('All', 'All'),
+        ('Staff', 'Staff Only'),
+        ('Student', 'Student Only'),
+    ]
+    
+    content = models.TextField()
+    link = models.URLField(blank=True, null=True, help_text="Optional link to external resource")
+    date = models.DateTimeField(auto_now_add=True)
+    target = models.CharField(max_length=20, choices=TARGET_CHOICES, default='All')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name_plural = "News & Announcements"
+
+    def __str__(self):
+        return f"{self.date} - {self.target}: {self.content[:30]}..."
 

@@ -263,8 +263,10 @@
                 alt="{{ staff.name }}" class="profile-img">
             {% endif %}
             <div class="profile-name">{{ staff.salutation }} {{ staff.name }}</div>
-            <div class="profile-role">Class Incharge</div>
+            <div class="profile-role">{{ staff.role }}</div>
+            {% if staff.role == 'Class Incharge' %}
             <div class="profile-meta">Semester: {{ staff.assigned_semester|default:"-" }}</div>
+            {% endif %}
             <br>
             <a href="{% url 'staffs:staff_dashboard' %}" class="action-btn"
                 style="width:100%; box-sizing:border-box; display:block;">Dashboard</a>
@@ -300,13 +302,24 @@
 
                 <div class="leave-body">
                     <strong>Reason:</strong> {{ req.reason }}
+
+                    {% if req.document %}
+                    <div style="margin-top: 10px;">
+                        <a href="{{ req.document.url }}" target="_blank"
+                            style="display: inline-flex; align-items: center; gap: 5px; text-decoration: none; color: var(--primary-color); font-weight: 500; font-size: 0.9em; padding: 5px 10px; background: #e0f2f1; border-radius: 4px;">
+                            📄 View Attached Document
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <form action="{% url 'staffs:update_leave_status' req.id %}" method="post" class="actions">
                     {% csrf_token %}
                     <input type="text" name="rejection_reason" placeholder="Reason (if rejecting)..."
                         style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex-grow: 1;">
-                    <button type="submit" name="action" value="approve" class="btn-approve">Approve</button>
+                    <button type="submit" name="action" value="approve" class="btn-approve">
+                        {% if staff.role == 'Class Incharge' %}Forward to HOD{% else %}Approve{% endif %}
+                    </button>
                     <button type="submit" name="action" value="reject" class="btn-reject">Reject</button>
                 </form>
             </div>

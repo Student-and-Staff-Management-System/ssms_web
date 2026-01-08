@@ -75,7 +75,7 @@ from .models import StaffLeaveRequest
 class StaffLeaveRequestForm(forms.ModelForm):
     class Meta:
         model = StaffLeaveRequest
-        fields = ['leave_type', 'start_date', 'end_date', 'reason']
+        fields = ['leave_type', 'start_date', 'end_date', 'reason', 'document']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
@@ -91,40 +91,49 @@ class StaffLeaveRequestForm(forms.ModelForm):
         start = cleaned_data.get('start_date')
         end = cleaned_data.get('end_date')
         leave_type = cleaned_data.get('leave_type')
+        document = cleaned_data.get('document')
         
         if start and end:
             if end < start:
                 self.add_error('end_date', "End date cannot be before start date.")
             
-            # Check Casual Leave Limit (12 days per Academic Year: June to April/May)
-            if leave_type == 'Casual' and self.staff:
-                # Calculate Academic Year Start (June 1st)
+            requested_days = (end - start).days + 1
+            
+            # Document Validation
+            if leave_type in ['Medical', 'OD'] and not document:
+                self.add_error('document', f"Document is required for {dict(StaffLeaveRequest.LEAVE_TYPES).get(leave_type)}.")
+
+            # Leave Limit Validation
+            if self.staff:
+                # Calculate Academic Year Start (January 1st) - Calendar Year Update
                 today = datetime.date.today()
-                if today.month >= 6: # From June onwards
-                    ay_start = datetime.date(today.year, 6, 1)
-                else: # Jan to May belong to previous year's cycle
-                    ay_start = datetime.date(today.year - 1, 6, 1)
+                ay_start = datetime.date(today.year, 1, 1)
                 
-                # Fetch approved/pending casual leaves in this AY
-                existing_leaves = StaffLeaveRequest.objects.filter(
-                    staff=self.staff,
-                    leave_type='Casual',
-                    status__in=['Approved', 'Pending'],
-                    start_date__gte=ay_start
-                )
+                limits = {
+                    'CL': 12,
+                    'Religious': 3,
+                    'Special': 15
+                }
                 
-                total_days_taken = 0
-                for leave in existing_leaves:
-                    # Calculate days for each leave
-                    days = (leave.end_date - leave.start_date).days + 1
-                    total_days_taken += days
+                if leave_type in limits:
+                    limit = limits[leave_type]
+                    # Fetch approved/pending leaves of this type in this AY
+                    existing_leaves = StaffLeaveRequest.objects.filter(
+                        staff=self.staff,
+                        leave_type=leave_type,
+                        status__in=['Approved', 'Pending'],
+                        start_date__gte=ay_start
+                    )
                     
-                # Days requested now
-                requested_days = (end - start).days + 1
-                
-                if total_days_taken + requested_days > 12:
-                     remaining = 12 - total_days_taken
-                     remaining = max(0, remaining)
-                     raise forms.ValidationError(f"Casual Leave limit exceeded. You have {remaining} days remaining for this academic year (Jun-May). Requested: {requested_days} days.")
+                    total_days_taken = 0
+                    for leave in existing_leaves:
+                        days = (leave.end_date - leave.start_date).days + 1
+                        total_days_taken += days
+                        
+                    if total_days_taken + requested_days > limit:
+                         remaining = limit - total_days_taken
+                         remaining = max(0, remaining)
+                         leave_name = dict(StaffLeaveRequest.LEAVE_TYPES).get(leave_type)
+                         raise forms.ValidationError(f"{leave_name} limit exceeded. You have {remaining} days remaining for this academic year. Requested: {requested_days} days.")
         
         return cleaned_data

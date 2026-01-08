@@ -47,3 +47,17 @@ class TimetableAdmin(admin.ModelAdmin):
     list_display = ('semester', 'day', 'period', 'subject', 'staff')
     list_filter = ('semester', 'day')
     ordering = ('semester', 'day', 'period')
+
+from .models import News, StaffLeaveRequest
+
+@admin.register(News)
+class NewsAdmin(admin.ModelAdmin):
+    list_display = ('content', 'target', 'date', 'is_active', 'link')
+    list_filter = ('target', 'is_active')
+    search_fields = ('content', 'link')
+    list_editable = ('target', 'is_active')
+
+@admin.register(StaffLeaveRequest)
+class StaffLeaveRequestAdmin(admin.ModelAdmin):
+    list_display = ('staff', 'leave_type', 'start_date', 'status')
+    list_filter = ('staff', 'leave_type', 'status')

@@ -34,7 +34,7 @@
         /* Layout */
         .dashboard-container {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 350px 1fr;
             /* Fixed sidebar, fluid content */
             gap: 30px;
             max-width: 95%;
@@ -87,27 +87,116 @@
         .sidebar {
             background: var(--card-bg);
             border-radius: var(--radius);
-            padding: 40px 30px;
+            padding: 20px 15px;
+            /* Compact padding */
             text-align: center;
             box-shadow: var(--shadow);
             height: fit-content;
             position: sticky;
             top: 30px;
+            width: 350px;
+            /* Fixed Width */
+            box-sizing: border-box;
+            /* PREVENTS OVERLAP */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .profile-img {
-            width: 140px;
-            height: 140px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid var(--bg-color);
-            margin-bottom: 20px;
+            border: 3px solid var(--bg-color);
+            margin-bottom: 10px;
         }
 
+        /* Flashy Shockwave Animation */
+        @keyframes shockwave-pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 47, 86, 0.8);
+            }
+
+            70% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 20px rgba(255, 47, 86, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 47, 86, 0);
+            }
+        }
+
+        .glass-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 47, 86, 0.9);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+            animation: shockwave-pulse 1.2s infinite;
+            z-index: 10;
+            border: 2px solid #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- Sidebar News Integration (Fixes Nested Card Look) --- */
+        .sidebar .news-ticker-panel {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin-top: 10px !important;
+        }
+
+        .sidebar .news-header {
+            padding: 10px 0 !important;
+            background: transparent !important;
+            color: var(--text-main) !important;
+            border-bottom: 2px solid var(--border-color) !important;
+            border-radius: 0 !important;
+        }
+
+        .sidebar .news-header h3 {
+            color: var(--primary-color) !important;
+            justify-content: flex-start !important;
+            font-size: 1rem !important;
+        }
+
+        .sidebar .news-scroll-window {
+            height: 350px !important;
+            background: transparent !important;
+        }
+
+        .sidebar .news-scroll-window::after {
+            background: linear-gradient(to top, var(--card-bg, #fff), transparent) !important;
+        }
+
+        /* Remove inner dot for this cleaner solid look, replace with nothing or a shine */
+        .glass-badge::after {
+            content: none;
+        }
+
+        /* --- Removed Legacy Overrides --- */
+
+
+
+
+
         .profile-name {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .profile-role {
@@ -143,7 +232,8 @@
 
         .action-card {
             background: var(--card-bg);
-            padding: 30px;
+            padding: 15px;
+            /* Compact Padding */
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             border-left: 5px solid var(--primary-color);
@@ -158,9 +248,11 @@
         }
 
         .action-title {
-            font-size: 1.2rem;
+            font-size: 1rem;
+            /* Compact Title */
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            /* Tighter margin */
             display: flex;
             align-items: center;
             gap: 10px;
@@ -246,24 +338,38 @@
 
         <!-- Sidebar -->
         <aside class="sidebar">
-            {% if staff.photo %}
-            <img src="{{ staff.photo.url }}" alt="{{ staff.name }}" class="profile-img">
-            {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=random&size=200"
-                alt="{{ staff.name }}" class="profile-img">
-            {% endif %}
+            <!-- Compact Horizontal Profile -->
+            <div
+                style="display: flex; align-items: center; gap: 15px; text-align: left; margin-bottom: 10px; width: 100%;">
+                {% if staff.photo %}
+                <img src="{{ staff.photo.url }}" alt="{{ staff.name }}" class="profile-img"
+                    style="margin: 0 !important; width: 60px !important; height: 60px !important; border-width: 2px !important;">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=random&size=200"
+                    alt="{{ staff.name }}" class="profile-img"
+                    style="margin: 0 !important; width: 60px !important; height: 60px !important; border-width: 2px !important;">
+                {% endif %}
 
-            <div class="profile-name">{{ staff.salutation }} {{ staff.name }}</div>
-            <div class="profile-role">Head of Department</div>
-            <div class="profile-meta">{{ staff.designation }}</div>
-            <div class="profile-meta">{{ staff.department }}</div>
-            <div class="profile-meta" style="margin-top: 15px; font-size: 0.8rem;">ID: {{ staff.staff_id }}</div>
+                <div style="flex: 1; overflow: hidden;">
+                    <div class="profile-name"
+                        style="font-size: 1rem !important; margin: 0 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ staff.salutation }} {{ staff.name }}</div>
+                    <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 600; line-height: 1.2;">
+                        Head of Department</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">{{ staff.department }}
+                        &bull; {{ staff.staff_id }}</div>
+                </div>
+            </div>
 
             <a href="{% url 'staffs:admin_portal_login' %}"
                 style="display: inline-block; background: #2c3e50; color: white; margin-top: 20px; padding: 10px 20px; text-decoration: none; border-radius: 20px; font-size: 0.9rem; font-weight: 500; width: 80%; transition: 0.3s;"
                 onmouseover="this.style.background='#34495e'" onmouseout="this.style.background='#2c3e50'">
                 ⚙️ Admin Portal
             </a>
+
+            <!-- News Scroll Moved to Sidebar -->
+            <hr style="width: 100%; border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 10px 0;">
+            {% include 'news_component.html' %}
         </aside>
 
         <!-- Main Content -->
@@ -276,9 +382,22 @@
                     <div class="action-desc">Access {{ student_count }} registered students in the department.</div>
                 </a>
 
-                <a href="{% url 'staffs:hod_leave_dashboard' %}" class="action-card">
+                <a href="{% url 'staffs:hod_leave_dashboard' %}" class="action-card" style="position: relative;">
+                    {% if pending_staff_leaves_count > 0 %}
+                    <div class="glass-badge">{{ pending_staff_leaves_count }}</div>
+                    {% endif %}
                     <div class="action-title">👔 Staff Leaves</div>
                     <div class="action-desc">Review staff leave applications.</div>
+                </a>
+
+                <a href="{% url 'staffs:view_leave_requests' %}" class="action-card" style="position: relative;">
+                    {% if pending_leaves_count > 0 %}
+                    <div class="glass-badge">{{ pending_leaves_count }}</div>
+                    {% endif %}
+                    <div class="action-title">
+                        📝 Student Leaves
+                    </div>
+                    <div class="action-desc">Approve or reject leave requests.</div>
                 </a>
                 <a href="{% url 'staffs:staff_list' %}" class="action-card">
                     <div class="action-title">👨‍🏫 Staff Directory</div>
@@ -305,6 +424,8 @@
                     <div class="action-desc">View weekly class schedules.</div>
                 </a>
             </section>
+
+            <!-- News Scroll Section REMOVED (Moved to Sidebar) -->
 
             <!-- Assigned Subjects -->
             {% if assigned_subjects %}
