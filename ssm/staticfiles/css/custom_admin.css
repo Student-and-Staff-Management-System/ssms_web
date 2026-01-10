@@ -1,0 +1,399 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-bg: #f8f9fa;
+    --secondary-bg: #ffffff;
+    --text-primary: #212529;
+    --accent-color: #5a7d7c;
+    --accent-color-hover: #4a6b69;
+    --light-accent-bg: #eef2f2;
+    --danger-color: #dc3545;
+    --success-color: #28a745;
+    --card-radius: 12px;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Poppins', sans-serif !important;
+    background-color: var(--primary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ================== Main Structure ================== */
+.content-wrapper {
+    background-color: var(--primary-bg) !important;
+}
+
+/* ================== Navbar ================== */
+.main-header {
+    background-color: var(--secondary-bg) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.main-header .nav-link,
+.main-header .navbar-brand {
+    color: var(--text-primary) !important;
+    /* Jazzmin might try to make these white if it thinks it's dark mode, force dark text for light header */
+}
+
+/* Brand Logo Area */
+.brand-link {
+    background-color: var(--secondary-bg) !important;
+    color: var(--accent-color) !important;
+    border-bottom: 1px solid var(--light-accent-bg) !important;
+    box-shadow: none !important;
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 0.6rem !important;
+    /* Slight padding adj */
+}
+
+.brand-link .brand-image {
+    opacity: 1 !important;
+    box-shadow: none !important;
+    max-height: 35px !important;
+    /* Slightly smaller logo */
+    width: auto !important;
+    margin-right: 8px !important;
+    /* Tighter margin */
+    float: none !important;
+    /* Fix Jazzmin float issue */
+}
+
+.brand-link span {
+    color: var(--accent-color) !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    /* Smaller font to fit */
+    letter-spacing: 0px;
+    /* Remove spacing */
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+
+/* ================== Sidebar ================== */
+.main-sidebar {
+    background-color: var(--secondary-bg) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    border-right: none !important;
+}
+
+/* Sidebar Links */
+.nav-sidebar .nav-item .nav-link {
+    color: var(--text-primary) !important;
+    border-radius: 8px !important;
+    margin-bottom: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-sidebar .nav-item .nav-link:hover {
+    background-color: var(--light-accent-bg) !important;
+    color: var(--accent-color) !important;
+    transform: translateX(5px);
+}
+
+.nav-sidebar .nav-item .nav-link.active {
+    background-color: var(--accent-color) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(90, 125, 124, 0.3);
+}
+
+.nav-sidebar .nav-icon {
+    color: inherit !important;
+    font-size: 1.1em;
+}
+
+
+/* ================== Cards (Modules) ================== */
+.card {
+    background-color: var(--secondary-bg) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    border: none !important;
+    /* Remove default styling */
+    margin-bottom: 20px !important;
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* NUCLEAR OVERRIDE for Dashboard Headers */
+html body .card-header {
+    background-color: transparent !important;
+    border-bottom: 2px solid var(--light-accent-bg) !important;
+    padding: 12px 15px !important;
+    height: auto !important;
+    /* Allow expansion */
+    min-height: 50px !important;
+}
+
+html body .card-title,
+html body .card-primary .card-header .card-title,
+html body .card-header span,
+html body .card-header h3 {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    white-space: normal !important;
+    /* Force Wrap */
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.3 !important;
+    display: block !important;
+    /* Ensure it takes width */
+    width: 100% !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    /* Jazzmin uses uppercase sometimes */
+    box-shadow: none !important;
+}
+
+.btn-primary,
+.btn-success {
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+    background-color: var(--accent-color-hover) !important;
+    border-color: var(--accent-color-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(90, 125, 124, 0.3) !important;
+}
+
+.btn-danger {
+    background-color: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+}
+
+/* Form Controls */
+.form-control {
+    border-radius: 6px !important;
+    border: 1px solid #dee2e6 !important;
+    padding: 10px 12px !important;
+    height: auto !important;
+}
+
+.form-control:focus {
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15) !important;
+}
+
+/* ================== Polishing & Spacing Optimization ================== */
+
+/* Fix Button Spacing (Add/Change) */
+.btn-group-sm>.btn,
+.btn-sm {
+    margin-right: 5px !important;
+    /* Add space between buttons */
+    border-radius: 6px !important;
+    /* Ensure rounded corners */
+}
+
+.btn-group>.btn:not(:last-child) {
+    margin-right: 8px !important;
+    /* Force gap */
+}
+
+/* Jazzmin specific dashboard buttons */
+td .btn {
+    margin: 0 4px !important;
+}
+
+/* Top Navbar Field Optimization */
+.navbar-nav .form-inline .form-control {
+    background-color: var(--light-accent-bg) !important;
+    border: none !important;
+    border-radius: 20px !important;
+    /* Pill shape */
+    padding-left: 15px !important;
+    height: 38px !important;
+    width: 250px !important;
+    /* Fixed width for better look */
+    transition: all 0.2s;
+}
+
+.navbar-nav .form-inline .form-control:focus {
+    background-color: #fff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    width: 280px !important;
+    /* Expand on focus */
+}
+
+.navbar-nav .btn {
+    border-radius: 20px !important;
+    margin-left: -40px !important;
+    /* Overlap search icon */
+    z-index: 10;
+    background: transparent !important;
+    color: var(--accent-color) !important;
+    border: none !important;
+}
+
+.navbar-nav .btn:hover {
+    color: var(--accent-color-hover) !important;
+    background: transparent !important;
+}
+
+
+/* Sidebar Refinement */
+.main-sidebar {
+    padding-top: 10px !important;
+}
+
+.nav-sidebar>.nav-item {
+    margin-bottom: 2px !important;
+}
+
+.nav-header {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    padding: 1rem 1rem 0.5rem !important;
+    font-size: 0.85rem !important;
+    opacity: 0.6;
+}
+
+/* Dashboard Card Table */
+.dashboard .card-body {
+    padding: 0 !important;
+}
+
+.dashboard .table tr:first-child td {
+    border-top: none !important;
+}
+
+.dashboard .table td {
+    padding: 15px 20px !important;
+    /* More breathing room */
+    border-bottom: 1px solid var(--light-accent-bg) !important;
+}
+
+.dashboard .table tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Action Checkbox Column */
+.action-checkbox {
+    width: 40px !important;
+    text-align: center;
+}
+
+/* Table styling */
+.table thead th {
+    background-color: var(--light-accent-bg) !important;
+    color: var(--accent-color) !important;
+    border-bottom: 2px solid var(--accent-color) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    vertical-align: middle !important;
+    /* Fix header alignment */
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle !important;
+    font-size: 0.95rem;
+    padding: 12px !important;
+    /* More breathing room */
+}
+
+/* Breadcrumbs (Page Header) */
+.content-header {
+    background: transparent !important;
+    padding: 15px 0.5rem !important;
+}
+
+.content-header h1 {
+    color: var(--accent-color) !important;
+    font-weight: 600 !important;
+    font-size: 1.6rem !important;
+}
+
+.breadcrumb-item a {
+    color: var(--accent-color) !important;
+    font-weight: 500;
+}
+
+/* Form Row Spacing & Alignment */
+.form-group,
+.form-row {
+    margin-bottom: 1.5rem !important;
+    /* Consistent spacing */
+    align-items: center;
+    /* Vertically align label and input if flex */
+}
+
+/* Fix Checkbox Alignment */
+.form-check {
+    padding-left: 20px;
+}
+
+.form-check-input {
+    margin-top: 0.3rem !important;
+}
+
+/* Submit Row (Action Bar) */
+.submit-row {
+    background-color: var(--light-accent-bg) !important;
+    border: none !important;
+    border-radius: var(--card-radius) !important;
+    padding: 15px !important;
+    box-shadow: none !important;
+    margin-top: 20px !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.submit-row p {
+    margin: 0 !important;
+    /* Remove default margins affecting alignment */
+}
+
+/* Related Widget Wrapper (Add/Edit buttons next to inputs) */
+.related-widget-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.related-widget-wrapper-link {
+    opacity: 0.8;
+}
+
+.related-widget-wrapper-link:hover {
+    opacity: 1;
+}
+
+/* Login Page Only */
+.login-page {
+    background-color: var(--primary-bg) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-box .card {
+    border-top: 5px solid var(--accent-color) !important;
+    width: 400px !important;
+    /* Ensure good width */
+}
+
+.login-logo a {
+    color: var(--accent-color) !important;
+    font-weight: 700;
+}

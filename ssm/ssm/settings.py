@@ -4,12 +4,10 @@ Django settings for ssm project.
 from pathlib import Path
 import os
 import dj_database_url
-from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY=os.getenv('SECRET_KEY')
 
@@ -73,27 +71,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ssm.wsgi.application'
 
 # --- DATABASE ---
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": "ssm",
-#         "USER": "postgres",
-#         "PASSWORD": "dbms",
-#         "HOST": "localhost",
-#         "PORT": "5432",
-#     }
-# }
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "ssm",
+        "USER": "postgres",
+        "PASSWORD": "dbms",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('DB_NAME'),
+#         'USER': os.getenv('DB_USER'),
+#         'PASSWORD': os.getenv('DB_PASSWORD'),
+#         'HOST': os.getenv('DB_HOST'),
+#         'PORT': os.getenv('DB_PORT'),
+#     }
+# }
 
 
 # CRITICAL FOR RENDER:
@@ -118,7 +116,15 @@ USE_I18N = True
 USE_TZ = True
 
 # --- STATIC FILES (for CSS, JS of your project and admin) ---
+
 STATIC_URL = '/static/'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 
 # Fix for Windows MIME types issues - CRITICAL for admin CSS
 import mimetypes
