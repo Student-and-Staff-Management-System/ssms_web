@@ -902,6 +902,10 @@ def generate_resume_pdf(request):
     # Check for AI Data in Session
     ai_data = request.session.get('ai_resume_data', None)
     
+    # If standard type requested, force ignore AI data
+    if request.GET.get('type') == 'standard':
+        ai_data = None
+    
     # Gather all data
     context = {
         'student': student,

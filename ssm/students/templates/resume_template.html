@@ -161,14 +161,20 @@
     </div>
 
     <!-- ===== SUMMARY ===== -->
-    {% if ai_data.summary or other.ambition %}
     <div class="section">
         <div class="section-title">Professional Summary</div>
         <div class="summary">
-            {{ ai_data.summary|default:other.ambition }}
+            {% if ai_data.summary %}
+            {{ ai_data.summary }}
+            {% elif other.ambition %}
+            {{ other.ambition }}
+            {% else %}
+            Motivated student currently pursuing {{ student.get_program_level_display }} in {{
+            student.ugdetails.ug_course|default:"Engineering" }} at Annamalai University, eager to apply academic
+            knowledge in practical environments and contribute effectively to organizational goals.
+            {% endif %}
         </div>
     </div>
-    {% endif %}
 
     <!-- ===== TECHNICAL SKILLS ===== -->
     {% if ai_data.hard_skills or skills %}
@@ -260,6 +266,70 @@
             </tr>
             {% endif %}
         </table>
+    </div>
+
+    <!-- ===== RELEVANT COURSEWORK ===== -->
+    {% if coursework %}
+    <div class="section">
+        <div class="section-title">Relevant Coursework</div>
+        <div class="skills">
+            {% for subject in coursework %}
+            <span><span style="color:#2c3e50; font-weight:bold;">•</span> {{ subject.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== PERSONAL PROFILE ===== -->
+    <div class="section">
+        <div class="section-title">Personal Profile</div>
+        <table style="width: 60%; border: none;">
+            <tr>
+                <td style="border: none; padding: 4px; font-weight: 600; width: 140px;">Date of Birth</td>
+                <td style="border: none; padding: 4px;">: {{ personal.date_of_birth|date:"d F Y" }}</td>
+            </tr>
+            <tr>
+                <td style="border: none; padding: 4px; font-weight: 600;">Gender</td>
+                <td style="border: none; padding: 4px;">: {{ personal.gender }}</td>
+            </tr>
+            <tr>
+                <td style="border: none; padding: 4px; font-weight: 600;">Father's Name</td>
+                <td style="border: none; padding: 4px;">: {{ personal.father_name }}</td>
+            </tr>
+            <tr>
+                <td style="border: none; padding: 4px; font-weight: 600;">Mother's Name</td>
+                <td style="border: none; padding: 4px;">: {{ personal.mother_name }}</td>
+            </tr>
+            <tr>
+                <td style="border: none; padding: 4px; font-weight: 600;">Nationality</td>
+                <td style="border: none; padding: 4px;">: Indian</td>
+            </tr>
+            {% if other.hobbies %}
+            <tr>
+                <td style="border: none; padding: 4px; font-weight: 600;">Hobbies</td>
+                <td style="border: none; padding: 4px;">: {{ other.hobbies }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <!-- ===== DECLARATION ===== -->
+    <div class="section" style="margin-top: 30px;">
+        <div class="section-title">Declaration</div>
+        <div class="summary">
+            I hereby declare that the information provided above is true and accurate to the best of my knowledge and
+            belief.
+        </div>
+        <br><br>
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <div>
+                <b>Date:</b> {% now "d-m-Y" %}<br>
+                <b>Place:</b> Chidambaram
+            </div>
+            <div style="text-align: right;">
+                <b>{{ student.student_name }}</b>
+            </div>
+        </div>
     </div>
 
 </body>

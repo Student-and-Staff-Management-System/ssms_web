@@ -130,20 +130,79 @@
 
         .status-radio {
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
 
         .status-radio label {
+            cursor: pointer;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
+            gap: 6px;
+            color: var(--text-muted);
+            background: #fff;
         }
 
         .status-radio input[type="radio"] {
-            accent-color: var(--primary-color);
-            transform: scale(1.2);
+            display: none;
+        }
+
+        /* Checked States */
+        .status-radio label:has(input[value="Present"]:checked) {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+
+        .status-radio label:has(input[value="Absent"]:checked) {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        /* Stats Counter */
+        .stats-bar {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: flex;
+            gap: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            align-items: center;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .btn-outline:hover {
+            background: #f0fdfa;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
     </style>
 </head>
@@ -176,6 +235,20 @@
         <form method="POST">
             {% csrf_token %}
             <input type="hidden" name="attendance_date" value="{{ current_date }}">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div class="bulk-actions">
+                    <button type="button" class="btn-outline" onclick="markAll('Present')">✅ Mark All Present</button>
+                    <button type="button" class="btn-outline" style="border-color: #ef4444; color: #ef4444;"
+                        onclick="markAll('Absent')">❌ Mark All Absent</button>
+                </div>
+                <div class="stats-bar">
+                    <span id="present-count">Present: 0</span>
+                    <span style="opacity: 0.5;">|</span>
+                    <span id="absent-count">Absent: 0</span>
+                </div>
+            </div>
+
             <table>
                 <thead>
                     <tr>
@@ -192,13 +265,15 @@
                         <td>{{ student.student_name }}</td>
                         <td>
                             <div class="status-radio">
-                                <label> 
-                                    <input type="radio" name="status_{{ student.roll_number }}" value="Present" {% if status == 'Present' %}checked{% endif %} {% if is_readonly %}disabled{% endif %}>
-                                    <span style="color: #2ecc71; font-weight: 500;">Present</span>
+                                <label>
+                                    <input type="radio" name="status_{{ student.roll_number }}" value="Present"
+                                        onchange="updateStats()" {% if status == 'Present' %}checked{% endif %} {% if is_readonly %}disabled{% endif %}>
+                                    Present
                                 </label>
                                 <label>
-                                    <input type="radio" name="status_{{ student.roll_number }}" value="Absent" {% if status == 'Absent' %}checked{% endif %} {% if is_readonly %}disabled{% endif %}>
-                                    <span style="color: #e74c3c; font-weight: 500;">Absent</span>
+                                    <input type="radio" name="status_{{ student.roll_number }}" value="Absent"
+                                        onchange="updateStats()" {% if status == 'Absent' %}checked{% endif %} {% if  is_readonly %}disabled{% endif %}>
+                                    Absent
                                 </label>
                             </div>
                         </td>
@@ -219,6 +294,30 @@
             {% endif %}
         </form>
     </div>
+    </div>
+
+    <script>
+        function markAll(status) {
+            const radios = document.querySelectorAll(`input[type="radio"][value="${status}"]`);
+            radios.forEach(radio => {
+                if (!radio.disabled) {
+                    radio.checked = true;
+                }
+            });
+            updateStats();
+        }
+
+        function updateStats() {
+            const present = document.querySelectorAll('input[value="Present"]:checked').length;
+            const absent = document.querySelectorAll('input[value="Absent"]:checked').length;
+
+            document.getElementById('present-count').innerText = `Present: ${present}`;
+            document.getElementById('absent-count').innerText = `Absent: ${absent}`;
+        }
+
+        // Initial Calculation
+        document.addEventListener('DOMContentLoaded', updateStats);
+    </script>
 </body>
 
 </html>

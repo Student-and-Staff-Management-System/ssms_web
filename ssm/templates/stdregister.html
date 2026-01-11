@@ -23,6 +23,10 @@
             <img src="{% static 'imgs/aublack.png' %}" alt="University Logo" width="150" height="auto" />
             <h1>Student Registration</h1>
             <p>Department of Information Technology</p>
+            <a href="{% url 'student_login' %}"
+                style="display: inline-block; margin-top: 10px; text-decoration: none; color: #555; background: #f0f0f0; padding: 6px 14px; border-radius: 20px; font-size: 0.9em; border: 1px solid #ddd; transition: all 0.2s;">
+                ⬅ Back to Login
+            </a>
         </div>
 
         <form id="registration-form" method="POST" enctype="multipart/form-data" novalidate
@@ -589,8 +593,17 @@
                 const activeItem = document.querySelector('.accordion-item.active');
                 if (activeItem) {
                     const content = activeItem.querySelector('.accordion-content');
+                    // Reset to hidden during calculation/transition
+                    content.style.overflow = 'hidden';
                     setTimeout(() => {
                         content.style.maxHeight = content.scrollHeight + "px";
+
+                        // AFTER transition (approx 300ms), let it overflow so dropdowns aren't cut
+                        setTimeout(() => {
+                            if (activeItem.classList.contains('active')) {
+                                content.style.overflow = 'visible';
+                            }
+                        }, 350);
                     }, 50);
                 }
             }
@@ -602,6 +615,8 @@
                 const firstContent = accordionItems[0].querySelector('.accordion-content');
                 if (firstContent) {
                     firstContent.style.maxHeight = firstContent.scrollHeight + "px";
+                    // Immediately visible for initial state
+                    firstContent.style.overflow = 'visible';
                 }
             }
 
@@ -616,12 +631,26 @@
                     document.querySelectorAll('.accordion-item.active').forEach(openItem => {
                         openItem.classList.remove('active');
                         const openContent = openItem.querySelector('.accordion-content');
-                        if (openContent) openContent.style.maxHeight = '0px';
+                        if (openContent) {
+                            openContent.style.overflow = 'hidden'; // Hide overflow when closing
+                            openContent.style.maxHeight = '0px';
+                        }
                     });
 
                     if (!isActive) {
                         item.classList.add('active');
-                        if (content) content.style.maxHeight = content.scrollHeight + "px";
+                        if (content) {
+                            // Start with hidden for the animation
+                            content.style.overflow = 'hidden';
+                            content.style.maxHeight = content.scrollHeight + "px";
+
+                            // Switch to visible after animation finishes
+                            setTimeout(() => {
+                                if (item.classList.contains('active')) {
+                                    content.style.overflow = 'visible';
+                                }
+                            }, 350);
+                        }
                     }
                 });
             });

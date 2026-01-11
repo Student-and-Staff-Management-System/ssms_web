@@ -78,6 +78,10 @@
             background: #f8fafc;
             font-weight: 600;
             color: var(--text-main);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         input[type="number"] {
@@ -193,6 +197,43 @@
             {% endif %}
         </form>
     </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputs = document.querySelectorAll('.mark-input');
+
+            // Grid Navigation Logic
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const nextInput = inputs[index + 1];
+                        if (nextInput) {
+                            nextInput.focus();
+                            nextInput.select();
+                        }
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prevInput = inputs[index - 1];
+                        if (prevInput) {
+                            prevInput.focus();
+                            prevInput.select();
+                        }
+                    }
+                });
+
+                // Highlight Row on Focus
+                input.addEventListener('focus', function () {
+                    this.closest('tr').style.backgroundColor = '#f0fdfa';
+                });
+
+                input.addEventListener('blur', function () {
+                    this.closest('tr').style.backgroundColor = '';
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

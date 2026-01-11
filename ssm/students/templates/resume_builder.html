@@ -31,6 +31,11 @@
         <a href="{% url 'generate_resume_pdf' %}" class="action-btn btn-primary">
             <span class="emoji">📄</span> Download PDF
         </a>
+
+        <a href="{% url 'generate_resume_pdf' %}?type=standard" class="action-btn btn-secondary-outline"
+            style="font-size: 0.9em; margin-left: 5px;">
+            Standard Resume without AI
+        </a>
     </div>
 </div>
 

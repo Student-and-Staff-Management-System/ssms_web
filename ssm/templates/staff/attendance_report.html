@@ -87,14 +87,104 @@
             font-weight: 500;
         }
 
-        .status-good {
-            color: #2ecc71;
-            font-weight: 600;
-        }
-
         .status-bad {
             color: #e74c3c;
             font-weight: 600;
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            margin-top: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-header,
+        .day-cell {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .day-header {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            background: #f1f5f9;
+        }
+
+        .day-cell {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .day-cell:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .day-cell.empty {
+            background: transparent;
+            border: none;
+            pointer-events: none;
+        }
+
+        .day-cell.working-day {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #15803d;
+        }
+
+        .day-cell.weekend {
+            background: #ffeab6;
+            /* Light orange/yellow for holiday feel */
+            color: #d97706;
+            border-color: #fcd34d;
+            opacity: 0.8;
+        }
+
+        /* Ensure working day style overrides weekend style if they overlap */
+        .day-cell.working-day.weekend {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #15803d;
+            opacity: 1;
+        }
+
+        .day-cell.today {
+            border: 2px solid var(--primary-color);
+        }
+
+        .day-number {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .day-status {
+            font-size: 0.7rem;
+            margin-top: 4px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -117,7 +207,8 @@
         <div class="summary-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <form method="GET" style="display: flex; gap: 10px; align-items: center;">
-                    <select name="month" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
+                    <select name="month" onchange="this.form.submit()"
+                        style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                         <option value="">All Months</option>
                         <option value="1" {% if selected_month == 1 %}selected{% endif %}>January</option>
                         <option value="2" {% if selected_month == 2 %}selected{% endif %}>February</option>
@@ -132,13 +223,12 @@
                         <option value="11" {% if selected_month == 11 %}selected{% endif %}>November</option>
                         <option value="12" {% if selected_month == 12 %}selected{% endif %}>December</option>
                     </select>
-                    <select name="year" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
+                    <select name="year" onchange="this.form.submit()"
+                        style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                         {% for y in years %}
                         <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit"
-                        style="background: var(--primary-color); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Filter</button>
                     {% if selected_month or selected_year %}
                     <a href="{% url 'staffs:attendance_report' subject.id %}"
                         style="color: #e74c3c; text-decoration: none; font-size: 0.9rem;">Clear</a>
@@ -168,6 +258,53 @@
                 </div>
             </details>
             {% endif %}
+        </div>
+
+        <div class="summary-card">
+            <div class="calendar-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="display: flex; gap: 5px;">
+                        <a href="?month={{ prev_month }}&year={{ prev_year }}"
+                            style="text-decoration: none; font-size: 1.2rem; color: var(--text-muted); padding: 0 5px;">&#8249;</a>
+                        <h3 style="margin: 0; color: var(--primary-color);">{{ month_name }} {{ cal_year }}</h3>
+                        <a href="?month={{ next_month }}&year={{ next_year }}"
+                            style="text-decoration: none; font-size: 1.2rem; color: var(--text-muted); padding: 0 5px;">&#8250;</a>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                    <span
+                        style="display:inline-block; width: 10px; height: 10px; background: #dcfce7; border: 1px solid #86efac; border-radius: 50%; margin-right: 4px;"></span>
+                    Attendance Taken
+                </div>
+            </div>
+
+            <div class="calendar-grid">
+                <div class="day-header">Mon</div>
+                <div class="day-header">Tue</div>
+                <div class="day-header">Wed</div>
+                <div class="day-header">Thu</div>
+                <div class="day-header">Fri</div>
+                <div class="day-header">Sat</div>
+                <div class="day-header">Sun</div>
+
+                {% for week in month_matrix %}
+                {% for day in week %}
+                {% if day == 0 %}
+                <div class="day-cell empty"></div>
+                {% else %}
+                <a href="{% url 'staffs:manage_attendance' subject.id %}?date={{ cal_year }}-{{ cal_month|stringformat:'02d' }}-{{ day|stringformat:'02d' }}"
+                    class="day-cell {% if forloop.counter0 == 5 or forloop.counter0 == 6 %}weekend{% endif %} {% if day in working_days_set %}working-day{% endif %}">
+                    <span class="day-number">{{ day }}</span>
+                    {% if day in working_days_set %}
+                    <span class="day-status">✅ Done</span>
+                    {% else %}
+                    <span class="day-status" style="color: inherit; opacity: 0.7; font-size: 0.65rem;">+ Add</span>
+                    {% endif %}
+                </a>
+                {% endif %}
+                {% endfor %}
+                {% endfor %}
+            </div>
         </div>
 
         <table>

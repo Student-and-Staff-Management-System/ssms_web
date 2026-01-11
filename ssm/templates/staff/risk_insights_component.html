@@ -1,0 +1,80 @@
+{% if risk_insights %}
+<section class="actions-section" style="margin-top: 32px;">
+    <div class="section-header">
+        <h3 style="color: #ef4444;">⚠️ Risk Students Insights</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Students with low attendance (< 75%) or low internal
+                marks (< 40).</p>
+    </div>
+    <div class="actions-grid" style="grid-template-columns: 1fr;"> <!-- Force full width for these cards -->
+        {% for item in risk_insights %}
+        <div class="action-tile" style="border-left: 4px solid #ef4444; padding: 0; overflow: hidden; display: block;">
+            <div
+                style="padding: 16px 24px; background: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h4 style="font-size: 1.1rem; margin: 0;">{{ item.subject.name }}</h4>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">{{ item.subject.code }} • Sem {{
+                        item.subject.semester }}</span>
+                </div>
+                <span
+                    style="font-size: 0.8rem; background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 20px; font-weight: 600;">
+                    {{ item.students|length }} at risk
+                </span>
+            </div>
+
+            <div style="overflow-x: auto; padding: 0;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+                    <thead style="background: #f9fafb;">
+                        <tr>
+                            <th
+                                style="padding: 12px 24px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">
+                                Roll No</th>
+                            <th
+                                style="padding: 12px 24px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">
+                                Name</th>
+                            <th
+                                style="padding: 12px 24px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">
+                                Attendance</th>
+                            <th
+                                style="padding: 12px 24px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">
+                                Internal</th>
+                            <th
+                                style="padding: 12px 24px; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">
+                                Risk Factors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in item.students %}
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 12px 24px; font-family: monospace;">{{ student.roll_number }}</td>
+                            <td style="padding: 12px 24px;">{{ student.name }}</td>
+                            <td style="padding: 12px 24px;">
+                                {% if student.attendance_percentage < 75 %} <span
+                                    style="color: #ef4444; font-weight: 600;">{{ student.attendance_percentage}}%</span>
+                                    {% else %}
+                                    {{ student.attendance_percentage }}%
+                                    {% endif %}
+                            </td>
+                            <td style="padding: 12px 24px;">
+                                {% if student.internal_marks != '-' and student.internal_marks < 40 %} <span
+                                    style="color: #ef4444; font-weight: 600;">{{ student.internal_marks }}</span>
+                                    {% else %}
+                                    {{ student.internal_marks }}
+                                    {% endif %}
+                            </td>
+                            <td style="padding: 12px 24px;">
+                                {% for factor in student.risk_factors %}
+                                <span
+                                    style="display: inline-block; background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 4px;">{{
+                                    factor }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

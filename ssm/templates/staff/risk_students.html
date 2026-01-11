@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Students | {{ staff.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --primary-light: #eef2f2;
+            --accent: #f59e0b;
+            --bg-body: #f9fafb;
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e2e8f0;
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Re-using the component style but adapted for full page */
+        .risk-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow: hidden;
+            border-left: 4px solid #ef4444;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .card-header .meta {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 24px;
+            background: #f9fafb;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .risk-tag {
+            display: inline-block;
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fecaca;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 4px;
+            margin-bottom: 2px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px dashed var(--border);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div>
+                <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">← Back to Dashboard</a>
+                <h1 style="margin-top: 10px;">⚠️ Risk Students Insights</h1>
+                <p style="color: var(--text-muted); margin: 4px 0 0 0;">Students with Attendance < 75% or Internal
+                        Marks< 40</p>
+            </div>
+            <div class="profile-mini" style="display: flex; align-items: center; gap: 12px;">
+                {% if staff.photo %}
+                <img src="{{ staff.photo.url }}" alt="Profile"
+                    style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile"
+                    style="width: 40px; height: 40px; border-radius: 50%;">
+                {% endif %}
+                <div>
+                    <div style="font-weight: 600;">{{ staff.name }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ staff.role }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        {% if staff.role == 'HOD' %}
+        <div style="margin-bottom: 24px;">
+            <label for="semFilter"
+                style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-right: 8px;">Filter by
+                Semester:</label>
+            <select id="semFilter" onchange="filterSemesters()"
+                style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem;">
+                <option value="all">All Semesters</option>
+                {% for i in "12345678"|make_list %}
+                <option value="{{ i }}">Semester {{ i }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        {% if risk_insights %}
+        {% regroup risk_insights by subject.semester as semester_list %}
+
+        {% for semester in semester_list %}
+        <div style="margin-bottom: 40px;" class="semester-block" data-sem="{{ semester.grouper }}">
+            <h2
+                style="font-size: 1.4rem; color: var(--primary-dark); border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-bottom: 24px;">
+                Semester {{ semester.grouper }}
+            </h2>
+
+            {% for item in semester.list %}
+            <div class="risk-card">
+                <div class="card-header">
+                    <div>
+                        <h3>{{ item.subject.name }}</h3>
+                        <span class="meta">{{ item.subject.code }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="badge">{{ item.students|length }} Students at Risk</span>
+                        <a href="{% url 'staffs:export_risk_list' item.subject.id %}"
+                            style="text-decoration: none; font-size: 0.85rem; background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 8px; color: var(--text-main); font-weight: 500; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm);">
+                            <span>⬇️</span> Export CSV
+                        </a>
+                    </div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Roll Number</th>
+                                <th>Name</th>
+                                <th>Attendance</th>
+                                <th>Internal Marks</th>
+                                <th>Risk Factors</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in item.students %}
+                            <tr>
+                                <td style="font-family: monospace; font-weight: 500;">{{ student.roll_number }}</td>
+                                <td>{{ student.name }} <span style="font-size: 0.8rem; color: var(--text-muted);">(Sem
+                                        {{ student.current_semester }})</span></td>
+                                <td>
+                                    {% if student.attendance_percentage < 75 %} <span
+                                        style="color: #ef4444; font-weight: 600;">{{ student.attendance_percentage}}%</span>
+                                        {% else %}
+                                        {{ student.attendance_percentage }}%
+                                        {% endif %}
+                                </td>
+                                <td>
+                                    {% if student.internal_marks != '-' and student.internal_marks < 40 %} <span
+                                        style="color: #ef4444; font-weight: 600;">{{ student.internal_marks }}</span>
+                                        {% else %}
+                                        {{ student.internal_marks }}
+                                        {% endif %}
+                                </td>
+                                <td>
+                                    {% for factor in student.risk_factors %}
+                                    <span class="risk-tag">{{ factor }}</span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🎉</div>
+            <h3>No Risk Students Found!</h3>
+            <p>All students in your subjects have good attendance and marks.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    </div>
+
+    <script>
+        function filterSemesters() {
+            const filter = document.getElementById('semFilter').value;
+            const blocks = document.querySelectorAll('.semester-block');
+
+            blocks.forEach(block => {
+                if (filter === 'all' || block.getAttribute('data-sem') === filter) {
+                    block.style.display = 'block';
+                } else {
+                    block.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -80,7 +80,8 @@ def staff_dashboard(request):
     return render(request, template_name, {
         'staff': staff, 
         'student_count': student_count,
-        'assigned_subjects': assigned_subjects,
+        'subjects': assigned_subjects,
+        'assigned_subjects': assigned_subjects, # For HOD dashboard compatibility
         'pending_leaves_count': pending_leaves_count,
         'pending_staff_leaves_count': pending_staff_leaves_count,
         'news_list': news_list
@@ -510,6 +511,26 @@ def attendance_report(request, subject_id):
     working_dates = list(working_dates_qs)
     total_dates = len(working_dates)
     
+    # Calendar Data
+    import calendar
+    cal = calendar.Calendar(firstweekday=0) # 0 = Monday
+    
+    # Defaults if not provided (use current month/year view for calendar context)
+    try:
+        cal_month = int(month) if month else datetime.date.today().month
+        cal_year = int(year) if year else datetime.date.today().year
+    except (ValueError, TypeError):
+        cal_month = datetime.date.today().month
+        cal_year = datetime.date.today().year
+
+    month_matrix = cal.monthdayscalendar(cal_year, cal_month)
+    
+    # Get working days specifically for the calendar view month/year (even if filter is different/empty)
+    # We want to highlight days in the displayed calendar
+    cal_qs = StudentAttendance.objects.filter(subject=subject, date__year=cal_year, date__month=cal_month)
+    working_days_set = set(cal_qs.values_list('date__day', flat=True).distinct())
+
+    
     for student in students:
         # We need to filter by student AND the previously applied date filters
         # Ideally we'd aggregate, but doing loop for detailed calculation is fine for class size < 100
@@ -527,6 +548,21 @@ def attendance_report(request, subject_id):
             'percentage': round(percentage, 2)
         })
 
+    # Calculate Prev/Next Month for Navigation
+    if cal_month == 1:
+        prev_month = 12
+        prev_year = cal_year - 1
+    else:
+        prev_month = cal_month - 1
+        prev_year = cal_year
+
+    if cal_month == 12:
+        next_month = 1
+        next_year = cal_year + 1
+    else:
+        next_month = cal_month + 1
+        next_year = cal_year
+
     return render(request, 'staff/attendance_report.html', {
         'subject': subject,
         'summary_data': summary_data,
@@ -536,7 +572,18 @@ def attendance_report(request, subject_id):
         'selected_year': int(year) if year else '',
         'current_year': datetime.date.today().year,
         'years': range(2024, datetime.date.today().year + 2), # Adjust range as needed
-        'current_staff': current_staff
+        'current_staff': current_staff,
+        # Calendar Context
+        'month_matrix': month_matrix,
+        'working_days_set': working_days_set,
+        'cal_month': cal_month,
+        'cal_year': cal_year,
+        'month_name': calendar.month_name[cal_month],
+        # Navigation
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
     })
 
 def export_attendance_csv(request, subject_id):
@@ -801,8 +848,122 @@ def timetable(request):
         'staff': staff,
         'timetable_rows': timetable_rows,
         'selected_semester': selected_semester,
-        'semesters': range(1, 9),
+        'semesters': range(1, 9)
     })
+
+def risk_students(request):
+    """
+    Dedicated view to display students at risk (Low Attendance / Low Marks).
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    
+    # Imports
+    from .utils import get_risk_metrics
+    from .models import Subject
+    
+    risk_insights = []
+    subjects_to_analyze = []
+
+    if staff.role == 'HOD':
+        # HOD sees all subjects
+        subjects_to_analyze = Subject.objects.all().order_by('semester', 'code')
+    
+    elif staff.role == 'Class Incharge' and staff.assigned_semester:
+        # Class Incharge sees subjects they teach + ALL subjects in their assigned semester
+        teaching_subjects = staff.subjects.all()
+        semester_subjects = Subject.objects.filter(semester=staff.assigned_semester)
+        subjects_to_analyze = (teaching_subjects | semester_subjects).distinct().order_by('semester', 'code')
+        
+    else:
+        # Regular Staff / Course Incharge
+        subjects_to_analyze = staff.subjects.all().order_by('semester', 'code')
+
+    # Process Risk Metrics
+    for subject in subjects_to_analyze:
+        risks = get_risk_metrics(subject)
+        if risks:
+            risk_insights.append({
+                'subject': subject,
+                'students': risks
+            })
+            
+    return render(request, 'staff/risk_students.html', {
+        'staff': staff,
+        'risk_insights': risk_insights
+    })
+
+def export_risk_list(request, subject_id):
+    """
+    Exports the list of risk students for a specific subject to CSV.
+    """
+    import csv
+    from django.http import HttpResponse
+    from .models import Subject
+    from .utils import get_risk_metrics
+
+    # Check Login
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    subject = get_object_or_404(Subject, id=subject_id)
+
+    # Access Control Check (Basic) - Reusing logic:
+    # HOD can access all. Staff can access if assigned.
+    # We can be slightly lenient or strict. Optimally, check usage.
+    # Allowing if staff is HOD OR if subject is in staff.subjects.all()
+    # (Or if Class Incharge and subject in semester... simpler to stick to "can view risk page logic")
+    
+    can_access = False
+    if staff.role == 'HOD':
+        can_access = True
+    elif staff.role == 'Class Incharge' and staff.assigned_semester:
+        # Allow if subject is in their assigned semester OR if they teach it
+        if subject.semester == staff.assigned_semester or subject in staff.subjects.all():
+            can_access = True
+    else:
+        if subject in staff.subjects.all():
+            can_access = True
+            
+    # If HOD, access is True. If strict access needed:
+    if not can_access and staff.role != 'HOD':
+         messages.error(request, "Access Denied.")
+         return redirect('staffs:risk_students')
+
+    # Get Data
+    risks = get_risk_metrics(subject)
+    
+    # Prepare CSV
+    filename = f"Risk_Report_{subject.code}_Sem{subject.semester}.csv"
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    # Context Header
+    writer.writerow([f"Subject: {subject.name} ({subject.code})", f"Semester: {subject.semester}"])
+    writer.writerow([]) # Blank line
+    
+    # Table Header
+    writer.writerow(['Roll Number', 'Student Name', 'Attendance %', 'Internal Marks', 'Risk Factors'])
+    
+    for student_data in risks:
+        # Data structure from get_risk_metrics: 
+        # {'name': ..., 'roll_number': ..., 'attendance_percentage': ..., 'internal_marks': ..., 'risk_factors': [...]}
+        
+        row = [
+            student_data['roll_number'],
+            f"{student_data['name']} (Sem {student_data['current_semester']})",
+            f"{student_data['attendance_percentage']}%",
+            student_data['internal_marks'],
+            ", ".join(student_data['risk_factors'])
+        ]
+        writer.writerow(row)
+        
+    return response
+
 
 def view_leave_requests(request):
     """View to list pending leave requests."""
