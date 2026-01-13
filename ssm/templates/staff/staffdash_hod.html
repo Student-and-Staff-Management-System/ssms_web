@@ -395,8 +395,11 @@
 
             <nav class="nav-section">
                 <div class="nav-label">Menu</div>
-                <a href="#" class="nav-item active">
+                <!-- <a href="#" class="nav-item active">
                     <span class="nav-icon">📊</span> Dashboard
+                </a> -->
+                <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
+                    <span class="nav-icon">👤</span> My Profile
                 </a>
                 <a href="{% url 'staffs:risk_students' %}" class="nav-item">
                     <span class="nav-icon">⚠️</span> Risk Students
@@ -541,7 +544,8 @@
                     <div class="action-tile" style="border-left: 4px solid var(--primary);">
                         <div style="display: flex; justify-content: space-between;">
                             <span
-                                style="font-size: 0.7rem; background: var(--primary-light); color: var(--primary-dark); padding: 2px 8px; border-radius: 4px;">{{subject.code }}</span>
+                                style="font-size: 0.7rem; background: var(--primary-light); color: var(--primary-dark); padding: 2px 8px; border-radius: 4px;">{{subject.code
+                                }}</span>
                             <span style="font-size: 0.7rem; color: var(--text-muted);">Sem {{ subject.semester }}</span>
                         </div>
                         <h4 style="font-size: 0.95rem;">{{ subject.name }}</h4>

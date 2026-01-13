@@ -1191,3 +1191,16 @@ def admin_portal_login(request):
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     
     return redirect('/admin/')
+
+
+def staff_profile(request):
+    """View to display the logged-in staff's profile."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+
+    return render(request, 'staff/profile.html', {'staff': staff})
