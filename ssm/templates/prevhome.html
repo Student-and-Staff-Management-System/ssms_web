@@ -500,24 +500,25 @@
             const items = document.querySelectorAll('.news-item');
             items.forEach(item => {
                 const target = item.getAttribute('data-target');
-                if (type === 'all' || target === type || (type === 'student' && target === 'student') || (type === 'staff' && target === 'staff') || target === 'all') {
-                    if (type === 'all') {
+
+                // Strict filtering logic
+                if (type === 'all') {
+                    // Show everything
+                    item.classList.remove('hidden');
+                } else if (type === 'student') {
+                    // Show ONLY 'student' target
+                    if (target === 'student') {
                         item.classList.remove('hidden');
-                    } else if (type === 'student') {
-                        if (target === 'student' || target === 'all') {
-                            item.classList.remove('hidden');
-                        } else {
-                            item.classList.add('hidden');
-                        }
-                    } else if (type === 'staff') {
-                        if (target === 'staff' || target === 'all') {
-                            item.classList.remove('hidden');
-                        } else {
-                            item.classList.add('hidden');
-                        }
+                    } else {
+                        item.classList.add('hidden');
                     }
-                } else {
-                    item.classList.add('hidden');
+                } else if (type === 'staff') {
+                    // Show ONLY 'staff' target
+                    if (target === 'staff') {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
                 }
             });
 

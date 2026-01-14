@@ -181,8 +181,20 @@
 
                 <!-- Left Column: News & Attendance -->
                 <div class="dash-col">
-                    <!-- News Widget -->
-                    {% include 'news_component.html' %}
+
+                    <!-- Marks Graph -->
+                    <div class="chart-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="margin: 0; color: var(--primary-color);">Academic Performance</h3>
+                            <a href="{% url 'student_marks' %}" class="btn-sm btn-outline"
+                                style="font-size: 0.8rem; padding: 2px 8px;">View All</a>
+                        </div>
+                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA:
+                            <strong>{{cgpa}}</strong>
+                        </p>
+                        <canvas id="marksChart"></canvas>
+                    </div>
 
                     <!-- Attendance Graph -->
                     <div class="chart-card" style="margin-top: 25px;">
@@ -197,19 +209,12 @@
 
                 </div>
 
-                <!-- Right Column: Marks & Status -->
+                <!-- Right Column: News & Marks -->
                 <div class="dash-col">
-                    <!-- Marks Graph -->
-                    <div class="chart-card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 style="margin: 0; color: var(--primary-color);">Academic Performance</h3>
-                            <a href="{% url 'student_marks' %}" class="btn-sm btn-outline"
-                                style="font-size: 0.8rem; padding: 2px 8px;">View All</a>
-                        </div>
-                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA: <strong>{{cgpa}}</strong></p>
-                        <canvas id="marksChart"></canvas>
-                    </div>
+                    <!-- News Widget moved here -->
+                    {% include 'news_component.html' %}
+
+
 
                     <!-- Projects & Skills Widget -->
                     <div class="chart-card" style="margin-top: 25px;">
@@ -315,10 +320,10 @@
                 }
 
                 // Auto Refresh every 60 seconds
-            //     setTimeout(function () {
-            //         window.location.reload();
-            //     }, 10000);
-            // </script>
+                //     setTimeout(function () {
+                //         window.location.reload();
+                //     }, 10000);
+                // </script>
 
             {% endblock %}
         </main>

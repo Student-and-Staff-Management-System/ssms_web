@@ -20,7 +20,7 @@
             {% for news in news_list %}
             <div class="news-item" data-target="{{ news.target|lower }}">
                 <span class="news-date">{{ news.date|date:"M d, Y" }} <span
-                        style="font-weight: 400; opacity: 0.7; font-size: 0.9em; margin-left: 5px;">{{news.date|time:"h:iA" }}</span></span>
+                        style="font-weight: 400; opacity: 0.7; font-size: 0.9em; margin-left: 5px;">{{news.date|time:"h:iA"}}</span></span>
                 {% if news.link %}
                 <p><a href="{{ news.link }}" target="_blank" class="news-link">
                         {{ news.content }} <span style="font-size: 0.8em;">🔗</span>
@@ -200,33 +200,25 @@
         const items = document.querySelectorAll('.news-item');
         items.forEach(item => {
             const target = item.getAttribute('data-target');
-            if (type === 'all' || target === type || (type === 'student' && target === 'student') || (type === 'staff' && target === 'staff') || target === 'all') {
-                // Logic: 
-                // 'all' filter shows everything.
-                // 'student' filter shows 'student' AND 'all' tagged items? Usually yes, students see 'All' and 'Student'.
-                // 'staff' filter shows 'staff' AND 'all' tagged items.
 
-                // Let's refine based on user request: "filter like all staff,students"
-                // Usually filters are exclusive or inclusive. 
-                // If I click "Students", I expect to see things relevant to students. That includes "Student" specific AND "All".
-
-                if (type === 'all') {
+            // Strict filtering logic as requested
+            if (type === 'all') {
+                // Show everything
+                item.classList.remove('hidden');
+            } else if (type === 'student') {
+                // Show ONLY 'student' target (hide 'all' and 'staff')
+                if (target === 'student') {
                     item.classList.remove('hidden');
-                } else if (type === 'student') {
-                    if (target === 'student' || target === 'all') {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
-                } else if (type === 'staff') {
-                    if (target === 'staff' || target === 'all') {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
+                } else {
+                    item.classList.add('hidden');
                 }
-            } else {
-                item.classList.add('hidden');
+            } else if (type === 'staff') {
+                // Show ONLY 'staff' target (hide 'all' and 'student')
+                if (target === 'staff') {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
             }
         });
 
@@ -234,6 +226,6 @@
         const content = document.getElementById('newsContent');
         content.style.animation = 'none';
         content.offsetHeight; /* trigger reflow */
-        content.style.animation = 'scroll-vertical 25s linear infinite';
+        content.style.animation = 'scroll-vertical 20s linear infinite';
     }
 </script>
