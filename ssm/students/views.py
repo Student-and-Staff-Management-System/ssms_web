@@ -291,8 +291,8 @@ def student_dashboard(request):
         'student': student,
         'news_list': news_list,
         'attendance_percentage': attendance_percentage,
-        'gpa_labels': json.dumps(gpa_labels),
-        'gpa_data': json.dumps(gpa_data),
+        'gpa_labels': gpa_labels,
+        'gpa_data': gpa_data,
         'cgpa': cgpa,
         'skills': skills,
         'projects': projects

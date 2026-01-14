@@ -124,7 +124,7 @@
                 <div class="nav-divider"></div>
                 <a href="{% url 'student_attendance' %}"><span class="emoji">📊</span> Attendance</a>
                 <a href="{% url 'student_marks' %}"><span class="emoji">📈</span> Marks</a>
-                <a href="{% url 'resume_builder' %}"><span class="emoji">🧠</span>Resume Generator - AI</a>
+                <a href="{% url 'resume_builder' %}"><span class="emoji">🧠</span> Resume Generator - AI</a>
                 <a href="{% url 'apply_leave' %}"><span class="emoji">📝</span> Leave Application</a>
                 <a href="{% url 'student_editprofile' %}"><span class="emoji">✏️</span> Edit Profile</a>
                 <a href="https://annamalaiuniversity.ac.in/" target="_blank" rel="noopener"><span
@@ -164,15 +164,15 @@
                     <div title="Semester"><span style="margin-right: 5px;">🎓</span> Sem {{ student.current_semester }}
                     </div>
                     <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -
-                        {{student.ending_year }}</div>
-                    <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
+                        {{ student.ending_year }}</div>
+                    <div title="Email"><span style="margin-right: 5px;">📧</span> {{ student.student_email|default:"--"}}
                     </div>
                     <div title="Mobile"><span style="margin-right: 5px;">📱</span>
-                        {{student.personalinfo.student_mobile|default:"--"}}</div>
+                        {{ student.personalinfo.student_mobile|default:"--" }}</div>
                     <div title="Blood Group"><span style="margin-right: 5px;">🩸</span>
-                        {{student.personalinfo.get_blood_group_display|default:"--"}}</div>
+                        {{ student.personalinfo.get_blood_group_display|default:"--" }}</div>
                     <div title="DOB"><span style="margin-right: 5px;">🎂</span>
-                        {{student.personalinfo.date_of_birth|date:"d M Y"|default:"--"}}</div>
+                        {{ student.personalinfo.date_of_birth|date:"d M Y"|default:"--" }}</div>
                 </div>
             </div>
 
@@ -191,7 +191,7 @@
                                 style="font-size: 0.8rem; padding: 2px 8px;">View All</a>
                         </div>
                         <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA:
-                            <strong>{{cgpa}}</strong>
+                            <strong>{{ cgpa }}</strong>
                         </p>
                         <canvas id="marksChart"></canvas>
                     </div>
@@ -213,8 +213,6 @@
                 <div class="dash-col">
                     <!-- News Widget moved here -->
                     {% include 'news_component.html' %}
-
-
 
                     <!-- Projects & Skills Widget -->
                     <div class="chart-card" style="margin-top: 25px;">
@@ -256,7 +254,7 @@
                                     {% endif %}
                                 </div>
                                 <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">
-                                    {{project.description|truncatechars:60 }}</p>
+                                    {{ project.description|truncatechars:60 }}</p>
                             </div>
                             {% empty %}
                             <p class="text-muted" style="font-size: 0.9rem;">No projects added yet.</p>
@@ -267,9 +265,16 @@
                 </div>
             </div>
 
+            <!-- Data for Charts passed via json_script to avoid linter errors -->
+            {{ attendance_percentage|default:0|json_script:"attendance-data" }}
+            {{ gpa_labels|json_script:"gpa-labels-data" }}
+            {{ gpa_data|json_script:"gpa-data-data" }}
+
             <script>
                 // --- Attendance Chart ---
-                const attendancePct = {{ attendance_percentage|default:0 }};
+                // Parse the data from the script tag
+                const attendancePct = JSON.parse(document.getElementById('attendance-data').textContent);
+
                 const ctxAtt = document.getElementById('attendanceChart').getContext('2d');
                 new Chart(ctxAtt, {
                     type: 'doughnut',
@@ -293,23 +298,28 @@
 
                 // --- Marks Chart (Fixed) ---
                 const ctxMarks = document.getElementById('marksChart').getContext('2d');
+
+                // Parse labels and data
+                const gpaLabels = JSON.parse(document.getElementById('gpa-labels-data').textContent);
+                const gpaData = JSON.parse(document.getElementById('gpa-data-data').textContent);
+
                 new Chart(ctxMarks, {
                     type: 'bar',
                     data: {
-                        labels: {{ gpa_labels| safe }},
-                    datasets: [{
-                        label: 'GPA',
-                        data: {{ gpa_data| safe }},
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 6
+                        labels: gpaLabels,
+                        datasets: [{
+                            label: 'GPA',
+                            data: gpaData,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 6
                         }]
                     },
                     options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true, max: 10 }
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, max: 10 }
+                        }
                     }
-                }
                 });
             </script>
 
@@ -320,10 +330,10 @@
                 }
 
                 // Auto Refresh every 60 seconds
-                //     setTimeout(function () {
-                //         window.location.reload();
-                //     }, 10000);
-                // </script>
+                // setTimeout(function () {
+                //     window.location.reload();
+                // }, 10000);
+            </script>
 
             {% endblock %}
         </main>
