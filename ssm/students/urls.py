@@ -58,6 +58,7 @@ urlpatterns = [
     # Student attendance and marks
     path('attendance/', views.student_attendance, name='student_attendance'),
     path('student/marks/', views.student_marks, name='student_marks'),
+    path('academic/history/', views.cgpa_history, name='cgpa_history'),
     
     # Resume Builder
     path('resume-builder/', views.resume_builder, name='resume_builder'),

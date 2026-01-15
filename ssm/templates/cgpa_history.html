@@ -1,0 +1,527 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Academic History - {{ student.student_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #5a7d7c 0%, #4a6867 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #334155;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .history-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        /* Header Section */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .header-title p {
+            margin: 5px 0 0;
+            color: #64748b;
+        }
+
+        .back-btn {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #fff;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(90, 125, 124, 0.1), transparent);
+            border-radius: 0 0 0 100%;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 10px 0 0;
+        }
+
+        .stat-trend {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .trend-up {
+            color: #10b981;
+        }
+
+        .trend-neutral {
+            color: #64748b;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 40px;
+            position: relative;
+            height: 400px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--primary-color, #5a7d7c);
+            border-radius: 2px;
+            display: block;
+        }
+
+        /* Detailed History Timeline */
+        .timeline-container {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .semester-card {
+            background: #fff;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .semester-card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .semester-header {
+            background: #f8fafc;
+            padding: 15px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .sem-title {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.1rem;
+        }
+
+        .sem-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .sem-badge {
+            background: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            font-weight: 500;
+        }
+
+        .sem-badge.gpa {
+            color: #2563eb;
+            border-color: #bfdbfe;
+            background: #eff6ff;
+        }
+
+        .sem-badge.cgpa {
+            color: #059669;
+            border-color: #a7f3d0;
+            background: #ecfdf5;
+        }
+
+        .semester-body {
+            padding: 0;
+            display: none;
+            /* Hidden by default, toggled via JS */
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .semester-body.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .subject-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .subject-table th,
+        .subject-table td {
+            padding: 12px 25px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .subject-table th {
+            background: #fff;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .subject-table td {
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        .subject-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .grade-badge {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            background: #f1f5f9;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .grade-O {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .grade-A_plus {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .grade-A {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .grade-B_plus {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .semester-header.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="history-container">
+
+        <!-- Top Nav -->
+        <div class="history-header">
+            <div class="header-title">
+                <h1>Academic Profile</h1>
+                <p>Comprehensive Grade History & Analysis</p>
+            </div>
+            <a href="{% url 'student_dashboard' %}" class="back-btn">
+                <span>←</span> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="summary-grid">
+            <div class="stat-card">
+                <div class="stat-label">Current CGPA</div>
+                <div class="stat-value">{{ summary.latest_cgpa }}</div>
+                <div class="stat-trend trend-up">Lifetime Aggregate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Best Semester GPA</div>
+                <div class="stat-value">{{ summary.max_gpa }}</div>
+                <div class="stat-trend trend-neutral">Peak Performance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Average GPA</div>
+                <div class="stat-value">{{ summary.avg_gpa }}</div>
+                <div class="stat-trend trend-neutral">Consistency Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Credits</div>
+                <div class="stat-value">
+                    {% if detailed_history %}
+                    {% with detailed_history|last as last %}{{ last.credits|floatformat:0 }}{% endwith %}
+                    {% else %}0{% endif %}
+                </div>
+                <div class="stat-trend trend-neutral">Accumulated</div>
+            </div>
+        </div>
+
+        <!-- Visualization -->
+        <div class="chart-section">
+            <div class="section-title">Performance Trajectory</div>
+            <canvas id="cgpaChart"></canvas>
+        </div>
+
+        <!-- Detailed Timeline -->
+        <h3 class="section-title">Semester Breakdown</h3>
+        <div class="timeline-container">
+            {% for sem in detailed_history reversed %}
+            <div class="semester-card">
+                <div class="semester-header" onclick="toggleSem(this)">
+                    <div class="sem-title">Semester {{ sem.semester }}</div>
+                    <div class="sem-stats">
+                        <span class="sem-badge gpa">GPA: {{ sem.gpa }}</span>
+                        <span class="sem-badge cgpa">CGPA: {{ sem.cgpa }}</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                </div>
+                <div class="semester-body">
+                    {% if sem.subjects %}
+                    <table class="subject-table">
+                        <thead>
+                            <tr>
+                                <th>Subject Code</th>
+                                <th>Subject Name</th>
+                                <th>Credits</th>
+                                <th>Grade</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in sem.subjects %}
+                            <tr>
+                                <td>{{ sub.code }}</td>
+                                <td>{{ sub.name }}</td>
+                                <td>{{ sub.credits }}</td>
+                                <td><span class="grade-badge grade-{{ sub.grade|slugify }}">{{ sub.grade }}</span></td>
+                                <td>{{ sub.points }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div style="padding: 20px; text-align: center; color: #94a3b8;">
+                        Detailed subject data not available for this semester.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+                <p>No academic history records found.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Data Passing -->
+    {{ semesters|json_script:"chart-labels" }}
+    {{ gpas|json_script:"chart-gpa" }}
+    {{ cgpas|json_script:"chart-cgpa" }}
+
+    <script>
+        // Toggle Accordion
+        function toggleSem(header) {
+            header.classList.toggle('active');
+            const body = header.nextElementSibling;
+            body.classList.toggle('active');
+        }
+
+        // Chart.js Visualization
+        const ctx = document.getElementById('cgpaChart').getContext('2d');
+
+        const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+        const gpaData = JSON.parse(document.getElementById('chart-gpa').textContent);
+        const cgpaData = JSON.parse(document.getElementById('chart-cgpa').textContent);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'CGPA (Cumulative)',
+                        data: cgpaData,
+                        borderColor: '#5a7d7c',
+                        backgroundColor: 'rgba(90, 125, 124, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#5a7d7c',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'GPA (Semester)',
+                        data: gpaData,
+                        borderColor: '#94a3b8',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointStyle: 'rectRounded',
+                        pointRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            font: { family: 'Poppins' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                        titleFont: { family: 'Poppins', size: 13 },
+                        bodyFont: { family: 'Poppins', size: 13 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 0,
+                        max: 10,
+                        grid: {
+                            color: '#f1f5f9'
+                        },
+                        ticks: {
+                            font: { family: 'Poppins' }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { family: 'Poppins' }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+
+</html>

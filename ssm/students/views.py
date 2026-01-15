@@ -798,6 +798,70 @@ def export_student_marks_csv(request):
 
 
 @student_login_required
+def cgpa_history(request):
+    """
+    Displays the detailed CGPA history of the student with visualizations.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    # Fetch all stored GPA records
+    gpa_records = StudentGPA.objects.filter(student=student).order_by('semester')
+
+    # Prepare data for visualizations
+    semesters = []
+    gpas = []
+    cgpas = []
+    
+    cumulative_points = 0
+    cumulative_credits = 0
+    
+    detailed_history = []
+
+    for record in gpa_records:
+        semesters.append(f"Sem {record.semester}")
+        gpas.append(record.gpa)
+        
+        # Calculate running CGPA
+        cumulative_points += (record.gpa * record.total_credits)
+        cumulative_credits += record.total_credits
+        
+        current_cgpa = round(cumulative_points / cumulative_credits, 2) if cumulative_credits > 0 else 0.0
+        cgpas.append(current_cgpa)
+        
+        detailed_history.append({
+            'semester': record.semester,
+            'gpa': record.gpa,
+            'cgpa': current_cgpa,
+            'credits': record.total_credits,
+            'subjects': record.subject_data if record.subject_data else []
+        })
+
+    # Summary Stats
+    if gpas:
+        max_gpa = max(gpas)
+        min_gpa = min(gpas)
+        avg_gpa = round(sum(gpas) / len(gpas), 2)
+        latest_cgpa = cgpas[-1] if cgpas else 0.0
+    else:
+        max_gpa = min_gpa = avg_gpa = latest_cgpa = 0.0
+
+    context = {
+        'student': student,
+        'semesters': semesters,
+        'gpas': gpas,
+        'cgpas': cgpas,
+        'detailed_history': detailed_history,
+        'summary': {
+            'max_gpa': max_gpa,
+            'min_gpa': min_gpa,
+            'avg_gpa': avg_gpa,
+            'latest_cgpa': latest_cgpa
+        }
+    }
+    return render(request, 'cgpa_history.html', context)
+
+@student_login_required
 def export_student_attendance_csv(request):
     """Export student attendance summary to CSV."""
     import csv

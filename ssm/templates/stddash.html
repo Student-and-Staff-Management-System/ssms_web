@@ -165,7 +165,8 @@
                     </div>
                     <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -
                         {{ student.ending_year }}</div>
-                    <div title="Email"><span style="margin-right: 5px;">📧</span> {{ student.student_email|default:"--"}}
+                    <div title="Email"><span style="margin-right: 5px;">📧</span> {{
+                        student.student_email|default:"--"}}
                     </div>
                     <div title="Mobile"><span style="margin-right: 5px;">📱</span>
                         {{ student.personalinfo.student_mobile|default:"--" }}</div>
@@ -187,8 +188,8 @@
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <h3 style="margin: 0; color: var(--primary-color);">Academic Performance</h3>
-                            <a href="{% url 'student_marks' %}" class="btn-sm btn-outline"
-                                style="font-size: 0.8rem; padding: 2px 8px;">View All</a>
+                            <a href="{% url 'cgpa_history' %}" class="btn-sm btn-outline"
+                                style="font-size: 0.8rem; padding: 2px 8px;">View History</a>
                         </div>
                         <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA:
                             <strong>{{ cgpa }}</strong>
