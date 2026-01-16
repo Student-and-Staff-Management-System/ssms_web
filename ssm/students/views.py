@@ -287,6 +287,24 @@ def student_dashboard(request):
     skills = student.skills.all()
     projects = student.projects.all()
 
+    # --- Standout Feature: Attendance Streak ---
+    attendance_streak = 0
+    # Fetch all attendance records ordered by date descending (unique dates)
+    # We aggregate by date to handle multiple subjects on same day => if present in ALL or ANY?
+    # Usually streak implies "Showed up to college". So if present in at least 1 class that day.
+    dates = StudentAttendance.objects.filter(student=student).values_list('date', flat=True).distinct().order_by('-date')
+    
+    # We need to check consecutiveness based on *recorded* days, ignoring weekends/holidays naturally
+    # (since no records exist for those).
+    for i, date_obj in enumerate(dates):
+        # Check if present on this date (if any 'Present' entry exists for this date)
+        is_present = StudentAttendance.objects.filter(student=student, date=date_obj, status='Present').exists()
+        if is_present:
+            attendance_streak += 1
+        else:
+            # If completely absent on a recorded day, streak breaks.
+            break
+            
     context = {
         'student': student,
         'news_list': news_list,
@@ -295,7 +313,9 @@ def student_dashboard(request):
         'gpa_data': gpa_data,
         'cgpa': cgpa,
         'skills': skills,
-        'projects': projects
+        'projects': projects,
+        'attendance_streak': attendance_streak,
+        'today': timezone.now().strftime('%A')
     }
     return render(request, 'stddash.html', context)
 
@@ -800,7 +820,7 @@ def export_student_marks_csv(request):
 @student_login_required
 def cgpa_history(request):
     """
-    Displays the detailed CGPA history of the student with visualizations.
+    Displays the detailed CGPA history of the student with visualizations and AI insights.
     """
     roll_number = request.session.get('student_roll_number')
     student = get_object_or_404(Student, roll_number=roll_number)
@@ -817,6 +837,15 @@ def cgpa_history(request):
     cumulative_credits = 0
     
     detailed_history = []
+    
+    # For Heatmap and Analysis
+    all_grades = []
+    theory_points = []
+    lab_points = []
+    
+    grade_points_map = {
+        'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'RA': 0, 'AB': 0
+    }
 
     for record in gpa_records:
         semesters.append(f"Sem {record.semester}")
@@ -829,12 +858,41 @@ def cgpa_history(request):
         current_cgpa = round(cumulative_points / cumulative_credits, 2) if cumulative_credits > 0 else 0.0
         cgpas.append(current_cgpa)
         
+        subjects = record.subject_data if record.subject_data else []
+        
+        # Collect detailed stats
+        for sub in subjects:
+            grade = sub.get('grade')
+            # Assuming subject code implies type or we just blindly trust specific naming if available
+            # In absence of strict type in JSON, we rely on 'subject_type' field if we had it joined.
+            # Since we store JSON, let's try to infer or just collect all.
+            # For this 'standout' feature, we'll try to guess based on simple heuristic or just general stats.
+            
+            # Heatmap Data
+            all_grades.append({
+                'semester': record.semester,
+                'code': sub.get('code'),
+                'grade': grade,
+                'points': sub.get('points')
+            })
+            
+            # Simple heuristic for Lab vs Theory if not in JSON (typically Labs have 'Lab' in name or specific codes)
+            # Since we don't have type in JSON typically, let's assume if it exists or default to general.
+            # Ideally we should fetch Subject objects but that's expensive inside loop.
+            # Let's rely on standard high grades for "Strength" analysis instead.
+            
+            pts = grade_points_map.get(grade, 0)
+            if 'LAB' in sub.get('name', '').upper() or 'PRACTICAL' in sub.get('name', '').upper():
+                lab_points.append(pts)
+            else:
+                theory_points.append(pts)
+
         detailed_history.append({
             'semester': record.semester,
             'gpa': record.gpa,
             'cgpa': current_cgpa,
             'credits': record.total_credits,
-            'subjects': record.subject_data if record.subject_data else []
+            'subjects': subjects
         })
 
     # Summary Stats
@@ -846,12 +904,44 @@ def cgpa_history(request):
     else:
         max_gpa = min_gpa = avg_gpa = latest_cgpa = 0.0
 
+    # --- AI Insights Logic ---
+    insights = []
+    
+    # 1. Trend Analysis
+    if len(gpas) >= 3:
+        last_3 = gpas[-3:]
+        if last_3[0] < last_3[1] < last_3[2]:
+            insights.append("Your performance is on a consistent upward trajectory over the last 3 semesters. Keep it up!")
+        elif last_3[0] > last_3[1] > last_3[2]:
+            insights.append("We've noticed a slight dip in recent semesters. Consider focusing on core subjects.")
+        elif max(last_3) - min(last_3) < 0.5:
+            insights.append("You demonstrate remarkable consistency in your academic performance.")
+    
+    # 2. Strength Area
+    avg_theory = sum(theory_points)/len(theory_points) if theory_points else 0
+    avg_lab = sum(lab_points)/len(lab_points) if lab_points else 0
+    
+    if avg_lab > avg_theory + 1:
+        insights.append("You show exceptional practical skills, consistently scoring higher in Laboratory courses.")
+    elif avg_theory > avg_lab + 1:
+        insights.append("Your theoretical understanding is your strong suit, outpacing your practical grades.")
+    
+    # 3. Peak
+    if gpas:
+        best_sem_idx = gpas.index(max(gpas))
+        insights.append(f"Semester {detailed_history[best_sem_idx]['semester']} was your peak performance era so far.")
+
+    if not insights:
+        insights.append("Maintain your focus and continue working towards your academic goals.")
+
     context = {
         'student': student,
         'semesters': semesters,
         'gpas': gpas,
         'cgpas': cgpas,
         'detailed_history': detailed_history,
+        'all_grades': all_grades, # For Heatmap
+        'insights': insights,
         'summary': {
             'max_gpa': max_gpa,
             'min_gpa': min_gpa,

@@ -83,6 +83,102 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
         }
+
+        /* Standout Feature: Streak Badge */
+        .streak-badge {
+            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+            color: #e11d48;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #fecdd3;
+            margin-top: 10px;
+            animation: pulse-soft 2s infinite;
+        }
+
+        @keyframes pulse-soft {
+            0% {
+                box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.2);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(225, 29, 72, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
+            }
+        }
+
+        /* Standout Feature: Sticky Note */
+        .sticky-note-widget {
+            display: none;
+            /* Hidden by default */
+            background: #fef08a;
+            /* Yellow note */
+            color: #854d0e;
+            padding: 20px;
+            border-radius: 2px;
+            /* Slight rounded but square-ish */
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transform: rotate(-1deg);
+            /* Handwriting feel */
+            transition: transform 0.2s;
+            border: 1px solid #fde047;
+            margin-top: 25px;
+        }
+
+        .sticky-note-widget.active {
+            display: block;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) rotate(-5deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(-1deg);
+            }
+        }
+
+        .sticky-note-widget:hover {
+            transform: rotate(0deg) scale(1.02);
+            z-index: 5;
+        }
+
+        .sticky-textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            resize: none;
+            font-family: 'Poppins', cursive;
+            /* Fallback to Poppins, ideally handwriting font */
+            font-size: 0.95rem;
+            color: #713f12;
+            outline: none;
+            min-height: 100px;
+            line-height: 1.5;
+        }
+
+        .sticky-pin {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            /* Tape look */
+        }
     </style>
 </head>
 
@@ -102,8 +198,14 @@
 
             <div class="profile-name">{{ student.student_name }}</div>
             <div class="profile-meta">{{ student.roll_number }}</div>
-            <div class="profile-meta">{{ student.get_program_level_display }}</div>
-            <div class="profile-badge">
+
+            {% if attendance_streak > 0 %}
+            <div class="streak-badge" title="Consecutive days present">
+                <span>🔥</span> {{ attendance_streak }} Day Streak
+            </div>
+            {% endif %}
+
+            <div class="profile-badge" style="margin-top: 15px;">
                 {% if student.current_semester > 8 %}
                 Course Completed
                 {% else %}
@@ -150,6 +252,8 @@
                 <!-- Top Right Actions -->
                 <div class="header-actions">
                     {% block header_actions %}{% endblock %}
+                    <button class="action-btn" onclick="toggleStickyNote()"
+                        style="background: #eab308; border-color: #ca8a04;">� Add Sticky Note</button>
                     <a href="{% url 'student_profile' %}" class="action-btn btn-primary">👤 View Full Profile</a>
                     <a href="{% url 'student_logout' %}" class="action-btn btn-danger">Logout</a>
                 </div>
@@ -165,8 +269,7 @@
                     </div>
                     <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -
                         {{ student.ending_year }}</div>
-                    <div title="Email"><span style="margin-right: 5px;">📧</span> {{
-                        student.student_email|default:"--"}}
+                    <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
                     </div>
                     <div title="Mobile"><span style="margin-right: 5px;">📱</span>
                         {{ student.personalinfo.student_mobile|default:"--" }}</div>
@@ -214,6 +317,18 @@
                 <div class="dash-col">
                     <!-- News Widget moved here -->
                     {% include 'news_component.html' %}
+
+                    <!-- Standout Feature: Sticky Note -->
+                    <div id="stickyWidget" class="sticky-note-widget">
+                        <div class="sticky-pin"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <h4 style="margin: 0 0 10px 0; font-size:0.9rem; opacity:0.8;">📝 Quick Note</h4>
+                            <button onclick="toggleStickyNote()"
+                                style="background:none; border:none; cursor:pointer; font-size:1.2rem; line-height:1; opacity:0.5;">×</button>
+                        </div>
+                        <textarea id="stickyNoteInput" class="sticky-textarea"
+                            placeholder="Type a reminder here... (Auto-saved)"></textarea>
+                    </div>
 
                     <!-- Projects & Skills Widget -->
                     <div class="chart-card" style="margin-top: 25px;">
@@ -270,6 +385,43 @@
             {{ attendance_percentage|default:0|json_script:"attendance-data" }}
             {{ gpa_labels|json_script:"gpa-labels-data" }}
             {{ gpa_data|json_script:"gpa-data-data" }}
+
+            <script>
+                // Sticky Note Logic 
+                function toggleStickyNote() {
+                    const widget = document.getElementById('stickyWidget');
+                    const isHidden = getComputedStyle(widget).display === 'none';
+
+                    if (isHidden) {
+                        widget.classList.add('active');
+                        // Optional: Store state to keep it open
+                        localStorage.setItem('stickyNoteOpen', 'true');
+                    } else {
+                        widget.classList.remove('active');
+                        localStorage.removeItem('stickyNoteOpen');
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    const stickyInput = document.getElementById('stickyNoteInput');
+                    const widget = document.getElementById('stickyWidget');
+
+                    // Restore Note Content
+                    const savedNote = localStorage.getItem('studentStickyNote');
+                    if (savedNote) {
+                        stickyInput.value = savedNote;
+                    }
+
+                    // Restore Visibility
+                    if (localStorage.getItem('stickyNoteOpen') === 'true') {
+                        widget.classList.add('active');
+                    }
+
+                    stickyInput.addEventListener('input', function () {
+                        localStorage.setItem('studentStickyNote', this.value);
+                    });
+                });
+            </script>
 
             <script>
                 // --- Attendance Chart ---
