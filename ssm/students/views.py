@@ -334,6 +334,9 @@ def student_dashboard(request):
     skills = student.skills.all()
     projects = student.projects.all()
 
+    # Leave Requests (New Widget)
+    from students.models import LeaveRequest
+    recent_leaves = LeaveRequest.objects.filter(student=student).order_by('-created_at')[:5]
 
     # Helper for calendar data
     calendar_data = get_attendance_calendar_data(student)
@@ -344,11 +347,11 @@ def student_dashboard(request):
         'attendance_percentage': attendance_percentage,
         'gpa_labels': gpa_labels,
         'gpa_data': gpa_data,
-        'gpa_data': gpa_data,
         'cgpa': cgpa,
         'gpa_records': gpa_records,  # Added for History View
         'skills': skills,
         'projects': projects,
+        'recent_leaves': recent_leaves,
 
         'today': timezone.now().strftime('%A'),
         'calendar_data': calendar_data

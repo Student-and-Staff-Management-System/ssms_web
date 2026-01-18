@@ -374,7 +374,40 @@
                         <canvas id="marksChart"></canvas>
                     </div>
 
+                    <!-- Leave Status Widget (New) -->
+                    <div class="chart-card" style="margin-top: 25px; min-height: auto;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; color: var(--primary-color);">Leave Status</h3>
+                            <a href="{% url 'apply_leave' %}" class="btn-sm btn-outline"
+                                style="font-size: 0.8rem; padding: 2px 8px;">Apply / View All</a>
+                        </div>
 
+                        <div style="font-size: 0.9rem;">
+                            {% if recent_leaves %}
+                            <table style="width: 100%; border-collapse: collapse;">
+                                {% for leave in recent_leaves %}
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 8px 0; color: #334155;">
+                                        <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
+                                        <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"}} -{{ leave.end_date|date:"d M" }}</div>
+                                    </td>
+                                    <td style="padding: 8px 0; text-align: right;">
+                                        <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; 
+                                                {% if 'Approved' in leave.status %}background: #dcfce7; color: #166534;
+                                                {% elif 'Rejected' in leave.status %}background: #fee2e2; color: #991b1b;
+                                                {% else %}background: #fef9c3; color: #854d0e;{% endif %}">
+                                            {{ leave.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            {% else %}
+                            <p style="color: #94a3b8; text-align: center; margin: 10px 0;">No recent leave requests.</p>
+                            {% endif %}
+                        </div>
+                    </div>
 
                 </div>
 

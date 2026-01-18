@@ -2,6 +2,10 @@
 {% load static %}
 
 {% block header_actions %}
+<a href="{% url 'student_dashboard' %}" class="action-btn"
+    style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); margin-right: 10px;">
+    ← Back
+</a>
 <a href="{% url 'apply_leave' %}" class="action-btn btn-primary">
     + New Request
 </a>
