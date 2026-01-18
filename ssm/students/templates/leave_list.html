@@ -76,8 +76,10 @@
     }
 </style>
 
-<div class="page-header">
-    <h2 style="color: var(--accent-color);">My Leave History</h2>
+<div class="page-header"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="color: var(--accent-color); margin: 0;">My Leave History</h2>
+    <a href="{% url 'apply_leave' %}" class="btn-sm btn-outline" style="text-decoration: none;">← Back</a>
 </div>
 
 <div class="leaves-grid">

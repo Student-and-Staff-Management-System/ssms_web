@@ -225,6 +225,8 @@
                                 <th>Name</th>
                                 <th>Attendance</th>
                                 <th>Internal Marks</th>
+                                <th>Mid-Term 1</th>
+                                <th>Mid-Term 2</th>
                                 <th>Risk Factors</th>
                             </tr>
                         </thead>
@@ -236,7 +238,8 @@
                                         {{ student.current_semester }})</span></td>
                                 <td>
                                     {% if student.attendance_percentage < 75 %} <span
-                                        style="color: #ef4444; font-weight: 600;">{{ student.attendance_percentage}}%</span>
+                                        style="color: #ef4444; font-weight: 600;">
+                                        {{student.attendance_percentage}}%</span>
                                         {% else %}
                                         {{ student.attendance_percentage }}%
                                         {% endif %}
@@ -246,6 +249,20 @@
                                         style="color: #ef4444; font-weight: 600;">{{ student.internal_marks }}</span>
                                         {% else %}
                                         {{ student.internal_marks }}
+                                        {% endif %}
+                                </td>
+                                <td>
+                                    {% if student.test1_marks != '-' and student.test1_marks < 20 %} <span
+                                        style="color: #ef4444; font-weight: 600;">{{ student.test1_marks }}</span>
+                                        {% else %}
+                                        {{ student.test1_marks }}
+                                        {% endif %}
+                                </td>
+                                <td>
+                                    {% if student.test2_marks != '-' and student.test2_marks < 20 %} <span
+                                        style="color: #ef4444; font-weight: 600;">{{ student.test2_marks }}</span>
+                                        {% else %}
+                                        {{ student.test2_marks }}
                                         {% endif %}
                                 </td>
                                 <td>

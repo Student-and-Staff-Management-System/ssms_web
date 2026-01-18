@@ -60,6 +60,8 @@ def get_risk_metrics(subject):
         # 2. Marks
         marks = marks_map.get(student.roll_number)
         internal = marks.internal_marks if marks else None
+        test1 = marks.test1_marks if marks else None
+        test2 = marks.test2_marks if marks else None
         
         risk_factors = []
         if total_dates > 0 and percentage < 75:
@@ -67,6 +69,12 @@ def get_risk_metrics(subject):
         
         if internal is not None and internal < 40:
              risk_factors.append(f"Low Internal ({internal})")
+
+        if test1 is not None and test1 < 20:
+             risk_factors.append(f"Low Mid Term 1 ({test1})")
+
+        if test2 is not None and test2 < 20:
+             risk_factors.append(f"Low Mid Term 2 ({test2})")
         
         if risk_factors:
             risk_students.append({
@@ -75,6 +83,8 @@ def get_risk_metrics(subject):
                 'current_semester': student.current_semester,
                 'attendance_percentage': round(percentage, 1),
                 'internal_marks': internal if internal is not None else '-',
+                'test1_marks': test1 if test1 is not None else '-',
+                'test2_marks': test2 if test2 is not None else '-',
                 'risk_factors': risk_factors
             })
             
