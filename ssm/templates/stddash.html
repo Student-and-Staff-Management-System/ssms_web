@@ -401,8 +401,7 @@
                             <a href="{% url 'cgpa_history' %}" class="btn-sm btn-outline"
                                 style="font-size: 0.8rem; padding: 2px 8px;">View History</a>
                         </div>
-                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA: <strong>{{
-                                cgpa}}</strong></p>
+                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA: <strong>{{cgpa}}</strong></p>
                         <canvas id="marksChart"></canvas>
                     </div>
 
@@ -422,8 +421,7 @@
                                 <tr style="border-bottom: 1px solid #f1f5f9;">
                                     <td style="padding: 8px 0; color: #334155;">
                                         <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
-                                        <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"
-                                            }} - {{ leave.end_date|date:"d M" }}</div>
+                                        <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M" }} - {{ leave.end_date|date:"d M" }}</div>
                                     </td>
                                     <td style="padding: 8px 0; text-align: right;">
                                         <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;"
@@ -536,8 +534,7 @@
                     <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
                         style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
                         {% for record in gpa_records %}
-                        <option value="std_sem_{{ record.semester }}" {% if
-                            record.semester==student.current_semester%}selected{% endif %}>Semester {{ record.semester}}
+                        <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester %}selected{% endif %}>Semester {{ record.semester}}
                         </option>
                         {% endfor %}
                     </select>
@@ -773,7 +770,7 @@
                         localStorage.setItem('stickyNoteOpen', 'true');
                     } else {
                         widget.classList.remove('active');
-                        if (btn) btn.textContent = "📝 Add Sticky Note";
+                        if (btn) btn.textContent = "📝 Show Sticky Note";
                         localStorage.removeItem('stickyNoteOpen');
                     }
                 }
