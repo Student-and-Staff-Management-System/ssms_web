@@ -219,6 +219,38 @@
             background: rgba(0, 0, 0, 0.1);
             /* Tape look */
         }
+
+        /* Helpers for Linter Fixes */
+        .color-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .color-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .color-pending {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .text-status-green {
+            color: #16a34a !important;
+        }
+
+        .text-status-red {
+            color: #ef4444 !important;
+        }
+
+        .d-block {
+            display: block !important;
+        }
+
+        .d-none {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -369,7 +401,8 @@
                             <a href="{% url 'cgpa_history' %}" class="btn-sm btn-outline"
                                 style="font-size: 0.8rem; padding: 2px 8px;">View History</a>
                         </div>
-                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA: <strong>{{ cgpa}}</strong></p>
+                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA: <strong>{{
+                                cgpa}}</strong></p>
                         <canvas id="marksChart"></canvas>
                     </div>
 
@@ -389,13 +422,12 @@
                                 <tr style="border-bottom: 1px solid #f1f5f9;">
                                     <td style="padding: 8px 0; color: #334155;">
                                         <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
-                                        <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M" }} - {{ leave.end_date|date:"d M" }}</div>
+                                        <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"
+                                            }} - {{ leave.end_date|date:"d M" }}</div>
                                     </td>
                                     <td style="padding: 8px 0; text-align: right;">
-                                        <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; 
-                                                {% if 'Approved' in leave.status %}background: #dcfce7; color: #166534;
-                                                {% elif 'Rejected' in leave.status %}background: #fee2e2; color: #991b1b;
-                                                {% else %}background: #fef9c3; color: #854d0e;{% endif %}">
+                                        <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;"
+                                            class="{% if 'Approved' in leave.status %}color-approved{% elif 'Rejected' in leave.status %}color-rejected{% else %}color-pending{% endif %}">
                                             {{ leave.status }}
                                         </span>
                                     </td>
@@ -504,7 +536,9 @@
                     <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
                         style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
                         {% for record in gpa_records %}
-                        <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester}}</option>
+                        <option value="std_sem_{{ record.semester }}" {% if
+                            record.semester==student.current_semester%}selected{% endif %}>Semester {{ record.semester}}
+                        </option>
                         {% endfor %}
                     </select>
 
@@ -518,8 +552,8 @@
                 <!-- Semester Tables Container -->
                 <div id="studentSemesterTables">
                     {% for record in gpa_records %}
-                    <div id="std_sem_{{ record.semester }}" class="std-semester-table"
-                        style="display: {% if forloop.last %}block{% else %}none{% endif %};">
+                    <div id="std_sem_{{ record.semester }}"
+                        class="std-semester-table {% if forloop.last %}d-block{% else %}d-none{% endif %}">
 
                         {% if record.subject_data %}
                         <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -546,8 +580,8 @@
                                         </td>
                                         <td style="text-align: center; padding: 12px 20px;">
                                             {% if sub.attendance_percentage %}
-                                            <span
-                                                style="font-weight:500; color: {% if sub.attendance_percentage < 75 %}#ef4444{% else %}#16a34a{% endif %};">
+                                            <span style="font-weight:500;"
+                                                class="{% if sub.attendance_percentage < 75 %}text-status-red{% else %}text-status-green{% endif %}">
                                                 {{ sub.attendance_percentage }}%
                                             </span>
                                             {% else %} - {% endif %}
@@ -584,9 +618,16 @@
                 <script>
                     function showStudentSemester(semId) {
                         // Hide all tables
-                        document.querySelectorAll('.std-semester-table').forEach(el => el.style.display = 'none');
+                        document.querySelectorAll('.std-semester-table').forEach(el => {
+                            el.classList.remove('d-block');
+                            el.classList.add('d-none');
+                        });
                         // Show selected
-                        document.getElementById(semId).style.display = 'block';
+                        var selected = document.getElementById(semId);
+                        if (selected) {
+                            selected.classList.remove('d-none');
+                            selected.classList.add('d-block');
+                        }
 
                         // Update the analysis button link
                         var semNum = semId.replace('std_sem_', '');
