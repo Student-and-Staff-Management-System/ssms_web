@@ -4,6 +4,7 @@ from django.contrib import messages
 from .models import Staff, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog
 from students.models import Student
 from django.db.models import Q
+from django.db import transaction
 
 def stafflogin(request):
     """Handles staff login."""
@@ -1315,6 +1316,11 @@ def staff_portfolio(request):
     awards = staff.award_list.all()
     seminars = staff.seminar_list.all()
     students_guided = staff.student_guided_list.all()
+    
+    # New Models
+    conferences = staff.conferences.all().order_by('-created_at')
+    journals = staff.journals.all().order_by('-created_at')
+    books = staff.books.all().order_by('-created_at')
 
     return render(request, 'staff/staff_portfolio.html', {
         'staff': staff,
@@ -1322,6 +1328,9 @@ def staff_portfolio(request):
         'awards': awards,
         'seminars': seminars,
         'students_guided': students_guided,
+        'conferences': conferences,
+        'journals': journals,
+        'books': books,
     })
 
 
@@ -1437,11 +1446,109 @@ def portfolio_add_seminar(request):
         )
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', message='Added new seminar')
-        messages.success(request, "Seminar/Workshop/Conference added.")
+        messages.success(request, "Seminar added.")
         return redirect('staffs:staff_portfolio')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'seminar', 'item': None, 'title': 'Add Seminar / Workshop / Conference',
+        'staff': staff, 'form_type': 'seminar', 'item': None, 'title': 'Add Seminar / Workshop',
     })
+
+# --- New Portfolio Views (Conferences, Journals, Books) ---
+
+def portfolio_add_conference(request):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    
+    if request.method == 'POST':
+        from .models import ConferenceParticipation
+        ConferenceParticipation.objects.create(
+            staff=staff,
+            national_international=request.POST.get('national_international', 'National'),
+            author_name=request.POST.get('author_name', ''),
+            year_of_publication=request.POST.get('year_of_publication', ''),
+            title_of_paper=request.POST.get('title_of_paper', ''),
+            title_of_proceedings=request.POST.get('title_of_proceedings', ''),
+            date_from=request.POST.get('date_from') or None,
+            date_to=request.POST.get('date_to') or None,
+            location=request.POST.get('location', ''),
+            page_numbers_from=request.POST.get('page_numbers_from', ''),
+            page_numbers_to=request.POST.get('page_numbers_to', ''),
+            place_of_publication=request.POST.get('place_of_publication', ''),
+            publisher_proceedings=request.POST.get('publisher_proceedings', ''),
+        )
+        messages.success(request, "Conference entry added successfully.")
+        return redirect('staffs:staff_portfolio')
+    return redirect('staffs:staff_portfolio') # Should be modal or strict POST
+
+def portfolio_add_journal(request):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+
+    if request.method == 'POST':
+        from .models import JournalPublication
+        JournalPublication.objects.create(
+            staff=staff,
+            national_international=request.POST.get('national_international', 'National'),
+            published_month=request.POST.get('published_month', ''),
+            published_year=request.POST.get('published_year', ''),
+            author_name=request.POST.get('author_name', ''),
+            title_of_paper=request.POST.get('title_of_paper', ''),
+            journal_name=request.POST.get('journal_name', ''),
+            volume_number=request.POST.get('volume_number', ''),
+            issue_number=request.POST.get('issue_number', ''),
+            year_of_publication_doi=request.POST.get('year_of_publication_doi', ''),
+            page_numbers_from=request.POST.get('page_numbers_from', ''),
+            page_numbers_to=request.POST.get('page_numbers_to', ''),
+        )
+        messages.success(request, "Journal publication added successfully.")
+        return redirect('staffs:staff_portfolio')
+    return redirect('staffs:staff_portfolio')
+
+def portfolio_add_book(request):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+
+    if request.method == 'POST':
+        from .models import BookPublication
+        BookPublication.objects.create(
+            staff=staff,
+            type=request.POST.get('type', 'Book'),
+            author_name=request.POST.get('author_name', ''),
+            title_of_book=request.POST.get('title_of_book', ''),
+            publisher_name=request.POST.get('publisher_name', ''),
+            publisher_address=request.POST.get('publisher_address', ''),
+            isbn_issn_number=request.POST.get('isbn_issn_number', ''),
+            page_numbers_from=request.POST.get('page_numbers_from', ''),
+            page_numbers_to=request.POST.get('page_numbers_to', ''),
+            month_of_publication=request.POST.get('month_of_publication', ''),
+            year_of_publication=request.POST.get('year_of_publication', ''),
+            url_address=request.POST.get('url_address') or None,
+        )
+        messages.success(request, "Book/Article entry added successfully.")
+        return redirect('staffs:staff_portfolio')
+    return redirect('staffs:staff_portfolio')
+
+def portfolio_delete_entry(request, model_name, pk):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    
+    from .models import ConferenceParticipation, JournalPublication, BookPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, StaffPublication
+    
+    model_map = {
+        'conference': ConferenceParticipation,
+        'journal': JournalPublication,
+        'book': BookPublication,
+        'award': StaffAwardHonour,
+        'seminar': StaffSeminar,
+        'student_guided': StaffStudentGuided,
+    }
+    
+    ModelClass = model_map.get(model_name)
+    if ModelClass:
+        get_object_or_404(ModelClass, pk=pk, staff=staff).delete()
+        messages.success(request, "Entry deleted.")
+    
+    return redirect('staffs:staff_portfolio')
+
 
 
 def portfolio_edit_seminar(request, pk):
@@ -1860,3 +1967,168 @@ def staff_password_reset_confirm(request):
         return redirect('staffs:stafflogin')
         
     return render(request, 'staff/password_reset/p3.html', {'staff': staff})
+
+
+def generate_student(request):
+    """
+    Admin view to bulk generate student records with temporary passwords and export to CSV.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action', 'preview')
+        
+        try:
+            # Logic to handle suffix-based generation
+            
+            if action == 'preview':
+                start_roll = request.POST.get('start_roll')
+                end_suffix = request.POST.get('end_suffix') # e.g. 110
+                
+                if not start_roll or not end_suffix:
+                    messages.error(request, "Start Roll Number and End Suffix are required.")
+                    return render(request, 'staff/generate_student.html')
+                
+                n = len(end_suffix)
+                if n > len(start_roll):
+                     messages.error(request, "End Suffix cannot be longer than Start Roll Number.")
+                     return render(request, 'staff/generate_student.html')
+                
+                start_suffix_str = start_roll[-n:]
+                if not start_suffix_str.isdigit() or not end_suffix.isdigit():
+                     messages.error(request, "Roll number suffix must be numeric.")
+                     return render(request, 'staff/generate_student.html')
+    
+                start_seq = int(start_suffix_str)
+                end_seq = int(end_suffix)
+                prefix = start_roll[:-n]
+    
+                if end_seq < start_seq:
+                    messages.error(request, f"End Suffix ({end_seq}) cannot be less than the start sequence ({start_seq}).")
+                    return render(request, 'staff/generate_student.html')
+                
+                count = end_seq - start_seq + 1
+                if count > 500:
+                     messages.error(request, f"Cannot generate {count} students at once (Limit: 500).")
+                     return render(request, 'staff/generate_student.html')
+                
+                preview_list = []
+                for seq in range(start_seq, end_seq + 1):
+                     roll_str = f"{prefix}{str(seq).zfill(n)}"
+                     # Check if exists
+                     exists = Student.objects.filter(roll_number=roll_str).exists()
+                     preview_list.append({'roll': roll_str, 'exists': exists})
+                
+                context = {
+                    'show_preview': True,
+                    'preview_list': preview_list,
+                    'start_roll': start_roll,
+                    'end_suffix': end_suffix,
+                }
+                return render(request, 'staff/generate_student.html', context)
+            
+            elif action == 'generate':
+                selected_rolls = request.POST.getlist('selected_rolls')
+                
+                if not selected_rolls:
+                    messages.error(request, "No students selected for generation.")
+                    return redirect('staffs:generate_student')
+
+                import csv
+                import random
+                from django.http import HttpResponse
+
+                # Prepare CSV Response
+                response = HttpResponse(content_type='text/csv')
+                filename = f"generated_students_{len(selected_rolls)}_records.csv"
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                
+                writer = csv.writer(response)
+                writer.writerow(['Roll Number', 'Temp Password'])
+                
+                created_count = 0
+                
+                with transaction.atomic():
+                    for roll_str in selected_rolls:
+                        student, created = Student.objects.get_or_create(
+                            roll_number=roll_str,
+                            defaults={
+                                'is_profile_complete': False,
+                                'is_password_changed': False
+                            }
+                        )
+                        
+                        if created:
+                            # New student: Generate and set password
+                            temp_pass = "Pass" + str(random.randint(1000, 9999))
+                            student.set_password(temp_pass)
+                            student.save()
+                            csv_pass_display = temp_pass
+                            created_count += 1
+                        else:
+                            # Existing student: Do NOT change password
+                            csv_pass_display = "Existing Password"
+                            
+                        # Format using formula to force string in Excel
+                        writer.writerow([f'="{roll_str}"', csv_pass_display])
+                
+                # Set cookie to signal client that download has started
+                response.set_cookie('download_complete', 'true', max_age=20)
+                return response
+            
+            elif action == 'generate_single':
+                single_roll = request.POST.get('single_roll').strip()
+                
+                if not single_roll:
+                     messages.error(request, "Please enter a Roll Number.")
+                     return redirect('staffs:generate_student')
+                     
+                import csv
+                import random
+                from django.http import HttpResponse
+                
+                # Prepare CSV Response (Single)
+                response = HttpResponse(content_type='text/csv')
+                filename = f"generated_student_{single_roll}.csv"
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                
+                writer = csv.writer(response)
+                writer.writerow(['Roll Number', 'Temp Password'])
+                
+                with transaction.atomic():
+                    # Get or Create
+                    student, created = Student.objects.get_or_create(
+                         roll_number=single_roll,
+                         defaults={
+                                'is_profile_complete': False,
+                                'is_password_changed': False
+                         }
+                    )
+                    
+                    # ALWAYS generate new password for Single Generation (Reset/Create)
+                    temp_pass = "Pass" + str(random.randint(1000, 9999))
+                    student.set_password(temp_pass)
+                    student.save()
+                    
+                    # Write to CSV
+                    writer.writerow([f'="{single_roll}"', temp_pass])
+                
+                # Set cookie
+                response.set_cookie('download_complete', 'true', max_age=20)
+                return response
+
+            
+            # Audit Log
+            from .utils import log_audit
+            log_audit(request, 'create', actor_type='staff', actor_id=request.session['staff_id'], 
+                      object_type='StudentBatch', object_id=f"{start_roll}-{end_seq}", 
+                      message=f'Bulk generated {created_count} students')
+
+            return response
+            
+        except Exception as e:
+            messages.error(request, f"Error generating students: {str(e)}")
+            
+    return render(request, 'staff/generate_student.html')
+

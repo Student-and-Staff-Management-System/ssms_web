@@ -283,3 +283,59 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.timestamp} | {self.get_action_display()} | {self.actor_type}:{self.actor_id or '—'} | {self.message[:50] or '—'}"
 
+
+class ConferenceParticipation(models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='conferences')
+    national_international = models.CharField(max_length=20, choices=[('National', 'National'), ('International', 'International')], default='National')
+    author_name = models.CharField(max_length=255)
+    year_of_publication = models.CharField(max_length=20, blank=True)
+    title_of_paper = models.CharField(max_length=500)
+    title_of_proceedings = models.CharField(max_length=500, blank=True)
+    date_from = models.DateField(null=True, blank=True)
+    date_to = models.DateField(null=True, blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    page_numbers_from = models.CharField(max_length=50, blank=True)
+    page_numbers_to = models.CharField(max_length=50, blank=True)
+    place_of_publication = models.CharField(max_length=255, blank=True)
+    publisher_proceedings = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title_of_paper} ({self.year_of_publication})"
+
+class JournalPublication(models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='journals')
+    national_international = models.CharField(max_length=20, choices=[('National', 'National'), ('International', 'International')], default='National')
+    published_month = models.CharField(max_length=20, blank=True)
+    published_year = models.CharField(max_length=20, blank=True)
+    author_name = models.CharField(max_length=255)
+    title_of_paper = models.CharField(max_length=500)
+    journal_name = models.CharField(max_length=500)
+    volume_number = models.CharField(max_length=50, blank=True)
+    issue_number = models.CharField(max_length=50, blank=True)
+    year_of_publication_doi = models.CharField(max_length=255, blank=True)
+    page_numbers_from = models.CharField(max_length=50, blank=True)
+    page_numbers_to = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title_of_paper} - {self.journal_name}"
+
+class BookPublication(models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='books')
+    type = models.CharField(max_length=20, choices=[('Book', 'Book'), ('Popular Article', 'Popular Article')], default='Book')
+    author_name = models.CharField(max_length=255)
+    title_of_book = models.CharField(max_length=500)
+    publisher_name = models.CharField(max_length=255, blank=True)
+    publisher_address = models.TextField(blank=True)
+    isbn_issn_number = models.CharField(max_length=100, blank=True)
+    page_numbers_from = models.CharField(max_length=50, blank=True)
+    page_numbers_to = models.CharField(max_length=50, blank=True)
+    month_of_publication = models.CharField(max_length=20, blank=True)
+    year_of_publication = models.CharField(max_length=20, blank=True)
+    url_address = models.URLField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title_of_book} ({self.type})"
+

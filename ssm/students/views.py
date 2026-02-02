@@ -57,8 +57,7 @@ def prevhome(request):
     news_list = News.objects.filter(is_active=True).order_by('-date', '-id')
     return render(request, 'prevhome.html', {'news_list': news_list})
 
-def stdregister(request): 
-    return render(request, 'stdregister.html')
+
 
 def registration_success(request): 
     return render(request, 'success.html')
@@ -113,34 +112,54 @@ def get_caste_data_api(request):
 
 @csrf_exempt
 def register_student(request):
-    """API view to handle the student registration form submission."""
+    """API view to handle the student profile completion (registration) form submission."""
+    # Strict Session Check
+    if 'student_roll_number' not in request.session:
+         return JsonResponse({'error': 'Authentication required. Please log in.'}, status=401)
+
     if request.method != 'POST':
         return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
 
-    # Validation via Django Forms
     try:
+        roll_number = request.session['student_roll_number']
+        student = Student.objects.get(roll_number=roll_number)
+        
         data = request.POST
         files = request.FILES
         
-        # 1. Initialize all forms
-        student_form = StudentForm(data)
-        personal_form = PersonalInfoForm(data)
-        bank_form = BankDetailsForm(data)
-        docs_form = StudentDocumentsForm(data, files)
-        other_form = OtherDetailsForm(data)
+        # Helper to get instance or None (or create empty if OneToOne is strictly required to exist, but Forms handle None/New fine)
+        # However, for Updates, we MUST pass instance if we want to update.
+        # Since we use OneToOne, we can check if related obj exists.
+        
+        def get_instance(model_class):
+            try:
+                return model_class.objects.get(student=student)
+            except model_class.DoesNotExist:
+                return None
+
+        # 1. Initialize all forms with instances
+        student_form = StudentForm(data, instance=student)
+        
+        # Special check for password match is inside StudentForm.clean()
+        # StudentForm expects 'password' field.
+
+        personal_form = PersonalInfoForm(data, instance=get_instance(PersonalInfo))
+        bank_form = BankDetailsForm(data, instance=get_instance(BankDetails))
+        docs_form = StudentDocumentsForm(data, files, instance=get_instance(StudentDocuments))
+        other_form = OtherDetailsForm(data, instance=get_instance(OtherDetails))
 
         # Conditional forms
-        scholarship_form = ScholarshipInfoForm(data)
-        academic_form = AcademicHistoryForm(data)
-        diploma_form = DiplomaDetailsForm(data)
-        ug_form = UGDetailsForm(data)
-        pg_form = PGDetailsForm(data)
-        phd_form = PhDDetailsForm(data)
+        scholarship_form = ScholarshipInfoForm(data, instance=get_instance(ScholarshipInfo))
+        academic_form = AcademicHistoryForm(data, instance=get_instance(AcademicHistory))
+        diploma_form = DiplomaDetailsForm(data, instance=get_instance(DiplomaDetails))
+        ug_form = UGDetailsForm(data, instance=get_instance(UGDetails))
+        pg_form = PGDetailsForm(data, instance=get_instance(PGDetails))
+        phd_form = PhDDetailsForm(data, instance=get_instance(PhDDetails))
 
         # 2. Collect forms to validate
         forms_to_validate = [student_form, personal_form, bank_form, docs_form, other_form, academic_form]
         
-        # Add conditional forms based on logic similar to original view
+        # Add conditional forms based on logic
         if data.get('has_scholarship') == 'yes':
              forms_to_validate.append(scholarship_form)
         
@@ -151,9 +170,9 @@ def register_student(request):
             forms_to_validate.append(diploma_form)
         
         if program_level in ['PG', 'PHD']:
-            forms_to_validate.append(ug_form) # PG students have UG details
+            forms_to_validate.append(ug_form) 
             if program_level == 'PHD':
-                forms_to_validate.append(pg_form) # PhD students have PG details
+                forms_to_validate.append(pg_form) 
         
         if program_level == 'PHD':
              forms_to_validate.append(phd_form)
@@ -161,29 +180,31 @@ def register_student(request):
         # 3. Check validity
         if all(f.is_valid() for f in forms_to_validate):
             with transaction.atomic():
-                # Save Student (Root)
-                student = student_form.save()
+                # Save Student (Updates existing)
+                s = student_form.save() # This also sets the new password
+                s.is_profile_complete = True
+                s.is_password_changed = True
+                s.save()
 
-                # Handle Caste Logic (Custom)
+                # Handle Caste Logic
                 caste_name = data.get('caste')
                 if caste_name == 'Other':
                     caste_name = data.get('caste_other')
                 
                 caste_obj = None
                 if caste_name and caste_name not in ['Not Applicable', '']:
-                     # Caste is already imported at the top from .models
                      caste_obj, _ = Caste.objects.get_or_create(name=caste_name)
 
                 # Save Personal Info
                 personal = personal_form.save(commit=False)
-                personal.student = student
+                personal.student = s
                 personal.caste = caste_obj
                 personal.save()
 
                 # Save others
                 def save_related(form_instance):
                     obj = form_instance.save(commit=False)
-                    obj.student = student
+                    obj.student = s
                     obj.save()
 
                 save_related(bank_form)
@@ -199,22 +220,23 @@ def register_student(request):
                 
                 if program_level in ['PG', 'PHD']:
                     save_related(ug_form)
-                    if program_level == 'PHD': # See logic note in plan, strictly following request handling
+                    if program_level == 'PHD':
                         save_related(pg_form)
                 
                 if program_level == 'PHD':
                     save_related(phd_form)
             
             from staffs.utils import log_audit
-            log_audit(request, 'create', actor_type='system', actor_name='System', object_type='Student', object_id=student.roll_number, message=f'New student registered: {student.student_name}')
+            log_audit(request, 'update', actor_type='student', actor_id=student.roll_number, actor_name=student.student_name, object_type='Student', object_id=student.roll_number, message=f'Profile completed and password updated')
 
-            return JsonResponse({'message': 'Registration successful! Redirecting...'})
+            return JsonResponse({'message': 'Profile Completed Successfully! Redirecting to Dashboard...'})
         
         else:
             # Collect and format errors
             error_messages = []
             for f in forms_to_validate:
                 for field, errors in f.errors.items():
+                    # For student form, we might get 'Roll Number already exists' if logic wasn't fixed, but we fixed forms.py
                     for error in errors:
                         error_messages.append(f"{field}: {error}")
             
@@ -222,9 +244,12 @@ def register_student(request):
 
     except Exception as e:
         print(f"Error during registration: {e}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=400)
 
 
+# --- Authentication and Dashboard Views ---
 # --- Authentication and Dashboard Views ---
 def stdlogin(request):
     if request.method == 'POST':
@@ -236,6 +261,11 @@ def stdlogin(request):
             if student.check_password(password_from_form):
                 request.session['student_roll_number'] = student.roll_number
                 from staffs.utils import log_audit
+                
+                # Check if profile is complete - DEPRECATED: Redirecting inside dashboard now
+                # if not student.is_profile_complete:
+                #      return redirect('stdregister')
+                
                 log_audit(request, 'login', actor_type='student', actor_id=student.roll_number, actor_name=student.student_name, message='Student logged in')
                 return redirect('student_dashboard')
             else:
@@ -244,6 +274,18 @@ def stdlogin(request):
             error = "Invalid credentials."
         return render(request, 'stdlogin.html', {'error': error})
     return render(request, 'stdlogin.html')
+
+@student_login_required
+def stdregister(request): 
+    # This is now the "Complete Profile" page
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+    
+    # If already complete, don't let them do it again (or maybe redirect to edit?)
+    if student.is_profile_complete:
+         return redirect('student_dashboard')
+         
+    return render(request, 'stdregister.html', {'student': student})
 
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
@@ -353,16 +395,72 @@ def student_dashboard(request):
         'attendance_percentage': attendance_percentage,
         'gpa_labels': gpa_labels,
         'gpa_data': gpa_data,
-        'gpa_data': gpa_data,
         'cgpa': cgpa,
         'gpa_records': gpa_records,  # Added for History View
         'skills': skills,
         'projects': projects,
 
         'today': timezone.now().strftime('%A'),
-        'calendar_data': calendar_data
+        'calendar_data': calendar_data,
+        'profile_completion_percentage': calculate_profile_completion(student),
+        'is_profile_complete': student.is_profile_complete
     }
+    
+    # New Logic: If profile is incomplete, show the status page instead of dashboard
+    if not student.is_profile_complete:
+         return render(request, 'student_profile_status.html', context)
+
     return render(request, 'stddash.html', context)
+
+def calculate_profile_completion(student):
+    """
+    Calculates the percentage of the profile that is complete.
+    Based on key fields in Student and related models.
+    """
+    total_fields = 0
+    filled_fields = 0
+    
+    # helper
+    def check_model_fields(model_instance, fields_to_check):
+        nonlocal total_fields, filled_fields
+        if not model_instance:
+             total_fields += len(fields_to_check)
+             return
+        
+        for field in fields_to_check:
+            total_fields += 1
+            val = getattr(model_instance, field, None)
+            if val and str(val).strip(): # Check for non-empty
+                filled_fields += 1
+    
+    # 1. Student Model (Core)
+    check_model_fields(student, ['student_name', 'student_email', 'program_level', 'current_semester'])
+    
+    # 2. Personal Info
+    try:
+        p_info = getattr(student, 'personalinfo', None) # OneToOne related name default is lowercase modelname or defined? 
+        # Models.py says 'personalinfo' (implied) or we need to check. Usually standard is lowercase.
+        # Checking implementation: PersonalInfo.student = models.OneToOneField(..., related_name='personalinfo') (Assumption)
+        # Actually standard Django default related_name is 'personalinfo' if class is PersonalInfo.
+        # Let's rely on views.py logic using PersonalInfo.objects.get(student=student) usually.
+        # But we passed `student` object. Let's try accessor.
+        if not p_info:
+             p_info = PersonalInfo.objects.filter(student=student).first()
+        check_model_fields(p_info, ['date_of_birth', 'gender', 'student_mobile', 'father_name', 'father_mobile', 'present_address'])
+    except:
+        total_fields += 6 # Punishment for missing model
+        
+    # 3. Academic History
+    try:
+         acad = AcademicHistory.objects.filter(student=student).first()
+         check_model_fields(acad, ['sslc_percentage', 'sslc_year_of_passing', 'hsc_percentage', 'hsc_year_of_passing'])
+    except:
+         total_fields += 4
+
+    if total_fields == 0: return 0
+    
+    percentage = int((filled_fields / total_fields) * 100)
+    return min(percentage, 100)
 
 def get_attendance_calendar_data(student):
     """Helper to prepare attendance data for calendar."""

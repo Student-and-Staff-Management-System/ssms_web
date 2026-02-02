@@ -27,7 +27,7 @@ class Student(models.Model):
     roll_number = models.CharField(max_length=20, primary_key=True)
     register_number = models.CharField(max_length=20, blank=True, null=True)
     student_name = models.CharField(max_length=100)
-    student_email = models.EmailField(unique=True)
+    student_email = models.EmailField(unique=True, blank=True, null=True)
     password = models.CharField(max_length=128) # Stores the hashed password
     program_level = models.CharField(max_length=10, choices=PROGRAM_LEVEL_CHOICES, blank=True)
     ug_entry_type = models.CharField(max_length=10, choices=UG_ENTRY_CHOICES, blank=True)
@@ -43,6 +43,10 @@ class Student(models.Model):
     security_answer_1 = models.CharField(max_length=255, blank=True, null=True)
     security_question_2 = models.CharField(max_length=255, blank=True, null=True)
     security_answer_2 = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Registration Flow Flags
+    is_profile_complete = models.BooleanField(default=False)
+    is_password_changed = models.BooleanField(default=False)
 
     def set_password(self, raw_password):
         """Hashes the raw password and sets it."""
@@ -55,6 +59,12 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.student_name} ({self.roll_number})"
+
+class StudentGenerator(Student):
+    class Meta:
+        proxy = True
+        verbose_name = "Generate Students"
+        verbose_name_plural = "Generate Students"
 
 
 class PersonalInfo(models.Model):

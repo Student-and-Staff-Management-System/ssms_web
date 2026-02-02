@@ -28,7 +28,15 @@ urlpatterns = [
     path('profile/portfolio/seminar/<int:pk>/delete/', views.portfolio_delete_seminar, name='portfolio_delete_seminar'),
     path('profile/portfolio/student/add/', views.portfolio_add_student, name='portfolio_add_student'),
     path('profile/portfolio/student/<int:pk>/edit/', views.portfolio_edit_student, name='portfolio_edit_student'),
+    path('profile/portfolio/student/add/', views.portfolio_add_student, name='portfolio_add_student'),
+    path('profile/portfolio/student/<int:pk>/edit/', views.portfolio_edit_student, name='portfolio_edit_student'),
     path('profile/portfolio/student/<int:pk>/delete/', views.portfolio_delete_student, name='portfolio_delete_student'),
+
+    # New Portfolio Sections
+    path('profile/portfolio/conference/add/', views.portfolio_add_conference, name='portfolio_add_conference'),
+    path('profile/portfolio/journal/add/', views.portfolio_add_journal, name='portfolio_add_journal'),
+    path('profile/portfolio/book/add/', views.portfolio_add_book, name='portfolio_add_book'),
+    path('profile/portfolio/delete/<str:model_name>/<int:pk>/', views.portfolio_delete_entry, name='portfolio_delete_entry'),
 
     # The URL will be /staff/logout/
     path('logout/', views.staff_logout, name='staff_logout'),
@@ -62,6 +70,7 @@ urlpatterns = [
     path('admin-portal/', views.admin_portal_login, name='admin_portal_login'),
     path('risk-students/', views.risk_students, name='risk_students'),
     path('risk-students/export/<int:subject_id>/', views.export_risk_list, name='export_risk_list'),
+    path('generate-student/', views.generate_student, name='generate_student'),
     
     # Password Reset
     path('password-reset/', views.staff_password_reset_identify, name='password_reset_identify'),

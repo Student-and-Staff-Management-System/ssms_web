@@ -1,0 +1,465 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Student | Staff Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --primary-light: #eef2f2;
+            --accent: #f59e0b;
+            --bg-body: #f9fafb;
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e2e8f0;
+            --radius-xl: 16px;
+            --radius-lg: 12px;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding-bottom: 60px;
+        }
+
+        .top-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0 0 10px 0;
+        }
+
+        .card-header p {
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-main);
+            background: var(--bg-body);
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface);
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 30px;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-dark);
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            color: #1e40af;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .alert-error,
+        .alert-danger {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span>✨</span> Generate Students
+            </div>
+            {% if is_admin %}
+            <a href="{% url 'admin:students_student_changelist' %}" class="back-btn">
+                &larr; Back to Student List
+            </a>
+            {% else %}
+            <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">
+                &larr; Back to Dashboard
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="card">
+            <div class="card-header">
+                <h1>Bulk Student Generation</h1>
+                <p>Generate accounts sequentially and export credentials.</p>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if show_preview %}
+            <div class="alert-info">
+                <strong>Confirm Generation List</strong><br>
+                Please review the list below. Uncheck any Roll Numbers you do not wish to generate (e.g., discontinued
+                students).
+                <br>Click "Confirm & Generate" to create accounts and download the CSV.
+            </div>
+
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="generate">
+                <input type="hidden" name="start_roll" value="{{ start_roll }}">
+                <input type="hidden" name="end_suffix" value="{{ end_suffix }}">
+                <input type="hidden" name="reset_existing" value="{{ reset_existing }}">
+
+                <div
+                    style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background: var(--bg-body);">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid var(--border);">
+                                    <input type="checkbox" id="selectAll" checked>
+                                </th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid var(--border);">
+                                    Roll Number</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid var(--border);">
+                                    Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in preview_list %}
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 12px;">
+                                    <input type="checkbox" name="selected_rolls" value="{{ item.roll }}"
+                                        class="roll-checkbox" {% if not item.exists %}checked{% endif %}>
+                                </td>
+                                <td style="padding: 12px;">{{ item.roll }}</td>
+                                <td style="padding: 12px;">
+                                    {% if item.exists %}
+                                    <span style="color: #ef4444; font-weight: 500;">Already Exists</span>
+                                    {% else %}
+                                    <span style="color: #10b981; font-weight: 500;">New</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'staffs:generate_student' %}" class="btn-submit"
+                        style="background: var(--text-muted); text-align: center; text-decoration: none; margin-top: 0;">Cancel</a>
+                    <button type="submit" class="btn-submit" style="margin-top: 0;">Confirm & Generate (CSV)</button>
+                </div>
+            </form>
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay"
+                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; align-items: center; justify-content: center; flex-direction: column;">
+                <div class="spinner"
+                    style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;">
+                </div>
+                <h3 style="color: var(--primary); margin-top: 20px;">Generating & Downloading...</h3>
+                <p style="color: var(--text-muted);">Please wait while we create the accounts.</p>
+            </div>
+
+            <style>
+                @keyframes spin {
+                    0% {
+                        transform: rotate(0deg);
+                    }
+
+                    100% {
+                        transform: rotate(360deg);
+                    }
+                }
+            </style>
+
+            <script>
+                document.getElementById('selectAll').addEventListener('change', function (e) {
+                    const checkboxes = document.querySelectorAll('.roll-checkbox');
+                    checkboxes.forEach(cb => cb.checked = e.target.checked);
+                });
+
+                // Show loading on submit and poll for cookie
+                document.querySelector('form[action=""]').addEventListener('submit', function () {
+                    const overlay = document.getElementById('loadingOverlay');
+                    overlay.style.display = 'flex';
+
+                    // Poll for the download_complete cookie
+                    const timer = setInterval(function () {
+                        if (document.cookie.includes('download_complete=true')) {
+                            clearInterval(timer);
+                            overlay.style.display = 'none';
+                            // Clear the cookie
+                            document.cookie = 'download_complete=; Max-Age=-99999999; path=/';
+                        }
+                    }, 1000);
+                });
+            </script>
+
+            {% else %}
+
+            <div class="alert-info">
+                <strong>How it works:</strong><br>
+                Enter the starting Roll Number (e.g., <code>2338010001</code>) and the sequence number you want to end
+                at (e.g., <code>110</code> for ...110).
+                <br>The system will PREVIEW the list first, allowing you to remove specific numbers before generation.
+            </div>
+
+            <div class="tabs"
+                style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border);">
+                <button type="button" onclick="switchTab('bulk')" id="tab-bulk"
+                    style="padding: 10px 20px; background: none; border: none; border-bottom: 3px solid var(--primary); font-weight: 600; cursor: pointer;">Bulk
+                    Generate</button>
+                <button type="button" onclick="switchTab('single')" id="tab-single"
+                    style="padding: 10px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer;">Single
+                    Student</button>
+            </div>
+
+            <!-- Bulk Form -->
+            <form method="POST" id="form-bulk">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="preview">
+
+                <div class="form-group">
+                    <label for="start_roll">Start Roll Number</label>
+                    <input type="text" class="form-control" id="start_roll" name="start_roll"
+                        placeholder="e.g. 2338010001" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_suffix">End Sequence Number (The last digits)</label>
+                    <input type="number" class="form-control" id="end_suffix" name="end_suffix" placeholder="e.g. 110"
+                        required>
+                </div>
+
+                <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> Existing passwords will <strong>NOT</strong> be changed.
+                </p>
+
+                <button type="submit" class="btn-submit">Preview List</button>
+            </form>
+
+            <!-- Single Form -->
+            <form method="POST" id="form-single" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="generate_single">
+
+                <div class="form-group">
+                    <label for="single_roll">Student Roll Number</label>
+                    <input type="text" class="form-control" id="single_roll" name="single_roll"
+                        placeholder="e.g. 2338010055">
+                </div>
+
+                <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 10px;">
+                    <i class="fas fa-exclamation-circle"></i> This will <strong>RESET</strong> the password for this
+                    specific student if they already exist.
+                </p>
+
+                <button type="submit" class="btn-submit">Generate Single Pass</button>
+            </form>
+
+            <script>
+                function switchTab(tab) {
+                    // Hide all forms
+                    document.getElementById('form-bulk').style.display = 'none';
+                    document.getElementById('form-single').style.display = 'none';
+
+                    // Reset tab styles
+                    document.getElementById('tab-bulk').style.borderBottomColor = 'transparent';
+                    document.getElementById('tab-bulk').style.color = 'var(--text-muted)';
+                    document.getElementById('tab-single').style.borderBottomColor = 'transparent';
+                    document.getElementById('tab-single').style.color = 'var(--text-muted)';
+
+                    // Show selected
+                    document.getElementById('form-' + tab).style.display = 'block';
+                    document.getElementById('tab-' + tab).style.borderBottomColor = 'var(--primary)';
+                    document.getElementById('tab-' + tab).style.color = 'var(--text-body)';
+
+                    // Add required attribute dynamically
+                    if (tab === 'bulk') {
+                        document.getElementById('start_roll').setAttribute('required', '');
+                        document.getElementById('end_suffix').setAttribute('required', '');
+                        document.getElementById('single_roll').removeAttribute('required');
+                    } else {
+                        document.getElementById('start_roll').removeAttribute('required');
+                        document.getElementById('end_suffix').removeAttribute('required');
+                        document.getElementById('single_roll').setAttribute('required', '');
+                    }
+                }
+
+                // Attach cookie poller to both forms
+                const forms = ['form-bulk', 'form-single'];
+                forms.forEach(id => {
+                    const form = document.getElementById(id);
+                    if (form) {
+                        form.addEventListener('submit', function () {
+                            const overlay = document.getElementById('loadingOverlay');
+                            const spinner = overlay.querySelector('.spinner');
+                            const title = overlay.querySelector('h3');
+                            const text = overlay.querySelector('p');
+
+                            // Reset overlay state
+                            spinner.style.display = 'block';
+                            title.innerText = 'Generating & Downloading...';
+                            title.style.color = 'var(--primary)';
+                            text.innerText = 'Please wait while we create the account.';
+                            overlay.style.display = 'flex';
+
+                            // Poll for the download_complete cookie
+                            const timer = setInterval(function () {
+                                if (document.cookie.includes('download_complete=true')) {
+                                    clearInterval(timer);
+                                    // Clear the cookie
+                                    document.cookie = 'download_complete=; Max-Age=-99999999; path=/';
+
+                                    // Show Success Message
+                                    spinner.style.display = 'none';
+                                    title.innerText = 'Success!';
+                                    title.style.color = '#10b981';
+                                    text.innerHTML = 'Account generated and downloaded.<br><br><button type="button" class="btn-submit" onclick="document.getElementById(\'loadingOverlay\').style.display=\'none\'" style="margin-top:10px; width:auto; padding: 8px 20px;">Close</button>';
+                                }
+                            }, 1000);
+                        });
+                    }
+                });
+            </script>
+
+            <style>
+                .tabs button:hover {
+                    color: var(--primary) !important;
+                    background: rgba(0, 0, 0, 0.02) !important;
+                }
+            </style>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+
+</html>

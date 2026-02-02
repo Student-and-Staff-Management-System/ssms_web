@@ -61,13 +61,19 @@ class StudentForm(forms.ModelForm):
     # Uniqueness checks
     def clean_student_email(self):
         email = self.cleaned_data.get('student_email')
-        if Student.objects.filter(student_email=email).exists():
+        qs = Student.objects.filter(student_email=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise forms.ValidationError("A student with this email already exists.")
         return email
 
     def clean_roll_number(self):
         roll = self.cleaned_data.get('roll_number')
-        if Student.objects.filter(roll_number=roll).exists():
+        qs = Student.objects.filter(roll_number=roll)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise forms.ValidationError("A student with this Roll Number already exists.")
         return roll
 

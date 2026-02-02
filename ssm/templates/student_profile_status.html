@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile | Student Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --accent: #e11d48;
+            --bg-body: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-body);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #334155;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+        }
+
+        .progress-circle {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 30px auto;
+            border-radius: 50%;
+
+            background: conic-gradient(var(--accent) {
+                        {
+                        profile_completion_percentage
+                    }
+                }
+
+                %, #e2e8f0 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-circle::before {
+            content: "";
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .percentage-text {
+            position: relative;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        p.desc {
+            color: #64748b;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-complete {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(225, 29, 72, 0.2);
+        }
+
+        .btn-complete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(225, 29, 72, 0.3);
+            background: #be123c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Welcome, {{ student.roll_number }}</h1>
+        <p style="font-size: 1.1rem; color: #475569;">Let's get you set up!</p>
+
+        <div class="progress-circle">
+            <span class="percentage-text">{{ profile_completion_percentage }}%</span>
+        </div>
+
+        <h3 style="margin: 0 0 10px 0;">Profile Incomplete</h3>
+        <p class="desc">
+            Your profile is currently <strong>{{ profile_completion_percentage }}%</strong> complete.
+            You need to complete your profile registration and set a new password to access the dashboard.
+        </p>
+
+        <a href="{% url 'student_register' %}" class="btn-complete">
+            Complete Now &rarr;
+        </a>
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'student_logout' %}"
+                style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">Logout</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

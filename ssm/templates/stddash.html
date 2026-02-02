@@ -333,543 +333,558 @@
             {% block content %}
 
             <!-- Quick Info Bar -->
-            <div class="quick-actions-bar">
-                <div style="display: flex; gap: 40px; color: #475569; font-size: 0.95rem;">
-                    <div title="Name"><span style="margin-right: 5px;">👤</span> {{ student.student_name }}</div>
-                    <div title="Semester"><span style="margin-right: 5px;">🎓</span> Sem {{ student.current_semester }}
-                    </div>
-                    <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -
-                        {{ student.ending_year }}</div>
-                    <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
-                    </div>
-                    <div title="Mobile"><span style="margin-right: 5px;">📱</span>
-                        {{ student.personalinfo.student_mobile|default:"--" }}</div>
-                    <div title="Blood Group"><span style="margin-right: 5px;">🩸</span>
-                        {{ student.personalinfo.get_blood_group_display|default:"--" }}</div>
-                    <div title="DOB"><span style="margin-right: 5px;">🎂</span>
-                        {{ student.personalinfo.date_of_birth|date:"d M Y"|default:"--" }}</div>
-                </div>
-            </div>
-
-            <!-- Dashboard Grid -->
-            <div class="dashboard-main-grid">
-
-                <!-- Left Column: Calendar & Graphs -->
-                <div class="dash-col">
-
-                    <!-- Attendance Calendar (Left Top) -->
-                    <div class="chart-card" id="calendarCard">
-                        <div class="calendar-header-static">
-                            <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">
-                                📅 Attendance Calendar
-                            </h3>
-                            <a href="{% url 'student_attendance' %}"
-                                style="font-size: 0.8rem; color: #64748b; text-decoration: none;">View Attendance
-                                &rarr;</a>
-                        </div>
-
-                        <div class="calendar-body" id="calendarBody" style="margin-top: 10px;">
+            <div class="quick-actions-bar" style="display: block;">
+                <!-- Profile Completion Status (Visible if incomplete) -->
+                {% if not is_profile_complete or profile_completion_percentage < 100 %} <div
+                    style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; color: #be123c;">⚠️ Complete Your Profile</h4>
+                        <p style="margin: 0; font-size: 0.9rem; color: #881337;">Your profile is <strong>{{
+                                profile_completion_percentage }}%</strong> complete. Please update your details to
+                            access full features.</p>
+                        <div
+                            style="background: #fecdd3; height: 8px; border-radius: 4px; margin-top: 10px; width: 100%; max-width: 400px; overflow: hidden;">
                             <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <button onclick="changeMonth(-1)"
-                                    style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">◀</button>
-                                <h4 id="currentMonthYear" style="margin: 0; color: #334155; font-size: 0.95rem;">January
-                                    2026</h4>
-                                <button onclick="changeMonth(1)"
-                                    style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">▶</button>
-                            </div>
-
-                            <div class="calendar-grid" id="calendarGrid">
-                                <!-- JS will populate this -->
-                            </div>
-
-                            <div id="selectedDateDetails"
-                                style="margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; display: none;">
-                                <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
-                                    <strong id="detailDate" style="color: #334155;"></strong>
-                                    <span onclick="document.getElementById('selectedDateDetails').style.display='none'"
-                                        style="cursor:pointer; color:#94a3b8;">×</span>
-                                </div>
-                                <ul id="detailList" style="list-style: none; padding: 0; margin: 0; color: #64748b;">
-                                </ul>
+                                style="background: #e11d48; height: 100%; width: {{ profile_completion_percentage }}%;">
                             </div>
                         </div>
                     </div>
-
-                    <!-- Marks Graph -->
-                    <div class="chart-card" style="margin-top: 25px;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 style="margin: 0; color: var(--primary-color);">Academic Performance</h3>
-                            <a href="{% url 'cgpa_history' %}" class="btn-sm btn-outline"
-                                style="font-size: 0.8rem; padding: 2px 8px;">View History</a>
-                        </div>
-                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA:
-                            <strong>{{cgpa}}</strong>
-                        </p>
-                        <canvas id="marksChart"></canvas>
-                    </div>
-
-                    <!-- Leave Status Widget (New) -->
-                    <div class="chart-card" style="margin-top: 25px; min-height: auto;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3 style="margin: 0; color: var(--primary-color);">Leave Status</h3>
-                            <a href="{% url 'apply_leave' %}" class="btn-sm btn-outline"
-                                style="font-size: 0.8rem; padding: 2px 8px;">Apply / View All</a>
-                        </div>
-
-                        <div style="font-size: 0.9rem;">
-                            {% if recent_leaves %}
-                            <table style="width: 100%; border-collapse: collapse;">
-                                {% for leave in recent_leaves %}
-                                <tr style="border-bottom: 1px solid #f1f5f9;">
-                                    <td style="padding: 8px 0; color: #334155;">
-                                        <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
-                                        <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"}} - {{ leave.end_date|date:"d M" }}</div>
-                                    </td>
-                                    <td style="padding: 8px 0; text-align: right;">
-                                        <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;"
-                                            class="{% if 'Approved' in leave.status %}color-approved{% elif 'Rejected' in leave.status %}color-rejected{% else %}color-pending{% endif %}">
-                                            {{ leave.status }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </table>
-                            {% else %}
-                            <p style="color: #94a3b8; text-align: center; margin: 10px 0;">No recent leave requests.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-
-
-
-                </div>
-
-                <!-- Right Column: News & Widgets -->
-                <div class="dash-col">
-                    <!-- News Widget (Top Right) -->
-                    {% include 'news_component.html' %}
-
-                    <!-- Standout Feature: Sticky Note -->
-                    <div id="stickyWidget" class="sticky-note-widget">
-                        <div class="sticky-pin"></div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                            <h4 style="margin: 0 0 10px 0; font-size:0.9rem; opacity:0.8;">📝 Quick Note</h4>
-                            <button onclick="toggleStickyNote()"
-                                style="background:none; border:none; cursor:pointer; font-size:1.2rem; line-height:1; opacity:0.5;">×</button>
-                        </div>
-                        <textarea id="stickyNoteInput" class="sticky-textarea"
-                            placeholder="Type a reminder here... (Auto-saved)"></textarea>
-                    </div>
-
-                    <!-- Attendance Graph -->
-                    <div class="chart-card" style="margin-top: 25px;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3 style="margin: 0; color: var(--primary-color);">Attendance</h3>
-                            <a href="{% url 'student_attendance' %}" class="btn-sm btn-outline"
-                                style="font-size: 0.8rem; padding: 2px 8px;">View All</a>
-                        </div>
-                        <canvas id="attendanceChart"></canvas>
-                    </div>
-
-                    <!-- Projects & Skills Widget -->
-                    <div class="chart-card" style="margin-top: 25px;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3 style="margin: 0; color: var(--primary-color);">Projects & Skills</h3>
-                            <div style="display: flex; gap: 8px;">
-                                <a href="{% url 'student_editprofile' %}#skills" class="btn-sm btn-outline"
-                                    style="font-size: 0.8rem; padding: 2px 8px;">+ Skill</a>
-                                <a href="{% url 'student_editprofile' %}#projects" class="btn-sm btn-outline"
-                                    style="font-size: 0.8rem; padding: 2px 8px;">+ Project</a>
-                            </div>
-                        </div>
-                        <!-- ... Skills and Projects Loop (Keeping existing logic inside) ... -->
-                        <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: #475569;">Skills</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-                            {% for skill in skills %}
-                            <span
-                                style="background: rgba(90, 125, 124, 0.1); color: #5a7d7c; padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; border: 1px solid rgba(90, 125, 124, 0.2);">
-                                {{ skill.skill_name }} <small style="opacity: 0.8;">({{ skill.proficiency }})</small>
-                            </span>
-                            {% empty %}
-                            <p class="text-muted" style="font-size: 0.9rem;">No skills added yet.</p>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Projects Section -->
-                        <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: #475569;">Projects</h4>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            {% for project in projects %}
-                            <div
-                                style="padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <strong style="color: #334155;">{{ project.title }}</strong>
-                                    {% if project.project_link %}
-                                    <a href="{{ project.project_link }}" target="_blank"
-                                        style="text-decoration: none;">🔗</a>
-                                    {% endif %}
-                                </div>
-                                <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">
-                                    {{ project.description|truncatechars:60 }}</p>
-                            </div>
-                            {% empty %}
-                            <p class="text-muted" style="font-size: 0.9rem;">No projects added yet.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                </div>
+                    <a href="{% url 'student_editprofile' %}" class="btn"
+                        style="background: #e11d48; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; white-space: nowrap; margin-left: 20px;">Complete
+                        Now &rarr;</a>
             </div>
-            <!-- Academic History (Generic Layout) -->
+            {% endif %}
+
             <div
-                style="margin-top: 30px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-                <h3
-                    style="margin: 0 0 20px 0; color: var(--primary-color); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
-                    📚 Academic History
-                </h3>
+                style="display: flex; gap: 40px; color: #475569; font-size: 0.95rem; align-items: center; overflow-x: auto;">
+                <div title="Name"><span style="margin-right: 5px;">👤</span> {{ student.student_name }}</div>
+                <div title="Semester"><span style="margin-right: 5px;">🎓</span> Sem {{ student.current_semester }}
+                </div>
+                <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -
+                    {{ student.ending_year }}</div>
+                <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
+                </div>
+                <div title="Mobile"><span style="margin-right: 5px;">📱</span>
+                    {{ student.personalinfo.student_mobile|default:"--" }}</div>
+                <div title="Blood Group"><span style="margin-right: 5px;">🩸</span>
+                    {{ student.personalinfo.get_blood_group_display|default:"--" }}</div>
+                <div title="DOB"><span style="margin-right: 5px;">🎂</span>
+                    {{ student.personalinfo.date_of_birth|date:"d M Y"|default:"--" }}</div>
+            </div>
+    </div>
 
-                {% if gpa_records %}
-                <!-- Semester Selector -->
-                <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-                    <label for="stdSemSelector" style="font-weight: 500; color: #64748b;">Select Semester:</label>
-                    <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
-                        style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
-                        {% for record in gpa_records %}
-                        <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester}}
-                        </option>
-                        {% endfor %}
-                    </select>
+    <!-- Dashboard Grid -->
+    <div class="dashboard-main-grid">
 
-                    <a href="{% url 'cgpa_history' %}#sem-{{ gpa_records.0.semester }}" id="viewAnalysisBtn"
-                        class="btn-sm btn-outline"
-                        style="font-size: 0.85rem; padding: 6px 12px; height: fit-content; margin-left: auto;">
-                        View GPA Analysis &rarr;
-                    </a>
+        <!-- Left Column: Calendar & Graphs -->
+        <div class="dash-col">
+
+            <!-- Attendance Calendar (Left Top) -->
+            <div class="chart-card" id="calendarCard">
+                <div class="calendar-header-static">
+                    <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">
+                        📅 Attendance Calendar
+                    </h3>
+                    <a href="{% url 'student_attendance' %}"
+                        style="font-size: 0.8rem; color: #64748b; text-decoration: none;">View Attendance
+                        &rarr;</a>
                 </div>
 
-                <!-- Semester Tables Container -->
-                <div id="studentSemesterTables">
-                    {% for record in gpa_records %}
-                    <div id="std_sem_{{ record.semester }}"
-                        class="std-semester-table {% if forloop.last %}d-block{% else %}d-none{% endif %}">
-
-                        {% if record.subject_data %}
-                        <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
-                                <thead>
-                                    <tr style="background: #f8fafc; color: #475569;">
-                                        <th style="text-align: left; padding: 12px 20px; font-weight: 600;">Subject</th>
-                                        <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Attn %
-                                        </th>
-                                        <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Mid Term 1
-                                        </th>
-                                        <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Mid Term 2
-                                        </th>
-                                        <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Internal
-                                            Marks</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for sub in record.subject_data %}
-                                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="padding: 12px 20px; color: #334155;">
-                                            <div style="font-weight: 500;">{{ sub.name }}</div>
-                                            <div style="font-size: 0.85em; color: #64748b;">{{ sub.code }}</div>
-                                        </td>
-                                        <td style="text-align: center; padding: 12px 20px;">
-                                            {% if sub.attendance_percentage %}
-                                            <span style="font-weight:500;"
-                                                class="{% if sub.attendance_percentage < 75 %}text-status-red{% else %}text-status-green{% endif %}">
-                                                {{ sub.attendance_percentage }}%
-                                            </span>
-                                            {% else %} - {% endif %}
-                                        </td>
-                                        <td style="text-align: center; padding: 12px 20px;">
-                                            {% if sub.test1_marks or sub.test1_marks == 0 %}
-                                            <span style="font-weight: 600; color: #334155;">{{ sub.test1_marks }}</span>
-                                            {% else %} - {% endif %}
-                                        </td>
-                                        <td style="text-align: center; padding: 12px 20px;">
-                                            {% if sub.test2_marks or sub.test2_marks == 0 %}
-                                            <span style="font-weight: 600; color: #334155;">{{ sub.test2_marks }}</span>
-                                            {% else %} - {% endif %}
-                                        </td>
-                                        <td style="text-align: center; padding: 12px 20px;">
-                                            {% if sub.internal_marks or sub.internal_marks == 0 %}
-                                            <span
-                                                style="font-weight: 600; color: #334155;">{{sub.internal_marks}}</span>
-                                            {% else %} - {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div style="padding: 20px; text-align: center; color: #94a3b8;">No subject data archived for
-                            this semester.</div>
-                        {% endif %}
+                <div class="calendar-body" id="calendarBody" style="margin-top: 10px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <button onclick="changeMonth(-1)"
+                            style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">◀</button>
+                        <h4 id="currentMonthYear" style="margin: 0; color: #334155; font-size: 0.95rem;">January
+                            2026</h4>
+                        <button onclick="changeMonth(1)"
+                            style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">▶</button>
                     </div>
+
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- JS will populate this -->
+                    </div>
+
+                    <div id="selectedDateDetails"
+                        style="margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; display: none;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                            <strong id="detailDate" style="color: #334155;"></strong>
+                            <span onclick="document.getElementById('selectedDateDetails').style.display='none'"
+                                style="cursor:pointer; color:#94a3b8;">×</span>
+                        </div>
+                        <ul id="detailList" style="list-style: none; padding: 0; margin: 0; color: #64748b;">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marks Graph -->
+            <div class="chart-card" style="margin-top: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0; color: var(--primary-color);">Academic Performance</h3>
+                    <a href="{% url 'cgpa_history' %}" class="btn-sm btn-outline"
+                        style="font-size: 0.8rem; padding: 2px 8px;">View History</a>
+                </div>
+                <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA:
+                    <strong>{{cgpa}}</strong>
+                </p>
+                <canvas id="marksChart"></canvas>
+            </div>
+
+            <!-- Leave Status Widget (New) -->
+            <div class="chart-card" style="margin-top: 25px; min-height: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: var(--primary-color);">Leave Status</h3>
+                    <a href="{% url 'apply_leave' %}" class="btn-sm btn-outline"
+                        style="font-size: 0.8rem; padding: 2px 8px;">Apply / View All</a>
+                </div>
+
+                <div style="font-size: 0.9rem;">
+                    {% if recent_leaves %}
+                    <table style="width: 100%; border-collapse: collapse;">
+                        {% for leave in recent_leaves %}
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 8px 0; color: #334155;">
+                                <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
+                                <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"}} - {{
+                                    leave.end_date|date:"d M" }}</div>
+                            </td>
+                            <td style="padding: 8px 0; text-align: right;">
+                                <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;"
+                                    class="{% if 'Approved' in leave.status %}color-approved{% elif 'Rejected' in leave.status %}color-rejected{% else %}color-pending{% endif %}">
+                                    {{ leave.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <p style="color: #94a3b8; text-align: center; margin: 10px 0;">No recent leave requests.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+
+
+        </div>
+
+        <!-- Right Column: News & Widgets -->
+        <div class="dash-col">
+            <!-- News Widget (Top Right) -->
+            {% include 'news_component.html' %}
+
+            <!-- Standout Feature: Sticky Note -->
+            <div id="stickyWidget" class="sticky-note-widget">
+                <div class="sticky-pin"></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <h4 style="margin: 0 0 10px 0; font-size:0.9rem; opacity:0.8;">📝 Quick Note</h4>
+                    <button onclick="toggleStickyNote()"
+                        style="background:none; border:none; cursor:pointer; font-size:1.2rem; line-height:1; opacity:0.5;">×</button>
+                </div>
+                <textarea id="stickyNoteInput" class="sticky-textarea"
+                    placeholder="Type a reminder here... (Auto-saved)"></textarea>
+            </div>
+
+            <!-- Attendance Graph -->
+            <div class="chart-card" style="margin-top: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0; color: var(--primary-color);">Attendance</h3>
+                    <a href="{% url 'student_attendance' %}" class="btn-sm btn-outline"
+                        style="font-size: 0.8rem; padding: 2px 8px;">View All</a>
+                </div>
+                <canvas id="attendanceChart"></canvas>
+            </div>
+
+            <!-- Projects & Skills Widget -->
+            <div class="chart-card" style="margin-top: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: var(--primary-color);">Projects & Skills</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'student_editprofile' %}#skills" class="btn-sm btn-outline"
+                            style="font-size: 0.8rem; padding: 2px 8px;">+ Skill</a>
+                        <a href="{% url 'student_editprofile' %}#projects" class="btn-sm btn-outline"
+                            style="font-size: 0.8rem; padding: 2px 8px;">+ Project</a>
+                    </div>
+                </div>
+                <!-- ... Skills and Projects Loop (Keeping existing logic inside) ... -->
+                <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: #475569;">Skills</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+                    {% for skill in skills %}
+                    <span
+                        style="background: rgba(90, 125, 124, 0.1); color: #5a7d7c; padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; border: 1px solid rgba(90, 125, 124, 0.2);">
+                        {{ skill.skill_name }} <small style="opacity: 0.8;">({{ skill.proficiency }})</small>
+                    </span>
+                    {% empty %}
+                    <p class="text-muted" style="font-size: 0.9rem;">No skills added yet.</p>
                     {% endfor %}
                 </div>
 
-                <script>
-                    function showStudentSemester(semId) {
-                        // Hide all tables
-                        document.querySelectorAll('.std-semester-table').forEach(el => {
-                            el.classList.remove('d-block');
-                            el.classList.add('d-none');
-                        });
-                        // Show selected
-                        var selected = document.getElementById(semId);
-                        if (selected) {
-                            selected.classList.remove('d-none');
-                            selected.classList.add('d-block');
-                        }
-
-                        // Update the analysis button link
-                        var semNum = semId.replace('std_sem_', '');
-                        var btn = document.getElementById('viewAnalysisBtn');
-                        if (btn) {
-                            btn.href = "{% url 'cgpa_history' %}#sem-" + semNum;
-                        }
-                    }
-                </script>
-                {% else %}
-                <div
-                    style="text-align: center; padding: 40px; color: #64748b; background: #f8fafc; border-radius: 8px;">
-                    <p style="margin: 0;">No academic history records found.</p>
+                <!-- Projects Section -->
+                <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: #475569;">Projects</h4>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for project in projects %}
+                    <div style="padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong style="color: #334155;">{{ project.title }}</strong>
+                            {% if project.project_link %}
+                            <a href="{{ project.project_link }}" target="_blank" style="text-decoration: none;">🔗</a>
+                            {% endif %}
+                        </div>
+                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">
+                            {{ project.description|truncatechars:60 }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted" style="font-size: 0.9rem;">No projects added yet.</p>
+                    {% endfor %}
                 </div>
-                {% endif %}
             </div>
 
-            <!-- Data for Charts passed via json_script to avoid linter errors -->
-            {{ attendance_percentage|default:0|json_script:"attendance-data" }}
-            {{ gpa_labels|json_script:"gpa-labels-data" }}
-            {{ gpa_data|json_script:"gpa-data-data" }}
-            {{ calendar_data|json_script:"calendar-data-json" }}
+        </div>
+    </div>
+    <!-- Academic History (Generic Layout) -->
+    <div
+        style="margin-top: 30px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+        <h3
+            style="margin: 0 0 20px 0; color: var(--primary-color); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
+            📚 Academic History
+        </h3>
 
-            <script>
-                // Calendar Logic
-                let calendarData = {};
-                try {
-                    const el = document.getElementById('calendar-data-json');
-                    if (el) {
-                        calendarData = JSON.parse(el.textContent);
-                    }
-                } catch (e) {
-                    console.error("Calendar Data Parse Error", e);
-                }
+        {% if gpa_records %}
+        <!-- Semester Selector -->
+        <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+            <label for="stdSemSelector" style="font-weight: 500; color: #64748b;">Select Semester:</label>
+            <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
+                style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
+                {% for record in gpa_records %}
+                <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester %}selected{% endif %}>Semester {{ record.semester }}
+                </option>
+                {% endfor %}
+            </select>
 
-                let currentDate = new Date();
+            <a href="{% url 'cgpa_history' %}#sem-{{ gpa_records.0.semester }}" id="viewAnalysisBtn"
+                class="btn-sm btn-outline"
+                style="font-size: 0.85rem; padding: 6px 12px; height: fit-content; margin-left: auto;">
+                View GPA Analysis &rarr;
+            </a>
+        </div>
 
-                // Initialize on load to ensuring ready
-                document.addEventListener('DOMContentLoaded', () => {
-                    renderCalendar();
+        <!-- Semester Tables Container -->
+        <div id="studentSemesterTables">
+            {% for record in gpa_records %}
+            <div id="std_sem_{{ record.semester }}"
+                class="std-semester-table {% if forloop.last %}d-block{% else %}d-none{% endif %}">
+
+                {% if record.subject_data %}
+                <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="background: #f8fafc; color: #475569;">
+                                <th style="text-align: left; padding: 12px 20px; font-weight: 600;">Subject</th>
+                                <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Attn %
+                                </th>
+                                <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Mid Term 1
+                                </th>
+                                <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Mid Term 2
+                                </th>
+                                <th style="text-align: center; padding: 12px 20px; font-weight: 600;">Internal
+                                    Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in record.subject_data %}
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 12px 20px; color: #334155;">
+                                    <div style="font-weight: 500;">{{ sub.name }}</div>
+                                    <div style="font-size: 0.85em; color: #64748b;">{{ sub.code }}</div>
+                                </td>
+                                <td style="text-align: center; padding: 12px 20px;">
+                                    {% if sub.attendance_percentage %}
+                                    <span style="font-weight:500;"
+                                        class="{% if sub.attendance_percentage < 75 %}text-status-red{% else %}text-status-green{% endif %}">
+                                        {{ sub.attendance_percentage }}%
+                                    </span>
+                                    {% else %} - {% endif %}
+                                </td>
+                                <td style="text-align: center; padding: 12px 20px;">
+                                    {% if sub.test1_marks or sub.test1_marks == 0 %}
+                                    <span style="font-weight: 600; color: #334155;">{{ sub.test1_marks }}</span>
+                                    {% else %} - {% endif %}
+                                </td>
+                                <td style="text-align: center; padding: 12px 20px;">
+                                    {% if sub.test2_marks or sub.test2_marks == 0 %}
+                                    <span style="font-weight: 600; color: #334155;">{{ sub.test2_marks }}</span>
+                                    {% else %} - {% endif %}
+                                </td>
+                                <td style="text-align: center; padding: 12px 20px;">
+                                    {% if sub.internal_marks or sub.internal_marks == 0 %}
+                                    <span style="font-weight: 600; color: #334155;">{{sub.internal_marks}}</span>
+                                    {% else %} - {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="padding: 20px; text-align: center; color: #94a3b8;">No subject data archived for
+                    this semester.</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            function showStudentSemester(semId) {
+                // Hide all tables
+                document.querySelectorAll('.std-semester-table').forEach(el => {
+                    el.classList.remove('d-block');
+                    el.classList.add('d-none');
                 });
-
-                function changeMonth(delta) {
-                    currentDate.setMonth(currentDate.getMonth() + delta);
-                    renderCalendar();
+                // Show selected
+                var selected = document.getElementById(semId);
+                if (selected) {
+                    selected.classList.remove('d-none');
+                    selected.classList.add('d-block');
                 }
 
-                function renderCalendar() {
-                    const grid = document.getElementById('calendarGrid');
-                    const title = document.getElementById('currentMonthYear');
-                    if (!grid || !title) return;
+                // Update the analysis button link
+                var semNum = semId.replace('std_sem_', '');
+                var btn = document.getElementById('viewAnalysisBtn');
+                if (btn) {
+                    btn.href = "{% url 'cgpa_history' %}#sem-" + semNum;
+                }
+            }
+        </script>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #64748b; background: #f8fafc; border-radius: 8px;">
+            <p style="margin: 0;">No academic history records found.</p>
+        </div>
+        {% endif %}
+    </div>
 
-                    grid.innerHTML = '';
+    <!-- Data for Charts passed via json_script to avoid linter errors -->
+    {{ attendance_percentage|default:0|json_script:"attendance-data" }}
+    {{ gpa_labels|json_script:"gpa-labels-data" }}
+    {{ gpa_data|json_script:"gpa-data-data" }}
+    {{ calendar_data|json_script:"calendar-data-json" }}
 
-                    const year = currentDate.getFullYear();
-                    const month = currentDate.getMonth();
+    <script>
+        // Calendar Logic
+        let calendarData = {};
+        try {
+            const el = document.getElementById('calendar-data-json');
+            if (el) {
+                calendarData = JSON.parse(el.textContent);
+            }
+        } catch (e) {
+            console.error("Calendar Data Parse Error", e);
+        }
 
-                    // Update Header
-                    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                    title.textContent = `${monthNames[month]} ${year}`;
+        let currentDate = new Date();
 
-                    // First day 
-                    const firstDay = new Date(year, month, 1);
-                    const lastDay = new Date(year, month + 1, 0);
-                    const daysInMonth = lastDay.getDate();
-                    const startingDay = firstDay.getDay(); // 0 = Sun
+        // Initialize on load to ensuring ready
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCalendar();
+        });
 
-                    // Headers
-                    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-                    days.forEach(d => {
-                        const cell = document.createElement('div');
-                        cell.style.fontWeight = 'bold';
-                        cell.style.fontSize = '0.8rem';
-                        cell.style.color = '#94a3b8';
-                        cell.style.padding = '5px 0';
-                        grid.appendChild(cell);
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const title = document.getElementById('currentMonthYear');
+            if (!grid || !title) return;
+
+            grid.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Update Header
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            title.textContent = `${monthNames[month]} ${year}`;
+
+            // First day 
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDay = firstDay.getDay(); // 0 = Sun
+
+            // Headers
+            const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            days.forEach(d => {
+                const cell = document.createElement('div');
+                cell.style.fontWeight = 'bold';
+                cell.style.fontSize = '0.8rem';
+                cell.style.color = '#94a3b8';
+                cell.style.padding = '5px 0';
+                grid.appendChild(cell);
+            });
+
+            // Empty slots
+            for (let i = 0; i < startingDay; i++) {
+                grid.appendChild(document.createElement('div'));
+            }
+
+            // Days
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+                dayCell.textContent = i;
+
+                // Format YYYY-MM-DD
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                if (calendarData[dateStr]) {
+                    dayCell.classList.add('has-data');
+                    dayCell.classList.add(`status-${calendarData[dateStr].color}`);
+                }
+
+                dayCell.onclick = () => selectDate(dateStr, dayCell);
+                grid.appendChild(dayCell);
+            }
+        }
+
+        function selectDate(dateStr, cell) {
+            document.querySelectorAll('.calendar-day').forEach(c => c.classList.remove('selected'));
+            cell.classList.add('selected');
+
+            const detailsDiv = document.getElementById('selectedDateDetails');
+            const detailList = document.getElementById('detailList');
+            const dateTitle = document.getElementById('detailDate');
+
+            if (detailsDiv) detailsDiv.style.display = 'block';
+            if (dateTitle) dateTitle.textContent = new Date(dateStr).toDateString();
+            if (detailList) {
+                detailList.innerHTML = '';
+
+                const data = calendarData[dateStr];
+                if (data && data.details) {
+                    data.details.forEach(cls => {
+                        const li = document.createElement('li');
+                        li.style.display = 'flex';
+                        li.style.justifyContent = 'space-between';
+                        li.style.marginBottom = '4px';
+                        li.innerHTML = `<span>${cls.subject}</span> <span style="font-weight:600; color:${cls.status === 'Present' ? '#2ecc71' : '#e74c3c'}">${cls.status}</span>`;
+                        detailList.appendChild(li);
                     });
-
-                    // Empty slots
-                    for (let i = 0; i < startingDay; i++) {
-                        grid.appendChild(document.createElement('div'));
-                    }
-
-                    // Days
-                    for (let i = 1; i <= daysInMonth; i++) {
-                        const dayCell = document.createElement('div');
-                        dayCell.className = 'calendar-day';
-                        dayCell.textContent = i;
-
-                        // Format YYYY-MM-DD
-                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-
-                        if (calendarData[dateStr]) {
-                            dayCell.classList.add('has-data');
-                            dayCell.classList.add(`status-${calendarData[dateStr].color}`);
-                        }
-
-                        dayCell.onclick = () => selectDate(dateStr, dayCell);
-                        grid.appendChild(dayCell);
-                    }
+                } else {
+                    detailList.innerHTML = '<li>No attendance records for this date.</li>';
                 }
+            }
+        }
 
-                function selectDate(dateStr, cell) {
-                    document.querySelectorAll('.calendar-day').forEach(c => c.classList.remove('selected'));
-                    cell.classList.add('selected');
+        // Sticky Note Logic 
+        function toggleStickyNote() {
+            const widget = document.getElementById('stickyWidget');
+            const btn = document.getElementById('stickyToggleBtn');
+            if (!widget) return;
 
-                    const detailsDiv = document.getElementById('selectedDateDetails');
-                    const detailList = document.getElementById('detailList');
-                    const dateTitle = document.getElementById('detailDate');
+            const isHidden = window.getComputedStyle(widget).display === 'none';
 
-                    if (detailsDiv) detailsDiv.style.display = 'block';
-                    if (dateTitle) dateTitle.textContent = new Date(dateStr).toDateString();
-                    if (detailList) {
-                        detailList.innerHTML = '';
+            if (isHidden) {
+                widget.classList.add('active');
+                if (btn) btn.textContent = "🙈 Hide Sticky Note";
+                localStorage.setItem('stickyNoteOpen', 'true');
+            } else {
+                widget.classList.remove('active');
+                if (btn) btn.textContent = "📝 Show Sticky Note";
+                localStorage.removeItem('stickyNoteOpen');
+            }
+        }
 
-                        const data = calendarData[dateStr];
-                        if (data && data.details) {
-                            data.details.forEach(cls => {
-                                const li = document.createElement('li');
-                                li.style.display = 'flex';
-                                li.style.justifyContent = 'space-between';
-                                li.style.marginBottom = '4px';
-                                li.innerHTML = `<span>${cls.subject}</span> <span style="font-weight:600; color:${cls.status === 'Present' ? '#2ecc71' : '#e74c3c'}">${cls.status}</span>`;
-                                detailList.appendChild(li);
-                            });
-                        } else {
-                            detailList.innerHTML = '<li>No attendance records for this date.</li>';
-                        }
-                    }
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            const stickyInput = document.getElementById('stickyNoteInput');
+            const widget = document.getElementById('stickyWidget');
+            const btn = document.getElementById('stickyToggleBtn');
 
-                // Sticky Note Logic 
-                function toggleStickyNote() {
-                    const widget = document.getElementById('stickyWidget');
-                    const btn = document.getElementById('stickyToggleBtn');
-                    if (!widget) return;
+            if (stickyInput) {
+                const savedNote = localStorage.getItem('studentStickyNote');
+                if (savedNote) stickyInput.value = savedNote;
 
-                    const isHidden = window.getComputedStyle(widget).display === 'none';
-
-                    if (isHidden) {
-                        widget.classList.add('active');
-                        if (btn) btn.textContent = "🙈 Hide Sticky Note";
-                        localStorage.setItem('stickyNoteOpen', 'true');
-                    } else {
-                        widget.classList.remove('active');
-                        if (btn) btn.textContent = "📝 Show Sticky Note";
-                        localStorage.removeItem('stickyNoteOpen');
-                    }
-                }
-
-                document.addEventListener('DOMContentLoaded', function () {
-                    const stickyInput = document.getElementById('stickyNoteInput');
-                    const widget = document.getElementById('stickyWidget');
-                    const btn = document.getElementById('stickyToggleBtn');
-
-                    if (stickyInput) {
-                        const savedNote = localStorage.getItem('studentStickyNote');
-                        if (savedNote) stickyInput.value = savedNote;
-
-                        stickyInput.addEventListener('input', function () {
-                            localStorage.setItem('studentStickyNote', this.value);
-                        });
-                    }
-
-                    if (widget && localStorage.getItem('stickyNoteOpen') === 'true') {
-                        widget.classList.add('active');
-                        if (btn) btn.textContent = "🙈 Hide Sticky Note";
-                    } else {
-                        if (btn) btn.textContent = "📝 Add Sticky Note"; // Default
-                    }
+                stickyInput.addEventListener('input', function () {
+                    localStorage.setItem('studentStickyNote', this.value);
                 });
-            </script>
+            }
 
-            <script>
-                // --- Attendance Chart ---
-                // Parse the data from the script tag
-                const attendancePct = JSON.parse(document.getElementById('attendance-data').textContent);
+            if (widget && localStorage.getItem('stickyNoteOpen') === 'true') {
+                widget.classList.add('active');
+                if (btn) btn.textContent = "🙈 Hide Sticky Note";
+            } else {
+                if (btn) btn.textContent = "📝 Add Sticky Note"; // Default
+            }
+        });
+    </script>
 
-                const ctxAtt = document.getElementById('attendanceChart').getContext('2d');
-                new Chart(ctxAtt, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Present', 'Absent'],
-                        datasets: [{
-                            data: [attendancePct, 100 - attendancePct],
-                            backgroundColor: ['#10b981', '#ef4444'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        cutout: '70%',
-                        plugins: {
-                            legend: { position: 'bottom' },
-                            title: { display: true, text: 'Current Semester' }
-                        }
-                    }
-                });
+    <script>
+        // --- Attendance Chart ---
+        // Parse the data from the script tag
+        const attendancePct = JSON.parse(document.getElementById('attendance-data').textContent);
 
-                // --- Marks Chart (Fixed) ---
-                const ctxMarks = document.getElementById('marksChart').getContext('2d');
-
-                // Parse labels and data
-                const gpaLabels = JSON.parse(document.getElementById('gpa-labels-data').textContent);
-                const gpaData = JSON.parse(document.getElementById('gpa-data-data').textContent);
-
-                new Chart(ctxMarks, {
-                    type: 'bar',
-                    data: {
-                        labels: gpaLabels,
-                        datasets: [{
-                            label: 'GPA',
-                            data: gpaData,
-                            backgroundColor: '#3b82f6',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: { beginAtZero: true, max: 10 }
-                        }
-                    }
-                });
-            </script>
-
-            <script>
-                function toggleSidebar() {
-                    document.querySelector('.profile-sidebar').classList.toggle('mobile-active');
-                    document.querySelector('.sidebar-overlay').classList.toggle('active');
+        const ctxAtt = document.getElementById('attendanceChart').getContext('2d');
+        new Chart(ctxAtt, {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Absent'],
+                datasets: [{
+                    data: [attendancePct, 100 - attendancePct],
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Current Semester' }
                 }
+            }
+        });
 
-                // Auto Refresh every 60 seconds
-                // setTimeout(function () {
-                //     window.location.reload();
-                // }, 10000);
-            </script>
+        // --- Marks Chart (Fixed) ---
+        const ctxMarks = document.getElementById('marksChart').getContext('2d');
 
-            {% endblock %}
-        </main>
+        // Parse labels and data
+        const gpaLabels = JSON.parse(document.getElementById('gpa-labels-data').textContent);
+        const gpaData = JSON.parse(document.getElementById('gpa-data-data').textContent);
+
+        new Chart(ctxMarks, {
+            type: 'bar',
+            data: {
+                labels: gpaLabels,
+                datasets: [{
+                    label: 'GPA',
+                    data: gpaData,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, max: 10 }
+                }
+            }
+        });
+    </script>
+
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.profile-sidebar').classList.toggle('mobile-active');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+
+        // Auto Refresh every 60 seconds
+        // setTimeout(function () {
+        //     window.location.reload();
+        // }, 10000);
+    </script>
+
+    {% endblock %}
+    </main>
     </div>
 </body>
 

@@ -184,7 +184,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.href = successUrl;
+                    }).then(() => {
+                        // Redirect to student dashboard as per backend instruction implies completion
+                        window.location.href = "/student/dashboard/";
                     });
                 } else {
                     if (result.error) {

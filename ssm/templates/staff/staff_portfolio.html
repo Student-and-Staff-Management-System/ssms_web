@@ -23,53 +23,315 @@
             --radius: 16px;
         }
 
-        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 0; min-height: 100vh; }
-        .app-container { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
-        .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-        .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
-        .brand img { height: 35px; }
-        .brand h1 { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0; }
-        .nav-section { display: flex; flex-direction: column; gap: 8px; margin-bottom: 30px; }
-        .nav-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px; padding-left: 12px; font-weight: 600; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-weight: 500; transition: all 0.2s; }
-        .nav-item:hover, .nav-item.active { background-color: var(--primary-light); color: var(--primary-dark); }
-        .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; }
-        .profile-mini { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--bg-body); border-radius: 12px; border: 1px solid var(--border); }
-        .profile-mini img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
 
-        .main-content { padding: 32px; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-        .top-bar { margin-bottom: 32px; }
-        .page-title h2 { font-size: 1.75rem; font-weight: 700; margin: 0; color: var(--text-main); }
-        .page-title p { margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.95rem; }
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
 
-        .section-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--primary-dark); margin: 0; }
-        .btn-add { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: background 0.2s; }
-        .btn-add:hover { background: var(--primary-dark); color: white; }
-        .item-list { list-style: none; padding: 0; margin: 0; }
-        .item-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 16px; }
-        .item-row:last-child { border-bottom: none; }
-        .item-content { flex: 1; min-width: 0; }
-        .item-title { font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
-        .item-meta { font-size: 0.9rem; color: var(--text-muted); }
-        .item-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        .btn-edit, .btn-delete { padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; text-decoration: none; transition: all 0.2s; }
-        .btn-edit { background: var(--primary-light); color: var(--primary-dark); }
-        .btn-edit:hover { background: var(--primary); color: white; }
-        .btn-delete { background: #fee2e2; color: #dc2626; }
-        .btn-delete:hover { background: #dc2626; color: white; }
-        .empty-state { padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.95rem; }
-        .empty-state a { color: var(--primary); }
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
 
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-main); font-size: 0.95rem; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
-        .form-group textarea { min-height: 80px; resize: vertical; }
-        .form-help { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
 
-        @media (max-width: 1024px) { .app-container { grid-template-columns: 1fr; } .sidebar { display: none; } }
+        .brand img {
+            height: 35px;
+        }
+
+        .brand h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .nav-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .nav-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-left: 12px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .nav-icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .profile-mini {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-body);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .profile-mini img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .main-content {
+            padding: 32px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .top-bar {
+            margin-bottom: 32px;
+        }
+
+        .page-title h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .page-title p {
+            margin: 4px 0 0 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .section-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+
+        .btn-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover {
+            background: var(--primary-dark);
+            color: white;
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 16px;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .item-meta {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .btn-edit:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .empty-state {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .empty-state a {
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
     </style>
 </head>
 
@@ -77,7 +339,8 @@
     <div class="app-container">
         <aside class="sidebar">
             <div class="brand">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo">
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+                    alt="Logo">
                 <h1>Publications & Accomplishments</h1>
             </div>
             <nav class="nav-section">
@@ -112,114 +375,567 @@
             {% if messages %}
             <ul style="list-style: none; padding: 0; margin: 0 0 20px 0;">
                 {% for message in messages %}
-                <li style="padding: 12px; border-radius: 8px; background: #d1fae5; color: #065f46; margin-bottom: 8px;">{{ message }}</li>
+                <li style="padding: 12px; border-radius: 8px; background: #d1fae5; color: #065f46; margin-bottom: 8px;">
+                    {{ message }}</li>
                 {% endfor %}
             </ul>
             {% endif %}
 
-            <!-- Publications -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h3 class="section-title">Publications</h3>
-                    <a href="{% url 'staffs:portfolio_add_publication' %}" class="btn-add">➕ Add New</a>
-                </div>
-                {% if publications %}
-                <ul class="item-list">
-                    {% for p in publications %}
-                    <li class="item-row">
-                        <div class="item-content">
-                            <div class="item-title">{{ p.title }}</div>
-                            <div class="item-meta">{{ p.get_pub_type_display }}{% if p.venue_or_journal %} · {{ p.venue_or_journal }}{% endif %}{% if p.year %} · {{ p.year }}{% endif %}</div>
-                        </div>
-                        <div class="item-actions">
-                            <a href="{% url 'staffs:portfolio_edit_publication' p.pk %}" class="btn-edit">Edit</a>
-                            <a href="{% url 'staffs:portfolio_delete_publication' p.pk %}" class="btn-delete">Delete</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="empty-state">No publications yet. <a href="{% url 'staffs:portfolio_add_publication' %}">Add your first publication</a></div>
-                {% endif %}
+
+            <!-- Tabs Navigation -->
+            <div style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border);">
+                <button onclick="openTab(event, 'Conferences')" class="tab-link active">Conferences</button>
+                <button onclick="openTab(event, 'Publications')" class="tab-link">Publications (Journal)</button>
+                <button onclick="openTab(event, 'Books')" class="tab-link">Books / Popular Articles</button>
+                <button onclick="openTab(event, 'Others')" class="tab-link">Awards & Guided</button>
             </div>
 
-            <!-- Awards / Honours / Memberships -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h3 class="section-title">Awards / Honours / Memberships</h3>
-                    <a href="{% url 'staffs:portfolio_add_award' %}" class="btn-add">➕ Add New</a>
+            <style>
+                .tab-link {
+                    background: none;
+                    border: none;
+                    padding: 12px 16px;
+                    font-size: 1rem;
+                    font-weight: 500;
+                    color: var(--text-muted);
+                    cursor: pointer;
+                    border-bottom: 2px solid transparent;
+                    margin-bottom: -2px;
+                }
+
+                .tab-link.active {
+                    color: var(--primary);
+                    border-bottom: 2px solid var(--primary);
+                    font-weight: 600;
+                }
+
+                .tab-content {
+                    display: none;
+                }
+
+                .tab-content.active {
+                    display: block;
+                }
+
+                /* Modal Styles */
+                .modal {
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 1000;
+                }
+
+                .modal-content {
+                    background: white;
+                    margin: 40px auto;
+                    padding: 24px;
+                    width: 90%;
+                    max-width: 800px;
+                    border-radius: 12px;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+
+                .modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+
+                .modal-close {
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    background: none;
+                    border: none;
+                }
+
+                .form-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 16px;
+                }
+
+                .full-width {
+                    grid-column: span 2;
+                }
+            </style>
+
+            <!-- 1. Conferences Tab -->
+            <div id="Conferences" class="tab-content active">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Conference Participation</h3>
+                        <button onclick="openModal('modalConference')" class="btn-add">➕ Add Conference</button>
+                    </div>
+                    {% if conferences %}
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead style="background: var(--bg-body); text-align: left;">
+                                <tr>
+                                    <th style="padding: 10px;">Title</th>
+                                    <th style="padding: 10px;">Proceedings</th>
+                                    <th style="padding: 10px;">Author(s)</th>
+                                    <th style="padding: 10px;">Date/Place</th>
+                                    <th style="padding: 10px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in conferences %}
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="padding: 10px;"><b>{{ c.title_of_paper }}</b><br><span
+                                            style="font-size:0.8rem; color:var(--text-muted);">{{
+                                            c.national_international }} · {{ c.year_of_publication }}</span></td>
+                                    <td style="padding: 10px;">{{ c.title_of_proceedings }}</td>
+                                    <td style="padding: 10px;">{{ c.author_name }}</td>
+                                    <td style="padding: 10px;">{{ c.date_from|default:"-" }} to {{ c.date_to|default:"-"
+                                        }}<br>{{ c.location }}</td>
+                                    <td style="padding: 10px;">
+                                        <a href="{% url 'staffs:portfolio_delete_entry' 'conference' c.pk %}"
+                                            class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">No conference entries added.</div>
+                    {% endif %}
                 </div>
-                {% if awards %}
-                <ul class="item-list">
-                    {% for a in awards %}
-                    <li class="item-row">
-                        <div class="item-content">
-                            <div class="item-title">{{ a.title }} <span style="color: var(--text-muted); font-weight: normal;">({{ a.get_category_display }})</span></div>
-                            <div class="item-meta">{% if a.description %}{{ a.description }}{% endif %}{% if a.year %} · {{ a.year }}{% endif %}</div>
-                        </div>
-                        <div class="item-actions">
-                            <a href="{% url 'staffs:portfolio_edit_award' a.pk %}" class="btn-edit">Edit</a>
-                            <a href="{% url 'staffs:portfolio_delete_award' a.pk %}" class="btn-delete">Delete</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="empty-state">No entries yet. <a href="{% url 'staffs:portfolio_add_award' %}">Add award, honour, or membership</a></div>
-                {% endif %}
             </div>
 
-            <!-- Seminars / Workshops / Conferences -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h3 class="section-title">Seminars / Workshops / Conferences</h3>
-                    <a href="{% url 'staffs:portfolio_add_seminar' %}" class="btn-add">➕ Add New</a>
+            <!-- 2. Publications Tab -->
+            <div id="Publications" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Journal Publications</h3>
+                        <button onclick="openModal('modalJournal')" class="btn-add">➕ Add Journal</button>
+                    </div>
+                    {% if journals %}
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead style="background: var(--bg-body); text-align: left;">
+                                <tr>
+                                    <th style="padding: 10px;">Title</th>
+                                    <th style="padding: 10px;">Journal</th>
+                                    <th style="padding: 10px;">Author(s)</th>
+                                    <th style="padding: 10px;">Vol/Issue</th>
+                                    <th style="padding: 10px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for j in journals %}
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="padding: 10px;"><b>{{ j.title_of_paper }}</b><br><span
+                                            style="font-size:0.8rem; color:var(--text-muted);">{{
+                                            j.national_international }} · {{ j.published_month }} {{ j.published_year
+                                            }}</span></td>
+                                    <td style="padding: 10px;">{{ j.journal_name }}<br><span
+                                            style="font-size:0.8rem;">DOI/Year: {{ j.year_of_publication_doi }}</span>
+                                    </td>
+                                    <td style="padding: 10px;">{{ j.author_name }}</td>
+                                    <td style="padding: 10px;">Vol: {{ j.volume_number }}<br>Iss: {{ j.issue_number }}
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <a href="{% url 'staffs:portfolio_delete_entry' 'journal' j.pk %}"
+                                            class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">No journal publications added.</div>
+                    {% endif %}
                 </div>
-                {% if seminars %}
-                <ul class="item-list">
-                    {% for s in seminars %}
-                    <li class="item-row">
-                        <div class="item-content">
-                            <div class="item-title">{{ s.title }} <span style="color: var(--text-muted); font-weight: normal;">({{ s.get_event_type_display }})</span></div>
-                            <div class="item-meta">{% if s.venue_or_description %}{{ s.venue_or_description }}{% endif %}{% if s.year %} · {{ s.year }}{% endif %}</div>
-                        </div>
-                        <div class="item-actions">
-                            <a href="{% url 'staffs:portfolio_edit_seminar' s.pk %}" class="btn-edit">Edit</a>
-                            <a href="{% url 'staffs:portfolio_delete_seminar' s.pk %}" class="btn-delete">Delete</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="empty-state">No entries yet. <a href="{% url 'staffs:portfolio_add_seminar' %}">Add seminar, workshop, or conference</a></div>
-                {% endif %}
             </div>
 
-            <!-- Students Guided -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h3 class="section-title">Students Guided (PG / PhD)</h3>
-                    <a href="{% url 'staffs:portfolio_add_student' %}" class="btn-add">➕ Add New</a>
+            <!-- 3. Books Tab -->
+            <div id="Books" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Books / Popular Articles</h3>
+                        <button onclick="openModal('modalBook')" class="btn-add">➕ Add Book/Article</button>
+                    </div>
+                    {% if books %}
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead style="background: var(--bg-body); text-align: left;">
+                                <tr>
+                                    <th style="padding: 10px;">Title</th>
+                                    <th style="padding: 10px;">Type</th>
+                                    <th style="padding: 10px;">Author(s)</th>
+                                    <th style="padding: 10px;">Publisher</th>
+                                    <th style="padding: 10px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in books %}
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="padding: 10px;"><b>{{ b.title_of_book }}</b><br><span
+                                            style="font-size:0.8rem; color:var(--text-muted);">{{ b.month_of_publication
+                                            }} {{ b.year_of_publication }}</span></td>
+                                    <td style="padding: 10px;">{{ b.type }}</td>
+                                    <td style="padding: 10px;">{{ b.author_name }}</td>
+                                    <td style="padding: 10px;">{{ b.publisher_name }}<br><span
+                                            style="font-size:0.8rem;">ISBN: {{ b.isbn_issn_number }}</span></td>
+                                    <td style="padding: 10px;">
+                                        <a href="{% url 'staffs:portfolio_delete_entry' 'book' b.pk %}"
+                                            class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">No books or popular articles added.</div>
+                    {% endif %}
                 </div>
-                {% if students_guided %}
-                <ul class="item-list">
-                    {% for s in students_guided %}
-                    <li class="item-row">
-                        <div class="item-content">
-                            <div class="item-title">{{ s.student_name }} · {{ s.degree_type }} · {{ s.status }}</div>
-                            <div class="item-meta">{% if s.year %}Year: {{ s.year }}{% endif %}</div>
-                        </div>
-                        <div class="item-actions">
-                            <a href="{% url 'staffs:portfolio_edit_student' s.pk %}" class="btn-edit">Edit</a>
-                            <a href="{% url 'staffs:portfolio_delete_student' s.pk %}" class="btn-delete">Delete</a>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div class="empty-state">No students added yet. <a href="{% url 'staffs:portfolio_add_student' %}">Add PG or PhD student guided</a></div>
-                {% endif %}
             </div>
+
+            <!-- 4. Others Tab (Existing) -->
+            <div id="Others" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Seminars / Workshops (Legacy)</h3>
+                        <a href="{% url 'staffs:portfolio_add_seminar' %}" class="btn-add">➕ Add Old</a>
+                    </div>
+                    {% if seminars %}
+                    <ul class="item-list">
+                        {% for s in seminars %}
+                        <li class="item-row">
+                            <div class="item-content">
+                                <div class="item-title">{{ s.title }} ({{ s.get_event_type_display }})</div>
+                                <div class="item-meta">{{ s.venue_or_description }} · {{ s.year }}</div>
+                            </div>
+                            <div class="item-actions">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}"
+                                    class="btn-delete">Delete</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">No legacy seminar entries.</div>
+                    {% endif %}
+                </div>
+
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Awards / Honours</h3>
+                        <a href="{% url 'staffs:portfolio_add_award' %}" class="btn-add">➕ Add Award</a>
+                    </div>
+                    {% if awards %}
+                    <ul class="item-list">
+                        {% for a in awards %}
+                        <li class="item-row">
+                            <div class="item-content">
+                                <div class="item-title">{{ a.title }} ({{ a.get_category_display }})</div>
+                            </div>
+                            <div class="item-actions">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'award' a.pk %}"
+                                    class="btn-delete">Delete</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">No awards added.</div>
+                    {% endif %}
+                </div>
+
+                <div class="section-card">
+                    <div class="section-header">
+                        <h3 class="section-title">Students Guided</h3>
+                        <a href="{% url 'staffs:portfolio_add_student' %}" class="btn-add">➕ Add Student</a>
+                    </div>
+                    {% if students_guided %}
+                    <ul class="item-list">
+                        {% for s in students_guided %}
+                        <li class="item-row">
+                            <div class="item-content">
+                                <div class="item-title">{{ s.student_name }} · {{ s.degree_type }}</div>
+                            </div>
+                            <div class="item-actions">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'student_guided' s.pk %}"
+                                    class="btn-delete">Delete</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">No students guided added.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- MODALS -->
+
+            <!-- Conference Modal -->
+            <div id="modalConference" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Conference Participation</h3>
+                        <button onclick="closeModal('modalConference')" class="modal-close">×</button>
+                    </div>
+                    <form action="{% url 'staffs:portfolio_add_conference' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>National / International</label>
+                                <div style="display:flex; gap:20px;">
+                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
+                                            value="National" checked> National</label>
+                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
+                                            value="International"> International</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Author(s) Name</label>
+                                <input type="text" name="author_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Year of Publication</label>
+                                <input type="text" name="year_of_publication">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Title of Paper</label>
+                                <input type="text" name="title_of_paper" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Title of Conference Proceedings</label>
+                                <input type="text" name="title_of_proceedings">
+                            </div>
+                            <div class="form-group">
+                                <label>Date From</label>
+                                <input type="date" name="date_from">
+                            </div>
+                            <div class="form-group">
+                                <label>Date To</label>
+                                <input type="date" name="date_to">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Location of Conference</label>
+                                <input type="text" name="location">
+                            </div>
+                            <div class="form-group">
+                                <label>Page Numbers From</label>
+                                <input type="text" name="page_numbers_from">
+                            </div>
+                            <div class="form-group">
+                                <label>Page Numbers To</label>
+                                <input type="text" name="page_numbers_to">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Place of Publication</label>
+                                <input type="text" name="place_of_publication">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Publisher of Proceedings</label>
+                                <input type="text" name="publisher_proceedings">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">Save Entry</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Journal Modal -->
+            <div id="modalJournal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Journal Publication</h3>
+                        <button onclick="closeModal('modalJournal')" class="modal-close">×</button>
+                    </div>
+                    <form action="{% url 'staffs:portfolio_add_journal' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>National / International</label>
+                                <div style="display:flex; gap:20px;">
+                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
+                                            value="National" checked> National</label>
+                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
+                                            value="International"> International</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Published Month</label>
+                                <select name="published_month">
+                                    <option value="">Select Month</option>
+                                    <option value="January">January</option>
+                                    <option value="February">February</option>
+                                    <option value="March">March</option>
+                                    <option value="April">April</option>
+                                    <option value="May">May</option>
+                                    <option value="June">June</option>
+                                    <option value="July">July</option>
+                                    <option value="August">August</option>
+                                    <option value="September">September</option>
+                                    <option value="October">October</option>
+                                    <option value="November">November</option>
+                                    <option value="December">December</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Published Year</label>
+                                <input type="number" name="published_year" placeholder="YYYY">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Author(s) Name</label>
+                                <input type="text" name="author_name" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Title of Paper</label>
+                                <input type="text" name="title_of_paper" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Journal Name</label>
+                                <input type="text" name="journal_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Volume Number</label>
+                                <input type="text" name="volume_number">
+                            </div>
+                            <div class="form-group">
+                                <label>Issue Number</label>
+                                <input type="text" name="issue_number">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Year of Publication / DOI</label>
+                                <input type="text" name="year_of_publication_doi">
+                            </div>
+                            <div class="form-group">
+                                <label>Page Numbers From</label>
+                                <input type="text" name="page_numbers_from">
+                            </div>
+                            <div class="form-group">
+                                <label>Page Numbers To</label>
+                                <input type="text" name="page_numbers_to">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">Save Entry</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Book Modal -->
+            <div id="modalBook" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Book / Popular Article</h3>
+                        <button onclick="closeModal('modalBook')" class="modal-close">×</button>
+                    </div>
+                    <form action="{% url 'staffs:portfolio_add_book' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Publication Type</label>
+                                <div style="display:flex; gap:20px;">
+                                    <label style="font-weight:normal;"><input type="radio" name="type" value="Book"
+                                            checked> Book</label>
+                                    <label style="font-weight:normal;"><input type="radio" name="type"
+                                            value="Popular Article"> Popular Article</label>
+                                </div>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Author(s) Name</label>
+                                <input type="text" name="author_name" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Title of Book</label>
+                                <input type="text" name="title_of_book" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Publisher Name</label>
+                                <input type="text" name="publisher_name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Publisher Address</label>
+                                <textarea name="publisher_address" style="min-height:60px;"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>ISBN / ISSN Number</label>
+                                <input type="text" name="isbn_issn_number">
+                            </div>
+                            <div class="form-group">
+                                <label>Page Numbers From</label>
+                                <input type="text" name="page_numbers_from">
+                            </div>
+                            <div class="form-group">
+                                <label>Page Numbers To</label>
+                                <input type="text" name="page_numbers_to">
+                            </div>
+                            <div class="form-group">
+                                <label>Month of Publication</label>
+                                <select name="month_of_publication">
+                                    <option value="">Select Month</option>
+                                    <option value="January">January</option>
+                                    <option value="February">February</option>
+                                    <option value="March">March</option>
+                                    <option value="April">April</option>
+                                    <option value="May">May</option>
+                                    <option value="June">June</option>
+                                    <option value="July">July</option>
+                                    <option value="August">August</option>
+                                    <option value="September">September</option>
+                                    <option value="October">October</option>
+                                    <option value="November">November</option>
+                                    <option value="December">December</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Year of Publication</label>
+                                <input type="number" name="year_of_publication" placeholder="YYYY">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>URL Address</label>
+                                <input type="url" name="url_address" placeholder="https://example.com">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">Save Entry</button>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function openTab(evt, tabName) {
+                    var i, tabcontent, tablinks;
+                    tabcontent = document.getElementsByClassName("tab-content");
+                    for (i = 0; i < tabcontent.length; i++) {
+                        tabcontent[i].style.display = "none";
+                    }
+                    tablinks = document.getElementsByClassName("tab-link");
+                    for (i = 0; i < tablinks.length; i++) {
+                        tablinks[i].className = tablinks[i].className.replace(" active", "");
+                    }
+                    document.getElementById(tabName).style.display = "block";
+                    evt.currentTarget.className += " active";
+                }
+
+                function openModal(modalId) {
+                    document.getElementById(modalId).style.display = "block";
+                }
+
+                function closeModal(modalId) {
+                    document.getElementById(modalId).style.display = "none";
+                }
+
+                // Close modal when clicking outside
+                window.onclick = function (event) {
+                    if (event.target.classList.contains('modal')) {
+                        event.target.style.display = "none";
+                    }
+                }
+            </script>
+
         </main>
     </div>
 </body>
