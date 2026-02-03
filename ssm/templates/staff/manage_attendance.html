@@ -26,11 +26,12 @@
             padding: 20px;
         }
 
+        /* Container & Layout */
         .container {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             background: var(--card-bg);
-            padding: 30px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
@@ -55,31 +56,299 @@
             padding: 8px 15px;
             border-radius: 6px;
             font-size: 0.9rem;
+            display: inline-block;
         }
 
         .btn-back:hover {
             opacity: 0.9;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            /* 50/50 Split */
+            gap: 20px;
         }
 
-        th,
-        td {
-            padding: 12px;
-            text-align: left;
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Calendar Section */
+        .calendar-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .nav-arrow {
+            text-decoration: none;
+            background: #eee;
+            color: #333;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .nav-arrow:hover {
+            background: #ddd;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: #7f8c8d;
+            padding-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .day-cell {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            min-height: 80px;
+            background: #fff;
+            padding: 5px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .day-cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border-color: var(--primary-color);
+        }
+
+        .day-cell.selected {
+            border: 2px solid var(--primary-color);
+            background: #f0fdfa;
+        }
+
+        .day-cell.today {
+            background: #fffbeb;
+        }
+
+        .day-cell.other-month {
+            opacity: 0.4;
+            background: #f9f9f9;
+        }
+
+        .day-num {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* Status Colors */
+        .day-cell.recorded {
+            border-left: 4px solid #2ecc71;
+        }
+
+        .day-cell.pending {
+            border-left: 4px solid #f39c12;
+        }
+
+        .day-cell.future {
+            border-left: 4px solid #bdc3c7;
+        }
+
+        .day-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .class-badge {
+            background: #eef2f3;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .day-cell.recorded .class-badge {
+            background: #e8f8f5;
+            color: #0b5345;
+        }
+
+        .day-cell.pending .class-badge {
+            background: #fef9e7;
+            color: #7d6608;
+        }
+
+        .time {
+            font-size: 0.65rem;
+            color: #666;
+        }
+
+        .period-num {
+            font-weight: 600;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            justify-content: flex-end;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .dot.recorded {
+            background: #2ecc71;
+        }
+
+        .dot.pending {
+            background: #f39c12;
+        }
+
+        .dot.future {
+            background: #bdc3c7;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: #fff;
+        }
+
+        .selected-date-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 1px solid #eee;
         }
 
-        th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: var(--text-main);
+        /* Student Grid Styles */
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            /* Compact Cards */
+            gap: 8px;
+            margin-top: 10px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 5px;
         }
 
+        .student-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            min-height: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .student-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Present State */
+        .student-card.present {
+            background-color: #f0fdf4;
+            border-color: #22c55e;
+            border-left-width: 5px;
+        }
+
+        .student-card.present .st-text {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        /* Absent State */
+        .student-card.absent {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+            border-left-width: 5px;
+        }
+
+        .student-card.absent .st-text {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+        }
+
+        .st-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .st-roll {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .status-indicator {
+            margin-top: 5px;
+            font-size: 0.75rem;
+            text-align: right;
+        }
+
+        .status-radio {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Buttons & Utility */
         .btn-save {
             background: var(--primary-color);
             color: white;
@@ -109,79 +378,6 @@
         .error {
             background: #f8d7da;
             color: #721c24;
-        }
-
-        .date-picker {
-            margin-bottom: 20px;
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .date-picker input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: inherit;
-        }
-
-        .status-radio {
-            display: flex;
-            gap: 10px;
-        }
-
-        .status-radio label {
-            cursor: pointer;
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-muted);
-            background: #fff;
-        }
-
-        .status-radio input[type="radio"] {
-            display: none;
-        }
-
-        /* Checked States */
-        .status-radio label:has(input[value="Present"]:checked) {
-            background-color: #dcfce7;
-            border-color: #22c55e;
-            color: #15803d;
-        }
-
-        .status-radio label:has(input[value="Absent"]:checked) {
-            background-color: #fee2e2;
-            border-color: #ef4444;
-            color: #b91c1c;
-        }
-
-        /* Stats Counter */
-        .stats-bar {
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            display: flex;
-            gap: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            align-items: center;
-        }
-
-        .bulk-actions {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
         }
 
         .btn-outline {
@@ -227,81 +423,188 @@
         {% endfor %}
         {% endif %}
 
-        <form method="GET" class="date-picker">
-            <label for="date" style="font-weight: 500;">Select Date:</label>
-            <input type="date" id="date" name="date" value="{{ current_date }}" onchange="this.form.submit()">
-        </form>
-
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="attendance_date" value="{{ current_date }}">
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <div class="bulk-actions">
-                    <button type="button" class="btn-outline" onclick="markAll('Present')">✅ Mark All Present</button>
-                    <button type="button" class="btn-outline" style="border-color: #ef4444; color: #ef4444;"
-                        onclick="markAll('Absent')">❌ Mark All Absent</button>
+        <div class="main-layout">
+            <!-- LEFT: CALENDAR -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <a href="{{ prev_month_url }}" class="nav-arrow">&lt;</a>
+                    <h2>{{ month_name }} {{ year }}</h2>
+                    <a href="{{ next_month_url }}" class="nav-arrow">&gt;</a>
                 </div>
-                <div class="stats-bar">
-                    <span id="present-count">Present: 0</span>
-                    <span style="opacity: 0.5;">|</span>
-                    <span id="absent-count">Absent: 0</span>
-                </div>
-            </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Roll Number</th>
-                        <th>Student Name</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in students %}
-                    {% with status=attendance_map|get_item:student.roll_number|default:'Present' %}
-                    <tr>
-                        <td>{{ student.roll_number }}</td>
-                        <td>{{ student.student_name }}</td>
-                        <td>
-                            <div class="status-radio">
-                                <label>
-                                    <input type="radio" name="status_{{ student.roll_number }}" value="Present"
-                                        onchange="updateStats()" {% if status == 'Present' %}checked{% endif %} {% if is_readonly %}disabled{% endif %}>
-                                    Present
-                                </label>
-                                <label>
-                                    <input type="radio" name="status_{{ student.roll_number }}" value="Absent"
-                                        onchange="updateStats()" {% if status == 'Absent' %}checked{% endif %} {% if  is_readonly %}disabled{% endif %}>
-                                    Absent
-                                </label>
+                <div class="calendar-grid">
+                    <div class="weekday">Mon</div>
+                    <div class="weekday">Tue</div>
+                    <div class="weekday">Wed</div>
+                    <div class="weekday">Thu</div>
+                    <div class="weekday">Fri</div>
+                    <div class="weekday">Sat</div>
+                    <div class="weekday">Sun</div>
+
+                    {% for week in calendar_rows %}
+                    {% for day in week %}
+                    <a href="{{ day.url }}"
+                        class="day-cell {{ day.status_class }} {% if not day.is_current_month %}other-month{% endif %} {% if day.is_selected %}selected{% endif %} {% if day.is_today %}today{% endif %}">
+                        <div class="day-num">{{ day.day_num }}</div>
+                        <div class="day-content">
+                            {% if day.classes %}
+                            {% for cls in day.classes %}
+                            <div class="class-badge">
+                                <span class="period-num">P{{ cls.period }}</span>
+                                <span class="time">{{ cls.time }}</span>
                             </div>
-                        </td>
-                    </tr>
-                    {% endwith %}
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </a>
                     {% endfor %}
-                </tbody>
-            </table>
+                    {% endfor %}
+                </div>
 
-            {% if not is_readonly %}
-            <div style="margin-top: 20px; text-align: right;">
-                <button type="submit" class="btn-save">Save Attendance</button>
+                <div class="legend">
+                    <div class="legend-item"><span class="dot recorded"></span>Recorded</div>
+                    <div class="legend-item"><span class="dot pending"></span>Pending</div>
+                    <div class="legend-item"><span class="dot future"></span>Scheduled</div>
+                </div>
             </div>
-            {% else %}
-            <div style="margin-top: 20px; text-align: right; color: var(--danger-color); font-style: italic;">
-                * Read-only view (You are not the assigned staff)
+
+            <!-- RIGHT: RECORDING FORM -->
+            <div class="form-section">
+                <div class="selected-date-header">
+                    <h3>Recording for {{ current_date }}</h3>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="attendance_date" value="{{ current_date }}">
+
+                    <!-- ACTIONS BAR -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <button type="button" class="btn-outline" onclick="markAll('Present')">✅ All Present</button>
+                        <button type="button" class="btn-outline" style="border-color: #ef4444; color: #ef4444;"
+                            onclick="markAll('Absent')">❌ All Absent</button>
+                    </div>
+
+                    <!-- STUDENT GRID -->
+                    <div class="student-grid">
+                        {% for student in students %}
+                        {% with status=attendance_map|get_item:student.roll_number|default:'Present' %}
+                        <div class="student-card {% if status == 'Present' %}present{% else %}absent{% endif %}"
+                            id="card_{{ student.roll_number }}" onclick="toggleAttendance('{{ student.roll_number }}')">
+
+                            <div class="card-info">
+                                <span class="st-name">{{ student.student_name }}</span>
+                                <span class="st-roll">{{ student.roll_number }}</span>
+                            </div>
+
+                            <!-- Hidden Inputs -->
+                            <input type="radio" name="status_{{ student.roll_number }}" value="Present"
+                                id="radio_present_{{ student.roll_number }}" {% if status == 'Present' %}checked{% endif%}
+                                style="display:none;">
+                            <input type="radio" name="status_{{ student.roll_number }}" value="Absent"
+                                id="radio_absent_{{ student.roll_number }}" {% if status == 'Absent' %}checked{% endif%}
+                                style="display:none;">
+
+                            <div class="status-indicator">
+                                <span class="st-text">{% if status == 'Present' %}Present{% else %}Absent{% endif %}</span>
+                            </div>
+                        </div>
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- SUMMARY -->
+                    <div
+                        style="margin-top: 15px; display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 500; color: #555;">
+                        <span id="present-count" style="color: #15803d;">Present: 0</span>
+                        <span id="absent-count" style="color: #b91c1c;">Absent: 0</span>
+                    </div>
+
+                    {% if not is_readonly %}
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: flex-end;">
+
+                            <!-- Extra Class Option -->
+                            <label
+                                style="cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--text-main);">
+                                <input type="checkbox" name="is_extra_class" value="true" id="extra_class_check"
+                                    onchange="toggleTimeInput()">
+                                <span>Extra / Special Class</span>
+                            </label>
+
+                            <!-- Time Inputs -->
+                            <div id="time_input_container"
+                                style="display: flex; align-items: center; gap: 15px; opacity: 0.5; pointer-events: none; transition: all 0.3s; background: #f8fafc; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">From:</span>
+                                    <input type="time" name="class_time" class="time-picker"
+                                        style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; color: #334155;">
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">To:</span>
+                                    <input type="time" name="end_time" class="time-picker"
+                                        style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; color: #334155;">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-save" style="margin-top: 0;">Save Attendance</button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="margin-top: 20px; text-align: right; color: var(--danger-color); font-style: italic;">
+                        * Read-only view (You are not the assigned staff)
+                    </div>
+                    {% endif %}
+                </form>
             </div>
-            {% endif %}
-        </form>
-    </div>
+        </div>
     </div>
 
     <script>
+        function toggleAttendance(roll) {
+            if ("{{ is_readonly }}" === "True") return;
+            const card = document.getElementById('card_' + roll);
+            const radioPresent = document.getElementById('radio_present_' + roll);
+            const radioAbsent = document.getElementById('radio_absent_' + roll);
+            const statusText = card.querySelector('.st-text');
+
+            if (card.classList.contains('present')) {
+                // Switch to Absent
+                card.classList.remove('present');
+                card.classList.add('absent');
+                radioAbsent.checked = true;
+                statusText.innerText = "Absent";
+            } else {
+                // Switch to Present
+                card.classList.remove('absent');
+                card.classList.add('present');
+                radioPresent.checked = true;
+                statusText.innerText = "Present";
+            }
+            updateStats();
+        }
+
         function markAll(status) {
-            const radios = document.querySelectorAll(`input[type="radio"][value="${status}"]`);
-            radios.forEach(radio => {
-                if (!radio.disabled) {
-                    radio.checked = true;
+            if ("{{ is_readonly }}" === "True") return;
+            const students = document.querySelectorAll('.student-card');
+            students.forEach(card => {
+                const roll = card.id.replace('card_', '');
+                const radioPresent = document.getElementById('radio_present_' + roll);
+                const radioAbsent = document.getElementById('radio_absent_' + roll);
+                const statusText = card.querySelector('.st-text');
+
+                if (status === 'Present') {
+                    card.classList.remove('absent');
+                    card.classList.add('present');
+                    radioPresent.checked = true;
+                    statusText.innerText = "Present";
+                } else {
+                    card.classList.remove('present');
+                    card.classList.add('absent');
+                    radioAbsent.checked = true;
+                    statusText.innerText = "Absent";
                 }
             });
             updateStats();
@@ -310,13 +613,28 @@
         function updateStats() {
             const present = document.querySelectorAll('input[value="Present"]:checked').length;
             const absent = document.querySelectorAll('input[value="Absent"]:checked').length;
+            document.getElementById('present-count').innerText = "Present: " + present;
+            document.getElementById('absent-count').innerText = "Absent: " + absent;
+        }
 
-            document.getElementById('present-count').innerText = `Present: ${present}`;
-            document.getElementById('absent-count').innerText = `Absent: ${absent}`;
+        function toggleTimeInput() {
+            const check = document.getElementById('extra_class_check');
+            const container = document.getElementById('time_input_container');
+            if (check && container) {
+                if (check.checked) {
+                    container.style.opacity = '1';
+                    container.style.pointerEvents = 'auto';
+                } else {
+                    container.style.opacity = '0.5';
+                    container.style.pointerEvents = 'none';
+                }
+            }
         }
 
         // Initial Calculation
-        document.addEventListener('DOMContentLoaded', updateStats);
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStats();
+        });
     </script>
 </body>
 

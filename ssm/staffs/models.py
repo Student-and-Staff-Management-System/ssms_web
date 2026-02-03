@@ -236,6 +236,8 @@ class News(models.Model):
     link = models.URLField(blank=True, null=True, help_text="Optional link to external resource")
     date = models.DateTimeField(auto_now_add=True)
     target = models.CharField(max_length=20, choices=TARGET_CHOICES, default='All')
+    start_date = models.DateField(null=True, blank=True, help_text="Date when this announcement should start showing")
+    end_date = models.DateField(null=True, blank=True, help_text="Date when this announcement should stop showing")
     is_active = models.BooleanField(default=True)
 
     class Meta:

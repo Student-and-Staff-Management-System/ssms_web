@@ -190,10 +190,12 @@ class StudentAttendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendance')
     subject = models.ForeignKey('staffs.Subject', on_delete=models.CASCADE, related_name='attendance')
     date = models.DateField()
+    time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=[('Present', 'Present'), ('Absent', 'Absent')], default='Present')
 
     class Meta:
-        unique_together = ('student', 'subject', 'date')
+        unique_together = ('student', 'subject', 'date', 'time')
 
     def __str__(self):
         return f"{self.student.student_name} - {self.subject.code} - {self.date}"

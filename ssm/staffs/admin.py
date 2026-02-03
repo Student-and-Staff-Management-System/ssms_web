@@ -77,10 +77,10 @@ class AuditLogAdmin(admin.ModelAdmin):
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    list_display = ('content', 'target', 'date', 'is_active', 'link')
-    list_filter = ('target', 'is_active')
+    list_display = ('content', 'target', 'date', 'start_date', 'end_date', 'is_active', 'link')
+    list_filter = ('target', 'is_active', 'start_date', 'end_date')
     search_fields = ('content', 'link')
-    list_editable = ('target', 'is_active')
+    list_editable = ('target', 'is_active', 'start_date', 'end_date')
 
 @admin.register(StaffLeaveRequest)
 class StaffLeaveRequestAdmin(admin.ModelAdmin):

@@ -54,7 +54,12 @@ from staffs.models import News
 
 def prevhome(request): 
     # Fetch public news for the home page
-    news_list = News.objects.filter(is_active=True).order_by('-date', '-id')
+    today = timezone.now().date()
+    news_list = News.objects.filter(
+        Q(is_active=True) & 
+        (Q(start_date__isnull=True) | Q(start_date__lte=today)) & 
+        (Q(end_date__isnull=True) | Q(end_date__gte=today))
+    ).order_by('-date', '-id')
     return render(request, 'prevhome.html', {'news_list': news_list})
 
 
@@ -311,7 +316,14 @@ def student_dashboard(request):
             return None
 
     # Fetch News
-    news_list = News.objects.filter(is_active=True, target__in=['All', 'Student']).order_by('-date', '-id')
+    # Fetch News
+    today = timezone.now().date()
+    news_list = News.objects.filter(
+        Q(is_active=True) & 
+        Q(target__in=['All', 'Student']) &
+        (Q(start_date__isnull=True) | Q(start_date__lte=today)) & 
+        (Q(end_date__isnull=True) | Q(end_date__gte=today))
+    ).order_by('-date', '-id')
 
     # Calculate Attendance (Current Semester Only)
     total_classes = StudentAttendance.objects.filter(student=student, subject__semester=student.current_semester).count()

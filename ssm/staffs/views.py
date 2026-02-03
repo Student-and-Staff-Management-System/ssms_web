@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.utils import timezone
 
 from .models import Staff, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog
 from students.models import Student
@@ -66,7 +67,14 @@ def staff_dashboard(request):
     pending_staff_leaves_count = 0
     
     # Fetch News
-    news_list = News.objects.filter(is_active=True).order_by('-date', '-id')
+    # Fetch News
+    today = timezone.now().date()
+    news_list = News.objects.filter(
+        Q(is_active=True) & 
+        Q(target__in=['All', 'Staff']) &
+        (Q(start_date__isnull=True) | Q(start_date__lte=today)) & 
+        (Q(end_date__isnull=True) | Q(end_date__gte=today))
+    ).order_by('-date', '-id')
     
     if staff.role == 'HOD':
         pending_leaves_count = LeaveRequest.objects.filter(status='Pending HOD').count()
@@ -455,9 +463,11 @@ def manage_attendance(request, subject_id):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     
-    from .models import Subject
+    from .models import Subject, Timetable
     from students.models import StudentAttendance
     import datetime
+    import calendar
+    from django.urls import reverse
 
     subject = get_object_or_404(Subject, id=subject_id)
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
@@ -467,7 +477,7 @@ def manage_attendance(request, subject_id):
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
-    # Date Handling
+    # --- Date Handling (Current Selected Date) ---
     date_str = request.GET.get('date')
     if date_str:
         try:
@@ -485,15 +495,12 @@ def manage_attendance(request, subject_id):
     if current_staff.role == 'HOD' and subject.staff != current_staff:
         is_readonly = True
 
+    # --- POST Handler (Saving Attendance) ---
     if request.method == 'POST':
         if is_readonly:
              messages.error(request, "Read-only access: Cannot save attendance.")
              return redirect(request.path + f"?date={formatted_date}")
 
-        # If date is changed via POST (e.g. date picker form submission if handled that way, 
-        # but usually date picker is GET for view, POST for save. Let's assume POST includes date or uses current view date)
-        # Better to trust the POSTed date if available, or fall back to view date.
-        
         post_date_str = request.POST.get('attendance_date')
         if post_date_str:
              try:
@@ -503,6 +510,35 @@ def manage_attendance(request, subject_id):
         else:
             save_date = date_obj
 
+        # VALIDATION: Check Timetable
+        day_name = save_date.strftime('%A')
+        has_timetable = Timetable.objects.filter(semester=subject.semester, subject=subject, day=day_name).exists()
+        
+        is_extra_class = request.POST.get('is_extra_class')
+        
+        if not has_timetable and not is_extra_class:
+             messages.error(request, f"Attendance cannot be marked for {formatted_date} ({day_name}). {subject.code} is not scheduled in the timetable. Check 'Extra / Special Class' to proceed.")
+             return redirect(request.path + f"?date={save_date.strftime('%Y-%m-%d')}")
+
+        # Save Logic
+        class_time_str = request.POST.get('class_time')
+        end_time_str = request.POST.get('end_time')
+        class_time = None
+        end_time = None
+
+        if class_time_str:
+            try:
+                class_time = datetime.datetime.strptime(class_time_str, '%H:%M').time()
+            except ValueError:
+                class_time = None
+        
+        if end_time_str:
+            try:
+                end_time = datetime.datetime.strptime(end_time_str, '%H:%M').time()
+            except ValueError:
+                end_time = None
+
+        count_present = 0
         for student in students:
             status = request.POST.get(f'status_{student.roll_number}')
             if status:
@@ -510,16 +546,108 @@ def manage_attendance(request, subject_id):
                     student=student, 
                     subject=subject, 
                     date=save_date,
-                    defaults={'status': status}
+                    time=class_time,
+                    defaults={
+                        'status': status,
+                        'end_time': end_time
+                    }
                 )
-        messages.success(request, f"Attendance saved for {save_date}.")
-        from django.urls import reverse
-        return redirect(reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={save_date}")
+                if status == 'Present': count_present += 1
+        
+        time_msg = ""
+        if class_time:
+            time_msg = f" at {class_time.strftime('%I:%M %p')}"
+            if end_time:
+                time_msg += f" - {end_time.strftime('%I:%M %p')}"
 
-    # Fetch existing attendance
+        messages.success(request, f"Attendance saved for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}. {count_present}/{len(students)} Present.")
+        return redirect(reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={save_date.strftime('%Y-%m-%d')}")
+
+    # --- CALENDAR GENERATION ---
+    
+    # 1. Setup Month/Year nav
+    cal_year = date_obj.year
+    cal_month = date_obj.month
+    
+    cal = calendar.Calendar(firstweekday=0) # 0 = Monday
+    month_days = cal.monthdatescalendar(cal_year, cal_month) # List of weeks, each week is list of date objects
+    
+    # 2. Key Data Mappings
+    PERIOD_TIMES = {
+        1: "08:30 - 09:30",
+        2: "09:30 - 10:30",
+        3: "10:40 - 11:40",
+        4: "11:40 - 12:40",
+        5: "01:30 - 02:30",
+        6: "02:30 - 03:30",
+        7: "03:30 - 04:30",
+    }
+
+    # 3. Fetch Timetable for this Subject
+    # We need to know which DAYS have classes.
+    # Structure: {'Monday': [ {period: 1, time: ...}, ... ], ...}
+    timetable_entries = Timetable.objects.filter(subject=subject)
+    timetable_map = {}
+    for entry in timetable_entries:
+        if entry.day not in timetable_map:
+            timetable_map[entry.day] = []
+        timetable_map[entry.day].append({
+            'period': entry.period,
+            'time': PERIOD_TIMES.get(entry.period, f"Period {entry.period}")
+        })
+    
+    # 4. Fetch Existing Attendance for this Month
+    # We want to color code days.
+    # Valid Dates with attendance:
+    attendance_dates = set(
+        StudentAttendance.objects.filter(
+            subject=subject, 
+            date__year=cal_year, 
+            date__month=cal_month
+        ).values_list('date', flat=True)
+    )
+
+    # 5. Build Calendar Data Structure
+    calendar_rows = []
+    
+    for week in month_days:
+        week_data = []
+        for day in week:
+            is_current_month = (day.month == cal_month)
+            day_classes = []
+            status_class = "" # 'recorded', 'pending', 'empty'
+            
+            # Identify classes for this day
+            day_name = day.strftime('%A')
+            if day_name in timetable_map:
+                day_classes = timetable_map[day_name]
+                day_classes.sort(key=lambda x: x['period'])
+            
+            # Determine Status
+            if day in attendance_dates:
+                status_class = "recorded" # Activity done
+            elif day_classes and day <= datetime.date.today():
+                status_class = "pending" # Should have been done
+            elif day_classes:
+                status_class = "future" # Upcoming
+            else:
+                status_class = "empty" # No class
+                
+            week_data.append({
+                'date': day,
+                'day_num': day.day,
+                'is_current_month': is_current_month,
+                'is_selected': (day == date_obj),
+                'is_today': (day == datetime.date.today()),
+                'classes': day_classes,
+                'status_class': status_class,
+                'url': reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={day.strftime('%Y-%m-%d')}"
+            })
+        calendar_rows.append(week_data)
+
+    # --- Fetch Data for List View (Selected Date) ---
     attendance_map = {}
     attendance_entries = StudentAttendance.objects.filter(subject=subject, date=date_obj, student__in=students)
-    
     attendance_map = {entry.student.roll_number: entry.status for entry in attendance_entries}
 
     return render(request, 'staff/manage_attendance.html', {
@@ -527,7 +655,14 @@ def manage_attendance(request, subject_id):
         'students': students,
         'attendance_map': attendance_map,
         'current_date': formatted_date,
-        'is_readonly': is_readonly
+        'is_readonly': is_readonly,
+        # Calendar Context
+        'calendar_rows': calendar_rows,
+        'month_name': calendar.month_name[cal_month],
+        'year': cal_year,
+        'prev_month_url': f"?date={(date_obj.replace(day=1) - datetime.timedelta(days=1)).strftime('%Y-%m-%d')}",
+        # Calculate next month strictly
+        'next_month_url': f"?date={( (date_obj.replace(day=28) + datetime.timedelta(days=4)).replace(day=1) ).strftime('%Y-%m-%d')}", 
     })
 
 def attendance_report(request, subject_id):
@@ -538,6 +673,7 @@ def attendance_report(request, subject_id):
     from students.models import StudentAttendance
     from django.db.models import Count, Q
     import datetime
+    import calendar
 
     subject = get_object_or_404(Subject, id=subject_id)
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
@@ -549,17 +685,19 @@ def attendance_report(request, subject_id):
 
     students = Student.objects.filter(current_semester=subject.semester).order_by('roll_number')
     
-    # Filter Handling
-    month = request.GET.get('month')
-    year = request.GET.get('year')
+    # Filter Parameters
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    search_query = request.GET.get('q')
+    status_filter = request.GET.get('status')
+    export_csv = request.GET.get('export')
     
     attendance_qs = StudentAttendance.objects.filter(subject=subject)
     
-    if month and year:
-        attendance_qs = attendance_qs.filter(date__month=month, date__year=year)
-    elif year:
-         attendance_qs = attendance_qs.filter(date__year=year)
-
+    # Date Filtering
+    if start_date and end_date:
+        attendance_qs = attendance_qs.filter(date__range=[start_date, end_date])
+    
     # Calculate attendance summary
     summary_data = []
     
@@ -568,155 +706,112 @@ def attendance_report(request, subject_id):
     working_dates = list(working_dates_qs)
     total_dates = len(working_dates)
     
-    # Calendar Data
-    import calendar
-    cal = calendar.Calendar(firstweekday=0) # 0 = Monday
-    
-    # Defaults if not provided (use current month/year view for calendar context)
-    try:
-        cal_month = int(month) if month else datetime.date.today().month
-        cal_year = int(year) if year else datetime.date.today().year
-    except (ValueError, TypeError):
-        cal_month = datetime.date.today().month
-        cal_year = datetime.date.today().year
+    # Filter Students if searching
+    if search_query:
+        students = students.filter(Q(student_name__icontains=search_query) | Q(roll_number__icontains=search_query))
 
-    month_matrix = cal.monthdayscalendar(cal_year, cal_month)
+    # Calculate stats
+    total_percentage_sum = 0
+    count_safe = 0      # >= 75%
+    count_warning = 0   # 60-75%
+    count_critical = 0  # < 60%
     
-    # Get working days specifically for the calendar view month/year (even if filter is different/empty)
-    # We want to highlight days in the displayed calendar
-    cal_qs = StudentAttendance.objects.filter(subject=subject, date__year=cal_year, date__month=cal_month)
-    working_days_set = set(cal_qs.values_list('date__day', flat=True).distinct())
+    class_total_students = Student.objects.filter(current_semester=subject.semester).count()
 
-    
     for student in students:
-        # We need to filter by student AND the previously applied date filters
-        # Ideally we'd aggregate, but doing loop for detailed calculation is fine for class size < 100
-        
         student_attendance = attendance_qs.filter(student=student)
         present_count = student_attendance.filter(status='Present').count()
         absent_count = student_attendance.filter(status='Absent').count()
         
         percentage = (present_count / total_dates * 100) if total_dates > 0 else 0
-        
+        total_percentage_sum += percentage
+
+        # Determine Category
+        if percentage >= 75:
+            category = 'safe'
+            count_safe += 1
+        elif 60 <= percentage < 75:
+            category = 'warning'
+            count_warning += 1
+        else:
+            category = 'critical'
+            count_critical += 1
+
+        # Filter Logic
+        if status_filter == 'safe' and category != 'safe':
+            continue
+        if status_filter == 'warning' and category != 'warning':
+            continue
+        if status_filter == 'critical' and category != 'critical':
+            continue
+
         summary_data.append({
             'student': student,
             'present': present_count,
             'absent': absent_count,
-            'percentage': round(percentage, 2)
+            'percentage': round(percentage, 2),
+            'category': category
         })
 
-    # Calculate Prev/Next Month for Navigation
-    if cal_month == 1:
-        prev_month = 12
-        prev_year = cal_year - 1
-    else:
-        prev_month = cal_month - 1
-        prev_year = cal_year
+    # Calculate Class Average
+    avg_attendance = (total_percentage_sum / len(students)) if len(students) > 0 else 0
 
-    if cal_month == 12:
-        next_month = 1
-        next_year = cal_year + 1
-    else:
-        next_month = cal_month + 1
-        next_year = cal_year
+    # EXPORT CSV LOGIC
+    if export_csv:
+        import csv
+        from django.http import HttpResponse
+
+        response = HttpResponse(content_type='text/csv')
+        filename = f"Attendance_{subject.code}"
+        if start_date and end_date:
+            filename += f"_{start_date}_to_{end_date}"
+        else:
+            filename += "_Overall"
+        filename += ".csv"
+            
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Roll Number', 'Student Name', 'Percentage', 'Status'])
+
+        for data in summary_data:
+            status_label = "Safe"
+            if data['category'] == 'warning': status_label = "Warning"
+            if data['category'] == 'critical': status_label = "Critical"
+            
+            writer.writerow([
+                f'="{data["student"].roll_number}"', 
+                data['student'].student_name, 
+                f"{data['percentage']}%",
+                status_label
+            ])
+        
+        return response
 
     return render(request, 'staff/attendance_report.html', {
         'subject': subject,
         'summary_data': summary_data,
         'total_working_days': total_dates,
         'working_dates': working_dates,
-        'selected_month': int(month) if month else '',
-        'selected_year': int(year) if year else '',
-        'current_year': datetime.date.today().year,
-        'years': range(2024, datetime.date.today().year + 2), # Adjust range as needed
         'current_staff': current_staff,
-        # Calendar Context
-        'month_matrix': month_matrix,
-        'working_days_set': working_days_set,
-        'cal_month': cal_month,
-        'cal_year': cal_year,
-        'month_name': calendar.month_name[cal_month],
-        # Navigation
-        'prev_month': prev_month,
-        'prev_year': prev_year,
-        'next_month': next_month,
-        'next_year': next_year,
+        # Stats
+        'stats': {
+            'total_students': class_total_students,
+            'avg_attendance': round(avg_attendance, 1),
+            'safe': count_safe,
+            'warning': count_warning,
+            'critical': count_critical,
+        },
+        # Filters context to keep form filled
+        'filters': {
+            'start_date': start_date,
+            'end_date': end_date,
+            'q': search_query,
+            'status': status_filter
+        }
     })
 
-def export_attendance_csv(request, subject_id):
-    import csv
-    from django.http import HttpResponse
-    from .models import Subject
-    from students.models import StudentAttendance
-    import datetime
 
-    if 'staff_id' not in request.session:
-        return redirect('staffs:stafflogin')
-
-    subject = get_object_or_404(Subject, id=subject_id)
-    # Basic access check (reuse logic or decorator in real app)
-    
-    students = Student.objects.filter(current_semester=subject.semester).order_by('roll_number')
-    
-    month = request.GET.get('month')
-    year = request.GET.get('year')
-    
-    attendance_qs = StudentAttendance.objects.filter(subject=subject)
-    if month and year:
-        attendance_qs = attendance_qs.filter(date__month=month, date__year=year)
-        filename = f"Attendance_{subject.code}_{month}_{year}.csv"
-    elif year:
-        attendance_qs = attendance_qs.filter(date__year=year)
-        filename = f"Attendance_{subject.code}_{year}.csv"
-    else:
-        filename = f"Attendance_{subject.code}_Overall.csv"
-
-    working_dates_qs = attendance_qs.values_list('date', flat=True).distinct().order_by('date')
-    working_dates = list(working_dates_qs)
-    
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-    writer = csv.writer(response)
-    
-    # Header Row: Roll No, Name, [Dates...], Total Present, Total Absent, %
-    header = ['Roll Number', 'Student Name'] + [d.strftime('%d-%b') for d in working_dates] + ['Total Present', 'Total Absent', 'Percentage']
-    writer.writerow(header)
-
-    for student in students:
-        # User requested last 3 digits of roll number
-        short_roll = str(student.roll_number)[-3:]
-        row = [short_roll, student.student_name]
-        
-        student_attendance_qs = attendance_qs.filter(student=student)
-        # Create a map for quick lookup: date -> status
-        status_map = {att.date: att.status for att in student_attendance_qs}
-        
-        present_count = 0
-        absent_count = 0
-        
-        for date in working_dates:
-            status = status_map.get(date, '-') # '-' if no record for that date (should ideally utilize defaults)
-            # Shorten status for CSV
-            if status == 'Present':
-                row.append('P')
-                present_count += 1
-            elif status == 'Absent':
-                row.append('A')
-                absent_count += 1
-            else:
-                row.append('-')
-        
-        total_days = len(working_dates)
-        percentage = (present_count / total_days * 100) if total_days > 0 else 0
-        
-        row.append(present_count)
-        row.append(absent_count)
-        row.append(f"{round(percentage, 2)}%")
-        
-        writer.writerow(row)
-
-    return response
 
 def export_marks_csv(request, subject_id):
     """Exports student marks for a specific subject to CSV."""

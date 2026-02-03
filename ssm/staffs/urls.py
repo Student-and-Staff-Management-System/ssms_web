@@ -49,7 +49,6 @@ urlpatterns = [
     path('subjects/<int:subject_id>/marks/export/', views.export_marks_csv, name='export_marks_csv'),
     path('subjects/<int:subject_id>/attendance/', views.manage_attendance, name='manage_attendance'),
     path('subjects/<int:subject_id>/attendance/report/', views.attendance_report, name='attendance_report'),
-    path('subjects/<int:subject_id>/attendance/export/', views.export_attendance_csv, name='export_attendance_csv'),
     path('staff/list/', views.staff_list, name='staff_list'),
     
     # Passed Out Students
