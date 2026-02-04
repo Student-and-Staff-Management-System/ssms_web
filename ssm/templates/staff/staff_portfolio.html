@@ -423,42 +423,96 @@
                     position: fixed;
                     top: 0;
                     left: 0;
-                    width: 100%;
-                    height: 100%;
+                    width: 100vw;
+                    height: 100vh;
                     background: rgba(0, 0, 0, 0.5);
                     z-index: 1000;
+                    align-items: center;
+                    /* Flexbox centering for modal overlay */
+                    justify-content: center;
                 }
 
                 .modal-content {
                     background: white;
-                    margin: 40px auto;
-                    padding: 24px;
+                    margin: 20px;
+                    padding: 0;
+                    /* Removing padding from container to let children handle it */
                     width: 90%;
                     max-width: 800px;
                     border-radius: 12px;
                     max-height: 90vh;
-                    overflow-y: auto;
+                    /* Increased max-height */
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    /* Ensure rounded corners clip content */
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
                 }
 
                 .modal-header {
+                    padding: 20px 24px;
+                    border-bottom: 1px solid var(--border);
+                    flex-shrink: 0;
                     display: flex;
-                    justify-content: space-between;
+                    justify-content: center;
+                    /* Center the title */
                     align-items: center;
-                    margin-bottom: 20px;
+                    position: relative;
+                }
+
+                .modal-header h3 {
+                    margin: 0;
+                    flex-grow: 1;
+                    text-align: center;
+                    font-size: 1.25rem;
                 }
 
                 .modal-close {
-                    font-size: 1.5rem;
-                    cursor: pointer;
                     background: none;
                     border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    color: var(--text-muted);
+                    position: absolute;
+                    right: 24px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                }
+
+                .modal-content form {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    min-height: 0;
+                    overflow: hidden;
+                    padding: 0;
+                    margin: 0;
                 }
 
                 .form-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 16px;
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 24px;
+                    min-height: 0;
                 }
+
+                .btn-save {
+                    margin: 0;
+                    padding: 16px 24px;
+                    width: 100%;
+                    border-radius: 0;
+                    background: var(--primary);
+                    color: white;
+                    font-weight: 600;
+                    flex-shrink: 0;
+                    border: none;
+                    cursor: pointer;
+                    text-align: center;
+                }
+
+
+
+
 
                 .full-width {
                     grid-column: span 2;
@@ -487,11 +541,31 @@
                             <tbody>
                                 {% for c in conferences %}
                                 <tr style="border-bottom: 1px solid var(--border);">
-                                    <td style="padding: 10px;"><b>{{ c.title_of_paper }}</b><br><span
-                                            style="font-size:0.8rem; color:var(--text-muted);">{{
-                                            c.national_international }} · {{ c.year_of_publication }}</span></td>
-                                    <td style="padding: 10px;">{{ c.title_of_proceedings }}</td>
-                                    <td style="padding: 10px;">{{ c.author_name }}</td>
+                                    <td style="padding: 10px;">
+                                        {% if c.participation_type == 'Attended' %}
+                                        <b>{{ c.title_of_proceedings }}</b>
+                                        {% else %}
+                                        <b>{{ c.title_of_paper }}</b>
+                                        {% endif %}
+                                        <br>
+                                        <span style="font-size:0.8rem; color:var(--text-muted);">
+                                            {{ c.participation_type }} · {{ c.national_international }}
+                                            {% if c.year_of_publication %}· {{ c.year_of_publication }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        {% if c.participation_type == 'Presented' %}
+                                        {{ c.title_of_proceedings }}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 10px;">{{ c.author_name }}<br>
+                                        {% if c.supporting_document %}
+                                        <a href="{{ c.supporting_document.url }}" target="_blank"
+                                            style="font-size:0.8rem; color:var(--primary);">View Cert/Paper</a>
+                                        {% endif %}
+                                    </td>
                                     <td style="padding: 10px;">{{ c.date_from|default:"-" }} to {{ c.date_to|default:"-"
                                         }}<br>{{ c.location }}</td>
                                     <td style="padding: 10px;">
@@ -538,7 +612,12 @@
                                     <td style="padding: 10px;">{{ j.journal_name }}<br><span
                                             style="font-size:0.8rem;">DOI/Year: {{ j.year_of_publication_doi }}</span>
                                     </td>
-                                    <td style="padding: 10px;">{{ j.author_name }}</td>
+                                    <td style="padding: 10px;">{{ j.author_name }}<br>
+                                        {% if j.supporting_document %}
+                                        <a href="{{ j.supporting_document.url }}" target="_blank"
+                                            style="font-size:0.8rem; color:var(--primary);">View Paper</a>
+                                        {% endif %}
+                                    </td>
                                     <td style="padding: 10px;">Vol: {{ j.volume_number }}<br>Iss: {{ j.issue_number }}
                                     </td>
                                     <td style="padding: 10px;">
@@ -582,7 +661,12 @@
                                             style="font-size:0.8rem; color:var(--text-muted);">{{ b.month_of_publication
                                             }} {{ b.year_of_publication }}</span></td>
                                     <td style="padding: 10px;">{{ b.type }}</td>
-                                    <td style="padding: 10px;">{{ b.author_name }}</td>
+                                    <td style="padding: 10px;">{{ b.author_name }}<br>
+                                        {% if b.supporting_document %}
+                                        <a href="{{ b.supporting_document.url }}" target="_blank"
+                                            style="font-size:0.8rem; color:var(--primary);">View Cover</a>
+                                        {% endif %}
+                                    </td>
                                     <td style="padding: 10px;">{{ b.publisher_name }}<br><span
                                             style="font-size:0.8rem;">ISBN: {{ b.isbn_issn_number }}</span></td>
                                     <td style="padding: 10px;">
@@ -605,7 +689,7 @@
                 <div class="section-card">
                     <div class="section-header">
                         <h3 class="section-title">Seminars / Workshops (Legacy)</h3>
-                        <a href="{% url 'staffs:portfolio_add_seminar' %}" class="btn-add">➕ Add Old</a>
+                        <button onclick="openModal('modalSeminar')" class="btn-add">➕ Add Seminar</button>
                     </div>
                     {% if seminars %}
                     <ul class="item-list">
@@ -613,7 +697,20 @@
                         <li class="item-row">
                             <div class="item-content">
                                 <div class="item-title">{{ s.title }} ({{ s.get_event_type_display }})</div>
-                                <div class="item-meta">{{ s.venue_or_description }} · {{ s.year }}</div>
+                                <div class="item-meta">
+                                    {{ s.venue_or_description }} · {{ s.year }}
+                                    {% if s.date_from %}
+                                    · {{ s.date_from|date:"d M Y" }}
+                                    {% if s.date_to %}
+                                    - {{ s.date_to|date:"d M Y" }}
+                                    {% endif %}
+                                    {% endif %}
+
+                                    {% if s.supporting_document %}
+                                    <br><a href="{{ s.supporting_document.url }}" target="_blank"
+                                        style="font-size:0.85rem; color:var(--primary);">View Certificate</a>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="item-actions">
                                 <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}"
@@ -630,14 +727,22 @@
                 <div class="section-card">
                     <div class="section-header">
                         <h3 class="section-title">Awards / Honours</h3>
-                        <a href="{% url 'staffs:portfolio_add_award' %}" class="btn-add">➕ Add Award</a>
+                        <button onclick="openModal('modalAward')" class="btn-add">➕ Add Award</button>
                     </div>
                     {% if awards %}
                     <ul class="item-list">
                         {% for a in awards %}
                         <li class="item-row">
                             <div class="item-content">
-                                <div class="item-title">{{ a.title }} ({{ a.get_category_display }})</div>
+                                <div class="item-title">{{ a.title }} ({{ a.get_category_display }}){% if a.awarded_by%}
+                                    - {{ a.awarded_by }}{% endif %}
+                                    {% if a.supporting_document %}
+                                    <span style="margin-left:8px;">
+                                        <a href="{{ a.supporting_document.url }}" target="_blank"
+                                            style="font-size:0.85rem; color:var(--primary);">[View Cert]</a>
+                                    </span>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="item-actions">
                                 <a href="{% url 'staffs:portfolio_delete_entry' 'award' a.pk %}"
@@ -654,14 +759,21 @@
                 <div class="section-card">
                     <div class="section-header">
                         <h3 class="section-title">Students Guided</h3>
-                        <a href="{% url 'staffs:portfolio_add_student' %}" class="btn-add">➕ Add Student</a>
+                        <button onclick="openModal('modalStudent')" class="btn-add">➕ Add Student</button>
                     </div>
                     {% if students_guided %}
                     <ul class="item-list">
                         {% for s in students_guided %}
                         <li class="item-row">
                             <div class="item-content">
-                                <div class="item-title">{{ s.student_name }} · {{ s.degree_type }}</div>
+                                <div class="item-title">{{ s.student_name }} · {{ s.degree_type }}
+                                    {% if s.supporting_document %}
+                                    <span style="margin-left:8px;">
+                                        <a href="{{ s.supporting_document.url }}" target="_blank"
+                                            style="font-size:0.85rem; color:var(--primary);">[View Doc]</a>
+                                    </span>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="item-actions">
                                 <a href="{% url 'staffs:portfolio_delete_entry' 'student_guided' s.pk %}"
@@ -685,7 +797,8 @@
                         <h3>Add Conference Participation</h3>
                         <button onclick="closeModal('modalConference')" class="modal-close">×</button>
                     </div>
-                    <form action="{% url 'staffs:portfolio_add_conference' %}" method="POST">
+                    <form action="{% url 'staffs:portfolio_add_conference' %}" method="POST"
+                        enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="form-grid">
                             <div class="form-group full-width">
@@ -697,20 +810,35 @@
                                             value="International"> International</label>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <!-- Participation Type Selection -->
+                            <div class="form-group full-width">
+                                <label>Participation Type</label>
+                                <div style="display:flex; gap:20px;">
+                                    <label style="font-weight:normal;">
+                                        <input type="radio" name="participation_type" value="Presented" checked
+                                            onchange="toggleConferenceFields()"> Presented Paper
+                                    </label>
+                                    <label style="font-weight:normal;">
+                                        <input type="radio" name="participation_type" value="Attended"
+                                            onchange="toggleConferenceFields()"> Attended Only
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="paper-field form-group">
                                 <label>Author(s) Name</label>
-                                <input type="text" name="author_name" required>
+                                <input type="text" name="author_name" id="conf_author_name">
                             </div>
                             <div class="form-group">
                                 <label>Year of Publication</label>
                                 <input type="text" name="year_of_publication">
                             </div>
-                            <div class="form-group full-width">
+                            <div class="paper-field form-group full-width">
                                 <label>Title of Paper</label>
-                                <input type="text" name="title_of_paper" required>
+                                <input type="text" name="title_of_paper" id="conf_title_of_paper">
                             </div>
                             <div class="form-group full-width">
-                                <label>Title of Conference Proceedings</label>
+                                <label id="lbl_proceedings">Title of Conference Proceedings</label>
                                 <input type="text" name="title_of_proceedings">
                             </div>
                             <div class="form-group">
@@ -725,21 +853,26 @@
                                 <label>Location of Conference</label>
                                 <input type="text" name="location">
                             </div>
-                            <div class="form-group">
+                            <div class="paper-field form-group">
                                 <label>Page Numbers From</label>
                                 <input type="text" name="page_numbers_from">
                             </div>
-                            <div class="form-group">
+                            <div class="paper-field form-group">
                                 <label>Page Numbers To</label>
                                 <input type="text" name="page_numbers_to">
                             </div>
-                            <div class="form-group full-width">
+                            <div class="paper-field form-group full-width">
                                 <label>Place of Publication</label>
                                 <input type="text" name="place_of_publication">
                             </div>
-                            <div class="form-group full-width">
+                            <div class="paper-field form-group full-width">
                                 <label>Publisher of Proceedings</label>
                                 <input type="text" name="publisher_proceedings">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Supporting Document (PDF/Image)</label>
+                                <input type="file" name="supporting_document">
+                                <div class="form-help">Upload Certificate / Paper Copy</div>
                             </div>
                         </div>
                         <button type="submit" class="btn-save">Save Entry</button>
@@ -754,7 +887,7 @@
                         <h3>Add Journal Publication</h3>
                         <button onclick="closeModal('modalJournal')" class="modal-close">×</button>
                     </div>
-                    <form action="{% url 'staffs:portfolio_add_journal' %}" method="POST">
+                    <form action="{% url 'staffs:portfolio_add_journal' %}" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="form-grid">
                             <div class="form-group full-width">
@@ -820,6 +953,11 @@
                                 <label>Page Numbers To</label>
                                 <input type="text" name="page_numbers_to">
                             </div>
+                            <div class="form-group full-width">
+                                <label>Supporting Document</label>
+                                <input type="file" name="supporting_document">
+                                <div class="form-help">Upload Paper Copy</div>
+                            </div>
                         </div>
                         <button type="submit" class="btn-save">Save Entry</button>
                     </form>
@@ -833,16 +971,18 @@
                         <h3>Add Book / Popular Article</h3>
                         <button onclick="closeModal('modalBook')" class="modal-close">×</button>
                     </div>
-                    <form action="{% url 'staffs:portfolio_add_book' %}" method="POST">
+                    <form action="{% url 'staffs:portfolio_add_book' %}" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="form-grid">
                             <div class="form-group full-width">
                                 <label>Publication Type</label>
                                 <div style="display:flex; gap:20px;">
                                     <label style="font-weight:normal;"><input type="radio" name="type" value="Book"
-                                            checked> Book</label>
+                                            checked>
+                                        Book</label>
                                     <label style="font-weight:normal;"><input type="radio" name="type"
-                                            value="Popular Article"> Popular Article</label>
+                                            value="Popular Article">
+                                        Popular Article</label>
                                 </div>
                             </div>
                             <div class="form-group full-width">
@@ -899,6 +1039,148 @@
                                 <label>URL Address</label>
                                 <input type="url" name="url_address" placeholder="https://example.com">
                             </div>
+                            <div class="form-group full-width">
+                                <label>Supporting Document</label>
+                                <input type="file" name="supporting_document">
+                                <div class="form-help">Upload Cover Page / Proof</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">Save Entry</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Seminar Modal -->
+            <div id="modalSeminar" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Seminar / Workshop</h3>
+                        <button onclick="closeModal('modalSeminar')" class="modal-close">×</button>
+                    </div>
+                    <form action="{% url 'staffs:portfolio_add_seminar' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Title of Event</label>
+                                <input type="text" name="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Event Type</label>
+                                <select name="event_type">
+                                    <option value="Seminar">Seminar</option>
+                                    <option value="Workshop">Workshop</option>
+                                    <option value="Conference">Conference</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Year</label>
+                                <input type="text" name="year" placeholder="e.g. 2023-2024">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Venue / Description</label>
+                                <input type="text" name="venue_or_description">
+                            </div>
+                            <div class="form-group">
+                                <label>Date From</label>
+                                <input type="date" name="date_from">
+                            </div>
+                            <div class="form-group">
+                                <label>Date To</label>
+                                <input type="date" name="date_to">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Supporting Document</label>
+                                <input type="file" name="supporting_document">
+                                <div class="form-help">Upload Certificate</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">Save Entry</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Award Modal -->
+            <div id="modalAward" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Award / Honour</h3>
+                        <button onclick="closeModal('modalAward')" class="modal-close">×</button>
+                    </div>
+                    <form action="{% url 'staffs:portfolio_add_award' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Title</label>
+                                <input type="text" name="title" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Awarded By</label>
+                                <input type="text" name="awarded_by" placeholder="Organization Name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Description/Details</label>
+                                <textarea name="description" style="min-height:60px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select name="category">
+                                    <option value="Award">Award</option>
+                                    <option value="Honour">Honour</option>
+                                    <option value="Membership">Membership</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Year</label>
+                                <input type="text" name="year">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Supporting Document</label>
+                                <input type="file" name="supporting_document">
+                                <div class="form-help">Upload Certificate/Letter</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">Save Entry</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Student Modal -->
+            <div id="modalStudent" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Student Guided</h3>
+                        <button onclick="closeModal('modalStudent')" class="modal-close">×</button>
+                    </div>
+                    <form action="{% url 'staffs:portfolio_add_student' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Student Name</label>
+                                <input type="text" name="student_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Degree Type</label>
+                                <select name="degree_type">
+                                    <option value="PG">PG (M.Tech, M.Sc)</option>
+                                    <option value="PhD">PhD</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select name="status">
+                                    <option value="Ongoing">Ongoing</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Year</label>
+                                <input type="text" name="year">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Supporting Document (PDF/Image)</label>
+                                <input type="file" name="supporting_document">
+                                <div class="form-help">Upload Memo / Provisional Certificate / Allocation Order</div>
+                            </div>
                         </div>
                         <button type="submit" class="btn-save">Save Entry</button>
                     </form>
@@ -906,11 +1188,34 @@
             </div>
 
             <script>
+                /* Modal Logic */
+                // Ensure correct state on load
+                toggleConferenceFields();
+
+                function toggleConferenceFields() {
+                    const type = document.querySelector('input[name="participation_type"]:checked').value;
+                    const paperFields = document.querySelectorAll('.paper-field');
+                    const lblProceedings = document.getElementById('lbl_proceedings');
+
+                    if (type === 'Attended') {
+                        paperFields.forEach(el => el.style.display = 'none');
+                        document.getElementById('conf_title_of_paper').required = false;
+                        document.getElementById('conf_author_name').required = false;
+                        if (lblProceedings) lblProceedings.innerText = "Conference Name"; // Reuse this field
+                    } else {
+                        paperFields.forEach(el => el.style.display = 'block');
+                        document.getElementById('conf_title_of_paper').required = true;
+                        document.getElementById('conf_author_name').required = true;
+                        if (lblProceedings) lblProceedings.innerText = "Title of Conference Proceedings";
+                    }
+                }
+
                 function openTab(evt, tabName) {
                     var i, tabcontent, tablinks;
                     tabcontent = document.getElementsByClassName("tab-content");
                     for (i = 0; i < tabcontent.length; i++) {
                         tabcontent[i].style.display = "none";
+                        tabcontent[i].classList.remove("active");
                     }
                     tablinks = document.getElementsByClassName("tab-link");
                     for (i = 0; i < tablinks.length; i++) {
@@ -919,6 +1224,12 @@
                     document.getElementById(tabName).style.display = "block";
                     evt.currentTarget.className += " active";
                 }
+
+                // Auto open first tab
+                document.addEventListener('DOMContentLoaded', function () {
+                    var firstTab = document.getElementsByClassName('tab-link')[0];
+                    if (firstTab) firstTab.click();
+                });
 
                 function openModal(modalId) {
                     document.getElementById(modalId).style.display = "block";
@@ -935,8 +1246,14 @@
                     }
                 }
             </script>
+    </div>
+    <script>
+        // Remove the leftover duplicate script block
+        var duplicateScript = document.currentScript;
+        duplicateScript.parentNode.removeChild(duplicateScript);
+    </script>
 
-        </main>
+    </main>
     </div>
 </body>
 

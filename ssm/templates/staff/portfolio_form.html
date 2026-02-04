@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} | Staff Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
     <style>
         :root {
             --primary: #5a7d7c;
@@ -19,19 +20,98 @@
             --border: #e2e8f0;
             --radius: 16px;
         }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg-body); margin: 0; padding: 40px; }
-        .form-container { max-width: 600px; margin: 0 auto; background: var(--surface); padding: 32px; border-radius: var(--radius); box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); }
-        .form-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 24px 0; color: var(--text-main); }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-main); }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
-        .form-group textarea { min-height: 80px; resize: vertical; }
-        .form-help { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
-        .btn-bar { display: flex; gap: 12px; margin-top: 24px; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; }
-        .btn-save:hover { background: var(--primary-dark); }
-        .btn-cancel { color: var(--text-muted); text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; }
-        .btn-cancel:hover { background: var(--primary-light); color: var(--primary-dark); }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-body);
+            margin: 0;
+            padding: 40px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--surface);
+            padding: 32px;
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 24px 0;
+            color: var(--text-main);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .btn-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-save:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-cancel {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .btn-cancel:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
     </style>
 </head>
 
@@ -39,102 +119,336 @@
     <div class="form-container">
         <h1 class="form-title">{{ title }}</h1>
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
             {% if form_type == 'publication' %}
             <div class="form-group">
                 <label for="title">Title *</label>
-                <input type="text" id="title" name="title" value="{% if item %}{{ item.title }}{% endif %}" required placeholder="Publication title">
+                <input type="text" id="title" name="title" value="{% if item %}{{ item.title }}{% endif %}" required
+                    placeholder="Publication title">
             </div>
             <div class="form-group">
                 <label for="pub_type">Type</label>
                 <select id="pub_type" name="pub_type">
-                    <option value="Journal" {% if item and item.pub_type == 'Journal' %}selected{% endif %}>Journal</option>
-                    <option value="Conference" {% if item and item.pub_type == 'Conference' %}selected{% endif %}>Conference</option>
+                    <option value="Journal" {% if item and item.pub_type == 'Journal' %}selected{% endif %}>Journal
+                    </option>
+                    <option value="Conference" {% if item and item.pub_type == 'Conference' %}selected{% endif %}>
+                        Conference</option>
                     <option value="Book" {% if item and item.pub_type == 'Book' %}selected{% endif %}>Book</option>
-                    <option value="Book Chapter" {% if item and item.pub_type == 'Book Chapter' %}selected{% endif %}>Book Chapter</option>
+                    <option value="Book Chapter" {% if item and item.pub_type == 'Book Chapter' %}selected{% endif %}>Book
+                        Chapter</option>
                     <option value="Other" {% if item and item.pub_type == 'Other' %}selected{% endif %}>Other</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="venue_or_journal">Venue / Journal</label>
-                <input type="text" id="venue_or_journal" name="venue_or_journal" value="{% if item %}{{ item.venue_or_journal }}{% endif %}" placeholder="e.g. IEEE Xplore, Springer">
+                <input type="text" id="venue_or_journal" name="venue_or_journal"
+                    value="{% if item %}{{ item.venue_or_journal }}{% endif %}"
+                    placeholder="e.g. IEEE Xplore, Springer">
             </div>
             <div class="form-group">
                 <label for="year">Year</label>
-                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}" placeholder="e.g. 2024">
+                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}"
+                    placeholder="e.g. 2024">
             </div>
             {% endif %}
 
             {% if form_type == 'award' %}
             <div class="form-group">
                 <label for="title">Title *</label>
-                <input type="text" id="title" name="title" value="{% if item %}{{ item.title }}{% endif %}" required placeholder="Award, honour, or membership name">
+                <input type="text" id="title" name="title" value="{% if item %}{{ item.title }}{% endif %}" required
+                    placeholder="Award, honour, or membership name">
+            </div>
+            <div class="form-group">
+                <label for="awarded_by">Awarded By</label>
+                <input type="text" id="awarded_by" name="awarded_by"
+                    value="{% if item %}{{ item.awarded_by }}{% endif %}" placeholder="Agency or Organization">
             </div>
             <div class="form-group">
                 <label for="category">Category</label>
                 <select id="category" name="category">
-                    <option value="Award" {% if item and item.category == 'Award' or not item %}selected{% endif %}>Award</option>
+                    <option value="Award" {% if item and item.category == 'Award' or not item %}selected{% endif %}>Award
+                    </option>
                     <option value="Honour" {% if item and item.category == 'Honour' %}selected{% endif %}>Honour</option>
-                    <option value="Membership" {% if item and item.category == 'Membership' %}selected{% endif %}>Membership</option>
+                    <option value="Membership" {% if item and item.category == 'Membership' %}selected{% endif %}>
+                        Membership</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea id="description" name="description" placeholder="Optional details...">{% if item %}{{ item.description }}{% endif %}</textarea>
+                <textarea id="description" name="description"
+                    placeholder="Optional details...">{% if item %}{{ item.description }}{% endif %}</textarea>
             </div>
             <div class="form-group">
                 <label for="year">Year</label>
-                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}" placeholder="e.g. 2024">
+                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}"
+                    placeholder="e.g. 2024">
+            </div>
+            <div class="form-group">
+                <label for="supporting_document">Certificate/Letter</label>
+                {% if item.supporting_document %}
+                <div style="font-size: 0.9rem; margin-bottom: 8px;">
+                    Currently: <a href="{{ item.supporting_document.url }}" target="_blank">View File</a>
+                </div>
+                {% endif %}
+                <input type="file" id="supporting_document" name="supporting_document">
             </div>
             {% endif %}
 
             {% if form_type == 'seminar' %}
             <div class="form-group">
                 <label for="title">Title *</label>
-                <input type="text" id="title" name="title" value="{% if item %}{{ item.title }}{% endif %}" required placeholder="e.g. National Conference on AI">
+                <input type="text" id="title" name="title" value="{% if item %}{{ item.title }}{% endif %}" required
+                    placeholder="e.g. National Conference on AI">
             </div>
             <div class="form-group">
                 <label for="event_type">Type</label>
                 <select id="event_type" name="event_type">
-                    <option value="Seminar" {% if item and item.event_type == 'Seminar' or not item %}selected{% endif %}>Seminar</option>
-                    <option value="Workshop" {% if item and item.event_type == 'Workshop' %}selected{% endif %}>Workshop</option>
-                    <option value="Conference" {% if item and item.event_type == 'Conference' %}selected{% endif %}>Conference</option>
+                    <option value="Seminar" {% if item and item.event_type == 'Seminar' or not item %}selected{% endif %}>
+                        Seminar</option>
+                    <option value="Workshop" {% if item and item.event_type == 'Workshop' %}selected{% endif %}>Workshop
+                    </option>
+                    <option value="Conference" {% if item and item.event_type == 'Conference' %}selected{% endif %}>
+                        Conference</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="venue_or_description">Venue / Description</label>
-                <input type="text" id="venue_or_description" name="venue_or_description" value="{% if item %}{{ item.venue_or_description }}{% endif %}" placeholder="e.g. IIT Madras, Virtual">
+                <input type="text" id="venue_or_description" name="venue_or_description"
+                    value="{% if item %}{{ item.venue_or_description }}{% endif %}"
+                    placeholder="e.g. IIT Madras, Virtual">
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label for="date_from">From Date</label>
+                    <input type="date" id="date_from" name="date_from" value="{{ item.date_from|date:'Y-m-d' }}">
+                </div>
+                <div>
+                    <label for="date_to">To Date</label>
+                    <input type="date" id="date_to" name="date_to" value="{{ item.date_to|date:'Y-m-d' }}">
+                </div>
             </div>
             <div class="form-group">
                 <label for="year">Year</label>
-                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}" placeholder="e.g. 2024">
+                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}"
+                    placeholder="e.g. 2024">
+            </div>
+            <div class="form-group">
+                <label for="supporting_document">Certificate</label>
+                {% if item.supporting_document %}
+                <div style="font-size: 0.9rem; margin-bottom: 8px;">
+                    Currently: <a href="{{ item.supporting_document.url }}" target="_blank">View File</a>
+                </div>
+                {% endif %}
+                <input type="file" id="supporting_document" name="supporting_document">
             </div>
             {% endif %}
 
             {% if form_type == 'student' %}
             <div class="form-group">
                 <label for="student_name">Student Name *</label>
-                <input type="text" id="student_name" name="student_name" value="{% if item %}{{ item.student_name }}{% endif %}" required placeholder="Name of student">
+                <input type="text" id="student_name" name="student_name"
+                    value="{% if item %}{{ item.student_name }}{% endif %}" required placeholder="Name of student">
             </div>
             <div class="form-group">
                 <label for="degree_type">Degree Type</label>
                 <select id="degree_type" name="degree_type">
-                    <option value="PG" {% if item and item.degree_type == 'PG' or not item %}selected{% endif %}>PG (M.Tech, M.Sc, etc.)</option>
+                    <option value="PG" {% if item and item.degree_type == 'PG' or not item %}selected{% endif %}>PG
+                        (M.Tech, M.Sc, etc.)</option>
                     <option value="PhD" {% if item and item.degree_type == 'PhD' %}selected{% endif %}>PhD</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="status">Status</label>
                 <select id="status" name="status">
-                    <option value="Ongoing" {% if item and item.status == 'Ongoing' or not item %}selected{% endif %}>Ongoing</option>
-                    <option value="Completed" {% if item and item.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Ongoing" {% if item and item.status == 'Ongoing' or not item %}selected{% endif %}>
+                        Ongoing</option>
+                    <option value="Completed" {% if item and item.status == 'Completed' %}selected{% endif %}>Completed
+                    </option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="year">Year</label>
-                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}" placeholder="e.g. 2024 or 2020-2024">
+                <input type="text" id="year" name="year" value="{% if item %}{{ item.year }}{% endif %}"
+                    placeholder="e.g. 2024 or 2020-2024">
+            </div>
+            <div class="form-group">
+                <label for="supporting_document">Full Memo / Provisional / Allocation (PDF) *</label>
+                <input type="file" id="supporting_document" name="supporting_document" accept=".pdf,.jpg,.jpeg,.png">
+                <p class="form-help">PG/PhD: Memo or Provisional Certificate. New Students: Allocation Order.</p>
+                {% if item and item.supporting_document %}
+                <p class="form-help">Current file: <a href="{{ item.supporting_document.url }}" target="_blank">View
+                        File</a></p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if form_type == 'conference' %}
+            <div class="form-group">
+                <label>National / International</label>
+                <select name="national_international">
+                    <option value="National">National</option>
+                    <option value="International">International</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Author Name(s)</label>
+                <input type="text" name="author_name" required>
+            </div>
+            <div class="form-group">
+                <label>Year of Publication</label>
+                <input type="text" name="year_of_publication">
+            </div>
+            <div class="form-group">
+                <label>Title of Paper</label>
+                <input type="text" name="title_of_paper" required>
+            </div>
+            <div class="form-group">
+                <label>Title of Proceedings</label>
+                <input type="text" name="title_of_proceedings">
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label>From Date</label>
+                    <input type="date" name="date_from">
+                </div>
+                <div>
+                    <label>To Date</label>
+                    <input type="date" name="date_to">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" name="location">
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label>Page No From</label>
+                    <input type="text" name="page_numbers_from">
+                </div>
+                <div>
+                    <label>Page No To</label>
+                    <input type="text" name="page_numbers_to">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Place of Publication</label>
+                <input type="text" name="place_of_publication">
+            </div>
+            <div class="form-group">
+                <label>Publisher of Proceedings</label>
+                <input type="text" name="publisher_proceedings">
+            </div>
+            {% endif %}
+
+            {% if form_type == 'journal' %}
+            <div class="form-group">
+                <label>National / International</label>
+                <select name="national_international">
+                    <option value="National">National</option>
+                    <option value="International">International</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Author Name(s)</label>
+                <input type="text" name="author_name" required>
+            </div>
+            <div class="form-group">
+                <label>Title of Paper</label>
+                <input type="text" name="title_of_paper" required>
+            </div>
+            <div class="form-group">
+                <label>Journal Name</label>
+                <input type="text" name="journal_name" required>
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div>
+                    <label>Month</label>
+                    <input type="text" name="published_month" placeholder="e.g. Jan">
+                </div>
+                <div>
+                    <label>Year</label>
+                    <input type="text" name="published_year" placeholder="e.g. 2024">
+                </div>
+                <div>
+                    <label>Year of Pub / DOI</label>
+                    <input type="text" name="year_of_publication_doi">
+                </div>
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label>Volume Number</label>
+                    <input type="text" name="volume_number">
+                </div>
+                <div>
+                    <label>Issue Number</label>
+                    <input type="text" name="issue_number">
+                </div>
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label>Page No From</label>
+                    <input type="text" name="page_numbers_from">
+                </div>
+                <div>
+                    <label>Page No To</label>
+                    <input type="text" name="page_numbers_to">
+                </div>
+            </div>
+            {% endif %}
+
+            {% if form_type == 'book' %}
+            <div class="form-group">
+                <label>Type</label>
+                <select name="type">
+                    <option value="Book">Book</option>
+                    <option value="Popular Article">Popular Article</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Author Name(s)</label>
+                <input type="text" name="author_name" required>
+            </div>
+            <div class="form-group">
+                <label>Title of Book / Article</label>
+                <input type="text" name="title_of_book" required>
+            </div>
+            <div class="form-group">
+                <label>Publisher Name</label>
+                <input type="text" name="publisher_name">
+            </div>
+            <div class="form-group">
+                <label>Publisher Address</label>
+                <textarea name="publisher_address"></textarea>
+            </div>
+            <div class="form-group">
+                <label>ISBN / ISSN Number</label>
+                <input type="text" name="isbn_issn_number">
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label>Page No From</label>
+                    <input type="text" name="page_numbers_from">
+                </div>
+                <div>
+                    <label>Page No To</label>
+                    <input type="text" name="page_numbers_to">
+                </div>
+            </div>
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label>Month of Pub</label>
+                    <input type="text" name="month_of_publication">
+                </div>
+                <div>
+                    <label>Year of Pub</label>
+                    <input type="text" name="year_of_publication">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>URL Address (Optional)</label>
+                <input type="url" name="url_address">
             </div>
             {% endif %}
 

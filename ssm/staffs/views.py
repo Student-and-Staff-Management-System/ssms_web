@@ -1413,9 +1413,9 @@ def staff_portfolio(request):
     students_guided = staff.student_guided_list.all()
     
     # New Models
-    conferences = staff.conferences.all().order_by('-created_at')
-    journals = staff.journals.all().order_by('-created_at')
-    books = staff.books.all().order_by('-created_at')
+    conferences = staff.conferences.all().order_by('-year_of_publication', '-created_at')
+    journals = staff.journals.all().order_by('-published_year', '-created_at')
+    books = staff.books.all().order_by('-year_of_publication', '-created_at')
 
     return render(request, 'staff/staff_portfolio.html', {
         'staff': staff,
@@ -1494,9 +1494,11 @@ def portfolio_add_award(request):
         StaffAwardHonour.objects.create(
             staff=staff,
             title=request.POST.get('title', '').strip(),
+            awarded_by=request.POST.get('awarded_by', '').strip(),
             description=request.POST.get('description', '').strip(),
             year=request.POST.get('year', '').strip(),
             category=request.POST.get('category', 'Award'),
+            supporting_document=request.FILES.get('supporting_document'),
         )
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Award', message='Added new award/honour')
@@ -1514,9 +1516,12 @@ def portfolio_edit_award(request, pk):
     item = get_object_or_404(StaffAwardHonour, pk=pk, staff=staff)
     if request.method == 'POST':
         item.title = request.POST.get('title', '').strip()
+        item.awarded_by = request.POST.get('awarded_by', '').strip()
         item.description = request.POST.get('description', '').strip()
         item.year = request.POST.get('year', '').strip()
         item.category = request.POST.get('category', 'Award')
+        if 'supporting_document' in request.FILES:
+            item.supporting_document = request.FILES['supporting_document']
         item.save()
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Award', object_id=str(item.pk), message='Updated award/honour')
@@ -1537,7 +1542,10 @@ def portfolio_add_seminar(request):
             title=request.POST.get('title', '').strip(),
             event_type=request.POST.get('event_type', 'Seminar'),
             venue_or_description=request.POST.get('venue_or_description', '').strip(),
+            date_from=request.POST.get('date_from') or None,
+            date_to=request.POST.get('date_to') or None,
             year=request.POST.get('year', '').strip(),
+            supporting_document=request.FILES.get('supporting_document'),
         )
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', message='Added new seminar')
@@ -1557,6 +1565,7 @@ def portfolio_add_conference(request):
         from .models import ConferenceParticipation
         ConferenceParticipation.objects.create(
             staff=staff,
+            participation_type=request.POST.get('participation_type', 'Presented'),
             national_international=request.POST.get('national_international', 'National'),
             author_name=request.POST.get('author_name', ''),
             year_of_publication=request.POST.get('year_of_publication', ''),
@@ -1569,10 +1578,14 @@ def portfolio_add_conference(request):
             page_numbers_to=request.POST.get('page_numbers_to', ''),
             place_of_publication=request.POST.get('place_of_publication', ''),
             publisher_proceedings=request.POST.get('publisher_proceedings', ''),
+            supporting_document=request.FILES.get('supporting_document'),
         )
         messages.success(request, "Conference entry added successfully.")
         return redirect('staffs:staff_portfolio')
-    return redirect('staffs:staff_portfolio') # Should be modal or strict POST
+    
+    return render(request, 'staff/portfolio_form.html', {
+        'staff': staff, 'form_type': 'conference', 'item': None, 'title': 'Add Conference Participation',
+    })
 
 def portfolio_add_journal(request):
     staff = _get_staff_for_portfolio(request)
@@ -1593,10 +1606,14 @@ def portfolio_add_journal(request):
             year_of_publication_doi=request.POST.get('year_of_publication_doi', ''),
             page_numbers_from=request.POST.get('page_numbers_from', ''),
             page_numbers_to=request.POST.get('page_numbers_to', ''),
+            supporting_document=request.FILES.get('supporting_document'),
         )
         messages.success(request, "Journal publication added successfully.")
         return redirect('staffs:staff_portfolio')
-    return redirect('staffs:staff_portfolio')
+    
+    return render(request, 'staff/portfolio_form.html', {
+        'staff': staff, 'form_type': 'journal', 'item': None, 'title': 'Add Journal Publication',
+    })
 
 def portfolio_add_book(request):
     staff = _get_staff_for_portfolio(request)
@@ -1617,10 +1634,14 @@ def portfolio_add_book(request):
             month_of_publication=request.POST.get('month_of_publication', ''),
             year_of_publication=request.POST.get('year_of_publication', ''),
             url_address=request.POST.get('url_address') or None,
+            supporting_document=request.FILES.get('supporting_document'),
         )
         messages.success(request, "Book/Article entry added successfully.")
         return redirect('staffs:staff_portfolio')
-    return redirect('staffs:staff_portfolio')
+    
+    return render(request, 'staff/portfolio_form.html', {
+        'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Popular Article',
+    })
 
 def portfolio_delete_entry(request, model_name, pk):
     staff = _get_staff_for_portfolio(request)
@@ -1655,7 +1676,11 @@ def portfolio_edit_seminar(request, pk):
         item.title = request.POST.get('title', '').strip()
         item.event_type = request.POST.get('event_type', 'Seminar')
         item.venue_or_description = request.POST.get('venue_or_description', '').strip()
+        item.date_from = request.POST.get('date_from') or None
+        item.date_to = request.POST.get('date_to') or None
         item.year = request.POST.get('year', '').strip()
+        if 'supporting_document' in request.FILES:
+            item.supporting_document = request.FILES['supporting_document']
         item.save()
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', object_id=str(item.pk), message='Updated seminar')
@@ -1709,6 +1734,7 @@ def portfolio_add_student(request):
             degree_type=request.POST.get('degree_type', 'PG'),
             status=request.POST.get('status', 'Ongoing'),
             year=request.POST.get('year', '').strip(),
+            supporting_document=request.FILES.get('supporting_document'),
         )
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='StudentGuided', message='Added new student guidance')
@@ -1729,6 +1755,8 @@ def portfolio_edit_student(request, pk):
         item.degree_type = request.POST.get('degree_type', 'PG')
         item.status = request.POST.get('status', 'Ongoing')
         item.year = request.POST.get('year', '').strip()
+        if 'supporting_document' in request.FILES:
+            item.supporting_document = request.FILES['supporting_document']
         item.save()
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='StudentGuided', object_id=str(item.pk), message='Updated student guidance')

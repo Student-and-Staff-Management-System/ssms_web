@@ -96,6 +96,8 @@ class StaffAwardHonour(models.Model):
         ('Membership', 'Membership'),
     ]
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='Award')
+    awarded_by = models.CharField(max_length=200, blank=True)
+    supporting_document = models.FileField(upload_to='staff/award_docs/', blank=True, null=True, help_text="Upload Certificate/Letter")
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -116,7 +118,10 @@ class StaffSeminar(models.Model):
     ]
     event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, default='Seminar')
     venue_or_description = models.CharField(max_length=300, blank=True)
+    date_from = models.DateField(null=True, blank=True)
+    date_to = models.DateField(null=True, blank=True)
     year = models.CharField(max_length=20, blank=True)
+    supporting_document = models.FileField(upload_to='staff/seminar_docs/', blank=True, null=True, help_text="Upload Certificate")
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -133,6 +138,7 @@ class StaffStudentGuided(models.Model):
     degree_type = models.CharField(max_length=10, choices=[('PG', 'PG'), ('PhD', 'PhD')])
     status = models.CharField(max_length=20, choices=[('Ongoing', 'Ongoing'), ('Completed', 'Completed')], default='Ongoing')
     year = models.CharField(max_length=20, blank=True)
+    supporting_document = models.FileField(upload_to='staff/student_docs/', blank=True, null=True, help_text="Memo/Provisional Certificate for PG/PhD, Allocation Order for New Students")
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -289,9 +295,10 @@ class AuditLog(models.Model):
 class ConferenceParticipation(models.Model):
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='conferences')
     national_international = models.CharField(max_length=20, choices=[('National', 'National'), ('International', 'International')], default='National')
-    author_name = models.CharField(max_length=255)
+    participation_type = models.CharField(max_length=20, choices=[('Presented', 'Presented'), ('Attended', 'Attended')], default='Presented')
+    author_name = models.CharField(max_length=255, blank=True)
     year_of_publication = models.CharField(max_length=20, blank=True)
-    title_of_paper = models.CharField(max_length=500)
+    title_of_paper = models.CharField(max_length=500, blank=True)
     title_of_proceedings = models.CharField(max_length=500, blank=True)
     date_from = models.DateField(null=True, blank=True)
     date_to = models.DateField(null=True, blank=True)
@@ -300,6 +307,7 @@ class ConferenceParticipation(models.Model):
     page_numbers_to = models.CharField(max_length=50, blank=True)
     place_of_publication = models.CharField(max_length=255, blank=True)
     publisher_proceedings = models.CharField(max_length=500, blank=True)
+    supporting_document = models.FileField(upload_to='staff/conference_docs/', blank=True, null=True, help_text="Upload Certificate/Paper")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -318,6 +326,7 @@ class JournalPublication(models.Model):
     year_of_publication_doi = models.CharField(max_length=255, blank=True)
     page_numbers_from = models.CharField(max_length=50, blank=True)
     page_numbers_to = models.CharField(max_length=50, blank=True)
+    supporting_document = models.FileField(upload_to='staff/journal_docs/', blank=True, null=True, help_text="Upload Paper Copy")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -336,6 +345,7 @@ class BookPublication(models.Model):
     month_of_publication = models.CharField(max_length=20, blank=True)
     year_of_publication = models.CharField(max_length=20, blank=True)
     url_address = models.URLField(blank=True, null=True)
+    supporting_document = models.FileField(upload_to='staff/book_docs/', blank=True, null=True, help_text="Upload Cover Page/Proof")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
