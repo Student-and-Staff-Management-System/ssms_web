@@ -66,14 +66,7 @@
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            /* 50/50 Split */
             gap: 20px;
-        }
-
-        @media (max-width: 900px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Calendar Section */
@@ -263,7 +256,6 @@
         .student-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            /* Compact Cards */
             gap: 8px;
             margin-top: 10px;
             max-height: 600px;
@@ -395,10 +387,307 @@
             background: #f0fdfa;
         }
 
-        thead th {
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        /* ========== MOBILE OPTIMIZATIONS ========== */
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                padding: 12px;
+                border-radius: 8px;
+            }
+
+            /* Header Mobile */
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                margin-bottom: 15px;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .header p {
+                font-size: 0.85rem;
+                margin: 3px 0 0 !important;
+            }
+
+            .header > div:last-child {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .btn-back {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                text-align: center;
+                flex: 1;
+                min-width: 120px;
+            }
+
+            /* Calendar Mobile */
+            .calendar-section {
+                padding: 12px;
+            }
+
+            .calendar-header h2 {
+                font-size: 1.1rem;
+            }
+
+            .calendar-grid {
+                gap: 2px;
+            }
+
+            .weekday {
+                font-size: 0.7rem;
+                padding-bottom: 3px;
+            }
+
+            .day-cell {
+                min-height: 55px;
+                padding: 3px;
+                border-radius: 4px;
+            }
+
+            .day-num {
+                font-size: 0.75rem;
+                margin-bottom: 2px;
+            }
+
+            .class-badge {
+                padding: 1px 2px;
+                font-size: 0.6rem;
+            }
+
+            .time {
+                font-size: 0.55rem;
+            }
+
+            .legend {
+                flex-wrap: wrap;
+                gap: 10px;
+                font-size: 0.75rem;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            .dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            /* Form Section Mobile */
+            .form-section {
+                padding: 12px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            }
+
+            .selected-date-header h3 {
+                font-size: 1rem;
+                margin: 0;
+            }
+
+            /* Action Buttons Mobile */
+            .form-section > form > div:first-of-type {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+
+            .form-section button[onclick^="markAll"] {
+                width: 100%;
+                padding: 10px;
+                font-size: 0.9rem;
+                border-radius: 6px;
+                border: 1px solid #ddd;
+                background: white;
+                cursor: pointer;
+                font-weight: 500;
+            }
+
+            /* Student Grid Mobile */
+            .student-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                gap: 6px;
+                max-height: none;
+                padding-right: 0;
+            }
+
+            .student-card {
+                min-height: 70px;
+                padding: 6px;
+                border-radius: 5px;
+            }
+
+            .st-name {
+                font-size: 0.75rem;
+            }
+
+            .st-roll {
+                font-size: 0.7rem;
+            }
+
+            .status-indicator {
+                font-size: 0.7rem;
+                margin-top: 3px;
+            }
+
+            /* Stats Mobile */
+            .form-section > form > div:nth-last-child(2) {
+                font-size: 0.85rem !important;
+                padding: 10px;
+                background: #f8fafc;
+                border-radius: 6px;
+                margin-top: 12px !important;
+            }
+
+            /* Extra Class Section Mobile */
+            .form-section > form > div:last-child > div {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+
+            #time_input_container {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+                padding: 10px !important;
+            }
+
+            #time_input_container > div {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            #time_input_container input[type="time"] {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .btn-save {
+                width: 100%;
+                padding: 12px;
+                font-size: 1rem;
+                margin-top: 0 !important;
+            }
+
+            /* Messages Mobile */
+            .messages {
+                font-size: 0.85rem;
+                padding: 10px;
+                margin-bottom: 12px;
+            }
+        }
+
+        /* Extra Small Mobile (< 400px) */
+        @media (max-width: 400px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.1rem;
+            }
+
+            .student-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 5px;
+            }
+
+            .student-card {
+                min-height: 65px;
+                padding: 5px;
+            }
+
+            .st-name {
+                font-size: 0.7rem;
+            }
+
+            .st-roll {
+                font-size: 0.65rem;
+            }
+
+            .day-cell {
+                min-height: 45px;
+                padding: 2px;
+            }
+
+            .day-num {
+                font-size: 0.7rem;
+            }
+
+            .class-badge {
+                font-size: 0.55rem;
+            }
+        }
+
+        /* Landscape Mobile */
+        @media (max-width: 900px) and (orientation: landscape) {
+            .student-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .calendar-grid {
+                gap: 3px;
+            }
+
+            .day-cell {
+                min-height: 50px;
+            }
+        }
+
+        /* Touch Improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .student-card:active {
+                transform: scale(0.98);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            }
+
+            .day-cell:active {
+                transform: scale(0.98);
+            }
+
+            .btn-back:active,
+            .btn-save:active,
+            button:active {
+                transform: scale(0.97);
+            }
+
+            .nav-arrow:active {
+                background: #ccc;
+            }
+
+            /* Larger tap targets */
+            .student-card {
+                min-height: 75px;
+            }
+
+            .nav-arrow {
+                width: 36px;
+                height: 36px;
+            }
+
+            button[onclick^="markAll"] {
+                min-height: 44px;
+            }
         }
     </style>
 </head>
@@ -571,13 +860,11 @@
             const statusText = card.querySelector('.st-text');
 
             if (card.classList.contains('present')) {
-                // Switch to Absent
                 card.classList.remove('present');
                 card.classList.add('absent');
                 radioAbsent.checked = true;
                 statusText.innerText = "Absent";
             } else {
-                // Switch to Present
                 card.classList.remove('absent');
                 card.classList.add('present');
                 radioPresent.checked = true;

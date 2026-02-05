@@ -6,16 +6,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Marks | {{ subject.name }}</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+    <link rel="icon"
+        href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
         type="image/png">
+
     <style>
         :root {
             --primary-color: #5a7d7c;
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
             --text-main: #2c3e50;
+            --text-muted: #94a3b8;
+            --danger-color: #dc2626;
         }
 
         body {
@@ -40,6 +45,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            gap: 15px;
         }
 
         h1 {
@@ -48,17 +54,23 @@
             font-size: 1.5rem;
         }
 
-        .btn-back {
+        .btn {
             text-decoration: none;
-            color: white;
+            color: #fff;
             background: var(--primary-color);
             padding: 8px 15px;
             border-radius: 6px;
             font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
         }
 
-        .btn-back:hover {
+        .btn:hover {
             opacity: 0.9;
+        }
+
+        .btn-export {
+            background: #27ae60;
         }
 
         table {
@@ -72,16 +84,15 @@
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #eee;
+            white-space: nowrap;
         }
 
         th {
             background: #f8fafc;
             font-weight: 600;
-            color: var(--text-main);
             position: sticky;
             top: 0;
             z-index: 10;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         input[type="number"] {
@@ -91,20 +102,11 @@
             border-radius: 4px;
         }
 
-        .btn-save {
-            text-decoration: none;
-            background: var(--primary-color);
-            color: white;
+        input[disabled] {
+            background-color: #f9f9f9;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            margin-top: 20px;
-        }
-
-        .btn-save:hover {
-            opacity: 0.9;
+            font-weight: 600;
+            color: #374151;
         }
 
         .messages {
@@ -122,20 +124,42 @@
             background: #f8d7da;
             color: #721c24;
         }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
+
         <div class="header">
             <div>
                 <h1>Manage Marks</h1>
-                <p style="margin: 5px 0 0; color: #7f8c8d;">{{ subject.name }} ({{ subject.code }})</p>
+                <p style="margin: 5px 0 0; color: #7f8c8d;">
+                    {{ subject.name }} ({{ subject.code }})
+                </p>
             </div>
             <div>
-                <a href="{% url 'staffs:export_marks_csv' subject.id %}" class="btn-back"
-                    style="background-color: #27ae60; margin-right: 10px;">Export</a>
-                <a href="{% url 'staffs:manage_subjects' %}" class="btn-back">Back to Courses</a>
+                <a href="{% url 'staffs:export_marks_csv' subject.id %}" class="btn btn-export">Export</a>
+                <a href="{% url 'staffs:manage_subjects' %}" class="btn">Back</a>
             </div>
         </div>
 
@@ -147,110 +171,116 @@
 
         <form method="POST">
             {% csrf_token %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Roll Number</th>
-                        <th>Student Name</th>
-                        <th>Mid Term Test - 1</th>
-                        <th>Mid Term Test - 2</th>
-                        <th>Overall Internal Marks</th>
-                        <th style="min-width: 100px;">Claimed Grade<br><small
-                                style="font-weight: normal; color: #64748b;">(Student GPA)</small></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in students %}
-                    {% with marks=student_marks_map|get_item:student.roll_number %}
-                    <tr>
-                        <td>{{ student.roll_number }}</td>
-                        <td>{{ student.student_name }}</td>
-                        <td>
-                            <input type="number" name="test1_{{ student.roll_number }}"
-                                value="{{ marks.test1_marks|default:'' }}" class="form-control mark-input" {% if is_readonly %}disabled style="background-color: #f9f9f9; border: none; font-weight: bold;" {% endif %}>
-                        </td>
-                        <td>
-                            <input type="number" name="test2_{{ student.roll_number }}"
-                                value="{{ marks.test2_marks|default:'' }}" class="form-control mark-input" {% if is_readonly %}disabled style="background-color: #f9f9f9; border: none; font-weight: bold;" {% endif %}>
-                        </td>
-                        <td>
-                            <input type="number" name="internal_{{ student.roll_number }}"
-                                value="{{ marks.internal_marks|default:'' }}" class="form-control mark-input" {% if is_readonly %}disabled
-                                style="background-color: #f9f9f9; border: none; font-weight: bold;" {% endif %}>
-                        </td>
-                        <td style="text-align: center;">
-                            {% with grade_info=claimed_grades_map|get_item:student.roll_number %}
-                            {% if grade_info %}
-                            <span
-                                style="font-weight: 600; color: #5a7d7c; background-color: #e0f2f1; padding: 4px 10px; border-radius: 12px; font-size: 0.9rem;">
-                                {{ grade_info.grade }}
-                            </span>
-                            <br>
-                            <small style="color: #64748b; font-size: 0.75rem;">({{ grade_info.code }})</small>
-                            {% else %}
-                            <span style="color: #cbd5e1; font-size: 0.9rem;">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-                    </tr>
-                    {% endwith %}
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: var(--text-muted);">No students found in this
-                            semester.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th>Mid-1</th>
+                            <th>Mid-2</th>
+                            <th>Internal</th>
+                            <th>Claimed Grade</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for student in students %}
+                        {% with marks=student_marks_map|get_item:student.roll_number %}
+                        <tr>
+                            <td>{{ student.roll_number }}</td>
+                            <td>{{ student.student_name }}</td>
+
+                            <td>
+                                <input type="number" min="0" max="100"
+                                    name="test1_{{ student.roll_number }}"
+                                    value="{{ marks.test1_marks|default:'' }}"
+                                    class="mark-input" {% if is_readonly %}disabled{% endif %}>
+                            </td>
+
+                            <td>
+                                <input type="number" min="0" max="100"
+                                    name="test2_{{ student.roll_number }}"
+                                    value="{{ marks.test2_marks|default:'' }}"
+                                    class="mark-input" {% if is_readonly %}disabled{% endif %}>
+                            </td>
+
+                            <td>
+                                <input type="number" min="0" max="100"
+                                    name="internal_{{ student.roll_number }}"
+                                    value="{{ marks.internal_marks|default:'' }}"
+                                    class="mark-input" {% if is_readonly %}disabled{% endif %}>
+                            </td>
+
+                            <td style="text-align:center;">
+                                {% with grade=claimed_grades_map|get_item:student.roll_number %}
+                                {% if grade %}
+                                <span
+                                    style="background:#e0f2f1;color:#0f766e;padding:4px 10px;border-radius:12px;font-weight:600;">
+                                    {{ grade.grade }}
+                                </span>
+                                <br>
+                                <small style="color:#64748b;">({{ grade.code }})</small>
+                                {% else %}
+                                <span style="color:#cbd5e1;">-</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center;color:var(--text-muted);">
+                                No students found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
             {% if not is_readonly %}
-            <div style="margin-top: 20px; text-align: right;">
-                <button type="submit" class="btn-save">Save Marks</button>
+            <div style="margin-top:20px;text-align:right;">
+                <button type="submit" class="btn">Save Marks</button>
             </div>
             {% else %}
-            <div style="margin-top: 20px; text-align: right; color: var(--danger-color); font-style: italic;">
-                * Read-only view (You are not the assigned staff)
+            <div style="margin-top:20px;text-align:right;color:var(--danger-color);font-style:italic;">
+                * Read-only view (Not assigned staff)
             </div>
             {% endif %}
         </form>
-    </div>
+
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const inputs = document.querySelectorAll('.mark-input');
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('.mark-input:not([disabled])');
 
-            // Grid Navigation Logic
             inputs.forEach((input, index) => {
-                input.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                input.addEventListener('keydown', e => {
+                    if (['Enter', 'ArrowRight', 'ArrowDown'].includes(e.key)) {
                         e.preventDefault();
-                        const nextInput = inputs[index + 1];
-                        if (nextInput) {
-                            nextInput.focus();
-                            nextInput.select();
-                        }
-                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        inputs[index + 1]?.focus();
+                        inputs[index + 1]?.select();
+                    }
+                    if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
                         e.preventDefault();
-                        const prevInput = inputs[index - 1];
-                        if (prevInput) {
-                            prevInput.focus();
-                            prevInput.select();
-                        }
+                        inputs[index - 1]?.focus();
+                        inputs[index - 1]?.select();
                     }
                 });
 
-                // Highlight Row on Focus
-                input.addEventListener('focus', function () {
-                    this.closest('tr').style.backgroundColor = '#f0fdfa';
+                input.addEventListener('focus', () => {
+                    input.closest('tr').style.backgroundColor = '#f0fdfa';
                 });
 
-                input.addEventListener('blur', function () {
-                    this.closest('tr').style.backgroundColor = '';
+                input.addEventListener('blur', () => {
+                    input.closest('tr').style.backgroundColor = '';
                 });
             });
         });
     </script>
-</body>
 
+</body>
 </html>

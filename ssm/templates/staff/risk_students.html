@@ -148,6 +148,33 @@
             border-radius: var(--radius);
             border: 1px dashed var(--border);
         }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .profile-mini {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .badge {
+                margin-bottom: 5px;
+            }
+        }
     </style>
 </head>
 

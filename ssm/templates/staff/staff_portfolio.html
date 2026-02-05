@@ -33,22 +33,12 @@
         }
 
         .app-container {
-            display: grid;
-            grid-template-columns: 280px 1fr;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
         }
 
-        .sidebar {
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
+
 
         .brand {
             display: flex;
@@ -189,6 +179,8 @@
             font-size: 0.9rem;
             font-weight: 500;
             transition: background 0.2s;
+            border: none;
+            cursor: pointer;
         }
 
         .btn-add:hover {
@@ -323,13 +315,425 @@
             margin-top: 8px;
         }
 
+        /* Default hide toggle on desktop */
+        .menu-toggle {
+            display: none;
+        }
+
+        .sidebar-overlay {
+            display: none;
+        }
+
+        /* Tab Styles */
+        .tab-link {
+            background: none;
+            border: none;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            white-space: nowrap;
+        }
+
+        .tab-link.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 20px;
+            padding: 0;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+            font-size: 1.25rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        .form-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        /* ========== MOBILE OPTIMIZATIONS ========== */
         @media (max-width: 1024px) {
-            .app-container {
-                grid-template-columns: 1fr;
+            .page-title {
+                display: flex;
+                align-items: flex-start;
+            }
+        }
+
+
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 16px;
             }
 
-            .sidebar {
+            .top-bar {
+                margin-bottom: 20px;
+            }
+
+            .page-title h2 {
+                font-size: 1.35rem;
+            }
+
+            .page-title p {
+                font-size: 0.85rem;
+                margin-top: 6px;
+            }
+
+            /* Section Cards Mobile */
+            .section-card {
+                padding: 16px;
+                border-radius: 12px;
+                margin-bottom: 16px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .section-title {
+                font-size: 1rem;
+            }
+
+            .btn-add {
+                width: 100%;
+                justify-content: center;
+                padding: 10px 16px;
+            }
+
+            /* Tabs Mobile - Horizontal Scroll */
+            .tab-container {
+                overflow-x: auto;
+                margin-bottom: 20px;
+                border-bottom: 2px solid var(--border);
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab-container::-webkit-scrollbar {
                 display: none;
+            }
+
+            .tab-links-wrapper {
+                display: flex;
+                gap: 0;
+                min-width: min-content;
+            }
+
+            .tab-link {
+                padding: 10px 14px;
+                font-size: 0.85rem;
+                flex-shrink: 0;
+            }
+
+            /* Tables Mobile - Card View */
+            table {
+                display: none;
+            }
+
+            .mobile-card-view {
+                display: block;
+            }
+
+            .mobile-entry-card {
+                background: var(--bg-body);
+                padding: 14px;
+                border-radius: 8px;
+                margin-bottom: 12px;
+                border: 1px solid var(--border);
+            }
+
+            .mobile-card-title {
+                font-weight: 600;
+                color: var(--text-main);
+                margin-bottom: 8px;
+                font-size: 0.95rem;
+                line-height: 1.4;
+            }
+
+            .mobile-card-meta {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                margin-bottom: 4px;
+                line-height: 1.5;
+            }
+
+            .mobile-card-actions {
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid var(--border);
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-card-actions .btn-delete {
+                flex: 1;
+                text-align: center;
+                padding: 8px 12px;
+            }
+
+            /* Item List Mobile */
+            .item-row {
+                flex-direction: column;
+                gap: 10px;
+                padding: 14px 0;
+            }
+
+            .item-title {
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+
+            .item-meta {
+                font-size: 0.85rem;
+            }
+
+            .item-actions {
+                width: 100%;
+            }
+
+            .btn-delete {
+                flex: 1;
+                text-align: center;
+            }
+
+            /* Messages Mobile */
+            ul[style*="list-style: none"] li {
+                font-size: 0.9rem;
+                padding: 10px !important;
+            }
+
+            /* Modal Mobile */
+            .modal {
+                align-items: flex-end;
+            }
+
+            .modal-content {
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                border-radius: 16px 16px 0 0;
+                max-height: 95vh;
+            }
+
+            .modal-header {
+                padding: 16px 20px;
+            }
+
+            .modal-header h3 {
+                font-size: 1.1rem;
+            }
+
+            .modal-close {
+                right: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .full-width {
+                grid-column: span 1;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group label {
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 10px;
+                font-size: 0.95rem;
+            }
+
+            .btn-save {
+                padding: 14px 24px;
+                font-size: 1rem;
+            }
+
+            /* Radio/Checkbox Groups Mobile */
+            .form-group div[style*="display:flex"] {
+                flex-direction: column !important;
+                gap: 10px !important;
+                align-items: flex-start !important;
+            }
+
+            /* Empty State Mobile */
+            .empty-state {
+                padding: 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Extra Small Mobile (< 400px) */
+        @media (max-width: 400px) {
+            .main-content {
+                padding: 12px;
+            }
+
+            .page-title h2 {
+                font-size: 1.2rem;
+            }
+
+            .section-card {
+                padding: 12px;
+            }
+
+            .tab-link {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+
+            .mobile-entry-card {
+                padding: 12px;
+            }
+
+            .mobile-card-title {
+                font-size: 0.9rem;
+            }
+
+            .mobile-card-meta {
+                font-size: 0.75rem;
+            }
+
+            .form-grid {
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .modal-header {
+                padding: 14px 16px;
+            }
+        }
+
+        /* Touch Improvements */
+        @media (hover: none) and (pointer: coarse) {
+
+            .btn-add:active,
+            .btn-delete:active,
+            .btn-save:active,
+            .tab-link:active {
+                transform: scale(0.97);
+            }
+
+            .nav-item:active {
+                transform: scale(0.98);
+            }
+
+            /* Larger tap targets */
+            .btn-add,
+            .btn-delete,
+            .tab-link {
+                min-height: 44px;
+            }
+
+            .menu-toggle {
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        /* Desktop-only table display */
+        @media (min-width: 769px) {
+            .mobile-card-view {
+                display: none;
+            }
+
+            table {
+                display: table !important;
             }
         }
     </style>
@@ -337,39 +741,21 @@
 
 <body>
     <div class="app-container">
-        <aside class="sidebar">
-            <div class="brand">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-                    alt="Logo">
-                <h1>Publications & Accomplishments</h1>
-            </div>
-            <nav class="nav-section">
-                <a href="{% url 'staffs:staff_profile' %}" class="nav-item active">
-                    <span class="nav-icon">←</span> Back to Profile
-                </a>
-            </nav>
-            <nav class="nav-section">
-                <div class="nav-label">Navigation</div>
-                <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item">
-                    <span class="nav-icon">📊</span> Dashboard
-                </a>
-            </nav>
-            <div class="profile-mini">
-                {% if staff.photo %}
-                <img src="{{ staff.photo.url }}" alt="Profile">
-                {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile">
-                {% endif %}
-                <div style="flex: 1; min-width: 0; font-weight: 600; font-size: 0.9rem;">{{ staff.name }}</div>
-            </div>
-        </aside>
+        <!-- Sidebar removed as per request -->
+
 
         <main class="main-content">
-            <div class="top-bar">
+            <div class="top-bar" style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div class="page-title">
-                    <h2>Publications & Accomplishments</h2>
-                    <p>Click "Add New" to add publications, awards, memberships, or students guided.</p>
+                    <div>
+                        <h2>Publications & Accomplishments</h2>
+                        <p>Click "Add New" to add publications, awards, memberships, or students guided.</p>
+                    </div>
                 </div>
+                <a href="{% url 'staffs:staff_profile' %}" class="btn-header-back"
+                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 500; transition: color 0.2s;">
+                    Back to Profile <span>→</span>
+                </a>
             </div>
 
             {% if messages %}
@@ -381,143 +767,16 @@
             </ul>
             {% endif %}
 
-
             <!-- Tabs Navigation -->
-            <div style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border);">
-                <button onclick="openTab(event, 'Conferences')" class="tab-link active">Conferences</button>
-                <button onclick="openTab(event, 'Publications')" class="tab-link">Publications (Journal)</button>
-                <button onclick="openTab(event, 'Books')" class="tab-link">Books / Popular Articles</button>
-                <button onclick="openTab(event, 'Others')" class="tab-link">Awards & Guided</button>
+            <div class="tab-container"
+                style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border);">
+                <div class="tab-links-wrapper">
+                    <button onclick="openTab(event, 'Conferences')" class="tab-link active">Conferences</button>
+                    <button onclick="openTab(event, 'Publications')" class="tab-link">Publications (Journal)</button>
+                    <button onclick="openTab(event, 'Books')" class="tab-link">Books / Popular Articles</button>
+                    <button onclick="openTab(event, 'Others')" class="tab-link">Awards & Guided</button>
+                </div>
             </div>
-
-            <style>
-                .tab-link {
-                    background: none;
-                    border: none;
-                    padding: 12px 16px;
-                    font-size: 1rem;
-                    font-weight: 500;
-                    color: var(--text-muted);
-                    cursor: pointer;
-                    border-bottom: 2px solid transparent;
-                    margin-bottom: -2px;
-                }
-
-                .tab-link.active {
-                    color: var(--primary);
-                    border-bottom: 2px solid var(--primary);
-                    font-weight: 600;
-                }
-
-                .tab-content {
-                    display: none;
-                }
-
-                .tab-content.active {
-                    display: block;
-                }
-
-                /* Modal Styles */
-                .modal {
-                    display: none;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    background: rgba(0, 0, 0, 0.5);
-                    z-index: 1000;
-                    align-items: center;
-                    /* Flexbox centering for modal overlay */
-                    justify-content: center;
-                }
-
-                .modal-content {
-                    background: white;
-                    margin: 20px;
-                    padding: 0;
-                    /* Removing padding from container to let children handle it */
-                    width: 90%;
-                    max-width: 800px;
-                    border-radius: 12px;
-                    max-height: 90vh;
-                    /* Increased max-height */
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                    /* Ensure rounded corners clip content */
-                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-                }
-
-                .modal-header {
-                    padding: 20px 24px;
-                    border-bottom: 1px solid var(--border);
-                    flex-shrink: 0;
-                    display: flex;
-                    justify-content: center;
-                    /* Center the title */
-                    align-items: center;
-                    position: relative;
-                }
-
-                .modal-header h3 {
-                    margin: 0;
-                    flex-grow: 1;
-                    text-align: center;
-                    font-size: 1.25rem;
-                }
-
-                .modal-close {
-                    background: none;
-                    border: none;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                    color: var(--text-muted);
-                    position: absolute;
-                    right: 24px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                }
-
-                .modal-content form {
-                    display: flex;
-                    flex-direction: column;
-                    flex: 1;
-                    min-height: 0;
-                    overflow: hidden;
-                    padding: 0;
-                    margin: 0;
-                }
-
-                .form-grid {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 24px;
-                    min-height: 0;
-                }
-
-                .btn-save {
-                    margin: 0;
-                    padding: 16px 24px;
-                    width: 100%;
-                    border-radius: 0;
-                    background: var(--primary);
-                    color: white;
-                    font-weight: 600;
-                    flex-shrink: 0;
-                    border: none;
-                    cursor: pointer;
-                    text-align: center;
-                }
-
-
-
-
-
-                .full-width {
-                    grid-column: span 2;
-                }
-            </style>
 
             <!-- 1. Conferences Tab -->
             <div id="Conferences" class="tab-content active">
@@ -527,47 +786,48 @@
                         <button onclick="openModal('modalConference')" class="btn-add">➕ Add Conference</button>
                     </div>
                     {% if conferences %}
+                    <!-- Desktop Table View -->
                     <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
                             <thead style="background: var(--bg-body); text-align: left;">
                                 <tr>
-                                    <th style="padding: 10px;">Title</th>
-                                    <th style="padding: 10px;">Proceedings</th>
-                                    <th style="padding: 10px;">Author(s)</th>
-                                    <th style="padding: 10px;">Date/Place</th>
-                                    <th style="padding: 10px;">Actions</th>
+                                    <th style="padding: 12px; width: 85%;">Citation (MLA Format)</th>
+                                    <th style="padding: 12px; width: 15%;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for c in conferences %}
                                 <tr style="border-bottom: 1px solid var(--border);">
-                                    <td style="padding: 10px;">
-                                        {% if c.participation_type == 'Attended' %}
-                                        <b>{{ c.title_of_proceedings }}</b>
-                                        {% else %}
-                                        <b>{{ c.title_of_paper }}</b>
-                                        {% endif %}
-                                        <br>
-                                        <span style="font-size:0.8rem; color:var(--text-muted);">
-                                            {{ c.participation_type }} · {{ c.national_international }}
-                                            {% if c.year_of_publication %}· {{ c.year_of_publication }}{% endif %}
-                                        </span>
-                                    </td>
-                                    <td style="padding: 10px;">
+                                    <td style="padding: 16px; line-height: 1.6; color: var(--text-main);">
+                                        <!-- MLA Format Implementation -->
                                         {% if c.participation_type == 'Presented' %}
-                                        {{ c.title_of_proceedings }}
+                                        <span>{{ c.author_name }}.</span>
+                                        <span>"{{ c.title_of_paper }}."</span>
+                                        <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>,
+                                        {% if c.publisher_proceedings %}{{ c.publisher_proceedings }}, {% endif %}
+                                        {% if c.year_of_publication %}{{ c.year_of_publication }}, {% endif %}
+                                        {% if c.page_numbers_from and c.page_numbers_to %}pp. {{ c.page_numbers_from
+                                        }}-{{ c.page_numbers_to }}.{% endif %}
+                                        <span style="color: var(--text-muted); font-size: 0.85em;">[Presented at {{
+                                            c.location }}]</span>
                                         {% else %}
-                                        -
+                                        <!-- Fallback for 'Attended' type which doesn't fit standard MLA paper citation perfectly -->
+                                        <span>Attended </span>
+                                        <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>
+                                        <span> at {{ c.location }}</span>
+                                        <span>({{ c.date_from|date:"M Y" }}).</span>
                                         {% endif %}
-                                    </td>
-                                    <td style="padding: 10px;">{{ c.author_name }}<br>
+
                                         {% if c.supporting_document %}
-                                        <a href="{{ c.supporting_document.url }}" target="_blank"
-                                            style="font-size:0.8rem; color:var(--primary);">View Cert/Paper</a>
+                                        <div style="margin-top: 4px;">
+                                            <a href="{{ c.supporting_document.url }}" target="_blank"
+                                                style="font-size:0.85rem; color:var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                                📄 View Certificate/Paper
+                                            </a>
+                                        </div>
                                         {% endif %}
                                     </td>
-                                    <td style="padding: 10px;">{{ c.date_from|default:"-" }} to {{ c.date_to|default:"-" }}<br>{{ c.location }}</td>
-                                    <td style="padding: 10px;">
+                                    <td style="padding: 16px;">
                                         <a href="{% url 'staffs:portfolio_delete_entry' 'conference' c.pk %}"
                                             class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
                                     </td>
@@ -575,6 +835,50 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+                    <!-- Mobile Card View -->
+                    <div class="mobile-card-view">
+                        {% for c in conferences %}
+                        <div class="mobile-entry-card"
+                            style="padding: 16px; margin-bottom: 12px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                            <div class="mobile-card-content"
+                                style="line-height: 1.6; color: var(--text-main); font-size: 0.95rem;">
+                                <!-- MLA Format Implementation -->
+                                {% if c.participation_type == 'Presented' %}
+                                <span>{{ c.author_name }}.</span>
+                                <span>"{{ c.title_of_paper }}."</span>
+                                <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>,
+                                {% if c.publisher_proceedings %}{{ c.publisher_proceedings }}, {% endif %}
+                                {% if c.year_of_publication %}{{ c.year_of_publication }}, {% endif %}
+                                {% if c.page_numbers_from and c.page_numbers_to %}pp. {{ c.page_numbers_from }}-{{
+                                c.page_numbers_to }}.{% endif %}
+                                <span style="color: var(--text-muted); font-size: 0.85em;">[Presented at {{ c.location
+                                    }}]</span>
+                                {% else %}
+                                <!-- Fallback for 'Attended' type -->
+                                <span>Attended </span>
+                                <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>
+                                <span> at {{ c.location }}</span>
+                                <span>({{ c.date_from|date:"M Y" }}).</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="mobile-card-actions"
+                                style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                                {% if c.supporting_document %}
+                                <a href="{{ c.supporting_document.url }}" target="_blank"
+                                    style="color:var(--primary); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;">
+                                    📄 View Cert/Paper
+                                </a>
+                                {% else %}
+                                <span></span>
+                                {% endif %}
+
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'conference' c.pk %}" class="btn-delete"
+                                    onclick="return confirm('Delete this entry?')">Delete</a>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                     {% else %}
                     <div class="empty-state">No conference entries added.</div>
@@ -590,6 +894,7 @@
                         <button onclick="openModal('modalJournal')" class="btn-add">➕ Add Journal</button>
                     </div>
                     {% if journals %}
+                    <!-- Desktop Table View -->
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                             <thead style="background: var(--bg-body); text-align: left;">
@@ -628,6 +933,41 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Mobile Card View -->
+                    <div class="mobile-card-view">
+                        {% for j in journals %}
+                        <div class="mobile-entry-card">
+                            <div class="mobile-card-title">{{ j.title_of_paper }}</div>
+                            <div class="mobile-card-meta">
+                                <strong>Type:</strong> {{ j.national_international }} · {{ j.published_month }} {{
+                                j.published_year }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>Journal:</strong> {{ j.journal_name }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>DOI/Year:</strong> {{ j.year_of_publication_doi }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>Author(s):</strong> {{ j.author_name }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>Volume:</strong> {{ j.volume_number }} | <strong>Issue:</strong> {{
+                                j.issue_number }}
+                            </div>
+                            {% if j.supporting_document %}
+                            <div class="mobile-card-meta">
+                                <a href="{{ j.supporting_document.url }}" target="_blank"
+                                    style="color:var(--primary);">📄 View Paper</a>
+                            </div>
+                            {% endif %}
+                            <div class="mobile-card-actions">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'journal' j.pk %}" class="btn-delete"
+                                    onclick="return confirm('Delete this entry?')">Delete</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
                     <div class="empty-state">No journal publications added.</div>
                     {% endif %}
@@ -642,6 +982,7 @@
                         <button onclick="openModal('modalBook')" class="btn-add">➕ Add Book/Article</button>
                     </div>
                     {% if books %}
+                    <!-- Desktop Table View -->
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                             <thead style="background: var(--bg-body); text-align: left;">
@@ -677,13 +1018,46 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Mobile Card View -->
+                    <div class="mobile-card-view">
+                        {% for b in books %}
+                        <div class="mobile-entry-card">
+                            <div class="mobile-card-title">{{ b.title_of_book }}</div>
+                            <div class="mobile-card-meta">
+                                <strong>Type:</strong> {{ b.type }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>Published:</strong> {{ b.month_of_publication }} {{ b.year_of_publication }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>Author(s):</strong> {{ b.author_name }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>Publisher:</strong> {{ b.publisher_name }}
+                            </div>
+                            <div class="mobile-card-meta">
+                                <strong>ISBN:</strong> {{ b.isbn_issn_number }}
+                            </div>
+                            {% if b.supporting_document %}
+                            <div class="mobile-card-meta">
+                                <a href="{{ b.supporting_document.url }}" target="_blank"
+                                    style="color:var(--primary);">📄 View Cover</a>
+                            </div>
+                            {% endif %}
+                            <div class="mobile-card-actions">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'book' b.pk %}" class="btn-delete"
+                                    onclick="return confirm('Delete this entry?')">Delete</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
                     <div class="empty-state">No books or popular articles added.</div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- 4. Others Tab (Existing) -->
+            <!-- 4. Others Tab -->
             <div id="Others" class="tab-content">
                 <div class="section-card">
                     <div class="section-header">
@@ -809,7 +1183,6 @@
                                             value="International"> International</label>
                                 </div>
                             </div>
-                            <!-- Participation Type Selection -->
                             <div class="form-group full-width">
                                 <label>Participation Type</label>
                                 <div style="display:flex; gap:20px;">
@@ -823,7 +1196,6 @@
                                     </label>
                                 </div>
                             </div>
-
                             <div class="paper-field form-group">
                                 <label>Author(s) Name</label>
                                 <input type="text" name="author_name" id="conf_author_name">
@@ -1187,8 +1559,8 @@
             </div>
 
             <script>
-                /* Modal Logic */
-                // Ensure correct state on load
+
+
                 toggleConferenceFields();
 
                 function toggleConferenceFields() {
@@ -1200,7 +1572,7 @@
                         paperFields.forEach(el => el.style.display = 'none');
                         document.getElementById('conf_title_of_paper').required = false;
                         document.getElementById('conf_author_name').required = false;
-                        if (lblProceedings) lblProceedings.innerText = "Conference Name"; // Reuse this field
+                        if (lblProceedings) lblProceedings.innerText = "Conference Name";
                     } else {
                         paperFields.forEach(el => el.style.display = 'block');
                         document.getElementById('conf_title_of_paper').required = true;
@@ -1221,38 +1593,30 @@
                         tablinks[i].className = tablinks[i].className.replace(" active", "");
                     }
                     document.getElementById(tabName).style.display = "block";
+                    document.getElementById(tabName).classList.add("active");
                     evt.currentTarget.className += " active";
                 }
 
-                // Auto open first tab
                 document.addEventListener('DOMContentLoaded', function () {
                     var firstTab = document.getElementsByClassName('tab-link')[0];
                     if (firstTab) firstTab.click();
                 });
 
                 function openModal(modalId) {
-                    document.getElementById(modalId).style.display = "block";
+                    document.getElementById(modalId).style.display = "flex";
                 }
 
                 function closeModal(modalId) {
                     document.getElementById(modalId).style.display = "none";
                 }
 
-                // Close modal when clicking outside
                 window.onclick = function (event) {
                     if (event.target.classList.contains('modal')) {
                         event.target.style.display = "none";
                     }
                 }
             </script>
-    </div>
-    <script>
-        // Remove the leftover duplicate script block
-        var duplicateScript = document.currentScript;
-        duplicateScript.parentNode.removeChild(duplicateScript);
-    </script>
-
-    </main>
+        </main>
     </div>
 </body>
 

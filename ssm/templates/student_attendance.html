@@ -1,622 +1,548 @@
+{% extends 'stddash.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <title>My Attendance - {{ student.student_name }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        :root {
-            --primary-bg: #f8f9fa;
-            --secondary-bg: #ffffff;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --accent-color: #5a7d7c;
-            --accent-hover: #4a6b69;
-            --success: #2ecc71;
-            --warning: #f1c40f;
-            --danger: #e74c3c;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
+{% block page_title %}My Attendance | {{ student.student_name }}{% endblock %}
 
-        /* Utility Classes */
-        .text-success {
-            color: var(--success);
-        }
+{% block extra_css %}
+<style>
+    /* Custom Styles for Attendance Page */
+    :root {
+        --success: #2ecc71;
+        --warning: #f1c40f;
+        --danger: #e74c3c;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
 
-        .text-warning {
-            color: var(--warning);
-        }
+    /* Utility Classes */
+    .text-success {
+        color: var(--success);
+    }
 
-        .text-danger {
-            color: var(--danger);
-        }
+    .text-warning {
+        color: var(--warning);
+    }
 
-        .bg-success {
-            background-color: var(--success);
-        }
+    .text-danger {
+        color: var(--danger);
+    }
 
-        .bg-warning {
-            background-color: var(--warning);
-        }
+    .bg-success {
+        background-color: var(--success);
+    }
 
-        .bg-danger {
-            background-color: var(--danger);
-        }
+    .bg-warning {
+        background-color: var(--warning);
+    }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 20px;
-        }
+    .bg-danger {
+        background-color: var(--danger);
+    }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
 
-        .page-header {
-            background: var(--secondary-bg);
-            padding: 20px 25px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+    .stat-card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
 
-        .page-header h1 {
-            margin: 0;
-            color: var(--accent-color);
-            font-size: 1.5em;
-        }
+    .stat-value {
+        font-size: 2em;
+        font-weight: 700;
+        color: var(--accent-color);
+        margin: 10px 0;
+    }
 
-        .btn-back {
-            background: var(--accent-color);
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.9em;
-            transition: background 0.3s;
-        }
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9em;
+    }
 
-        .btn-back:hover {
-            background: var(--accent-hover);
-        }
+    /* Charts Section */
+    .charts-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
 
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
+    .chart-card {
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        min-height: 400px;
+        border: 1px solid #e2e8f0;
+    }
 
-        .stat-card {
-            background: var(--secondary-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            text-align: center;
-        }
+    .chart-card h3 {
+        margin-top: 0;
+        color: #212529;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
 
-        .stat-value {
-            font-size: 2em;
-            font-weight: 700;
-            color: var(--accent-color);
-            margin: 10px 0;
-        }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
 
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-        }
+    /* Subject Cards */
+    .subjects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
 
-        /* Charts Section */
+    .subject-card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        border-left: 5px solid var(--accent-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid #e2e8f0;
+    }
+
+    .subject-card.success {
+        border-left-color: var(--success);
+    }
+
+    .subject-card.warning {
+        border-left-color: var(--warning);
+    }
+
+    .subject-card.danger {
+        border-left-color: var(--danger);
+    }
+
+    .subject-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .subject-code {
+        color: #6c757d;
+        font-size: 0.85em;
+        margin-bottom: 15px;
+    }
+
+    .progress-bar-bg {
+        background: #eee;
+        height: 8px;
+        border-radius: 4px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+
+    .attendance-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+
+    @media (max-width: 900px) {
         .charts-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr;
         }
+    }
 
-        .chart-card {
-            background: var(--secondary-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            min-height: 400px;
-        }
+    /* Calendar Styles */
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        text-align: center;
+    }
 
-        .chart-card h3 {
-            margin-top: 0;
-            color: var(--text-primary);
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1rem;
+        cursor: pointer;
+        position: relative;
+        background: #f8f9fa;
+        transition: all 0.2s;
+        max-width: 60px;
+        margin: 0 auto;
+    }
 
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
+    .calendar-day:hover {
+        background: #e9ecef;
+        transform: scale(1.1);
+    }
 
-        /* Subject Cards */
-        .subjects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
+    .calendar-day.status-green {
+        background: var(--success);
+        color: white;
+        border: none;
+    }
 
-        .subject-card {
-            background: var(--secondary-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            border-left: 5px solid var(--accent-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+    .calendar-day.status-red {
+        background: var(--danger);
+        color: white;
+        border: none;
+    }
 
-        .subject-card.success {
-            border-left-color: var(--success);
-        }
+    .calendar-day.status-orange {
+        background: #f59e0b;
+        color: white;
+        border: none;
+    }
 
-        .subject-card.warning {
-            border-left-color: var(--warning);
-        }
+    .calendar-day.has-data::after {
+        content: none;
+    }
 
-        .subject-card.danger {
-            border-left-color: var(--danger);
-        }
+    .calendar-day.selected {
+        box-shadow: 0 0 0 3px var(--accent-color) inset;
+        transform: scale(1.1);
+        font-weight: 700;
+        background: transparent;
+        color: #212529;
+    }
 
-        .subject-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
+    .calendar-day.selected.status-green {
+        background: var(--success);
+        color: white;
+        box-shadow: 0 0 0 3px white inset;
+    }
 
-        .subject-code {
-            color: var(--text-secondary);
-            font-size: 0.85em;
-            margin-bottom: 15px;
-        }
+    .calendar-day.selected.status-red {
+        background: var(--danger);
+        color: white;
+        box-shadow: 0 0 0 3px white inset;
+    }
 
-        .progress-bar-bg {
-            background: #eee;
-            height: 8px;
-            border-radius: 4px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
+    .calendar-day.selected.status-orange {
+        background: #f59e0b;
+        color: white;
+        box-shadow: 0 0 0 3px white inset;
+    }
+</style>
+{% endblock %}
 
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
+{% block header_title %}<h1>📝 My Attendance</h1>{% endblock %}
 
-        .attendance-details {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-        }
+{% block header_actions %}
+<a href="{% url 'export_attendance_csv' %}" class="action-btn"
+    style="background: white; color: var(--accent-color); border: 1px solid var(--accent-color);">
+    📥 Export CSV
+</a>
+{% endblock %}
 
-        @media (max-width: 900px) {
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Calendar Styles */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            text-align: center;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 1rem;
-            cursor: pointer;
-            position: relative;
-            background: #f8f9fa;
-            transition: all 0.2s;
-            max-width: 60px;
-            margin: 0 auto;
-        }
-
-        .calendar-day:hover {
-            background: #e9ecef;
-            transform: scale(1.1);
-        }
-
-        /* Full Background Status Styles */
-        .calendar-day.status-green {
-            background: var(--success);
-            color: white;
-            border: none;
-        }
-
-        .calendar-day.status-red {
-            background: var(--danger);
-            color: white;
-            border: none;
-        }
-
-        .calendar-day.status-orange {
-            background: #f59e0b;
-            color: white;
-            border: none;
-        }
-
-        /* Remove Dot Indicators */
-        .calendar-day.has-data::after {
-            content: none;
-        }
-
-        .calendar-day.selected {
-            box-shadow: 0 0 0 3px var(--accent-color) inset;
-            transform: scale(1.1);
-            font-weight: 700;
-            background: transparent;
-            /* distinct from status colors */
-            color: var(--text-primary);
-        }
-
-        /* Ensure status colors override selected background if needed, or handle selection differently */
-        .calendar-day.selected.status-green {
-            background: var(--success);
-            color: white;
-            box-shadow: 0 0 0 3px white inset;
-        }
-
-        .calendar-day.selected.status-red {
-            background: var(--danger);
-            color: white;
-            box-shadow: 0 0 0 3px white inset;
-        }
-
-        .calendar-day.selected.status-orange {
-            background: #f59e0b;
-            color: white;
-            box-shadow: 0 0 0 3px white inset;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <header class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>📝 My Attendance</h1>
-            <div style="display: flex; gap: 10px;">
-                <a href="{% url 'export_attendance_csv' %}" class="btn-back"
-                    style="background: white; color: var(--accent-color); border: 1px solid var(--accent-color);">
-                    📥 Export CSV
-                </a>
-                <a href="{% url 'student_dashboard' %}" class="btn-back">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
-        </header>
-
-        <!-- Summary Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Overall Attendance</div>
-                <div
-                    class="stat-value {% if overall_stats.overall_percentage >= 75 %}text-success{% elif overall_stats.overall_percentage >= 65 %}text-warning{% else %}text-danger{% endif %}">
-                    {{ overall_stats.overall_percentage }}%
-                </div>
-                <div class="stat-label">Status: {{ overall_stats.attendance_status }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Total Classes</div>
-                <div class="stat-value">{{ overall_stats.total_classes }}</div>
-                <div class="stat-label">Sessions Conducted</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Classes Attended</div>
-                <div class="stat-value">{{ overall_stats.present_count }}</div>
-                <div class="stat-label">Sessions Present</div>
-            </div>
+{% block content %}
+<!-- Summary Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Overall Attendance</div>
+        <div
+            class="stat-value {% if overall_stats.overall_percentage >= 75 %}text-success{% elif overall_stats.overall_percentage >= 65 %}text-warning{% else %}text-danger{% endif %}">
+            {{ overall_stats.overall_percentage }}%
         </div>
+        <div class="stat-label">Status: {{ overall_stats.attendance_status }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Classes</div>
+        <div class="stat-value">{{ overall_stats.total_classes }}</div>
+        <div class="stat-label">Sessions Conducted</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Classes Attended</div>
+        <div class="stat-value">{{ overall_stats.present_count }}</div>
+        <div class="stat-label">Sessions Present</div>
+    </div>
+</div>
 
-        <!-- Attendance Calendar Section -->
-        <div class="page-header" style="background: white; flex-direction: column; align-items: stretch;">
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: var(--accent-color);">📅 Attendance Calendar</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="changeMonth(-1)"
-                        style="border: none; background: none; cursor: pointer; font-size: 1.2rem; color: var(--text-secondary);">◀</button>
-                    <h4 id="currentMonthYear" style="margin: 0; color: var(--text-primary);">January 2026</h4>
-                    <button onclick="changeMonth(1)"
-                        style="border: none; background: none; cursor: pointer; font-size: 1.2rem; color: var(--text-secondary);">▶</button>
-                </div>
-            </div>
-
-            <div class="calendar-grid" id="calendarGrid"></div>
-
-            <div id="selectedDateDetails"
-                style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.95rem; display: none; border-left: 4px solid var(--accent-color);">
-                <strong id="detailDate"
-                    style="display: block; margin-bottom: 10px; color: var(--accent-color); font-size: 1.1em;"></strong>
-                <ul id="detailList"
-                    style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
-                </ul>
-            </div>
+<!-- Attendance Calendar Section -->
+<div class="page-header" style="background: white; flex-direction: column; align-items: stretch;">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px;">
+        <h3 style="margin: 0; color: var(--accent-color);">📅 Attendance Calendar</h3>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="changeMonth(-1)"
+                style="border: none; background: none; cursor: pointer; font-size: 1.2rem; color: #6c757d;">◀</button>
+            <h4 id="currentMonthYear" style="margin: 0; color: #212529;">January 2026</h4>
+            <button onclick="changeMonth(1)"
+                style="border: none; background: none; cursor: pointer; font-size: 1.2rem; color: #6c757d;">▶</button>
         </div>
-
-        {% if attendance_data %}
-        <div class="charts-row">
-            <!-- Overall Radial Gauge -->
-            <div class="chart-card">
-                <h3>Overall Performance</h3>
-                <div class="chart-container">
-                    <canvas id="overallGauge"></canvas>
-                </div>
-            </div>
-            <!-- Course-wise Bar Chart -->
-            <div class="chart-card">
-                <h3>Subject-wise Breakdown</h3>
-                <div class="chart-container">
-                    <canvas id="subjectBarChart"></canvas>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <h3>Theory Courses</h3>
-        {% if theory_data %}
-        <div class="subjects-grid">
-            {% for item in theory_data %}
-            <div class="subject-card {{ item.status_color }}">
-                <div>
-                    <div class="subject-title">{{ item.subject.name }}</div>
-                    <div class="subject-code">{{ item.subject.code }}</div>
-                </div>
-                <div>
-                    <div style="display:flex; justify-content:space-between; font-weight:600;">
-                        <span>{{ item.percentage }}%</span>
-                        <span>{{ item.present }}/{{ item.total_classes }}</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill bg-{{ item.status_color }}"
-                            style="--prog-width: {{ item.percentage }}%; width: var(--prog-width);">
-                        </div>
-                    </div>
-                    <div class="attendance-details">
-                        <span>Present: {{ item.present }}</span>
-                        <span>Absent: {{ item.absent }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p class="text-muted">No theory courses found.</p>
-        {% endif %}
-
-        {% if lab_data %}
-        <h3 style="margin-top: 40px;">Laboratory Courses</h3>
-        <div class="subjects-grid">
-            {% for item in lab_data %}
-            <div class="subject-card {{ item.status_color }}">
-                <div>
-                    <div class="subject-title">{{ item.subject.name }}</div>
-                    <div class="subject-code">{{ item.subject.code }}</div>
-                </div>
-                <div>
-                    <div style="display:flex; justify-content:space-between; font-weight:600;">
-                        <span>{{ item.percentage }}%</span>
-                        <span>{{ item.present }}/{{ item.total_classes }}</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill bg-{{ item.status_color }}"
-                            style="--prog-width: {{ item.percentage }}%; width: var(--prog-width);">
-                        </div>
-                    </div>
-                    <div class="attendance-details">
-                        <span>Present: {{ item.present }}</span>
-                        <span>Absent: {{ item.absent }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
     </div>
 
-    <!-- Pass Data Safely to JS -->
-    <!-- Pass Data Safely to JS -->
-    {{ chart_data|json_script:"chart-data" }}
-    {{ overall_stats|json_script:"overall-stats" }}
-    {{ calendar_data|json_script:"calendar-data-json" }}
+    <div class="calendar-grid" id="calendarGrid"></div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // --- Chart Logic ---
-            try {
-                const chartDataEl = document.getElementById('chart-data');
-                const overallStatsEl = document.getElementById('overall-stats');
+    <div id="selectedDateDetails"
+        style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.95rem; display: none; border-left: 4px solid var(--accent-color);">
+        <strong id="detailDate"
+            style="display: block; margin-bottom: 10px; color: var(--accent-color); font-size: 1.1em;"></strong>
+        <ul id="detailList"
+            style="list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+        </ul>
+    </div>
+</div>
 
-                if (chartDataEl && overallStatsEl) {
-                    const chartData = JSON.parse(chartDataEl.textContent);
-                    const overallStats = JSON.parse(overallStatsEl.textContent);
+{% if attendance_data %}
+<div class="charts-row">
+    <!-- Overall Radial Gauge -->
+    <div class="chart-card">
+        <h3>Overall Performance</h3>
+        <div class="chart-container">
+            <canvas id="overallGauge"></canvas>
+        </div>
+    </div>
+    <!-- Course-wise Bar Chart -->
+    <div class="chart-card">
+        <h3>Subject-wise Breakdown</h3>
+        <div class="chart-container">
+            <canvas id="subjectBarChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endif %}
 
-                    if (chartData.labels && chartData.labels.length > 0) {
-                        // 1. Overall Radial Gauge
-                        const overallCtx = document.getElementById('overallGauge');
-                        if (overallCtx) {
-                            new Chart(overallCtx.getContext('2d'), {
-                                type: 'doughnut',
-                                data: {
-                                    labels: ['Present', 'Absent'],
-                                    datasets: [{
-                                        data: [overallStats.overall_percentage, 100 - overallStats.overall_percentage],
-                                        backgroundColor: [
-                                            overallStats.overall_percentage >= 75 ? '#2ecc71' : (overallStats.overall_percentage >= 65 ? '#f1c40f' : '#e74c3c'),
-                                            '#ecf0f1'
-                                        ],
-                                        borderWidth: 0,
-                                        hoverOffset: 4
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    circumference: 180,
-                                    rotation: -90,
-                                    cutout: '75%',
-                                    plugins: { legend: { display: false }, tooltip: { enabled: false }, title: { display: true, text: overallStats.overall_percentage + '% Attendance', position: 'bottom', font: { size: 20 } } }
-                                }
-                            });
-                        }
+<h3>Theory Courses</h3>
+{% if theory_data %}
+<div class="subjects-grid">
+    {% for item in theory_data %}
+    <div class="subject-card {{ item.status_color }}">
+        <div>
+            <div class="subject-title">{{ item.subject.name }}</div>
+            <div class="subject-code">{{ item.subject.code }}</div>
+        </div>
+        <div>
+            <div style="display:flex; justify-content:space-between; font-weight:600;">
+                <span>{{ item.percentage }}%</span>
+                <span>{{ item.present }}/{{ item.total_classes }}</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill bg-{{ item.status_color }}"
+                    style="--prog-width: {{ item.percentage }}%; width: var(--prog-width);">
+                </div>
+            </div>
+            <div class="attendance-details">
+                <span>Present: {{ item.present }}</span>
+                <span>Absent: {{ item.absent }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted">No theory courses found.</p>
+{% endif %}
 
-                        // 2. Subject Bar Chart
-                        const barCtx = document.getElementById('subjectBarChart');
-                        if (barCtx) {
-                            new Chart(barCtx.getContext('2d'), {
-                                type: 'bar',
-                                data: {
-                                    labels: chartData.labels,
-                                    datasets: [
-                                        { label: 'Present', data: chartData.present, backgroundColor: '#2ecc71', borderRadius: 4 },
-                                        { label: 'Absent', data: chartData.absent, backgroundColor: '#e74c3c', borderRadius: 4 }
-                                    ]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-                                    plugins: { legend: { position: 'bottom' } }
-                                }
-                            });
-                        }
-                    }
-                }
-            } catch (e) { console.error("Chart Error:", e); }
+{% if lab_data %}
+<h3 style="margin-top: 40px;">Laboratory Courses</h3>
+<div class="subjects-grid">
+    {% for item in lab_data %}
+    <div class="subject-card {{ item.status_color }}">
+        <div>
+            <div class="subject-title">{{ item.subject.name }}</div>
+            <div class="subject-code">{{ item.subject.code }}</div>
+        </div>
+        <div>
+            <div style="display:flex; justify-content:space-between; font-weight:600;">
+                <span>{{ item.percentage }}%</span>
+                <span>{{ item.present }}/{{ item.total_classes }}</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill bg-{{ item.status_color }}"
+                    style="--prog-width: {{ item.percentage }}%; width: var(--prog-width);">
+                </div>
+            </div>
+            <div class="attendance-details">
+                <span>Present: {{ item.present }}</span>
+                <span>Absent: {{ item.absent }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
-            // --- Calendar Logic ---
-            initCalendar();
-        });
+<!-- Pass Data Safely via json_script -->
+{{ chart_data|json_script:"chart-data" }}
+{{ overall_stats|json_script:"overall-stats" }}
+{{ calendar_data|json_script:"calendar-data-json" }}
+{% endblock %}
 
-        function initCalendar() {
-            let calendarData = {};
-            try {
-                const el = document.getElementById('calendar-data-json');
-                if (el) calendarData = JSON.parse(el.textContent);
-            } catch (e) { console.error("Calendar Data Error:", e); }
+{% block extra_js %}
+document.addEventListener('DOMContentLoaded', function () {
+// --- Chart Logic ---
+try {
+const chartDataEl = document.getElementById('chart-data');
+const overallStatsEl = document.getElementById('overall-stats');
 
-            let currentDate = new Date();
+if (chartDataEl && overallStatsEl) {
+const chartData = JSON.parse(chartDataEl.textContent);
+const overallStats = JSON.parse(overallStatsEl.textContent);
 
-            // Global scope changeMonth for button access
-            window.changeMonth = function (delta) {
-                currentDate.setMonth(currentDate.getMonth() + delta);
-                render(currentDate, calendarData);
-            };
+if (chartData.labels && chartData.labels.length > 0) {
+// 1. Overall Radial Gauge
+const overallCtx = document.getElementById('overallGauge');
+if (overallCtx) {
+new Chart(overallCtx.getContext('2d'), {
+type: 'doughnut',
+data: {
+labels: ['Present', 'Absent'],
+datasets: [{
+data: [overallStats.overall_percentage, 100 - overallStats.overall_percentage],
+backgroundColor: [
+overallStats.overall_percentage >= 75 ? '#2ecc71' : (overallStats.overall_percentage >= 65 ? '#f1c40f' : '#e74c3c'),
+'#ecf0f1'
+],
+borderWidth: 0,
+hoverOffset: 4
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+circumference: 180,
+rotation: -90,
+cutout: '75%',
+plugins: { legend: { display: false }, tooltip: { enabled: false }, title: { display: true, text:
+overallStats.overall_percentage + '% Attendance', position: 'bottom', font: { size: 20 } } }
+}
+});
+}
 
-            // Initial Render
-            render(currentDate, calendarData);
-        }
+// 2. Subject Bar Chart
+const barCtx = document.getElementById('subjectBarChart');
+if (barCtx) {
+new Chart(barCtx.getContext('2d'), {
+type: 'bar',
+data: {
+labels: chartData.labels,
+datasets: [
+{ label: 'Present', data: chartData.present, backgroundColor: '#2ecc71', borderRadius: 4 },
+{ label: 'Absent', data: chartData.absent, backgroundColor: '#e74c3c', borderRadius: 4 }
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+plugins: { legend: { position: 'bottom' } }
+}
+});
+}
+}
+}
+} catch (e) { console.error("Chart Error:", e); }
 
-        function render(currentDate, calendarData) {
-            const grid = document.getElementById('calendarGrid');
-            const title = document.getElementById('currentMonthYear');
-            if (!grid || !title) return;
+// --- Calendar Logic ---
+initCalendar();
+});
 
-            grid.innerHTML = '';
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+function initCalendar() {
+let calendarData = {};
+try {
+const el = document.getElementById('calendar-data-json');
+if (el) calendarData = JSON.parse(el.textContent);
+} catch (e) { console.error("Calendar Data Error:", e); }
 
-            title.textContent = `${monthNames[month]} ${year}`;
+let currentDate = new Date();
 
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startingDay = firstDay.getDay(); // 0=Sun
+// Global scope changeMonth for button access
+window.changeMonth = function (delta) {
+currentDate.setMonth(currentDate.getMonth() + delta);
+render(currentDate, calendarData);
+};
 
-            // Headers
-            const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-            days.forEach(d => {
-                const cell = document.createElement('div');
-                cell.style.fontWeight = 'bold';
-                cell.style.color = '#adb5bd';
-                cell.textContent = d;
-                grid.appendChild(cell);
-            });
+// Initial Render
+render(currentDate, calendarData);
+}
 
-            // Empty slots
-            for (let i = 0; i < startingDay; i++) {
-                grid.appendChild(document.createElement('div'));
-            }
+function render(currentDate, calendarData) {
+const grid = document.getElementById('calendarGrid');
+const title = document.getElementById('currentMonthYear');
+if (!grid || !title) return;
 
-            // Days
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dayCell = document.createElement('div');
-                dayCell.className = 'calendar-day';
-                dayCell.textContent = i;
+grid.innerHTML = '';
+const year = currentDate.getFullYear();
+const month = currentDate.getMonth();
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+"November", "December"];
 
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+title.textContent = `${monthNames[month]} ${year}`;
 
-                if (calendarData[dateStr]) {
-                    dayCell.classList.add('has-data');
-                    dayCell.classList.add(`status-${calendarData[dateStr].color}`);
-                    dayCell.onclick = () => selectDate(dateStr, dayCell, calendarData);
-                }
-                grid.appendChild(dayCell);
-            }
-        }
+const firstDay = new Date(year, month, 1);
+const lastDay = new Date(year, month + 1, 0);
+const daysInMonth = lastDay.getDate();
+const startingDay = firstDay.getDay(); // 0=Sun
 
-        function selectDate(dateStr, cell, calendarData) {
-            document.querySelectorAll('.calendar-day').forEach(c => c.classList.remove('selected'));
-            cell.classList.add('selected');
+// Headers
+const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+days.forEach(d => {
+const cell = document.createElement('div');
+cell.style.fontWeight = 'bold';
+cell.style.color = '#adb5bd';
+cell.textContent = d;
+grid.appendChild(cell);
+});
 
-            const detailsDiv = document.getElementById('selectedDateDetails');
-            const detailList = document.getElementById('detailList');
-            const dateTitle = document.getElementById('detailDate');
+// Empty slots
+for (let i = 0; i < startingDay; i++) { grid.appendChild(document.createElement('div')); } // Days for (let i=1; i
+    <=daysInMonth; i++) { const dayCell=document.createElement('div'); dayCell.className='calendar-day' ;
+    dayCell.textContent=i; const dateStr=`${year}-${String(month + 1).padStart(2, '0' )}-${String(i).padStart(2, '0'
+    )}`; if (calendarData[dateStr]) { dayCell.classList.add('has-data');
+    dayCell.classList.add(`status-${calendarData[dateStr].color}`); dayCell.onclick=()=> selectDate(dateStr, dayCell,
+    calendarData);
+    }
+    grid.appendChild(dayCell);
+    }
+    }
 
-            if (detailsDiv) detailsDiv.style.display = 'block';
-            if (dateTitle) dateTitle.textContent = new Date(dateStr).toDateString();
-            if (detailList) {
-                detailList.innerHTML = '';
-                const data = calendarData[dateStr];
-                if (data && data.details) {
-                    data.details.forEach(cls => {
-                        const li = document.createElement('li');
-                        li.style.background = 'white';
-                        li.style.padding = '8px 12px';
-                        li.style.borderRadius = '6px';
-                        li.style.border = '1px solid #dee2e6';
-                        li.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
-                        li.innerHTML = `<span style="font-weight:600;">${cls.subject}</span> <span style="float:right; font-weight:600; color:${cls.status === 'Present' ? 'var(--success)' : 'var(--danger)'}">${cls.status}</span>`;
-                        detailList.appendChild(li);
-                    });
-                }
-            }
-        }
-    </script>
-</body>
+    function selectDate(dateStr, cell, calendarData) {
+    document.querySelectorAll('.calendar-day').forEach(c => c.classList.remove('selected'));
+    cell.classList.add('selected');
 
-</html>
+    const detailsDiv = document.getElementById('selectedDateDetails');
+    const detailList = document.getElementById('detailList');
+    const dateTitle = document.getElementById('detailDate');
+
+    if (detailsDiv) detailsDiv.style.display = 'block';
+    if (dateTitle) dateTitle.textContent = new Date(dateStr).toDateString();
+    if (detailList) {
+    detailList.innerHTML = '';
+    const data = calendarData[dateStr];
+    if (data && data.details) {
+    data.details.forEach(cls => {
+    const li = document.createElement('li');
+    li.style.background = 'white';
+    li.style.padding = '8px 12px';
+    li.style.borderRadius = '6px';
+    li.style.border = '1px solid #dee2e6';
+    li.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+    li.innerHTML = `<span style="font-weight:600;">${cls.subject}</span> <span
+        style="float:right; font-weight:600; color:${cls.status === 'Present' ? 'var(--success)' : 'var(--danger)'}">${cls.status}</span>`;
+    detailList.appendChild(li);
+    });
+    }
+    }
+    }
+    {% endblock %}

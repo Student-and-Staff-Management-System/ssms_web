@@ -72,7 +72,7 @@ def staff_dashboard(request):
     today = timezone.now().date()
     news_list = News.objects.filter(
         Q(is_active=True) & 
-        Q(target__in=['All', 'Staff']) &
+        Q(target__in=['All', 'Staff', 'Student']) &
         (Q(start_date__isnull=True) | Q(start_date__lte=today)) & 
         (Q(end_date__isnull=True) | Q(end_date__gte=today))
     ).order_by('-date', '-id')

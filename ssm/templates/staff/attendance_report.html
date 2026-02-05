@@ -249,6 +249,137 @@
             background: #dcfce7;
             color: #166534;
         }
+
+        /* Mobile Optimization */
+        .mobile-attendance-list {
+            display: none;
+            padding: 15px;
+        }
+
+        .student-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .student-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .student-roll {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .attendance-progress {
+            margin-bottom: 15px;
+        }
+
+        .attendance-stats-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stat-box {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-box.present {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .stat-box.absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .stat-box .label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .stat-box .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-table-view {
+                display: none;
+            }
+
+            .mobile-attendance-list {
+                display: block;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .page-header>div:last-child {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .btn-back {
+                flex: 1;
+                text-align: center;
+                padding: 10px;
+            }
+
+            .control-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group>div {
+                justify-content: space-between;
+            }
+
+            .form-control,
+            .btn-apply,
+            .btn-export {
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+
+            .data-card {
+                background: transparent;
+                box-shadow: none;
+            }
+        }
     </style>
 </head>
 
@@ -261,7 +392,8 @@
                     style="height: 45px;">
                 <div>
                     <h1>Attendance Report</h1>
-                    <span style="color: var(--text-muted); font-size: 0.9rem;">{{ subject.name }} ({{subject.code}})</span>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">{{ subject.name }}
+                        ({{subject.code}})</span>
                 </div>
             </div>
 
@@ -347,60 +479,111 @@
 
         <!-- Data Table -->
         <div class="data-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Roll Number</th>
-                        <th>Student Name</th>
-                        <th>Performance</th> <!-- Combined Bar + % -->
-                        <th>Present</th>
-                        <th>Absent</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for data in summary_data %}
-                    <tr>
-                        <td style="font-weight: 500; font-family: monospace; font-size: 0.95rem;">
-                            {{data.student.roll_number }}</td>
-                        <td>
-                            <div style="font-weight: 500;">{{ data.student.student_name }}</div>
-                        </td>
-                        <td style="width: 320px;">
-                            <div style="display: flex; align-items: center; gap: 14px;">
-                                <span
-                                    style="width: 60px; text-align: right; font-weight: 700; color: {% if data.category == 'safe' %}#166534{% elif data.category == 'warning' %}#b45309{% else %}#b91c1c{% endif %}">
-                                    {{ data.percentage }}%
-                                </span>
+            <div class="desktop-table-view">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Student Name</th>
+                            <th>Performance</th> <!-- Combined Bar + % -->
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in summary_data %}
+                        <tr>
+                            <td style="font-weight: 500; font-family: monospace; font-size: 0.95rem;">
+                                {{data.student.roll_number }}</td>
+                            <td>
+                                <div style="font-weight: 500;">{{ data.student.student_name }}</div>
+                            </td>
+                            <td style="width: 320px;">
+                                <div style="display: flex; align-items: center; gap: 14px;">
+                                    <span
+                                        style="width: 60px; text-align: right; font-weight: 700; color: {% if data.category == 'safe' %}#166534{% elif data.category == 'warning' %}#b45309{% else %}#b91c1c{% endif %}">
+                                        {{ data.percentage }}%
+                                    </span>
                                     <div class="progress-container">
-                                    <div class="progress-bar"
-                                        style="width: {{ data.percentage }}%; background-color: {% if data.category == 'safe' %}#22c55e{% elif data.category == 'warning' %}#f59e0b{% else %}#ef4444{% endif %};">
+                                        <div class="progress-bar"
+                                            style="width: {{ data.percentage }}%; background-color: {% if data.category == 'safe' %}#22c55e{% elif data.category == 'warning' %}#f59e0b{% else %}#ef4444{% endif %};">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </td>
+                            </td>
 
-                        <td style="color: #10b981; font-weight: 600;">{{ data.present }}</td>
-                        <td style="color: #ef4444; font-weight: 600;">{{ data.absent }}</td>
-                        <td>
-                            {% if data.category == 'safe' %}
-                            <span class="badge badge-success">Safe</span>
-                            {% elif data.category == 'warning' %}
-                            <span class="badge" style="background: #fef3c7; color: #92400e;">Warning</span>
-                            {% else %}
-                            <span class="badge badge-danger">Critical</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                            No students found matching your filters.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <td style="color: #10b981; font-weight: 600;">{{ data.present }}</td>
+                            <td style="color: #ef4444; font-weight: 600;">{{ data.absent }}</td>
+                            <td>
+                                {% if data.category == 'safe' %}
+                                <span class="badge badge-success">Safe</span>
+                                {% elif data.category == 'warning' %}
+                                <span class="badge" style="background: #fef3c7; color: #92400e;">Warning</span>
+                                {% else %}
+                                <span class="badge badge-danger">Critical</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                No students found matching your filters.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="mobile-attendance-list">
+                {% for data in summary_data %}
+                <div class="student-card">
+                    <div class="student-header">
+                        <div class="student-info">
+                            <span class="student-name">{{ data.student.student_name }}</span>
+                            <span class="student-roll">{{ data.student.roll_number }}</span>
+                        </div>
+                        {% if data.category == 'safe' %}
+                        <span class="badge badge-success">Safe</span>
+                        {% elif data.category == 'warning' %}
+                        <span class="badge" style="background: #fef3c7; color: #92400e;">Warning</span>
+                        {% else %}
+                        <span class="badge badge-danger">Critical</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="attendance-progress">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">Attendance</span>
+                            <span
+                                style="font-weight: 700; color: {% if data.category == 'safe' %}#166534{% elif data.category == 'warning' %}#b45309{% else %}#b91c1c{% endif %}">{{data.percentage }}%</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar"
+                                style="width: {{ data.percentage }}%; background-color: {% if data.category == 'safe' %}#22c55e{% elif data.category == 'warning' %}#f59e0b{% else %}#ef4444{% endif %};">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="attendance-stats-row">
+                        <div class="stat-box present">
+                            <span class="label">Present</span>
+                            <span class="value">{{ data.present }}</span>
+                        </div>
+                        <div class="stat-box absent">
+                            <span class="label">Absent</span>
+                            <span class="value">{{ data.absent }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    No students found matching your filters.
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
         {% if working_dates %}

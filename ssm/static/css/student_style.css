@@ -1150,6 +1150,19 @@ h3 {
         align-items: flex-start;
     }
 
+    .container {
+        width: 100%;
+        padding: 0 15px;
+        max-width: 100%;
+    }
+
+    .dashboard-container {
+        grid-template-columns: 1fr;
+        width: 100%;
+        padding: 0;
+        /* Let children handle padding if needed, or set small padding */
+    }
+
     .title-group {
         display: flex;
         align-items: center;

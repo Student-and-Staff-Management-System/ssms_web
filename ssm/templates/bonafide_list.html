@@ -1,20 +1,24 @@
 {% extends 'stddash.html' %}
 {% load static %}
 
+{% block page_title %}Bonafide Requests | {{ student.student_name }}{% endblock %}
+
+{% block header_title %}<h1>📜 Bonafide Requests</h1>{% endblock %}
+
+{% block header_actions %}
+<button onclick="openBonafideModal()" class="action-btn"
+    style="background: #5a7d7c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.9rem;">
+    + New Request
+</button>
+{% endblock %}
+
 {% block content %}
 <div
     style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-top: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="color: #5a7d7c; margin: 0; font-size: 1.5rem;">📜 Bonafide Certificate Requests</h2>
-        <button onclick="openBonafideModal()" class="btn"
-            style="background: #5a7d7c; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;">
-            + New Request
-        </button>
-    </div>
 
     <!-- Monthly Limit Visual -->
     <div
-        style="margin-bottom: 25px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: space-between;">
+        style="margin-bottom: 25px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px dashed #cbd5e1; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between;">
         <div>
             <span style="font-weight: 600; color: #475569;">Monthly Limit Reuse</span>
             <div style="font-size: 0.85rem; color: #94a3b8;">You can make up to <strong>{{ limit }}</strong> requests

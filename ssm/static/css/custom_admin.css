@@ -389,7 +389,8 @@ td .btn {
 
 .login-box .card {
     border-top: 5px solid var(--accent-color) !important;
-    width: 400px !important;
+    width: 100% !important;
+    max-width: 400px;
     /* Ensure good width */
 }
 

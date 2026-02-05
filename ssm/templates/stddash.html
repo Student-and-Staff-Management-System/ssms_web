@@ -23,6 +23,10 @@
             height: 220px !important;
         }
 
+        .news-ticker-panel {
+            margin-top: 25px !important;
+        }
+
         .news-item p {
             font-size: 0.95rem;
         }
@@ -535,8 +539,7 @@
                             <a href="{{ project.project_link }}" target="_blank" style="text-decoration: none;">🔗</a>
                             {% endif %}
                         </div>
-                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">
-                            {{ project.description|truncatechars:60 }}</p>
+                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">{{ project.description|truncatechars:60 }}</p>
                     </div>
                     {% empty %}
                     <p class="text-muted" style="font-size: 0.9rem;">No projects added yet.</p>
@@ -561,7 +564,8 @@
             <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
                 style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
                 {% for record in gpa_records %}
-                <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester }}</option>
+                <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
+                </option>
                 {% endfor %}
             </select>
 
