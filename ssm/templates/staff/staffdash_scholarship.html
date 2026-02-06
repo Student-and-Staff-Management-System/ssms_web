@@ -1,0 +1,318 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholarship Officer Dashboard | {{ staff.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        /* Specific overrides */
+        .scholarship-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .scholarship-select {
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: inherit;
+            color: var(--text-main);
+            min-width: 250px;
+            outline: none;
+        }
+
+        .scholarship-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .btn-filter {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-filter:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .student-table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .student-table th,
+        .student-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .student-table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            background: #f8fafc;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .student-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .student-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .action-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .action-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+                    alt="Logo">
+                <h1>Faculty<br>Dashboard</h1>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-label">Menu</div>
+                <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
+                    <span class="nav-icon">👤</span> My Profile
+                </a>
+                <a href="{% url 'staffs:staff_portfolio' %}" class="nav-item">
+                    <span class="nav-icon">📄</span> Publications
+                </a>
+                <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item">
+                    <span class="nav-icon">✈️</span> Apply Leave
+                </a>
+            </nav>
+
+            <div class="profile-mini">
+                {% if staff.photo %}
+                <img src="{{ staff.photo.url }}" alt="Profile">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile">
+                {% endif %}
+                <div style="flex: 1; min-width: 0;">
+                    <div
+                        style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
+                        {{ staff.name }}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Scholarship Officer</div>
+                </div>
+                <a href="{% url 'staffs:staff_logout' %}" title="Logout"
+                    style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="greeting" style="display: flex; align-items: center;">
+                    <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
+                    <div>
+                        <h2>Hello, {{ staff.name }} 👋</h2>
+                        <p>Managing Student Scholarships</p>
+                    </div>
+                </div>
+                <div class="clock-badge">
+                    <span>{% now "l, d F Y" %}</span>
+                    <span style="opacity: 0.3">|</span>
+                    <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
+                </div>
+            </div>
+
+            <!-- Top Grid -->
+            <div class="dashboard-grid">
+                <!-- News Widget -->
+                <div class="news-section">
+                    {% include 'news_component.html' %}
+                </div>
+
+                <!-- Stats Column -->
+                <div class="stats-column">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">🎓</div>
+                        <div class="stat-info">
+                            <h3>{{ scholarship_students.count }}</h3>
+                            <span>Students Found</span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'staffs:staff_apply_leave' %}" class="stat-card"
+                        style="text-decoration: none; color: inherit;">
+                        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">✈️</div>
+                        <div class="stat-info">
+                            <h3>Leave</h3>
+                            <span>Apply for Leave</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <section class="actions-section">
+                <div class="section-header">
+                    <h3>My Teaching Courses</h3>
+                </div>
+                <!-- If no courses, show message, else grid -->
+                <div class="actions-grid">
+                    {% for subject in subjects %}
+                    <div class="action-tile" style="border-left: 4px solid var(--primary);">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span
+                                style="font-size: 0.7rem; background: var(--primary-light); color: var(--primary-dark); padding: 2px 8px; border-radius: 4px;">{{subject.code}}</span>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">Sem {{ subject.semester }}</span>
+                        </div>
+                        <h4 style="font-size: 0.95rem;">{{ subject.name }}</h4>
+                        <!-- Action Buttons inside card -->
+                        <div style="display: flex; gap: 8px; margin-top: auto;">
+                            <a href="{% url 'staffs:manage_marks' subject.id %}"
+                                style="flex: 1; text-align: center; background: var(--bg-body); padding: 8px; border-radius: 6px; font-size: 0.8rem; text-decoration: none; color: var(--text-main); border: 1px solid var(--border);">Marks</a>
+                            <a href="{% url 'staffs:manage_attendance' subject.id %}"
+                                style="flex: 1; text-align: center; background: var(--primary); padding: 8px; border-radius: 6px; font-size: 0.8rem; text-decoration: none; color: white;">Attendance</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">
+                        No subjects assigned yet.
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Scholarship Manager Link -->
+            <section class="actions-section">
+                <div class="section-header">
+                    <h3>Scholarship Management</h3>
+                </div>
+
+                <div class="actions-grid">
+                    <a href="{% url 'staffs:scholarship_manager' %}" class="action-tile"
+                        style="border-left: 4px solid #10b981; text-decoration: none; color: inherit; display: block;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div
+                                style="background: #ecfdf5; color: #10b981; padding: 12px; border-radius: 8px; font-size: 1.5rem;">
+                                🎓
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">Manage Scholarships
+                                </h4>
+                                <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-muted);">
+                                    Advanced filtering, student lists, and CSV export.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            style="margin-top: 15px; text-align: right; font-weight: 500; color: #10b981; font-size: 0.9rem;">
+                            Open Manager &rarr;
+                        </div>
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('digital-clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+
+            if (sidebar.style.display === 'flex') {
+                sidebar.style.display = '';
+                if (overlay) overlay.remove();
+            } else {
+                sidebar.style.display = 'flex';
+                sidebar.style.position = 'fixed';
+                sidebar.style.zIndex = '1000';
+                sidebar.style.width = '280px';
+
+                // Add overlay
+                const newOverlay = document.createElement('div');
+                newOverlay.className = 'sidebar-overlay';
+                newOverlay.style.position = 'fixed';
+                newOverlay.style.top = '0';
+                newOverlay.style.left = '0';
+                newOverlay.style.right = '0';
+                newOverlay.style.bottom = '0';
+                newOverlay.style.background = 'rgba(0,0,0,0.5)';
+                newOverlay.style.zIndex = '999';
+                newOverlay.onclick = toggleSidebar;
+                document.body.appendChild(newOverlay);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                sidebar.style.display = '';
+                sidebar.style.position = '';
+                if (overlay) overlay.remove();
+            }
+        });
+    </script>
+</body>
+
+</html>

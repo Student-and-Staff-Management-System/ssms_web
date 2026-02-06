@@ -71,16 +71,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ssm.wsgi.application'
 
 # --- DATABASE ---
-#DATABASES = {
-   # "default": {
-    #    "ENGINE": "django.db.backends.postgresql",
-    #    "NAME": "ssm",
-    #    "USER": "postgres",
-    #   "PASSWORD": "dbms",
-     #   "HOST": "localhost",
-     #   "PORT": "5432",
-   #}
-#}
+DATABASES = {
+   "default": {
+       "ENGINE": "django.db.backends.postgresql",
+       "NAME": "ssm",
+       "USER": "postgres",
+      "PASSWORD": "dbms",
+       "HOST": "localhost",
+       "PORT": "5432",
+   }
+}
 
 # DATABASES = {
 #      'default': {
@@ -97,13 +97,13 @@ WSGI_APPLICATION = 'ssm.wsgi.application'
 # CRITICAL FOR RENDER:
 # If Render provides a 'DATABASE_URL' (like for a Managed Postgres DB),
 # this line overrides the MySQL settings above automatically.
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+# DATABASES = {
+#     "default": dj_database_url.config(
+#         default=os.environ.get("DATABASE_URL"),
+#         conn_max_age=600,
+#         ssl_require=True,
+#     )
+# }
 
 # --- PASSWORD VALIDATION ---
 AUTH_PASSWORD_VALIDATORS = [

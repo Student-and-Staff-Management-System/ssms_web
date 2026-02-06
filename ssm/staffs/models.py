@@ -20,6 +20,7 @@ class Staff(models.Model):
         ('HOD', 'HOD'),
         ('Class Incharge', 'Class Incharge'),
         ('Course Incharge', 'Course Incharge'),
+        ('Scholarship Officer', 'Scholarship Officer'),
     ]
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='HOD')
     assigned_semester = models.IntegerField(null=True, blank=True, help_text="For Class Incharge: Specify which semester they manage (1-8).")

@@ -54,6 +54,8 @@ def staff_dashboard(request):
             
     elif staff.role == 'Course Incharge':
         template_name = 'staff/staffdash_course.html'
+    elif staff.role == 'Scholarship Officer':
+        template_name = 'staff/staffdash_scholarship.html'
     else:
         template_name = 'staff/staffdash_hod.html'
         
@@ -61,7 +63,7 @@ def staff_dashboard(request):
     assigned_subjects = staff.subjects.all().order_by('semester', 'code')
         
     # Calculate pending leaves for notification badge
-    from students.models import LeaveRequest, BonafideRequest
+    from students.models import LeaveRequest, BonafideRequest, ScholarshipInfo
     from staffs.models import StaffLeaveRequest, News
     pending_leaves_count = 0
     pending_staff_leaves_count = 0
@@ -87,6 +89,44 @@ def staff_dashboard(request):
             student__current_semester=staff.assigned_semester
         ).count()
 
+    # Scholarship Officer Specific Logic
+    scholarship_students = []
+    selected_scholarship = request.GET.get('scholarship_type')
+    
+    if staff.role == 'Scholarship Officer':
+        scholarship_qs = ScholarshipInfo.objects.select_related('student')
+        
+        SCHOLARSHIP_MAPPING = {
+            'First Graduate': 'is_first_graduate',
+            'BC/MBC': 'sch_bcmbc',
+            'Postmatric': 'sch_postmetric',
+            'PM': 'sch_pm',
+            'Govt': 'sch_govt',
+            'Pudhumai Penn': 'sch_pudhumai',
+            'Tamizh Puthalvan': 'sch_tamizh',
+            'Private': 'sch_private'
+        }
+
+        if selected_scholarship and selected_scholarship in SCHOLARSHIP_MAPPING:
+             field_name = SCHOLARSHIP_MAPPING[selected_scholarship]
+             filter_kwargs = {field_name: True}
+             scholarship_qs = scholarship_qs.filter(**filter_kwargs)
+        
+        # Determine strict list of scholarship students (those who have AT LEAST ONE scholarship)
+        elif not selected_scholarship:
+             scholarship_qs = scholarship_qs.filter(
+                 Q(is_first_graduate=True) | 
+                 Q(sch_bcmbc=True) | 
+                 Q(sch_postmetric=True) | 
+                 Q(sch_pm=True) | 
+                 Q(sch_govt=True) |
+                 Q(sch_pudhumai=True) |
+                 Q(sch_tamizh=True) |
+                 Q(sch_private=True)
+             )
+
+        scholarship_students = scholarship_qs
+
     return render(request, template_name, {
         'staff': staff, 
         'student_count': student_count,
@@ -95,7 +135,10 @@ def staff_dashboard(request):
         'pending_leaves_count': pending_leaves_count,
         'pending_staff_leaves_count': pending_staff_leaves_count,
         'pending_bonafide_count': pending_bonafide_count,
-        'news_list': news_list
+        'pending_bonafide_count': pending_bonafide_count,
+        'news_list': news_list,
+        'scholarship_students': scholarship_students,
+        'selected_scholarship': selected_scholarship
     })
 
 def staff_logout(request):
@@ -1346,6 +1389,156 @@ def admin_portal_login(request):
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     
     return redirect('/admin/')
+
+
+def create_superuser(request):
+    """View to manually create a superuser."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        if not username or not email or not password:
+            messages.error(request, "All fields are required.")
+        else:
+            from django.contrib.auth.models import User
+            if User.objects.filter(username=username).exists():
+                messages.error(request, "Username already exists.")
+            else:
+                try:
+                    User.objects.create_superuser(username=username, email=email, password=password)
+                    messages.success(request, f"Superuser '{username}' created successfully.")
+                    # return redirect('staffs:stafflogin') # Stay on page or redirect? User probably wants to stay or go to admin.
+                except Exception as e:
+                    messages.error(request, f"Error creating superuser: {str(e)}")
+                    
+    return render(request, 'staff/create_superuser.html', {'staff': staff})
+
+
+def scholarship_manager(request):
+    """Dedicated page for managing scholarships with advanced filtering and export."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+        
+    if staff.role != 'Scholarship Officer':
+        messages.error(request, "Access restricted to Scholarship Officer.")
+        return redirect('staffs:staff_dashboard')
+        
+    from students.models import Student, ScholarshipInfo, PersonalInfo
+    from django.db.models import Q
+    import csv
+    from django.http import HttpResponse
+
+    # Base QuerySet
+    students = Student.objects.select_related('scholarshipinfo', 'personalinfo').all()
+
+    # --- Filtering ---
+    # 1. Scholarship Type (handling multiple selections if needed, though simple select for now)
+    sch_type = request.GET.get('scholarship_type')
+    if sch_type:
+        SCHOLARSHIP_MAPPING = {
+            'First Graduate': 'scholarshipinfo__is_first_graduate',
+            'BC/MBC': 'scholarshipinfo__sch_bcmbc',
+            'Postmatric': 'scholarshipinfo__sch_postmetric',
+            'PM': 'scholarshipinfo__sch_pm',
+            'Govt': 'scholarshipinfo__sch_govt',
+            'Pudhumai Penn': 'scholarshipinfo__sch_pudhumai',
+            'Tamizh Puthalvan': 'scholarshipinfo__sch_tamizh',
+            'Private': 'scholarshipinfo__sch_private'
+        }
+        if sch_type in SCHOLARSHIP_MAPPING:
+            filter_kwargs = {SCHOLARSHIP_MAPPING[sch_type]: True}
+            students = students.filter(**filter_kwargs)
+
+    # 2. Program Level
+    program = request.GET.get('program_level')
+    if program:
+        students = students.filter(program_level=program)
+
+    # 3. Semester
+    semester = request.GET.get('semester')
+    if semester:
+        students = students.filter(current_semester=semester)
+
+    # 4. Gender (from PersonalInfo)
+    gender = request.GET.get('gender')
+    if gender:
+        students = students.filter(personalinfo__gender=gender)
+
+    # 5. Community (from PersonalInfo)
+    community = request.GET.get('community')
+    if community:
+        students = students.filter(personalinfo__community=community)
+
+    # --- Export to CSV ---
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="scholarship_students.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Roll Number', 'Name', 'Program', 'Semester', 'Community', 'Gender', 'Scholarships'])
+
+        for s in students:
+            # Determine active scholarships
+            active_sch = []
+            try:
+                si = s.scholarshipinfo
+                if si.is_first_graduate: active_sch.append('First Graduate')
+                if si.sch_bcmbc: active_sch.append('BC/MBC')
+                if si.sch_postmetric: active_sch.append('Postmetric')
+                if si.sch_pm: active_sch.append('PM')
+                if si.sch_govt: active_sch.append('Govt')
+                if si.sch_pudhumai: active_sch.append('Pudhumai Penn')
+                if si.sch_tamizh: active_sch.append('Tamizh Puthalvan')
+                if si.sch_private: active_sch.append(f"Private ({si.private_scholarship_name})")
+            except ScholarshipInfo.DoesNotExist:
+                pass
+            
+            # Helper to safely get personal info
+            comm = 'N/A'
+            gen = 'N/A'
+            try:
+                comm = s.personalinfo.community
+                gen = s.personalinfo.gender
+            except PersonalInfo.DoesNotExist:
+                pass
+
+            writer.writerow([
+                s.roll_number,
+                s.student_name,
+                s.program_level,
+                s.current_semester,
+                comm,
+                gen,
+                ", ".join(active_sch)
+            ])
+        return response
+
+    context = {
+        'staff': staff,
+        'students': students,
+        'filters': { # Pass current filters back to template
+            'scholarship_type': sch_type,
+            'program_level': program,
+            'semester': semester,
+            'gender': gender,
+            'community': community
+        }
+    }
+    return render(request, 'staff/scholarship_manager.html', context)
 
 
 def staff_profile(request):
