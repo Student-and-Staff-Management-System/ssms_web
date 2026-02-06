@@ -96,6 +96,7 @@ class PersonalInfoForm(forms.ModelForm):
     mother_name = forms.CharField(required=False, validators=[alpha_space_validator])
     
     student_mobile = forms.CharField(validators=[mobile_validator], required=False)
+    parent_email = forms.EmailField(required=False)
     father_mobile = forms.CharField(validators=[mobile_validator], required=False)
     mother_mobile = forms.CharField(validators=[mobile_validator], required=False)
     

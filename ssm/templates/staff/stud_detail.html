@@ -173,7 +173,7 @@
             margin-bottom: 25px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            overflow: hidden;
+            overflow-x: auto;
         }
 
         .semester-header {
@@ -465,8 +465,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Date of Birth</span>
-                    <span class="info-value">{% if personal_info.date_of_birth %}{{
-                        personal_info.date_of_birth|date:"Y-m-d" }}{% else %}-{% endif %}</span>
+                    <span class="info-value">{% if personal_info.date_of_birth %}{{ personal_info.date_of_birth|date:"Y-m-d" }}{% else %}-{% endif %}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Gender</span>
@@ -578,13 +577,14 @@
                     </div>
 
                     {% if record.subject_data %}
-                    <div style="border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden;">
+                    <div style="border: 1px solid var(--border-color); border-radius: 6px; overflow-x: auto;">
                         <table class="subject-table">
                             <thead>
                                 <tr>
                                     <th>Subject</th>
                                     <th class="center">Attn %</th>
                                     <th class="center">Internal Marks</th>
+                                    <th class="center">Claimed Grade</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -601,12 +601,18 @@
                                             style="font-weight:500; color: {% if sub.attendance_percentage < 75 %}#dc3545{% else %}#198754{% endif %};">
                                             {{ sub.attendance_percentage }}%
                                         </span>
-                                        {% else %} - {% endif %}
+                                        {% else %}-{% endif %}
                                     </td>
                                     <td class="center">
                                         {% if sub.internal_marks or sub.internal_marks == 0 %}
                                         <span style="font-weight: 600;">{{ sub.internal_marks }}</span>
-                                        {% else %} - {% endif %}
+                                        {% else %}-{% endif %}
+                                    </td>
+                                    <td class="center">
+                                        {% if sub.grade %}
+                                        <span
+                                            style="font-weight: 600; padding: 2px 6px; background: #eef2ff; color: #4338ca; border-radius: 4px;">{{ sub.grade }}</span>
+                                        {% else %}-{% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -644,18 +650,15 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">School</span>
-                        <span class="info-value">{% if academic_history.sslc_school_name %}{{
-                            academic_history.sslc_school_name }}{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if academic_history.sslc_school_name %}{{ academic_history.sslc_school_name }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Percentage</span>
-                        <span class="info-value">{% if academic_history.sslc_percentage %}{{
-                            academic_history.sslc_percentage }}%{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if academic_history.sslc_percentage %}{{ academic_history.sslc_percentage }}%{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Year</span>
-                        <span class="info-value">{% if academic_history.sslc_year_of_passing %}{{
-                            academic_history.sslc_year_of_passing }}{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if academic_history.sslc_year_of_passing %}{{ academic_history.sslc_year_of_passing }}{% else %}-{% endif %}</span>
                     </div>
                 </div>
             </div>
@@ -665,23 +668,19 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">School</span>
-                        <span class="info-value">{% if academic_history.hsc_school_name %}{{
-                            academic_history.hsc_school_name }}{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if academic_history.hsc_school_name %}{{ academic_history.hsc_school_name }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Percentage</span>
-                        <span class="info-value">{% if academic_history.hsc_percentage %}{{
-                            academic_history.hsc_percentage }}%{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if academic_history.hsc_percentage %}{{ academic_history.hsc_percentage }}%{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Year</span>
-                        <span class="info-value">{% if academic_history.hsc_year_of_passing %}{{
-                            academic_history.hsc_year_of_passing }}{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if academic_history.hsc_year_of_passing %}{{ academic_history.hsc_year_of_passing }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Batch</span>
-                        <span class="info-value">{% if student.joining_year and student.ending_year %}{{
-                            student.joining_year }} - {{ student.ending_year }}{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if student.joining_year and student.ending_year %}{{ student.joining_year }} - {{ student.ending_year }}{% else %}-{% endif %}</span>
                     </div>
                 </div>
             </div>
@@ -693,18 +692,15 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">College</span>
-                        <span class="info-value">{% if diploma_details.diploma_college_name %}{{
-                            diploma_details.diploma_college_name }}{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if diploma_details.diploma_college_name %}{{ diploma_details.diploma_college_name }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Percentage</span>
-                        <span class="info-value">{% if diploma_details.diploma_percentage %}{{
-                            diploma_details.diploma_percentage }}%{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if diploma_details.diploma_percentage %}{{ diploma_details.diploma_percentage }}%{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Year</span>
-                        <span class="info-value">{% if diploma_details.diploma_year_of_passing %}{{
-                            diploma_details.diploma_year_of_passing }}{% else %}-{% endif %}</span>
+                        <span class="info-value">{% if diploma_details.diploma_year_of_passing %}{{ diploma_details.diploma_year_of_passing }}{% else %}-{% endif %}</span>
                     </div>
                 </div>
             </div>

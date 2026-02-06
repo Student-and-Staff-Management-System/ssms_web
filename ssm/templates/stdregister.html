@@ -29,7 +29,7 @@
         </div>
 
         <form id="registration-form" method="POST" enctype="multipart/form-data" novalidate
-            data-register-url="{% url 'api_register_student' %}" data-success-url="{% url 'registration_success' %}">
+            data-register-url="{% url 'api_register_student' %}" data-success-url="{% url 'student_dashboard' %}">
             {% csrf_token %}
 
             <!-- STUDENT & LOGIN DETAILS -->
@@ -51,11 +51,13 @@
                         </div>
                         <div class="input-group">
                             <label for="register_number">Register Number</label>
-                            <input type="text" id="register_number" name="register_number">
+                            <input type="text" id="register_number" name="register_number"
+                                value="{{ student.register_number|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="student_email">Email</label>
-                            <input type="email" id="student_email" name="student_email" required>
+                            <input type="email" id="student_email" name="student_email" required
+                                value="{{ student.student_email|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="password">New Password</label>
@@ -80,89 +82,101 @@
                     <div class="form-grid">
                         <div class="input-group">
                             <label for="umis_id">UMIS ID</label>
-                            <input type="text" id="umis_id" name="umis_id">
+                            <input type="text" id="umis_id" name="umis_id" value="{{ personal.umis_id|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="emis_id">EMIS ID</label>
-                            <input type="text" id="emis_id" name="emis_id">
+                            <input type="text" id="emis_id" name="emis_id" value="{{ personal.emis_id|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="abc_id">ABC ID</label>
-                            <input type="text" id="abc_id" name="abc_id">
+                            <input type="text" id="abc_id" name="abc_id" value="{{ personal.abc_id|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="date_of_birth">Date of Birth</label>
-                            <input type="date" id="date_of_birth" name="date_of_birth" required>
+                            <input type="date" id="date_of_birth" name="date_of_birth" required
+                                value="{{ personal.date_of_birth|date:'Y-m-d' }}">
                         </div>
                         <div class="input-group">
                             <label for="gender">Gender</label>
                             <select id="gender" name="gender" required>
                                 <option value="">-- Select --</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                                <option value="Male" {% if personal.gender == "Male" %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if personal.gender == "Female" %}selected{% endif %}>Female
+                                </option>
+                                <option value="Other" {% if personal.gender == "Other" %}selected{% endif %}>Other
+                                </option>
                             </select>
                         </div>
                         <div class="input-group">
                             <label for="blood_group">Blood Group</label>
                             <select id="blood_group" name="blood_group">
                                 <option value="">-- Select --</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
+                                <option value="O+" {% if personal.blood_group == "O+" %}selected{% endif %}>O+</option>
+                                <option value="O-" {% if personal.blood_group == "O-" %}selected{% endif %}>O-</option>
+                                <option value="A+" {% if personal.blood_group == "A+" %}selected{% endif %}>A+</option>
+                                <option value="A-" {% if personal.blood_group == "A-" %}selected{% endif %}>A-</option>
+                                <option value="B+" {% if personal.blood_group == "B+" %}selected{% endif %}>B+</option>
+                                <option value="B-" {% if personal.blood_group == "B-" %}selected{% endif %}>B-</option>
+                                <option value="AB+" {% if personal.blood_group == "AB+" %}selected{% endif %}>AB+</option>
+                                <option value="AB-" {% if personal.blood_group == "AB-" %}selected{% endif %}>AB-</option>
                             </select>
                         </div>
                         <div class="input-group">
                             <label for="community">Community</label>
                             <select id="community" name="community" required>
                                 <option value="">-- Select --</option>
-                                <option value="OC">OC</option>
-                                <option value="BC">BC</option>
-                                <option value="MBC">MBC</option>
-                                <option value="SC">SC</option>
-                                <option value="ST">ST</option>
+                                <option value="OC" {% if personal.community == "OC" %}selected{% endif %}>OC</option>
+                                <option value="BC" {% if personal.community == "BC" %}selected{% endif %}>BC</option>
+                                <option value="MBC" {% if personal.community == "MBC" %}selected{% endif %}>MBC</option>
+                                <option value="SC" {% if personal.community == "SC" %}selected{% endif %}>SC</option>
+                                <option value="ST" {% if personal.community == "ST" %}selected{% endif %}>ST</option>
                             </select>
                         </div>
                         <div class="input-group">
                             <label for="caste">Caste</label>
-                            <select id="caste" name="caste"></select>
+                            <select id="caste" name="caste"
+                                data-selected="{{ personal.caste.name|default:'' }}"></select>
                         </div>
                         <div class="input-group" id="caste-other-group" style="display: none;">
                             <label for="caste_other">Please Specify Caste</label>
-                            <input type="text" id="caste_other" name="caste_other">
+                            <input type="text" id="caste_other" name="caste_other"
+                                value="{{ personal.caste_other|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="religion">Religion</label>
                             <select id="religion" name="religion">
-                                <option value="Hindu">Hindu</option>
-                                <option value="Christian">Christian</option>
-                                <option value="Muslim">Muslim</option>
-                                <option value="Other">Other</option>
+                                <option value="Hindu" {% if personal.religion == "Hindu" %}selected{% endif %}>Hindu
+                                </option>
+                                <option value="Christian" {% if personal.religion == "Christian" %}selected{% endif %}>
+                                    Christian</option>
+                                <option value="Muslim" {% if personal.religion == "Muslim" %}selected{% endif %}>Muslim
+                                </option>
+                                <option value="Other" {% if personal.religion == "Other" %}selected{% endif %}>Other
+                                </option>
                             </select>
                         </div>
                         <div class="input-group">
                             <label for="aadhaar_number">Aadhaar Number</label>
-                            <input type="text" id="aadhaar_number" name="aadhaar_number">
+                            <input type="text" id="aadhaar_number" name="aadhaar_number"
+                                value="{{ personal.aadhaar_number|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="permanent_address">Permanent Address</label>
-                            <textarea id="permanent_address" name="permanent_address" required></textarea>
+                            <textarea id="permanent_address" name="permanent_address"
+                                required>{{ personal.permanent_address|default:'' }}</textarea>
                         </div>
                         <div class="input-group">
                             <label for="present_address">Present Address</label>
-                            <textarea id="present_address" name="present_address"></textarea>
+                            <textarea id="present_address"
+                                name="present_address">{{ personal.present_address|default:'' }}</textarea>
                         </div>
                         <div class="input-group radio-group">
                             <label>Are you applying for a scholarship?</label>
                             <div>
-                                <input type="radio" id="scholarship-yes" name="has_scholarship" value="yes">
+                                <input type="radio" id="scholarship-yes" name="has_scholarship" value="yes" {% if personal.has_scholarship %}checked{% endif %}>
                                 <label for="scholarship-yes">Yes</label>
-                                <input type="radio" id="scholarship-no" name="has_scholarship" value="no" checked>
+                                <input type="radio" id="scholarship-no" name="has_scholarship" value="no" {% if not personal.has_scholarship %}checked{% endif %}>
                                 <label for="scholarship-no">No</label>
                             </div>
                         </div>
@@ -172,35 +186,48 @@
                     <div class="form-grid">
                         <div class="input-group">
                             <label for="student_mobile">Student Mobile</label>
-                            <input type="tel" id="student_mobile" name="student_mobile" required>
+                            <input type="tel" id="student_mobile" name="student_mobile" required
+                                value="{{ personal.student_mobile|default:'' }}">
+                        </div>
+                        <div class="input-group">
+                            <label for="parent_email">Parent Email</label>
+                            <input type="email" id="parent_email" name="parent_email"
+                                value="{{ personal.parent_email|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="father_name">Father's Name</label>
-                            <input type="text" id="father_name" name="father_name">
+                            <input type="text" id="father_name" name="father_name"
+                                value="{{ personal.father_name|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="father_occupation">Father's Occupation</label>
-                            <input type="text" id="father_occupation" name="father_occupation">
+                            <input type="text" id="father_occupation" name="father_occupation"
+                                value="{{ personal.father_occupation|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="father_mobile">Father's Mobile</label>
-                            <input type="tel" id="father_mobile" name="father_mobile">
+                            <input type="tel" id="father_mobile" name="father_mobile"
+                                value="{{ personal.father_mobile|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="mother_name">Mother's Name</label>
-                            <input type="text" id="mother_name" name="mother_name">
+                            <input type="text" id="mother_name" name="mother_name"
+                                value="{{ personal.mother_name|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="mother_occupation">Mother's Occupation</label>
-                            <input type="text" id="mother_occupation" name="mother_occupation">
+                            <input type="text" id="mother_occupation" name="mother_occupation"
+                                value="{{ personal.mother_occupation|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="mother_mobile">Mother's Mobile</label>
-                            <input type="tel" id="mother_mobile" name="mother_mobile">
+                            <input type="tel" id="mother_mobile" name="mother_mobile"
+                                value="{{ personal.mother_mobile|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="parent_annual_income">Parent's Annual Income</label>
-                            <input type="number" id="parent_annual_income" name="parent_annual_income" min="0">
+                            <input type="number" id="parent_annual_income" name="parent_annual_income" min="0"
+                                value="{{ personal.parent_annual_income|default:'' }}">
                         </div>
                     </div>
                 </div>
@@ -216,9 +243,11 @@
                         <label for="program_level">Current Program Level</label>
                         <select id="program_level" name="program_level" required>
                             <option value="">-- Select Program --</option>
-                            <option value="UG">Undergraduate</option>
-                            <option value="PG">Postgraduate</option>
-                            <option value="PHD">PhD</option>
+                            <option value="UG" {% if student.program_level == "UG" %}selected{% endif %}>Undergraduate
+                            </option>
+                            <option value="PG" {% if student.program_level == "PG" %}selected{% endif %}>Postgraduate
+                            </option>
+                            <option value="PHD" {% if student.program_level == "PHD" %}selected{% endif %}>PhD</option>
                         </select>
                     </div>
 
@@ -229,23 +258,33 @@
                                 <label for="current_semester">Current Semester</label>
                                 <select id="current_semester" name="current_semester" required>
                                     <option value="">-- Select Semester --</option>
-                                    <option value="1">Semester 1</option>
-                                    <option value="2">Semester 2</option>
-                                    <option value="3">Semester 3</option>
-                                    <option value="4">Semester 4</option>
-                                    <option value="5">Semester 5</option>
-                                    <option value="6">Semester 6</option>
-                                    <option value="7">Semester 7</option>
-                                    <option value="8">Semester 8</option>
+                                    <option value="1" {% if student.current_semester == 1 %}selected{% endif %}>Semester 1
+                                    </option>
+                                    <option value="2" {% if student.current_semester == 2 %}selected{% endif %}>Semester 2
+                                    </option>
+                                    <option value="3" {% if student.current_semester == 3 %}selected{% endif %}>Semester 3
+                                    </option>
+                                    <option value="4" {% if student.current_semester == 4 %}selected{% endif %}>Semester 4
+                                    </option>
+                                    <option value="5" {% if student.current_semester == 5 %}selected{% endif %}>Semester 5
+                                    </option>
+                                    <option value="6" {% if student.current_semester == 6 %}selected{% endif %}>Semester 6
+                                    </option>
+                                    <option value="7" {% if student.current_semester == 7 %}selected{% endif %}>Semester 7
+                                    </option>
+                                    <option value="8" {% if student.current_semester == 8 %}selected{% endif %}>Semester 8
+                                    </option>
                                 </select>
                             </div>
                             <div class="input-group">
                                 <label for="joining_year">Joining Year</label>
-                                <select id="joining_year" name="joining_year" class="year-picker" required></select>
+                                <select id="joining_year" name="joining_year" class="year-picker" required
+                                    data-selected="{{ student.joining_year|default:'' }}"></select>
                             </div>
                             <div class="input-group">
                                 <label for="ending_year">Ending Year (Batch)</label>
-                                <select id="ending_year" name="ending_year" class="year-picker" required></select>
+                                <select id="ending_year" name="ending_year" class="year-picker" required
+                                    data-selected="{{ student.ending_year|default:'' }}"></select>
                             </div>
                         </div>
                     </div>
@@ -255,9 +294,12 @@
                             <label for="ug_entry_type">UG Entry Type</label>
                             <select id="ug_entry_type" name="ug_entry_type">
                                 <option value="">-- Select Entry Type --</option>
-                                <option value="Regular">Regular (HSC)</option>
-                                <option value="Lateral">Lateral (Diploma)</option>
-                                <option value="Rejoin">Rejoin</option>
+                                <option value="Regular" {% if student.ug_entry_type == "Regular" %}selected{% endif %}>
+                                    Regular (HSC)</option>
+                                <option value="Lateral" {% if student.ug_entry_type == "Lateral" %}selected{% endif %}>
+                                    Lateral (Diploma)</option>
+                                <option value="Rejoin" {% if student.ug_entry_type == "Rejoin" %}selected{% endif %}>
+                                    Rejoin</option>
                             </select>
                         </div>
                     </div>
@@ -267,23 +309,28 @@
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>SSLC School Name</label>
-                                <input type="text" name="sslc_school_name">
+                                <input type="text" name="sslc_school_name"
+                                    value="{{ academic.sslc_school_name|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>SSLC School Address</label>
-                                <textarea name="sslc_school_address"></textarea>
+                                <textarea
+                                    name="sslc_school_address">{{ academic.sslc_school_address|default:'' }}</textarea>
                             </div>
                             <div class="input-group">
                                 <label>SSLC Register Number</label>
-                                <input type="text" name="sslc_register_number">
+                                <input type="text" name="sslc_register_number"
+                                    value="{{ academic.sslc_register_number|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>SSLC Overall Percentage</label>
-                                <input type="number" step="0.01" min="0" max="100" name="sslc_percentage">
+                                <input type="number" step="0.01" min="0" max="100" name="sslc_percentage"
+                                    value="{{ academic.sslc_percentage|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>SSLC Year of Passing</label>
-                                <select name="sslc_year_of_passing" class="year-picker"></select>
+                                <select name="sslc_year_of_passing" class="year-picker"
+                                    data-selected="{{ academic.sslc_year_of_passing|default:'' }}"></select>
                             </div>
                         </div>
                     </div>
@@ -293,23 +340,28 @@
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>HSC School Name</label>
-                                <input type="text" name="hsc_school_name">
+                                <input type="text" name="hsc_school_name"
+                                    value="{{ academic.hsc_school_name|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>HSC School Address</label>
-                                <textarea name="hsc_school_address"></textarea>
+                                <textarea
+                                    name="hsc_school_address">{{ academic.hsc_school_address|default:'' }}</textarea>
                             </div>
                             <div class="input-group">
                                 <label>HSC Register Number</label>
-                                <input type="text" name="hsc_register_number">
+                                <input type="text" name="hsc_register_number"
+                                    value="{{ academic.hsc_register_number|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>HSC Overall Percentage</label>
-                                <input type="number" step="0.01" min="0" max="100" name="hsc_percentage">
+                                <input type="number" step="0.01" min="0" max="100" name="hsc_percentage"
+                                    value="{{ academic.hsc_percentage|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>HSC Year of Passing</label>
-                                <select name="hsc_year_of_passing" class="year-picker"></select>
+                                <select name="hsc_year_of_passing" class="year-picker"
+                                    data-selected="{{ academic.hsc_year_of_passing|default:'' }}"></select>
                             </div>
                         </div>
                     </div>
@@ -319,23 +371,28 @@
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>Diploma College Name</label>
-                                <input type="text" name="diploma_college_name">
+                                <input type="text" name="diploma_college_name"
+                                    value="{{ diploma.diploma_college_name|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>Diploma College Address</label>
-                                <textarea name="diploma_college_address"></textarea>
+                                <textarea
+                                    name="diploma_college_address">{{ diploma.diploma_college_address|default:'' }}</textarea>
                             </div>
                             <div class="input-group">
                                 <label>Diploma Register Number</label>
-                                <input type="text" name="diploma_register_number">
+                                <input type="text" name="diploma_register_number"
+                                    value="{{ diploma.diploma_register_number|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>Diploma Overall Percentage</label>
-                                <input type="number" step="0.01" min="0" max="100" name="diploma_percentage">
+                                <input type="number" step="0.01" min="0" max="100" name="diploma_percentage"
+                                    value="{{ diploma.diploma_percentage|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>Diploma Year of Passing</label>
-                                <select name="diploma_year_of_passing" class="year-picker"></select>
+                                <select name="diploma_year_of_passing" class="year-picker"
+                                    data-selected="{{ diploma.diploma_year_of_passing|default:'' }}"></select>
                             </div>
                         </div>
                     </div>
@@ -345,19 +402,21 @@
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>UG Course</label>
-                                <input type="text" name="ug_course">
+                                <input type="text" name="ug_course" value="{{ ug.ug_course|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>UG University</label>
-                                <input type="text" name="ug_university">
+                                <input type="text" name="ug_university" value="{{ ug.ug_university|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>UG OGPA (out of 100)</label>
-                                <input type="number" step="0.01" min="0" max="100" name="ug_ogpa">
+                                <input type="number" step="0.01" min="0" max="100" name="ug_ogpa"
+                                    value="{{ ug.ug_ogpa|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>UG Year of Passing</label>
-                                <select name="ug_year_of_passing" class="year-picker"></select>
+                                <select name="ug_year_of_passing" class="year-picker"
+                                    data-selected="{{ ug.ug_year_of_passing|default:'' }}"></select>
                             </div>
                         </div>
                     </div>
@@ -367,19 +426,21 @@
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>PG Course</label>
-                                <input type="text" name="pg_course">
+                                <input type="text" name="pg_course" value="{{ pg.pg_course|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>PG University</label>
-                                <input type="text" name="pg_university">
+                                <input type="text" name="pg_university" value="{{ pg.pg_university|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>PG OGPA (out of 100)</label>
-                                <input type="number" step="0.01" min="0" max="100" name="pg_ogpa">
+                                <input type="number" step="0.01" min="0" max="100" name="pg_ogpa"
+                                    value="{{ pg.pg_ogpa|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>PG Year of Passing</label>
-                                <select name="pg_year_of_passing" class="year-picker"></select>
+                                <select name="pg_year_of_passing" class="year-picker"
+                                    data-selected="{{ pg.pg_year_of_passing|default:'' }}"></select>
                             </div>
                         </div>
                     </div>
@@ -389,15 +450,17 @@
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>PhD Specialization</label>
-                                <input type="text" name="phd_specialization">
+                                <input type="text" name="phd_specialization"
+                                    value="{{ phd.phd_specialization|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>PhD University</label>
-                                <input type="text" name="phd_university">
+                                <input type="text" name="phd_university" value="{{ phd.phd_university|default:'' }}">
                             </div>
                             <div class="input-group">
                                 <label>PhD Year of Joining</label>
-                                <select name="phd_year_of_joining" class="year-picker"></select>
+                                <select name="phd_year_of_joining" class="year-picker"
+                                    data-selected="{{ phd.phd_year_of_joining|default:'' }}"></select>
                             </div>
                         </div>
                     </div>
@@ -413,23 +476,26 @@
                     <div class="form-grid">
                         <div class="input-group">
                             <label for="account_holder_name">Account Holder's Name</label>
-                            <input type="text" id="account_holder_name" name="account_holder_name">
+                            <input type="text" id="account_holder_name" name="account_holder_name"
+                                value="{{ bank.account_holder_name|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="account_number">Account Number</label>
-                            <input type="text" id="account_number" name="account_number">
+                            <input type="text" id="account_number" name="account_number"
+                                value="{{ bank.account_number|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="bank_name">Bank Name</label>
-                            <input type="text" id="bank_name" name="bank_name">
+                            <input type="text" id="bank_name" name="bank_name" value="{{ bank.bank_name|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="branch_name">Branch Name</label>
-                            <input type="text" id="branch_name" name="branch_name">
+                            <input type="text" id="branch_name" name="branch_name"
+                                value="{{ bank.branch_name|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="ifsc_code">IFSC Code</label>
-                            <input type="text" id="ifsc_code" name="ifsc_code">
+                            <input type="text" id="ifsc_code" name="ifsc_code" value="{{ bank.ifsc_code|default:'' }}">
                         </div>
                     </div>
                 </div>
@@ -445,49 +511,53 @@
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>First Graduate</label>
-                                <input type="checkbox" id="is_first_graduate_sch" name="is_first_graduate">
+                                <input type="checkbox" id="is_first_graduate_sch" name="is_first_graduate" {% if scholarship.is_first_graduate %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>BC/MBC</label>
-                                <input type="checkbox" name="sch_bcmbc">
+                                <input type="checkbox" name="sch_bcmbc" {% if scholarship.sch_bcmbc %}checked{% endif
+                                    %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Post Metric</label>
-                                <input type="checkbox" name="sch_postmetric">
+                                <input type="checkbox" name="sch_postmetric" {% if scholarship.sch_postmetric
+                                    %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Prime Minister Scheme</label>
-                                <input type="checkbox" name="sch_pm">
+                                <input type="checkbox" name="sch_pm" {% if scholarship.sch_pm %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Govt 7.5%</label>
-                                <input type="checkbox" name="sch_govt">
+                                <input type="checkbox" name="sch_govt" {% if scholarship.sch_govt %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Pudhumai Penn</label>
-                                <input type="checkbox" name="sch_pudhumai">
+                                <input type="checkbox" name="sch_pudhumai" {% if scholarship.sch_pudhumai %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Tamizh Pudhalvan</label>
-                                <input type="checkbox" name="sch_tamizh">
+                                <input type="checkbox" name="sch_tamizh" {% if scholarship.sch_tamizh %}checked{% endif
+                                    %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Private Scholarship</label>
-                                <input type="checkbox" id="sch_private" name="sch_private">
+                                <input type="checkbox" id="sch_private" name="sch_private" {% if scholarship.sch_private
+                                    %}checked{% endif %}>
                             </div>
                         </div>
                     </div>
@@ -495,7 +565,8 @@
                     <div id="private-scholarship-name-section" class="conditional-section">
                         <div class="input-group">
                             <label for="private_scholarship_name">Private Scholarship Name</label>
-                            <input type="text" id="private_scholarship_name" name="private_scholarship_name">
+                            <input type="text" id="private_scholarship_name" name="private_scholarship_name"
+                                value="{{ scholarship.private_scholarship_name|default:'' }}">
                         </div>
                     </div>
                 </div>
@@ -561,19 +632,21 @@
                     <div class="form-grid">
                         <div class="input-group">
                             <label for="ambition">Ambition</label>
-                            <input type="text" id="ambition" name="ambition">
+                            <input type="text" id="ambition" name="ambition" value="{{ other.ambition|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="role_model">Role Model</label>
-                            <input type="text" id="role_model" name="role_model">
+                            <input type="text" id="role_model" name="role_model"
+                                value="{{ other.role_model|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="hobbies">Hobbies</label>
-                            <textarea id="hobbies" name="hobbies"></textarea>
+                            <textarea id="hobbies" name="hobbies">{{ other.hobbies|default:'' }}</textarea>
                         </div>
                         <div class="input-group">
                             <label for="identification_marks">Identification Marks</label>
-                            <textarea id="identification_marks" name="identification_marks"></textarea>
+                            <textarea id="identification_marks"
+                                name="identification_marks">{{ other.identification_marks|default:'' }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -673,6 +746,12 @@
                     const option = document.createElement('option');
                     option.value = year;
                     option.textContent = year;
+
+                    // Pre-select if data-selected matches
+                    if (dropdown.getAttribute('data-selected') == year) {
+                        option.selected = true;
+                    }
+
                     dropdown.appendChild(option);
                 }
             });
@@ -712,6 +791,27 @@
                     other.value = 'Other';
                     other.textContent = 'Other';
                     casteSelect.appendChild(other);
+
+                    // Handle Pre-selection
+                    const selected = casteSelect.getAttribute('data-selected');
+                    if (selected) {
+                        casteSelect.value = selected;
+                        // If value isn't found (e.g. it was 'Other' but named specifically?), check logic
+                        // Actually if 'selected' is not in options, it might be custom.
+                        // But we just appended options from DB.
+                        // If it was 'Other', the value 'Other' is there.
+                        // If user typed something in 'Other', the select value should be 'Other'.
+
+                        if (casteSelect.value !== selected && selected !== '') {
+                            // Potentially it's a custom value that fell into "Other"? 
+                            // Or maybe the loop didn't cover it?
+                            // Assuming standard usage:
+                            casteSelect.value = 'Other';
+                        }
+
+                        // trigger change to show/hide other input
+                        casteSelect.dispatchEvent(new Event('change'));
+                    }
                 }
             }
 
@@ -825,7 +925,7 @@
             handleProgramChange();  // initialise conditional sections
         });
     </script>
-    <script src="{% static 'js/registration_validation.js' %}"></script>
+    <script src="{% static 'js/registration_validation.js' %}?v=1.2"></script>
 </body>
 
 </html>

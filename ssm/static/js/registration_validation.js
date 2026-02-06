@@ -186,7 +186,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     }).then(() => {
                     }).then(() => {
                         // Redirect to student dashboard as per backend instruction implies completion
-                        window.location.href = "/student/dashboard/";
+                        if (successUrl) {
+                            window.location.href = successUrl;
+                        } else {
+                            window.location.href = "/dashboard/";
+                        }
                     });
                 } else {
                     if (result.error) {

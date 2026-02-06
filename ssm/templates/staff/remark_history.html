@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remark History | {{ student.student_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        .container-fluid {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Timeline specific styles that fit within the theme */
+        .timeline-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 25px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 9px;
+            top: 5px;
+            bottom: -25px;
+            width: 2px;
+            background: #e2e8f0;
+        }
+
+        .timeline-item:last-child .timeline-line {
+            display: none;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 20px;
+            height: 20px;
+            background: #e0e7ff;
+            border: 4px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1px #e0e7ff;
+        }
+
+        .timeline-content {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .author {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .date {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .remark-body {
+            color: #475569;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        /* Form Styles */
+        .remark-form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        textarea.form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 10px;
+        }
+
+        textarea.form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar (Copied for consistency) -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+                    alt="Logo">
+                <h1>Class<br>Incharge</h1>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-label">Menu</div>
+                <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
+                    <span class="nav-icon">👤</span> My Profile
+                </a>
+                <a href="{% url 'staffs:staff_portfolio' %}" class="nav-item">
+                    <span class="nav-icon">📄</span> Publications & Accomplishments
+                </a>
+                <a href="{% url 'staffs:risk_students' %}" class="nav-item">
+                    <span class="nav-icon">⚠️</span> Risk Students
+                </a>
+                <a href="{% url 'staffs:student_list' %}" class="nav-item">
+                    <span class="nav-icon">👨‍🎓</span> My Students
+                </a>
+                <a href="{% url 'staffs:remark_student_list' %}" class="nav-item active"
+                    style="background: rgba(255, 255, 255, 0.1); color: white;">
+                    <span class="nav-icon">💬</span> Student Remarks
+                </a>
+                <a href="{% url 'staffs:timetable' %}" class="nav-item">
+                    <span class="nav-icon">🗓️</span> My Timetable
+                </a>
+                <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item">
+                    <span class="nav-icon">📝</span> Review Leaves
+                </a>
+                <a href="{% url 'staffs:exam_schedule' %}" class="nav-item">
+                    <span class="nav-icon">📅</span> Exam Duties
+                </a>
+                <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item">
+                    <span class="nav-icon">✈️</span> Apply Leave
+                </a>
+            </nav>
+
+            <div class="profile-mini">
+                {% if staff.photo %}
+                <img src="{{ staff.photo.url }}" alt="Profile">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile">
+                {% endif %}
+                <div style="flex: 1; min-width: 0;">
+                    <div
+                        style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
+                        {{ staff.name }}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Class Incharge</div>
+                </div>
+                <a href="{% url 'staffs:staff_logout' %}" title="Logout"
+                    style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="greeting">
+                    <h2>{{ student.student_name }}</h2>
+                    <p style="font-size: 1rem; color: var(--text-muted); margin-top: 4px;">
+                        Roll No: {{ student.roll_number }}
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <a href="{% url 'staffs:remark_student_list' %}"
+                        style="text-decoration: none; color: var(--primary); font-weight: 600;">← Back to List</a>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+
+                <!-- Add Remark Form -->
+                <div class="remark-form-card">
+                    <h3 style="margin-top: 0; font-size: 1.1rem; color: #1e293b; margin-bottom: 15px;">Add New Remark
+                    </h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <textarea name="remark" class="form-control" rows="3" placeholder="Enter your remarks here..."
+                            required></textarea>
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn-submit">Post Remark</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Timeline -->
+                <div class="timeline-section">
+                    <h3
+                        style="margin-top: 0; font-size: 1.1rem; color: #1e293b; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                        History</h3>
+
+                    {% for remark in remarks %}
+                    <div class="timeline-item">
+                        <div class="timeline-line"></div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <span class="author">{{ remark.staff.name }}</span>
+                                <span class="date">{{ remark.created_at|date:"M d, Y • h:i A" }}</span>
+                            </div>
+                            <div class="remark-body">{{ remark.remark }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 30px; color: #94a3b8;">
+                        No remarks found for this student.
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

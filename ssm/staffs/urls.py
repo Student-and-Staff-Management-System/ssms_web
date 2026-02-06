@@ -81,4 +81,8 @@ urlpatterns = [
     path('password-reset/verify/', views.staff_password_reset_verify, name='password_reset_verify'),
     path('password-reset/verify-otp/', views.staff_password_reset_otp_verify, name='password_reset_otp_verify'),
     path('password-reset/confirm/', views.staff_password_reset_confirm, name='password_reset_confirm'),
+    
+    # Student Remarks
+    path('remarks/', views.remark_student_list, name='remark_student_list'),
+    path('remarks/<str:roll_number>/', views.remark_history, name='remark_history'),
 ]

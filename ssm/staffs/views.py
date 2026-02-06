@@ -370,15 +370,27 @@ def manage_subjects(request):
                 if staff_id:
                      staff_member = get_object_or_404(Staff, staff_id=staff_id)
                      
-                     # Check if staff is already assigned to a subject in this semester
-                     existing_assignment = Subject.objects.filter(staff=staff_member, semester=subject.semester).exclude(id=subject.id)
+                     # Check existing assignments in this semester (excluding current subject)
+                     existing_assignments = Subject.objects.filter(staff=staff_member, semester=subject.semester).exclude(id=subject.id)
                      
-                     if existing_assignment.exists():
-                         messages.error(request, f"{staff_member.name} is already assigned to a subject in Semester {subject.semester} ({existing_assignment.first().name}). Cannot assign more than 1 subject per semester.")
-                     else:
+                     allowed = True
+                     
+                     if subject.subject_type == 'Theory':
+                         existing_theory = existing_assignments.filter(subject_type='Theory').first()
+                         if existing_theory:
+                             messages.error(request, f"Cannot assign {subject.code}: {staff_member.name} already handles a Theory subject in Sem {subject.semester} ({existing_theory.code}). Limit: 1 Theory + 1 Lab.")
+                             allowed = False
+                             
+                     elif subject.subject_type == 'Lab':
+                         existing_lab = existing_assignments.filter(subject_type='Lab').first()
+                         if existing_lab:
+                             messages.error(request, f"Cannot assign {subject.code}: {staff_member.name} already handles a Lab in Sem {subject.semester} ({existing_lab.code}). Limit: 1 Theory + 1 Lab.")
+                             allowed = False
+                             
+                     if allowed:
                          subject.staff = staff_member
                          subject.save()
-                         messages.success(request, f"Assigned {staff_member.name} to {subject.name}.")
+                         messages.success(request, f"Assigned {staff_member.name} to {subject.name} ({subject.subject_type}).")
                 else:
                     subject.staff = None
                     subject.save()
@@ -2496,4 +2508,61 @@ def manage_bonafide(request):
     return render(request, 'staff/manage_bonafide.html', {
         'requests': requests,
         'staff': staff
+    })
+
+# --- Student Remarks System ---
+
+def remark_student_list(request):
+    """Lists students for the class incharge to add/view remarks."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    
+    # Security: Ensure only Class Incharge (or HOD/authorized roles) triggers this
+    # For now, we assume Class Incharge logic as per request.
+    if staff.role != 'Class Incharge' and staff.role != 'HOD':
+         messages.error(request, "Access restricted to Class Incharges.")
+         return redirect('staffs:staff_dashboard')
+
+    students = Student.objects.none()
+    
+    if staff.role == 'Class Incharge' and staff.assigned_semester:
+        students = Student.objects.filter(current_semester=staff.assigned_semester).order_by('roll_number')
+    elif staff.role == 'HOD':
+        # HOD can see all? Or filter by sem? Let's show all for now or maybe a filter
+        students = Student.objects.all().order_by('roll_number')
+
+    return render(request, 'staff/remark_student_list.html', {'staff': staff, 'students': students})
+
+def remark_history(request, roll_number):
+    """View and add remarks for a specific student."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    student = get_object_or_404(Student, roll_number=roll_number)
+    
+    # Import locally to avoid top-level potential circular if models changed recently
+    from students.models import StudentRemark
+
+    if request.method == 'POST':
+        remark_text = request.POST.get('remark')
+        if remark_text:
+            StudentRemark.objects.create(
+                student=student,
+                staff=staff,
+                remark=remark_text
+            )
+            messages.success(request, 'Remark added successfully.')
+            return redirect('staffs:remark_history', roll_number=roll_number)
+        else:
+            messages.error(request, 'Remark cannot be empty.')
+
+    remarks = student.remarks.all().select_related('staff').order_by('-created_at')
+
+    return render(request, 'staff/remark_history.html', {
+        'staff': staff,
+        'student': student,
+        'remarks': remarks
     })

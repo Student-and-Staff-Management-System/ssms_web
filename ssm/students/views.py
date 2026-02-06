@@ -236,6 +236,7 @@ def register_student(request):
             from staffs.utils import log_audit
             log_audit(request, 'update', actor_type='student', actor_id=student.roll_number, actor_name=student.student_name, object_type='Student', object_id=student.roll_number, message=f'Profile completed and password updated')
 
+            print(f"DEBUG: Saved student {s.roll_number}. is_profile_complete={s.is_profile_complete}")
             return JsonResponse({'message': 'Profile Completed Successfully! Redirecting to Dashboard...'})
         
         else:
@@ -288,11 +289,28 @@ def stdregister(request):
     roll_number = request.session.get('student_roll_number')
     student = get_object_or_404(Student, roll_number=roll_number)
     
-    # If already complete, don't let them do it again (or maybe redirect to edit?)
-    if student.is_profile_complete:
-         return redirect('student_dashboard')
-         
-    return render(request, 'stdregister.html', {'student': student})
+    # Helper to safely get related objects
+    def get_related_or_none(model_class, student_obj):
+        try:
+            return model_class.objects.get(student=student_obj)
+        except model_class.DoesNotExist:
+            return None
+
+    context = {
+        'student': student,
+        'personal': get_related_or_none(PersonalInfo, student),
+        'bank': get_related_or_none(BankDetails, student),
+        'docs': get_related_or_none(StudentDocuments, student),
+        'other': get_related_or_none(OtherDetails, student),
+        'scholarship': get_related_or_none(ScholarshipInfo, student),
+        'academic': get_related_or_none(AcademicHistory, student),
+        'diploma': get_related_or_none(DiplomaDetails, student),
+        'ug': get_related_or_none(UGDetails, student),
+        'pg': get_related_or_none(PGDetails, student),
+        'phd': get_related_or_none(PhDDetails, student),
+    }
+
+    return render(request, 'stdregister.html', context)
 
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
@@ -421,6 +439,7 @@ def student_dashboard(request):
     }
     
     # New Logic: If profile is incomplete, show the status page instead of dashboard
+    print(f"DEBUG: Dashboard access for {student.roll_number}. is_profile_complete={student.is_profile_complete}")
     if not student.is_profile_complete:
          return render(request, 'student_profile_status.html', context)
 

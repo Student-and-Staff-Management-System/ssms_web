@@ -43,6 +43,9 @@
                 <a href="{% url 'staffs:student_list' %}" class="nav-item">
                     <span class="nav-icon">👨‍🎓</span> My Students
                 </a>
+                <a href="{% url 'staffs:remark_student_list' %}" class="nav-item">
+                    <span class="nav-icon">💬</span> Student Remarks
+                </a>
                 <a href="{% url 'staffs:timetable' %}" class="nav-item">
                     <span class="nav-icon">🗓️</span> My Timetable
                 </a>
@@ -149,8 +152,14 @@
                     {% for subject in subjects %}
                     <div class="action-tile" style="border-left: 4px solid var(--primary);">
                         <div style="display: flex; justify-content: space-between;">
-                            <span
-                                style="font-size: 0.7rem; background: var(--primary-light); color: var(--primary-dark); padding: 2px 8px; border-radius: 4px;">{{subject.code}}</span>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <span
+                                    style="font-size: 0.7rem; background: var(--primary-light); color: var(--primary-dark); padding: 2px 8px; border-radius: 4px;">{{subject.code}}</span>
+                                {% if subject.subject_type == 'Lab' %}
+                                <span
+                                    style="font-size: 0.7rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Lab</span>
+                                {% endif %}
+                            </div>
                             <span style="font-size: 0.7rem; color: var(--text-muted);">Sem {{ subject.semester }}</span>
                         </div>
                         <h4 style="font-size: 0.95rem;">{{ subject.name }}</h4>

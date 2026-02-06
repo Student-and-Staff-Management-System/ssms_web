@@ -1,0 +1,197 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Remarks | Class Incharge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        /* Minimal specific overrides consistent with theme */
+        .page-title-area {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .action-btn {
+            background-color: #e0e7ff;
+            color: #4338ca;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #c7d2fe;
+        }
+
+        .count-badge {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar (Copied from staffdash_class.html to maintain theme) -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+                    alt="Logo">
+                <h1>Class<br>Incharge</h1>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-label">Menu</div>
+                <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
+                    <span class="nav-icon">👤</span> My Profile
+                </a>
+                <a href="{% url 'staffs:staff_portfolio' %}" class="nav-item">
+                    <span class="nav-icon">📄</span> Publications & Accomplishments
+                </a>
+                <a href="{% url 'staffs:risk_students' %}" class="nav-item">
+                    <span class="nav-icon">⚠️</span> Risk Students
+                </a>
+                <a href="{% url 'staffs:student_list' %}" class="nav-item">
+                    <span class="nav-icon">👨‍🎓</span> My Students
+                </a>
+                <a href="{% url 'staffs:remark_student_list' %}" class="nav-item active"
+                    style="background: rgba(255, 255, 255, 0.1); color: white;">
+                    <span class="nav-icon">💬</span> Student Remarks
+                </a>
+                <a href="{% url 'staffs:timetable' %}" class="nav-item">
+                    <span class="nav-icon">🗓️</span> My Timetable
+                </a>
+                <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item">
+                    <span class="nav-icon">📝</span> Review Leaves
+                </a>
+                <a href="{% url 'staffs:exam_schedule' %}" class="nav-item">
+                    <span class="nav-icon">📅</span> Exam Duties
+                </a>
+                <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item">
+                    <span class="nav-icon">✈️</span> Apply Leave
+                </a>
+            </nav>
+
+            <div class="profile-mini">
+                {% if staff.photo %}
+                <img src="{{ staff.photo.url }}" alt="Profile">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile">
+                {% endif %}
+                <div style="flex: 1; min-width: 0;">
+                    <div
+                        style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
+                        {{ staff.name }}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Class Incharge</div>
+                </div>
+                <a href="{% url 'staffs:staff_logout' %}" title="Logout"
+                    style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="greeting">
+                    <h2>Student Remarks</h2>
+                    <p style="font-size: 1rem; color: var(--text-muted); margin-top: 4px;">
+                        Manage remarks for Semester {{ staff.assigned_semester }}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'staffs:staff_dashboard' %}"
+                        style="text-decoration: none; color: var(--primary); font-weight: 600;">← Back to Dashboard</a>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Name</th>
+                            <th>Register Number</th>
+                            <th>Total Remarks</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td style="font-family: monospace; color: #334155;">{{ student.roll_number }}</td>
+                            <td style="font-weight: 500;">{{ student.student_name }}</td>
+                            <td>{{ student.register_number|default:"-" }}</td>
+                            <td>
+                                {% if student.remarks.count > 0 %}
+                                <span class="count-badge">{{ student.remarks.count }}</span>
+                                {% else %}
+                                <span style="color: #cbd5e1;">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'staffs:remark_history' student.roll_number %}"
+                                    class="action-btn">Manage Remarks</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;">
+                                No students found for this semester.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

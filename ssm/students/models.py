@@ -3,6 +3,19 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.hashers import make_password, check_password
 import datetime
 
+# ... existing imports ...
+
+# Add at the bottom or appropriate place
+class StudentRemark(models.Model):
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='remarks')
+    staff = models.ForeignKey('staffs.Staff', on_delete=models.SET_NULL, null=True, related_name='given_remarks')
+    remark = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Remark for {self.student.student_name} by {self.staff.name if self.staff else 'Unknown'}"
+
+
 
 def get_year_choices():
     """Generates a list of years for dropdown choices."""
@@ -83,6 +96,7 @@ class PersonalInfo(models.Model):
     permanent_address = models.TextField(blank=True)
     present_address = models.TextField(blank=True)
     student_mobile = models.CharField(max_length=15, blank=True)
+    parent_email = models.EmailField(blank=True, null=True)
     father_name = models.CharField(max_length=100, blank=True)
     father_occupation = models.CharField(max_length=100, blank=True)
     father_mobile = models.CharField(max_length=15, blank=True)

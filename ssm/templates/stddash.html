@@ -347,17 +347,16 @@
                     style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
                     <div style="flex: 1;">
                         <h4 style="margin: 0 0 5px 0; color: #be123c;">⚠️ Complete Your Profile</h4>
-                        <p style="margin: 0; font-size: 0.9rem; color: #881337;">Your profile is <strong>{{
-                                profile_completion_percentage }}%</strong> complete. Please update your details to
-                            access full features.</p>
+                        <p style="margin: 0; font-size: 0.9rem; color: #881337;">Your profile is
+                            <strong>{{profile_completion_percentage }}%</strong> complete. Please update your details toaccess full features.</p>
                         <div
                             style="background: #fecdd3; height: 8px; border-radius: 4px; margin-top: 10px; width: 100%; max-width: 400px; overflow: hidden;">
                             <div
-                                style="background: #e11d48; height: 100%; width: {{ profile_completion_percentage }}%;">
+                                style="background: #e11d48; height: 100%; width: {{ profile_completion_percentage|default:0 }}%;">
                             </div>
                         </div>
                     </div>
-                    <a href="{% url 'student_editprofile' %}" class="btn"
+                    <a href="{% url 'student_register' %}" class="btn"
                         style="background: #e11d48; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; white-space: nowrap; margin-left: 20px;">Complete
                         Now &rarr;</a>
             </div>
@@ -368,8 +367,7 @@
                 <div title="Name"><span style="margin-right: 5px;">👤</span> {{ student.student_name }}</div>
                 <div title="Semester"><span style="margin-right: 5px;">🎓</span> Sem {{ student.current_semester }}
                 </div>
-                <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -
-                    {{ student.ending_year }}</div>
+                <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }} -{{ student.ending_year }}</div>
                 <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
                 </div>
                 <div title="Mobile"><span style="margin-right: 5px;">📱</span>
@@ -454,8 +452,8 @@
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                             <td style="padding: 8px 0; color: #334155;">
                                 <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
-                                <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"}} - {{
-                                    leave.end_date|date:"d M" }}</div>
+                                <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"}} -
+                                    {{leave.end_date|date:"d M" }}</div>
                             </td>
                             <td style="padding: 8px 0; text-align: right;">
                                 <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;"
@@ -539,7 +537,8 @@
                             <a href="{{ project.project_link }}" target="_blank" style="text-decoration: none;">🔗</a>
                             {% endif %}
                         </div>
-                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">{{ project.description|truncatechars:60 }}</p>
+                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">{{
+                            project.description|truncatechars:60 }}</p>
                     </div>
                     {% empty %}
                     <p class="text-muted" style="font-size: 0.9rem;">No projects added yet.</p>
@@ -564,7 +563,7 @@
             <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
                 style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
                 {% for record in gpa_records %}
-                <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
+                <option value="std_sem_{{ record.semester }}" {% if  record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
                 </option>
                 {% endfor %}
             </select>
