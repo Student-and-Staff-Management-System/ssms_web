@@ -2,6 +2,7 @@
   "name": "AU - IT",
   "short_name": "AUIT",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#5a7d7c",
@@ -10,12 +11,14 @@
     {
       "src": "/static/imgs/annamalai.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/static/imgs/annamalai.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
