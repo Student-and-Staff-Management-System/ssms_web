@@ -18,7 +18,8 @@ class StaffAdmin(admin.ModelAdmin):
             'fields': ('staff_id', 'name', 'email', 'photo')
         }),
         ('Role & Designation', {
-            'fields': ('role', 'assigned_semester', 'salutation', 'designation', 'department')
+            'fields': ('role', 'assigned_semester', 'salutation', 'designation', 'department'),
+            'description': 'Note: Only one HOD is allowed. Class Incharge must be assigned to a unique semester.'
         }),
         ('Professional Details', {
             'fields': ('qualification', 'specialization', 'experience')
@@ -33,6 +34,12 @@ class StaffAdmin(admin.ModelAdmin):
             'fields': ('is_active',) # Removed password field for security, use set_password via custom form or shell if really needed via admin, but standard is fine
         }),
     )
+    
+    def save_model(self, request, obj, form, change):
+        """Trigger model validation before saving."""
+        obj.full_clean()  # This calls the model's clean() method
+        super().save_model(request, obj, form, change)
+
 
 from .models import ExamSchedule, Timetable
 
@@ -77,10 +84,41 @@ class AuditLogAdmin(admin.ModelAdmin):
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    list_display = ('content', 'target', 'date', 'start_date', 'end_date', 'is_active', 'link')
+    list_display = ('content_short', 'target', 'date', 'start_date', 'end_date', 'is_active', 'has_document', 'has_new_indicator')
     list_filter = ('target', 'is_active', 'start_date', 'end_date')
     search_fields = ('content', 'link')
     list_editable = ('target', 'is_active', 'start_date', 'end_date')
+    
+    fieldsets = (
+        ('Content', {
+            'fields': ('content', 'link', 'document')
+        }),
+        ('Visibility', {
+            'fields': ('target', 'is_active', 'start_date', 'end_date'),
+            'description': 'News will auto-disable after end date. Run "python manage.py disable_expired_news" to update.'
+        }),
+        ('NEW Indicator', {
+            'fields': ('new_gif_start_date', 'new_gif_end_date'),
+            'description': 'Show a NEW indicator during this date range. End date must not exceed news end date.'
+        }),
+    )
+    
+    def content_short(self, obj):
+        return (obj.content[:50] + '...') if len(obj.content) > 50 else obj.content
+    content_short.short_description = 'Content'
+    
+    def has_document(self, obj):
+        return '📎' if obj.document else '—'
+    has_document.short_description = 'Doc'
+    
+    def has_new_indicator(self, obj):
+        return '🆕' if obj.should_show_new_indicator() else '—'
+    has_new_indicator.short_description = 'NEW'
+    
+    def save_model(self, request, obj, form, change):
+        """Trigger model validation before saving."""
+        obj.full_clean()  # This calls the model's clean() method
+        super().save_model(request, obj, form, change)
 
 @admin.register(StaffLeaveRequest)
 class StaffLeaveRequestAdmin(admin.ModelAdmin):

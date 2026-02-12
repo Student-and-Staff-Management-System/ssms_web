@@ -5,7 +5,7 @@ from ssm.upload_paths import (
     staff_photo_path, staff_award_document_path, staff_seminar_document_path,
     staff_student_guided_document_path, staff_leave_document_path,
     staff_conference_document_path, staff_journal_document_path,
-    staff_book_document_path
+    staff_book_document_path, news_documents_path
 )
 
 
@@ -36,7 +36,7 @@ class Staff(models.Model):
         ('Scholarship Officer', 'Scholarship Officer'),
         ('Office Staff', 'Office Staff'),
     ]
-    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='HOD')
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='Course Incharge')
     assigned_semester = models.IntegerField(null=True, blank=True, help_text="For Class Incharge: Specify which semester they manage (1-8).")
     
     # Personal & Employment Dates
@@ -65,6 +65,36 @@ class Staff(models.Model):
     research_gate_link = models.URLField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
+
+    def clean(self):
+        """Validate staff role assignments."""
+        from django.core.exceptions import ValidationError
+        
+        # Validate only one HOD
+        if self.role == 'HOD':
+            existing_hod = Staff.objects.filter(role='HOD').exclude(staff_id=self.staff_id)
+            if existing_hod.exists():
+                raise ValidationError({
+                    'role': f'Only one HOD is allowed. Current HOD: {existing_hod.first().name} ({existing_hod.first().staff_id})'
+                })
+        
+        # Validate Class Incharge semester uniqueness
+        if self.role == 'Class Incharge' and self.assigned_semester:
+            existing_ci = Staff.objects.filter(
+                role='Class Incharge',
+                assigned_semester=self.assigned_semester
+            ).exclude(staff_id=self.staff_id)
+            
+            if existing_ci.exists():
+                raise ValidationError({
+                    'assigned_semester': f'Semester {self.assigned_semester} already has a Class Incharge: {existing_ci.first().name} ({existing_ci.first().staff_id})'
+                })
+        
+        # Require assigned_semester for Class Incharge
+        if self.role == 'Class Incharge' and not self.assigned_semester:
+            raise ValidationError({
+                'assigned_semester': 'Class Incharge must be assigned to a specific semester (1-8).'
+            })
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
@@ -284,10 +314,58 @@ class News(models.Model):
     start_date = models.DateField(null=True, blank=True, help_text="Date when this announcement should start showing")
     end_date = models.DateField(null=True, blank=True, help_text="Date when this announcement should stop showing")
     is_active = models.BooleanField(default=True)
+    
+    # Document upload
+    document = models.FileField(
+        upload_to=news_documents_path,
+        blank=True,
+        null=True,
+        help_text="Upload a document (PDF, DOC, etc.) related to this announcement"
+    )
+    
+    # NEW gif indicator dates
+    new_gif_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when the NEW indicator should start showing"
+    )
+    new_gif_end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when the NEW indicator should stop showing (must not exceed news end date)"
+    )
 
     class Meta:
         ordering = ['-date']
         verbose_name_plural = "News & Announcements"
+    
+    def clean(self):
+        """Validate NEW gif dates."""
+        from django.core.exceptions import ValidationError
+        
+        # Validate NEW gif end date doesn't exceed news end date
+        if self.new_gif_end_date and self.end_date:
+            if self.new_gif_end_date > self.end_date:
+                raise ValidationError({
+                    'new_gif_end_date': 'NEW indicator end date cannot exceed the news end date.'
+                })
+        
+        # Validate gif start date is before end date
+        if self.new_gif_start_date and self.new_gif_end_date:
+            if self.new_gif_start_date > self.new_gif_end_date:
+                raise ValidationError({
+                    'new_gif_end_date': 'NEW indicator end date must be after start date.'
+                })
+    
+    def should_show_new_indicator(self):
+        """Check if NEW gif should be displayed."""
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        if not self.new_gif_start_date or not self.new_gif_end_date:
+            return False
+        
+        return self.new_gif_start_date <= today <= self.new_gif_end_date
 
     def __str__(self):
         return f"{self.date} - {self.target}: {self.content[:30]}..."

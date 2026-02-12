@@ -74,6 +74,29 @@ def result_screenshot_path(instance, filename):
     return f'students/{instance.student.roll_number}/result_{subject_code}_{date_str}.{ext}'
 
 
+def student_remark_evidence_path(instance, filename):
+    """Upload path for student remark evidence documents."""
+    ext = filename.split('.')[-1]
+    date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return f'students/{instance.student.roll_number}/remarks/evidence_{date_str}.{ext}'
+
+
+def student_remark_apology_path(instance, filename):
+    """Upload path for student apology letters."""
+    ext = filename.split('.')[-1]
+    date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return f'students/{instance.student.roll_number}/remarks/apology_{date_str}.{ext}'
+
+
+def news_documents_path(instance, filename):
+    """Upload path for news/announcement documents."""
+    ext = filename.split('.')[-1]
+    date_str = datetime.now().strftime('%Y%m%d')
+    # Sanitize filename
+    safe_filename = filename.replace(' ', '_')
+    return f'news/documents/{date_str}_{safe_filename}'
+
+
 # ==========================================
 # STAFF FILE UPLOAD PATHS
 # ==========================================

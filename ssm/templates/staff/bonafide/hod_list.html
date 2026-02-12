@@ -117,8 +117,8 @@
                     <td style="padding: 15px;">{{ req.updated_at|date:"d M Y" }}</td>
                     <td style="padding: 15px; text-align: right;">
                         <a href="{% url 'staffs:generate_bonafide_request_pdf' req.id %}" target="_blank"
-                            style="display: inline-block; background: #3498db; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9rem; margin-right: 5px;">
-                            🖨️ Print PDF
+                            style="display: inline-block; background: #34495e; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9rem; margin-right: 5px;">
+                            🖨️ Print Certificate
                         </a>
                         <form method="post" action="{% url 'staffs:hod_manage_bonafide' %}" style="display: inline;">
                             {% csrf_token %}

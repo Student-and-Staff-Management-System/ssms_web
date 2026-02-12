@@ -6,16 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Remarks | Class Incharge</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+
     <style>
-        /* Minimal specific overrides consistent with theme */
-        .page-title-area {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        /* ================= DESKTOP (UNCHANGED) ================= */
 
         .table-container {
             background: white;
@@ -49,8 +45,8 @@
         }
 
         .action-btn {
-            background-color: #e0e7ff;
-            color: #4338ca;
+            background-color: var(--primary);
+            color: white;
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
@@ -60,7 +56,7 @@
         }
 
         .action-btn:hover {
-            background-color: #c7d2fe;
+            background-color: var(--primary-dark);
         }
 
         .count-badge {
@@ -71,13 +67,113 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
+
+        /* ================= MOBILE FIXED VERSION ================= */
+
+        @media (max-width: 768px) {
+
+            body {
+                background: #f1f5f9;
+            }
+
+            .app-container {
+                display: block !important;
+            }
+
+            .sidebar {
+                display: none !important;
+            }
+
+            .main-content {
+                width: 100% !important;
+                padding: 16px !important;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .table-container {
+                padding: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            table thead {
+                display: none;
+            }
+
+            table,
+            tbody,
+            tr,
+            td {
+                display: block;
+                width: 100%;
+            }
+
+            tr {
+                background: #ffffff;
+                margin-bottom: 16px;
+                border-radius: 14px;
+                padding: 16px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+                position: relative;
+            }
+
+            /* Accent strip */
+            tr::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                width: 4px;
+                background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+                border-top-left-radius: 14px;
+                border-bottom-left-radius: 14px;
+            }
+
+            td {
+                padding: 6px 0;
+                border: none;
+                font-size: 0.92rem;
+                color: #334155;
+            }
+
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                display: block;
+                font-size: 0.72rem;
+                color: #64748b;
+                margin-bottom: 3px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .action-btn {
+                display: inline-block;
+                margin-top: 10px;
+                padding: 8px 16px;
+                border-radius: 8px;
+                font-size: 0.85rem;
+            }
+
+            .count-badge {
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 
 <body>
 
     <div class="app-container">
-        <!-- Sidebar (Copied from staffdash_class.html to maintain theme) -->
+
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
                 <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
@@ -87,6 +183,7 @@
 
             <nav class="nav-section">
                 <div class="nav-label">Menu</div>
+
                 <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
                     <span class="nav-icon">👤</span> My Profile
                 </a>
@@ -100,7 +197,7 @@
                     <span class="nav-icon">👨‍🎓</span> My Students
                 </a>
                 <a href="{% url 'staffs:remark_student_list' %}" class="nav-item active"
-                    style="background: rgba(255, 255, 255, 0.1); color: white;">
+                    style="background: rgba(255,255,255,0.1); color: white;">
                     <span class="nav-icon">💬</span> Student Remarks
                 </a>
                 <a href="{% url 'staffs:timetable' %}" class="nav-item">
@@ -123,30 +220,34 @@
                 {% else %}
                 <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile">
                 {% endif %}
-                <div style="flex: 1; min-width: 0;">
+                <div style="flex:1; min-width:0;">
                     <div
-                        style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
+                        style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:0.9rem;">
                         {{ staff.name }}
                     </div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Class Incharge</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">
+                        Class Incharge
+                    </div>
                 </div>
-                <a href="{% url 'staffs:staff_logout' %}" title="Logout"
-                    style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
+                <a href="{% url 'staffs:staff_logout' %}"
+                    style="color:#ef4444; font-size:1.1rem; text-decoration:none;">⏻</a>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
             <div class="top-bar">
-                <div class="greeting">
+                <div>
                     <h2>Student Remarks</h2>
-                    <p style="font-size: 1rem; color: var(--text-muted); margin-top: 4px;">
+                    <p style="font-size:1rem; color:var(--text-muted); margin-top:4px;">
                         Manage remarks for Semester {{ staff.assigned_semester }}
                     </p>
                 </div>
                 <div>
                     <a href="{% url 'staffs:staff_dashboard' %}"
-                        style="text-decoration: none; color: var(--primary); font-weight: 600;">← Back to Dashboard</a>
+                        style="text-decoration:none; color:var(--primary); font-weight:600;">
+                        ← Back to Dashboard
+                    </a>
                 </div>
             </div>
 
@@ -164,24 +265,27 @@
                     <tbody>
                         {% for student in students %}
                         <tr>
-                            <td style="font-family: monospace; color: #334155;">{{ student.roll_number }}</td>
-                            <td style="font-weight: 500;">{{ student.student_name }}</td>
-                            <td>{{ student.register_number|default:"-" }}</td>
-                            <td>
+                            <td data-label="Roll Number">{{ student.roll_number }}</td>
+                            <td data-label="Name">{{ student.student_name }}</td>
+                            <td data-label="Register Number">
+                                {{ student.register_number|default:"-" }}
+                            </td>
+                            <td data-label="Total Remarks">
                                 {% if student.remarks.count > 0 %}
                                 <span class="count-badge">{{ student.remarks.count }}</span>
                                 {% else %}
-                                <span style="color: #cbd5e1;">-</span>
+                                -
                                 {% endif %}
                             </td>
-                            <td>
-                                <a href="{% url 'staffs:remark_history' student.roll_number %}"
-                                    class="action-btn">Manage Remarks</a>
+                            <td data-label="Action">
+                                <a href="{% url 'staffs:remark_history' student.roll_number %}" class="action-btn">
+                                    Manage Remarks
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;">
+                            <td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">
                                 No students found for this semester.
                             </td>
                         </tr>
@@ -190,6 +294,7 @@
                 </table>
             </div>
         </main>
+
     </div>
 
 </body>

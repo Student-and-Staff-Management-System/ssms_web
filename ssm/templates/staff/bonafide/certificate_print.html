@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonafide Certificate - {{ student.roll_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+            /* Removes browser headers/footers (stamps) */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            color: #000;
+            background: #fff;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 15mm 20mm;
+            /* Optimizing whitespace */
+            font-size: 11pt;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+
+        .university-logo {
+            width: 55px;
+            height: auto;
+        }
+
+        .au100-logo {
+            width: 55px;
+            height: auto;
+        }
+
+        .university-title {
+            text-align: center;
+            flex-grow: 1;
+            padding: 0 20px;
+        }
+
+        .university-title h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            color: #8B4513;
+            margin: 0;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .top-border {
+            border-top: 2px solid #000;
+            margin-bottom: 8px;
+        }
+
+        .dept-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #003366;
+        }
+
+        .dept-left {
+            text-align: left;
+        }
+
+        .dept-right {
+            text-align: right;
+        }
+
+        .email-row {
+            text-align: right;
+            font-size: 9pt;
+            margin-top: 5px;
+            color: #000;
+        }
+
+
+        .bottom-border {
+            border-bottom: 2px solid #000;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .date-row {
+            text-align: right;
+            font-size: 10pt;
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        .date-box {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 1px solid #000;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        .certificate-title {
+            text-align: center;
+            margin: 25px 0 30px 0;
+        }
+
+        .certificate-title h2 {
+            font-size: 16pt;
+            text-decoration: underline;
+            color: #000;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .content-body {
+            font-size: 11pt;
+            line-height: 1.8;
+            color: #003366;
+            text-align: justify;
+        }
+
+        .inline-field {
+            border-bottom: 1px solid #000;
+            display: inline-block;
+            min-width: 250px;
+            padding: 0 5px 2px 5px;
+            color: #000;
+            text-align: center;
+            /* Centering data */
+        }
+
+        .roll-field {
+            min-width: 120px;
+        }
+
+        .father-field {
+            min-width: 280px;
+        }
+
+        .reason-field {
+            min-width: 200px;
+        }
+
+        .red-text {
+            color: #ff0000;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 15mm 20mm;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="no-print" style="text-align: center; margin-bottom: 20px; background: #f0f0f0; padding: 10px;">
+        <button onclick="window.print()"
+            style="padding: 10px 20px; font-size: 16px; cursor: pointer; background: #003366; color: white; border: none; border-radius: 5px;">Print
+            Certificate</button>
+        <button onclick="window.close()"
+            style="padding: 10px 20px; font-size: 16px; cursor: pointer; background: #666; color: white; border: none; border-radius: 5px; margin-left: 10px;">Close</button>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header-container">
+        <img src="{% static 'imgs/annamalai.png' %}" alt="Annamalai University Logo" class="university-logo">
+        <div class="university-title">
+            <h1>Annamalai University</h1>
+        </div>
+        <img src="{% static 'imgs/au_100.png' %}" alt="AU 100 Logo" class="au100-logo">
+    </div>
+
+    <div class="top-border"></div>
+
+    <!-- Department Info -->
+    <div class="dept-info">
+        <div class="dept-left">
+            Dr. S. Jothilakshmi<br>
+            Professor and Head<br>
+            Department of Information Technology
+        </div>
+        <div class="dept-right">
+            Department of Information Technology<br>
+            Faculty of Engineering and Technology<br>
+            Annamalai University<br>
+            Annamalai Nagar<br>
+            Pincode: 608002
+        </div>
+    </div>
+
+    <!-- Email Row -->
+    <div class="email-row">
+        ✉ : <a href="mailto:aufeatit@gmail.com">aufeatit@gmail.com</a>
+    </div>
+
+    <div class="bottom-border"></div>
+
+    <!-- Date -->
+    <div class="date-row">
+        Date: <span style="font-weight: bold;">{{ date|date:"d.m.Y" }}</span>
+    </div>
+
+    <!-- Title -->
+    <div class="certificate-title">
+        <h2>Bonafide Certificate</h2>
+    </div>
+
+    <!-- Body Content -->
+    <div class="content-body">
+        This is to certify that Mr./Ms. <span class="inline-field">{{ student.student_name }}</span>
+        <br><br>
+        (<span class="red-text">Roll. No.</span> <span class="inline-field roll-field">{{ student.roll_number }}</span>)
+        Son/Daughter of <span class="inline-field father-field">{{ father_name }}</span>
+        <br><br>
+        is a bonafide student of this University studying in the
+        <span class="inline-field" style="min-width: 50px; text-align: center;">{{ current_year_roman }}</span> Year /
+        <span class="inline-field" style="min-width: 50px; text-align: center;">{{ current_semester_roman }}</span>
+        Semester
+        <br><br>
+        <strong>B.E.</strong> (Information Technology) Full Time / Lateral Entry Programme during the year
+        {{academic_year }}.
+        <br><br> This certificate is issued to the above student for the purpose of
+        <br><br>
+        <span class="inline-field reason-field">{{ bonafide_request.reason }}</span>
+    </div>
+
+</body>
+
+</html>

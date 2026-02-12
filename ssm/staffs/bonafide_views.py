@@ -1,20 +1,64 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse
 from .models import Staff
 from students.models import BonafideRequest
-from .utils import generate_bonafide_pdf, generate_bulk_bonafide_pdf
-import io
 
 @login_required(login_url='staffs:stafflogin')
 def generate_bonafide_request_pdf(request, request_id):
-    """Generates PDF for a specific bonafide request."""
+    """Renders the printable Bonafide Certificate template."""
     bonafide_req = get_object_or_404(BonafideRequest, id=request_id)
-    buffer = io.BytesIO()
-    generate_bonafide_pdf(buffer, bonafide_req)
-    buffer.seek(0)
-    return FileResponse(buffer, as_attachment=False, filename=f"bonafide_{bonafide_req.student.roll_number}.pdf")
+    student = bonafide_req.student
+    
+    # Calculate Year from Semester (1,2->I; 3,4->II, etc.)
+    import math
+    current_year_val = math.ceil(student.current_semester / 2)
+
+    # Calculate Academic Year (e.g., 2025-26)
+    from datetime import datetime
+    current_date = datetime.now()
+    this_year = current_date.year
+    if current_date.month > 5: # Academic year starts roughly in June
+        academic_year = f"{this_year} - {this_year - 1999}" # 2025 - 26
+    else:
+        academic_year = f"{this_year - 1} - {this_year - 2000}" # 2024 - 25
+
+    # Semester/Year Roman Numerals
+    def to_roman(n):
+        val = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+        syb = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"]
+        roman_num = ''
+        i = 0
+        while n > 0:
+            for _ in range(n // val[i]):
+                roman_num += syb[i]
+                n -= val[i]
+            i += 1
+        return roman_num
+
+    current_year_roman = to_roman(current_year_val)
+    current_semester_roman = to_roman(student.current_semester)
+    
+    # Get Father Name safely
+    father_name = ""
+    try:
+        if hasattr(student, 'personalinfo'):
+            father_name = student.personalinfo.father_name
+    except Exception:
+        pass
+
+    context = {
+        'student': student,
+        'father_name': father_name,
+        'bonafide_request': bonafide_req,
+        'date': current_date,
+        'academic_year': academic_year,
+        'current_year_roman': current_year_roman,
+        'current_semester_roman': current_semester_roman,
+    }
+    
+    return render(request, 'staff/bonafide/certificate_print.html', context)
 
 @login_required(login_url='staffs:stafflogin')
 def hod_bonafide_list(request):
@@ -97,13 +141,60 @@ def office_bonafide_list(request):
         rejection_reason = request.POST.get('rejection_reason', '')
         
         # Handle Bulk Print
+        # Handle Bulk Print
         if action == 'bulk_print':
              waiting_requests = BonafideRequest.objects.filter(status='Waiting for HOD Sign')
+             
              if waiting_requests.exists():
-                 buffer = io.BytesIO()
-                 generate_bulk_bonafide_pdf(buffer, waiting_requests)
-                 buffer.seek(0)
-                 return FileResponse(buffer, as_attachment=False, filename="bonafide_batch_print.pdf")
+                 from datetime import datetime
+                 import math
+                 
+                 current_date = datetime.now()
+                 this_year = current_date.year
+                 if current_date.month > 5:
+                    base_academic_year = f"{this_year} - {this_year - 1999}"
+                 else:
+                    base_academic_year = f"{this_year - 1} - {this_year - 2000}"
+
+                 def to_roman(n):
+                    val = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+                    syb = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"]
+                    roman_num = ''
+                    i = 0
+                    while n > 0:
+                        for _ in range(n // val[i]):
+                            roman_num += syb[i]
+                            n -= val[i]
+                        i += 1
+                    return roman_num
+
+                 bulk_data = []
+                 for req in waiting_requests:
+                     student = req.student
+                     current_year_val = math.ceil(student.current_semester / 2)
+                     
+                     # Get Father Name safely
+                     father_name = ""
+                     try:
+                         if hasattr(student, 'personalinfo'):
+                             father_name = student.personalinfo.father_name
+                     except Exception:
+                         pass
+
+                     bulk_data.append({
+                         'student': student,
+                         'bonafide_request': req,
+                         'father_name': father_name,
+                         'current_year_roman': to_roman(current_year_val),
+                         'current_semester_roman': to_roman(student.current_semester),
+                         'academic_year': base_academic_year
+                     })
+
+                 context = {
+                     'bulk_data': bulk_data,
+                     'date': current_date
+                 }
+                 return render(request, 'staff/bonafide/certificate_bulk_print.html', context)
              else:
                  messages.warning(request, "No requests waiting for signature.")
                  return redirect('staffs:office_manage_bonafide')

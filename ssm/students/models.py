@@ -16,22 +16,43 @@ from ssm.upload_paths import (
 # Student Discipline/Remark Model
 class StudentRemark(models.Model):
     REMARK_TYPE_CHOICES = [
-        ('LOW_ATTENDANCE', 'Low Attendance'),
-        ('CLASSROOM_DISTURBANCE', 'Classroom Disturbance'),
-        ('MOBILE_USAGE', 'Mobile Usage'),
-        ('DISRESPECTFUL_BEHAVIOR', 'Disrespectful Behavior'),
-        ('DRESS_CODE_VIOLATION', 'Dress Code Violation'),
-        ('BRACELET_VIOLATION', 'Bracelet Violation'),
-        ('EARRING_VIOLATION', 'Earring Violation'),
-        ('HABITUAL_LATECOMER', 'Habitual Latecomer'),
-        ('NEGATIVE_ATTITUDE', 'Negative Attitude'),
-        ('INDISCIPLINE', 'Indiscipline'),
+        ('DRESSING_CODE', 'Dressing Code'),
+        ('HAIRCUT_STYLING', 'Haircut / Styling'),
+        ('BEARD', 'Beard'),
+        ('CELL_PHONE', 'Cell Phone'),
+        ('BRACELET', 'Bracelet'),
+        ('MISBEHAVIOR', 'Misbehavior'),
+        ('DRUG_USAGE', 'Drug Usage'),
+        ('ACCIDENT', 'Accident'),
+        ('FIGHTING_QUARREL', 'Fighting / Quarrel'),
+        ('BIKE_RACING', 'Bike Racing'),
+        ('EARRING', 'Earring'),
+        ('OTHER_DEPT_ISSUES', 'Other Department Issues'),
+        ('HOSTEL', 'Hostel'),
+        ('TEASING', 'Teasing'),
+        ('MALPRACTICE', 'Malpractice'),
+        ('THEFT', 'Theft'),
+        ('OTHERS', 'Others'),
     ]
     
     student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='remarks')
     staff = models.ForeignKey('staffs.Staff', on_delete=models.SET_NULL, null=True, related_name='given_remarks')
     remark_type = models.CharField(max_length=50, choices=REMARK_TYPE_CHOICES)
-    description = models.TextField(blank=True, null=True, help_text="Additional notes or details")
+    custom_violation_text = models.CharField(max_length=200, blank=True, null=True, help_text="Custom violation text when 'Others' is selected")
+    incident_date = models.DateField(help_text="Date when the incident occurred")
+    description = models.TextField(blank=True, null=True, help_text="Additional notes or details about the incident")
+    evidence_document = models.FileField(
+        upload_to='ssm.upload_paths.student_remark_evidence_path',
+        blank=True,
+        null=True,
+        help_text="Upload evidence (photo, document, etc.)"
+    )
+    apology_letter = models.FileField(
+        upload_to='ssm.upload_paths.student_remark_apology_path',
+        blank=True,
+        null=True,
+        help_text="Upload student's apology letter"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     parent_notified = models.BooleanField(default=False)
     notification_sent_at = models.DateTimeField(null=True, blank=True)
@@ -40,7 +61,8 @@ class StudentRemark(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.get_remark_type_display()} - {self.student.student_name} ({self.created_at.strftime('%Y-%m-%d')})"
+        violation = self.custom_violation_text if self.remark_type == 'OTHERS' else self.get_remark_type_display()
+        return f"{violation} - {self.student.student_name} ({self.created_at.strftime('%Y-%m-%d')})"
 
 
 

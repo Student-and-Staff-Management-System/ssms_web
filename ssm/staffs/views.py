@@ -2748,7 +2748,7 @@ def remark_student_list(request):
     return render(request, 'staff/remark_student_list.html', {'staff': staff, 'students': students})
 
 def remark_history(request, roll_number):
-    """View and add remarks for a specific student with violation types and parent email notification."""
+    """View and add remarks for a specific student with violation types, incident details, and parent email notification."""
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
 
@@ -2759,48 +2759,51 @@ def remark_history(request, roll_number):
     from staffs.utils import send_parent_notification_email
 
     if request.method == 'POST':
-        # Get selected violation types from checkboxes
-        selected_violations = []
-        for choice_value, choice_label in StudentRemark.REMARK_TYPE_CHOICES:
-            if request.POST.get(choice_value):
-                selected_violations.append((choice_value, choice_label))
-        
+        remark_type = request.POST.get('remark_type')
+        custom_violation_text = request.POST.get('custom_violation_text', '').strip()
+        incident_date = request.POST.get('incident_date')
         description = request.POST.get('description', '').strip()
+        evidence_document = request.FILES.get('evidence_document')
+        apology_letter = request.FILES.get('apology_letter')
         send_email = request.POST.get('send_email') == 'on'
         
-        if selected_violations:
-            # Create a remark for each selected violation
-            created_remarks = []
-            for violation_value, violation_label in selected_violations:
-                remark = StudentRemark.objects.create(
-                    student=student,
-                    staff=staff,
-                    remark_type=violation_value,
-                    description=description if description else None
-                )
-                created_remarks.append(remark)
+        # Validation
+        if not remark_type:
+            messages.error(request, 'Please select a violation type.')
+        elif remark_type == 'OTHERS' and not custom_violation_text:
+            messages.error(request, 'Please provide custom violation text for "Others".')
+        elif not incident_date:
+            messages.error(request, 'Please provide the incident date.')
+        else:
+            # Create the remark
+            remark = StudentRemark.objects.create(
+                student=student,
+                staff=staff,
+                remark_type=remark_type,
+                custom_violation_text=custom_violation_text if remark_type == 'OTHERS' else None,
+                incident_date=incident_date,
+                description=description if description else None,
+                evidence_document=evidence_document,
+                apology_letter=apology_letter
+            )
             
             # Send email notification if requested
             if send_email:
-                violation_labels = [label for _, label in selected_violations]
-                email_sent = send_parent_notification_email(student, violation_labels, staff.name)
+                violation_label = custom_violation_text if remark_type == 'OTHERS' else dict(StudentRemark.REMARK_TYPE_CHOICES)[remark_type]
+                email_sent = send_parent_notification_email(student, [violation_label], staff.name)
                 
                 if email_sent:
-                    # Update notification status for all created remarks
                     from django.utils import timezone
-                    for remark in created_remarks:
-                        remark.parent_notified = True
-                        remark.notification_sent_at = timezone.now()
-                        remark.save()
-                    messages.success(request, f'{len(selected_violations)} remark(s) added and parent notified via email.')
+                    remark.parent_notified = True
+                    remark.notification_sent_at = timezone.now()
+                    remark.save()
+                    messages.success(request, 'Remark added and parent notified via email.')
                 else:
-                    messages.warning(request, f'{len(selected_violations)} remark(s) added, but email notification failed (parent email may be missing).')
+                    messages.warning(request, 'Remark added, but email notification failed (parent email may be missing).')
             else:
-                messages.success(request, f'{len(selected_violations)} remark(s) added successfully.')
+                messages.success(request, 'Remark added successfully.')
             
             return redirect('staffs:remark_history', roll_number=roll_number)
-        else:
-            messages.error(request, 'Please select at least one violation type.')
 
     # Get all remarks for this student
     remarks = student.remarks.all().select_related('staff').order_by('-created_at')

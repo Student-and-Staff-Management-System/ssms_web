@@ -21,14 +21,26 @@
             <div class="news-item" data-target="{{ news.target|lower }}">
                 <span class="news-date">{{ news.date|date:"M d, Y" }} <span
                         style="font-weight: 400; opacity: 0.7; font-size: 0.9em; margin-left: 5px;">{{news.date|time:"h:iA"}}</span></span>
+
+                {% if news.should_show_new_indicator %}
+                <span class="new-indicator">🆕 NEW</span>
+                {% endif %}
+
                 {% if news.link %}
                 <p><a href="{{ news.link }}" target="_blank" class="news-link">
                         {{ news.content }} <span style="font-size: 0.8em;">🔗</span>
                     </a>
                     <span class="news-tag {{ news.target|lower }}">{{ news.target }}</span>
+                    {% if news.document %}
+                    <a href="{{ news.document.url }}" target="_blank" class="document-link-inline">📎 View Document</a>
+                    {% endif %}
                 </p>
                 {% else %}
-                <p>{{ news.content }} <span class="news-tag {{ news.target|lower }}">{{ news.target }}</span></p>
+                <p>{{ news.content }} <span class="news-tag {{ news.target|lower }}">{{ news.target }}</span>
+                    {% if news.document %}
+                    <a href="{{ news.document.url }}" target="_blank" class="document-link-inline">📎 View Document</a>
+                    {% endif %}
+                </p>
                 {% endif %}
             </div>
             {% endfor %}
@@ -177,6 +189,92 @@
     .news-tag.student {
         background: #fae8ff;
         color: #86198f;
+    }
+
+    /* NEW Indicator - Eye-catching Design */
+    .new-indicator {
+        display: inline-block;
+        background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-right: 8px;
+        margin-bottom: 5px;
+        box-shadow: 0 2px 8px rgba(255, 8, 68, 0.4), 0 0 15px rgba(255, 8, 68, 0.2);
+        animation: shimmer 2s ease-in-out infinite, glow 1.5s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .new-indicator::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 70%);
+        animation: shine 3s infinite;
+    }
+
+    @keyframes shimmer {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes glow {
+
+        0%,
+        100% {
+            box-shadow: 0 2px 8px rgba(255, 8, 68, 0.4), 0 0 15px rgba(255, 8, 68, 0.2);
+        }
+
+        50% {
+            box-shadow: 0 2px 12px rgba(255, 8, 68, 0.6), 0 0 25px rgba(255, 8, 68, 0.4);
+        }
+    }
+
+    @keyframes shine {
+        0% {
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        }
+
+        100% {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+    }
+
+    /* Document Link - Inline */
+    .document-link-inline {
+        display: inline;
+        color: #3730a3;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-left: 8px;
+        padding: 2px 6px;
+        background: #e0e7ff;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+
+    .document-link-inline:hover {
+        background: #c7d2fe;
+        text-decoration: none;
     }
 
     @keyframes scroll-vertical {
