@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'students',
     'staffs',
-    "anymail",
     'storages',  # For R2 storage backend
     'webpush',
 ]
