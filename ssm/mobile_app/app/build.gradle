@@ -23,7 +23,7 @@ plugins {
 def twaManifest = [
     applicationId: 'com.au_it_dept.twa',
     hostName: 'ssms-web.onrender.com', // The domain being opened in the TWA.
-    launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
+    launchUrl: '/?source=twa', // The start path for the TWA. Must be relative to the domain.
     name: 'AU - IT', // The application name.
     launcherName: 'AU-IT', // The name shown on the Android Launcher.
     themeColor: '#FFFFFF', // The color used for the status bar.
@@ -57,8 +57,8 @@ android {
         applicationId "com.au_it_dept.twa"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 5
-        versionName "5"
+        versionCode 6
+        versionName "6"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

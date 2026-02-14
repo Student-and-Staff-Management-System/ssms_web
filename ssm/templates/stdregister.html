@@ -101,10 +101,10 @@
                             <label for="gender">Gender</label>
                             <select id="gender" name="gender" required>
                                 <option value="">-- Select --</option>
-                                <option value="Male" {% if personal.gender=="Male" %}selected{% endif %}>Male</option>
-                                <option value="Female" {% if personal.gender=="Female" %}selected{% endif %}>Female
+                                <option value="Male" {% if personal.gender == "Male" %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if personal.gender == "Female" %}selected{% endif %}>Female
                                 </option>
-                                <option value="Other" {% if personal.gender=="Other" %}selected{% endif %}>Other
+                                <option value="Other" {% if personal.gender == "Other" %}selected{% endif %}>Other
                                 </option>
                             </select>
                         </div>
@@ -112,25 +112,25 @@
                             <label for="blood_group">Blood Group</label>
                             <select id="blood_group" name="blood_group">
                                 <option value="">-- Select --</option>
-                                <option value="O+" {% if personal.blood_group=="O+" %}selected{% endif %}>O+</option>
-                                <option value="O-" {% if personal.blood_group=="O-" %}selected{% endif %}>O-</option>
-                                <option value="A+" {% if personal.blood_group=="A+" %}selected{% endif %}>A+</option>
-                                <option value="A-" {% if personal.blood_group=="A-" %}selected{% endif %}>A-</option>
-                                <option value="B+" {% if personal.blood_group=="B+" %}selected{% endif %}>B+</option>
-                                <option value="B-" {% if personal.blood_group=="B-" %}selected{% endif %}>B-</option>
-                                <option value="AB+" {% if personal.blood_group=="AB+" %}selected{% endif %}>AB+</option>
-                                <option value="AB-" {% if personal.blood_group=="AB-" %}selected{% endif %}>AB-</option>
+                                <option value="O+" {% if personal.blood_group == "O+" %}selected{% endif %}>O+</option>
+                                <option value="O-" {% if personal.blood_group == "O-" %}selected{% endif %}>O-</option>
+                                <option value="A+" {% if personal.blood_group == "A+" %}selected{% endif %}>A+</option>
+                                <option value="A-" {% if personal.blood_group == "A-" %}selected{% endif %}>A-</option>
+                                <option value="B+" {% if personal.blood_group == "B+" %}selected{% endif %}>B+</option>
+                                <option value="B-" {% if personal.blood_group == "B-" %}selected{% endif %}>B-</option>
+                                <option value="AB+" {% if personal.blood_group == "AB+" %}selected{% endif %}>AB+</option>
+                                <option value="AB-" {% if personal.blood_group == "AB-" %}selected{% endif %}>AB-</option>
                             </select>
                         </div>
                         <div class="input-group">
                             <label for="community">Community</label>
                             <select id="community" name="community" required>
                                 <option value="">-- Select --</option>
-                                <option value="OC" {% if personal.community=="OC" %}selected{% endif %}>OC</option>
-                                <option value="BC" {% if personal.community=="BC" %}selected{% endif %}>BC</option>
-                                <option value="MBC" {% if personal.community=="MBC" %}selected{% endif %}>MBC</option>
-                                <option value="SC" {% if personal.community=="SC" %}selected{% endif %}>SC</option>
-                                <option value="ST" {% if personal.community=="ST" %}selected{% endif %}>ST</option>
+                                <option value="OC" {% if personal.community == "OC" %}selected{% endif %}>OC</option>
+                                <option value="BC" {% if personal.community == "BC" %}selected{% endif %}>BC</option>
+                                <option value="MBC" {% if personal.community == "MBC" %}selected{% endif %}>MBC</option>
+                                <option value="SC" {% if personal.community == "SC" %}selected{% endif %}>SC</option>
+                                <option value="ST" {% if personal.community == "ST" %}selected{% endif %}>ST</option>
                             </select>
                         </div>
                         <div class="input-group">
@@ -145,14 +145,14 @@
                         </div>
                         <div class="input-group">
                             <label for="religion">Religion</label>
-                            <select id="religion" name="religion">
-                                <option value="Hindu" {% if personal.religion=="Hindu" %}selected{% endif %}>Hindu
+                            <select id="religion" name="religion" required>
+                                <option value="Hindu" {% if personal.religion == "Hindu" %}selected{% endif %}>Hindu
                                 </option>
-                                <option value="Christian" {% if personal.religion=="Christian" %}selected{% endif %}>
+                                <option value="Christian" {% if personal.religion == "Christian" %}selected{% endif %}>
                                     Christian</option>
-                                <option value="Muslim" {% if personal.religion=="Muslim" %}selected{% endif %}>Muslim
+                                <option value="Muslim" {% if personal.religion == "Muslim" %}selected{% endif %}>Muslim
                                 </option>
-                                <option value="Other" {% if personal.religion=="Other" %}selected{% endif %}>Other
+                                <option value="Other" {% if personal.religion == "Other" %}selected{% endif %}>Other
                                 </option>
                             </select>
                         </div>
@@ -245,11 +245,11 @@
                         <label for="program_level">Current Program Level</label>
                         <select id="program_level" name="program_level" required>
                             <option value="">-- Select Program --</option>
-                            <option value="UG" {% if student.program_level=="UG" %}selected{% endif %}>Undergraduate
+                            <option value="UG" {% if student.program_level == "UG" %}selected{% endif %}>Undergraduate
                             </option>
-                            <option value="PG" {% if student.program_level=="PG" %}selected{% endif %}>Postgraduate
+                            <option value="PG" {% if student.program_level == "PG" %}selected{% endif %}>Postgraduate
                             </option>
-                            <option value="PHD" {% if student.program_level=="PHD" %}selected{% endif %}>PhD</option>
+                            <option value="PHD" {% if student.program_level == "PHD" %}selected{% endif %}>PhD</option>
                         </select>
                     </div>
 
@@ -260,21 +260,21 @@
                                 <label for="current_semester">Current Semester</label>
                                 <select id="current_semester" name="current_semester" required>
                                     <option value="">-- Select Semester --</option>
-                                    <option value="1" {% if student.current_semester==1 %}selected{% endif %}>Semester 1
+                                    <option value="1" {% if student.current_semester == 1 %}selected{% endif %}>Semester 1
                                     </option>
-                                    <option value="2" {% if student.current_semester==2 %}selected{% endif %}>Semester 2
+                                    <option value="2" {% if student.current_semester == 2 %}selected{% endif %}>Semester 2
                                     </option>
-                                    <option value="3" {% if student.current_semester==3 %}selected{% endif %}>Semester 3
+                                    <option value="3" {% if student.current_semester == 3 %}selected{% endif %}>Semester 3
                                     </option>
-                                    <option value="4" {% if student.current_semester==4 %}selected{% endif %}>Semester 4
+                                    <option value="4" {% if student.current_semester == 4 %}selected{% endif %}>Semester 4
                                     </option>
-                                    <option value="5" {% if student.current_semester==5 %}selected{% endif %}>Semester 5
+                                    <option value="5" {% if student.current_semester == 5 %}selected{% endif %}>Semester 5
                                     </option>
-                                    <option value="6" {% if student.current_semester==6 %}selected{% endif %}>Semester 6
+                                    <option value="6" {% if student.current_semester == 6 %}selected{% endif %}>Semester 6
                                     </option>
-                                    <option value="7" {% if student.current_semester==7 %}selected{% endif %}>Semester 7
+                                    <option value="7" {% if student.current_semester == 7 %}selected{% endif %}>Semester 7
                                     </option>
-                                    <option value="8" {% if student.current_semester==8 %}selected{% endif %}>Semester 8
+                                    <option value="8" {% if student.current_semester == 8 %}selected{% endif %}>Semester 8
                                     </option>
                                 </select>
                             </div>
@@ -296,11 +296,11 @@
                             <label for="ug_entry_type">UG Entry Type</label>
                             <select id="ug_entry_type" name="ug_entry_type">
                                 <option value="">-- Select Entry Type --</option>
-                                <option value="Regular" {% if student.ug_entry_type=="Regular" %}selected{% endif %}>
+                                <option value="Regular" {% if student.ug_entry_type == "Regular" %}selected{% endif %}>
                                     Regular (HSC)</option>
-                                <option value="Lateral" {% if student.ug_entry_type=="Lateral" %}selected{% endif %}>
+                                <option value="Lateral" {% if student.ug_entry_type == "Lateral" %}selected{% endif %}>
                                     Lateral (Diploma)</option>
-                                <option value="Rejoin" {% if student.ug_entry_type=="Rejoin" %}selected{% endif %}>
+                                <option value="Rejoin" {% if student.ug_entry_type == "Rejoin" %}selected{% endif %}>
                                     Rejoin</option>
                             </select>
                         </div>

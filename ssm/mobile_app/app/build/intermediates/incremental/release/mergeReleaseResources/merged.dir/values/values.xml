@@ -341,7 +341,7 @@
     <string name="fullScopeUrl" translatable="false">https://ssms-web.onrender.com/static/</string>
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
     <string name="hostName" translatable="false">ssms-web.onrender.com</string>
-    <string name="launchUrl" translatable="false">https://ssms-web.onrender.com/</string>
+    <string name="launchUrl" translatable="false">https://ssms-web.onrender.com/?source=twa</string>
     <string name="launcherName" translatable="false">AU-IT</string>
     <string name="manage_space_no_data_toast">This app holds no browsing data.</string>
     <string name="manage_space_not_supported_toast">This app\'s data is stored in %1$s.</string>

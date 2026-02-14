@@ -26,7 +26,7 @@
     <string name="fullScopeUrl" translatable="false">https://ssms-web.onrender.com/static/</string>
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
     <string name="hostName" translatable="false">ssms-web.onrender.com</string>
-    <string name="launchUrl" translatable="false">https://ssms-web.onrender.com/</string>
+    <string name="launchUrl" translatable="false">https://ssms-web.onrender.com/?source=twa</string>
     <string name="launcherName" translatable="false">AU-IT</string>
     <string name="orientation" translatable="false">portrait</string>
     <string name="providerAuthority" translatable="false">com.au_it_dept.twa.fileprovider</string>
