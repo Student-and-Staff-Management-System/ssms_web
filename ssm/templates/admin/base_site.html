@@ -24,11 +24,17 @@
 <style>
     :root {
         --primary-color: #5a7d7c;
-        --secondary-color: #4a6b69;
-        --accent-color: #e5f6f5;
+        --primary-hover: #20b2aa;
+        --primary-dark: #4a6b69;
+        --accent-light: #b2dfdb;
         --text-color: #333;
         --bg-color: #f4f6f9;
+        --border-color: #dee2e6;
         --font-main: 'Poppins', sans-serif;
+    }
+
+    * {
+        box-sizing: border-box;
     }
 
     body {
@@ -70,13 +76,13 @@
     }
 
     #changelist table thead th {
-        background: var(--accent-color) !important;
-        color: var(--primary-color) !important;
+        background: var(--accent-light) !important;
+        color: var(--primary-dark) !important;
         font-weight: 600;
         padding: 12px 15px !important;
         text-transform: uppercase;
         font-size: 0.85rem;
-        border-bottom: 2px solid #ddd;
+        border-bottom: 2px solid var(--primary-color);
     }
 
     #changelist table tbody td {
@@ -87,28 +93,87 @@
     }
 
     #changelist table tbody tr:hover {
-        background-color: #fafafa;
+        background-color: #f0fffe;
     }
 
-    /* Buttons */
-    .button,
-    .submit-row input,
-    a.button {
+    /* Buttons - Comprehensive Targeting */
+    body .button,
+    body .submit-row input,
+    body a.button,
+    body .object-tools a,
+    body input[type="submit"],
+    body input[type="button"],
+    body .actions button,
+    body .object-tools a.addlink,
+    body #changelist-search input[type="submit"],
+    body button[type="submit"],
+    body .addlink,
+    body .changelink,
+    body .historylink,
+    body .viewsitelink {
         background: var(--primary-color) !important;
         border: none !important;
         border-radius: 4px !important;
         padding: 10px 20px !important;
         color: #fff !important;
         font-weight: 500;
-        transition: background 0.3s;
+        transition: all 0.3s ease;
         text-transform: uppercase;
         font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-block;
+        opacity: 1 !important;
+        box-shadow: 0 2px 4px rgba(0, 128, 128, 0.2) !important;
+        text-shadow: none !important;
+        text-decoration: none;
     }
 
-    .button:hover,
-    .submit-row input:hover,
-    a.button:hover {
-        background: var(--secondary-color) !important;
+    body .button:hover,
+    body .submit-row input:hover,
+    body a.button:hover,
+    body .object-tools a:hover,
+    body input[type="submit"]:hover,
+    body input[type="button"]:hover,
+    body .actions button:hover,
+    body .object-tools a.addlink:hover,
+    body #changelist-search input[type="submit"]:hover,
+    body button[type="submit"]:hover,
+    body .addlink:hover,
+    body .changelink:hover,
+    body .historylink:hover,
+    body .viewsitelink:hover {
+        background: var(--primary-hover) !important;
+        box-shadow: 0 4px 8px rgba(0, 128, 128, 0.3) !important;
+        transform: translateY(-1px);
+    }
+
+    /* DANGER / DELETE Actions */
+    body .deletelink,
+    body .submit-row a.deletelink,
+    body .deletelink-box a {
+        background: #dc3545 !important;
+        color: #fff !important;
+        height: auto;
+    }
+
+    body .deletelink:hover,
+    body .submit-row a.deletelink:hover,
+    body .deletelink-box a:hover {
+        background: #bb2d3b !important;
+    }
+
+    /* Sidebar Navigation (if exists) */
+    .module.current,
+    .module.selected {
+        background-color: var(--accent-light) !important;
+        border-left: 4px solid var(--primary-color) !important;
+    }
+
+    /* Active menu items */
+    .module a.section:link.selected,
+    .module a.section:visited.selected {
+        color: var(--primary-color) !important;
+        background-color: var(--accent-light) !important;
     }
 
     /* Form Fields */
@@ -120,12 +185,31 @@
     input[type=text],
     input[type=password],
     input[type=email],
+    input[type=number],
+    input[type=tel],
+    input[type=date],
+    input[type=url],
     select,
     textarea {
         border: 1px solid #ddd !important;
         border-radius: 4px !important;
         padding: 8px 12px !important;
         font-family: var(--font-main);
+        transition: border-color 0.3s ease;
+    }
+
+    input[type=text]:focus,
+    input[type=password]:focus,
+    input[type=email]:focus,
+    input[type=number]:focus,
+    input[type=tel]:focus,
+    input[type=date]:focus,
+    input[type=url]:focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--primary-color) !important;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.1);
     }
 
     /* Module Headers */
@@ -149,6 +233,54 @@
         white-space: nowrap;
     }
 
+    /* Pagination */
+    .paginator a:link,
+    .paginator a:visited {
+        background: var(--primary-color) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    .paginator a:hover {
+        background: var(--primary-hover) !important;
+    }
+
+    .paginator .this-page {
+        background: var(--primary-dark) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    /* Search Bar Styling */
+    #changelist-search input[type="text"] {
+        border: 2px solid var(--border-color) !important;
+        padding: 8px 12px !important;
+        border-radius: 4px !important;
+    }
+
+    #changelist-search input[type="text"]:focus {
+        border-color: var(--primary-color) !important;
+    }
+
+    /* Filters */
+    #changelist-filter li.selected a {
+        color: var(--primary-color) !important;
+        font-weight: 600;
+    }
+
+    #changelist-filter a:hover {
+        color: var(--primary-hover) !important;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumbs a {
+        color: var(--primary-color) !important;
+    }
+
+    .breadcrumbs a:hover {
+        color: var(--primary-hover) !important;
+    }
+
     /* Align everything left specifically */
     h1,
     h2,
@@ -170,7 +302,7 @@
     @media (max-width: 768px) {
 
         /* 1. Reset Container width and margins */
-        #container {
+        body #container {
             width: 100% !important;
             margin: 0 !important;
             border-radius: 0;
@@ -178,132 +310,365 @@
         }
 
         /* 2. Header Adjustments */
-        #header {
-            padding: 15px 20px !important;
+        body #header {
+            padding: 12px 15px !important;
             flex-direction: column;
             align-items: flex-start;
         }
 
-        #site-name {
-            margin-bottom: 15px;
+        body #site-name {
+            margin-bottom: 10px;
             width: 100%;
         }
 
-        #user-tools {
+        body #site-name img {
+            height: 32px !important;
+        }
+
+        body #site-name div div:first-child {
+            font-size: 16px !important;
+        }
+
+        body #site-name div div:last-child {
+            font-size: 11px !important;
+        }
+
+        body #user-tools {
             margin: 0;
             text-align: left;
             display: block;
-            font-size: 0.9em;
+            font-size: 0.85em;
             width: 100%;
         }
 
         /* 3. Content Padding */
-        #content {
+        body #content {
             padding: 15px !important;
         }
 
-        /* 4. Scrollable Tables */
-        /* Make the results div scrollable, not the table itself breaking */
-        #changelist .results,
-        .module table {
+        body #content h1 {
+            font-size: 1.5em !important;
+            margin-bottom: 15px !important;
+        }
+
+        /* 4. IMPROVED HORIZONTAL SCROLLING FOR TABLES */
+        /* 4. AGGRESSIVE HORIZONTAL SCROLLING */
+        body #changelist .results,
+        body .module table,
+        body .inline-group .tabular,
+        body #content-main table,
+        body .results table {
+            display: block !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            margin-bottom: 15px !important;
+            border: none !important;
+        }
+
+        body #changelist table,
+        body .module table table,
+        body .inline-group table,
+        body .results table {
+            min-width: 900px !important;
+            /* Force width to trigger scroll */
+            width: auto !important;
+            max-width: none !important;
+        }
+
+        /* Visible scroll hint */
+        body #changelist .results::after,
+        body .module table::after {
+            content: '↔ Scroll horizontally to view more';
             display: block;
-            width: 100%;
+            text-align: center;
+            padding: 5px;
+            background: #eee;
+            color: #555;
+            font-size: 0.75em;
+            position: sticky;
+            left: 0;
+            border-top: 1px solid #ddd;
+        }
+
+        body #changelist table thead th,
+        body #changelist table tbody td {
+            white-space: nowrap !important;
+            padding: 12px 10px !important;
+        }
+
+        /* Sticky first column for better context */
+        body #changelist table thead th:first-child,
+        body #changelist table tbody td:first-child {
+            position: sticky;
+            left: 0;
+            background: #fff;
+            z-index: 10;
+            border-right: 2px solid #ddd;
+        }
+
+        body #changelist table thead th:first-child {
+            z-index: 11;
+            background: var(--accent-light) !important;
+        }
+
+        body #changelist table input[type="checkbox"] {
+            margin: 0 auto;
+            transform: scale(1.3);
+        }
+
+        body .paginator {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
-        #changelist table {
-            min-width: 600px;
-            /* Force minimum width to trigger scroll */
+        body .paginator a,
+        body .paginator span {
+            padding: 8px 12px !important;
+            font-size: 0.9em;
         }
 
         /* 5. Stacked Form Rows */
-        .form-row {
+        body .form-row {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
         }
 
-        .form-row>div {
+        body .form-row>div {
             width: 100% !important;
             margin-left: 0 !important;
             padding-left: 0 !important;
             flex: none;
         }
 
-        .form-row label {
+        body .form-row label {
             width: 100%;
             margin-bottom: 8px;
             display: block;
+            font-size: 0.9em;
         }
 
-        .form-row .help {
+        body .form-row .help {
             margin-left: 0 !important;
             padding-left: 0 !important;
+            font-size: 0.85em;
+        }
+
+        body input[type=text],
+        body input[type=password],
+        body input[type=email],
+        body input[type=number],
+        body input[type=tel],
+        body input[type=date],
+        body input[type=url],
+        body select,
+        body textarea {
+            width: 100% !important;
+            max-width: 100% !important;
+            font-size: 16px !important;
         }
 
         /* 6. Stacked Action Buttons */
-        .submit-row {
+        body .submit-row {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 20px !important;
+            gap: 10px;
+            padding: 15px !important;
+            background: #f8f9fa;
         }
 
-        .submit-row input,
-        .submit-row a.button {
+        body .submit-row input,
+        body .submit-row a.button {
             width: 100%;
             margin: 0 !important;
             text-align: center;
             float: none !important;
+            padding: 12px 20px !important;
         }
 
-        .submit-row .deletelink-box {
+        body .submit-row .deletelink-box {
             float: none;
+            margin: 0;
         }
 
         /* 7. Object Tools (Add new...) */
-        .object-tools {
+        body .object-tools {
             float: none;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .object-tools li {
+        body .object-tools li {
             display: block;
             margin: 0;
         }
 
-        .object-tools a {
+        body .object-tools a {
             display: block;
             text-align: center;
+            padding: 10px 15px !important;
+            font-size: 0.9em;
         }
 
         /* 8. Filters Sidebar */
-        #changelist-filter {
+        body #changelist-filter {
             position: relative;
             width: 100%;
             border-left: none;
-            border-top: 1px solid #eee;
+            border-top: 2px solid #ddd;
             margin-top: 20px;
             background: #fff;
-            padding-bottom: 20px;
+            padding: 15px;
         }
 
-        #changelist-filter h2 {
+        body #changelist-filter h2 {
             background-color: #f8f9fa;
+            font-size: 1em;
+            padding: 10px !important;
+        }
+
+        body #changelist-filter h3 {
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+
+        body #changelist-filter ul {
+            padding-left: 0;
+        }
+
+        body #changelist-filter li {
+            padding: 8px 0;
+            font-size: 0.9em;
         }
 
         /* 9. Login Form */
-        .login #container {
+        body .login #container {
             width: 100% !important;
+            margin: 0 !important;
         }
 
-        .login .form-row #id_username,
-        .login .form-row #id_password {
+        body .login #content {
+            padding: 20px 15px !important;
+        }
+
+        body .login .form-row {
+            margin-bottom: 15px;
+        }
+
+        body .login .form-row #id_username,
+        body .login .form-row #id_password {
             width: 100%;
+            font-size: 16px !important;
+        }
+
+        body .login .submit-row {
+            padding: 0 !important;
+            margin-top: 20px;
+        }
+
+        /* 10. Dashboard Cards */
+        body .dashboard .module {
+            margin-bottom: 20px;
+        }
+
+        body .dashboard #content-main {
+            display: block;
+        }
+
+        body .dashboard .module table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 11. Inline Forms */
+        body .inline-group .tabular {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body .inline-group table {
+            min-width: 600px;
+        }
+
+        /* 12. Action Bar */
+        body .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            margin-bottom: 15px;
+        }
+
+        body .actions select,
+        body .actions button {
+            width: 100%;
+            font-size: 16px !important;
+        }
+
+        body .actions label {
+            display: none;
+        }
+
+        body .actions span.action-counter {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* 13. Breadcrumbs */
+        body .breadcrumbs {
+            padding: 10px 15px !important;
+            font-size: 0.85em;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 14. Messages */
+        body .messagelist {
+            margin: 15px !important;
+        }
+
+        body .messagelist li {
+            padding: 12px 15px !important;
+            font-size: 0.9em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        #site-name {
+            gap: 8px !important;
+        }
+
+        #site-name img {
+            height: 28px !important;
+        }
+
+        #site-name div div:first-child {
+            font-size: 14px !important;
+        }
+
+        #site-name div div:last-child {
+            font-size: 10px !important;
+        }
+
+        #content h1 {
+            font-size: 1.3em !important;
+        }
+
+        #changelist table {
+            min-width: 600px;
+        }
+
+        #changelist table thead th,
+        #changelist table tbody td {
+            padding: 8px 6px !important;
+            font-size: 0.8rem;
         }
     }
 </style>
