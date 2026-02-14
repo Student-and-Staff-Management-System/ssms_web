@@ -228,12 +228,32 @@ CORS_ALLOWED_ORIGINS = ["null"]
 # EMAIL CONFIGURATION - GMAIL SMTP
 # ==========================================
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 465
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+# --- GMAIL API CONFIGURATION ---
+EMAIL_BACKEND = 'gmailapi_backend.mail.GmailBackend'
+
+# Load credentials from gmail.json if it exists
+GMAIL_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gmail.json')
+if os.path.exists(GMAIL_CREDENTIALS_FILE):
+    import json
+    with open(GMAIL_CREDENTIALS_FILE, 'r') as f:
+        gmail_creds = json.load(f)
+        GMAIL_API_CLIENT_ID = gmail_creds.get('client_id')
+        GMAIL_API_CLIENT_SECRET = gmail_creds.get('client_secret')
+        GMAIL_API_REFRESH_TOKEN = gmail_creds.get('refresh_token')
+else:
+    # Fallback to environment variables or empty (will cause error if used)
+    GMAIL_API_CLIENT_ID = os.getenv('GMAIL_API_CLIENT_ID')
+    GMAIL_API_CLIENT_SECRET = os.getenv('GMAIL_API_CLIENT_SECRET')
+    GMAIL_API_REFRESH_TOKEN = os.getenv('GMAIL_API_REFRESH_TOKEN')
+
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
 
 
 
