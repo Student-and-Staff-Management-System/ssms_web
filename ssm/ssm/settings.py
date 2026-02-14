@@ -203,7 +203,7 @@ if raw_public_url:
         raw_public_url = raw_public_url.lstrip('/')
     
 AWS_S3_CUSTOM_DOMAIN = raw_public_url
-print(f"DEBUG: AWS_S3_CUSTOM_DOMAIN set to: '{AWS_S3_CUSTOM_DOMAIN}'")
+# print(f"DEBUG: AWS_S3_CUSTOM_DOMAIN set to: '{AWS_S3_CUSTOM_DOMAIN}'")
 
 # Use R2 for default file storage
 # STORAGES Configuration (Django 4.2+)
@@ -230,7 +230,7 @@ CORS_ALLOWED_ORIGINS = ["null"]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_PORT = 465
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
