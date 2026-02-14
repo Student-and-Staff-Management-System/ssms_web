@@ -19,11 +19,15 @@ class StaffRegistrationForm(forms.ModelForm):
     date_of_birth = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}))
     date_of_joining = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}))
 
+    mobile_number = forms.CharField(max_length=15, required=True, widget=forms.TextInput(attrs={'placeholder': '10-digit number'}))
+    address = forms.CharField(required=True, widget=forms.Textarea(attrs={'rows': 3}))
+
     class Meta:
         model = Staff
         fields = [
             'staff_id', 'name', 'email', 'password', 'photo',
             'salutation', 'designation', 'department', 
+            'qualification', 'specialization',
             'date_of_birth', 'date_of_joining', 'gender', 'blood_group', 'mobile_number', 'address'
         ]
 

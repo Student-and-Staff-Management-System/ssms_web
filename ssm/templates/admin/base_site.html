@@ -1,0 +1,310 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Annamalai University Admin{% endblock %}
+
+{% block branding %}
+<div id="site-name" style="display: flex; align-items: center; gap: 12px;">
+    <a href="{% url 'admin:index' %}"
+        style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit;">
+        <img src="{% static 'imgs/annamalai.png' %}" alt="Annamalai University" style="height: 40px; width: auto;">
+        <div>
+            <div style="font-size: 18px; font-weight: 600; color: #fff;">Annamalai University</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8);">Department of IT - Admin Portal</div>
+        </div>
+    </a>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #5a7d7c;
+        --secondary-color: #4a6b69;
+        --accent-color: #e5f6f5;
+        --text-color: #333;
+        --bg-color: #f4f6f9;
+        --font-main: 'Poppins', sans-serif;
+    }
+
+    body {
+        font-family: var(--font-main) !important;
+        background-color: var(--bg-color) !important;
+    }
+
+    /* Header */
+    #header {
+        background: var(--primary-color) !important;
+        color: #fff;
+        padding: 15px 40px !important;
+    }
+
+    #header a {
+        color: #fff !important;
+    }
+
+    /* Main Container */
+    #container {
+        width: 95% !important;
+        max-width: 1600px !important;
+        margin: 30px auto !important;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    /* Content Area */
+    #content {
+        padding: 30px !important;
+    }
+
+    /* Tables/Lists */
+    #changelist table {
+        width: 100%;
+        border: 1px solid #eee;
+    }
+
+    #changelist table thead th {
+        background: var(--accent-color) !important;
+        color: var(--primary-color) !important;
+        font-weight: 600;
+        padding: 12px 15px !important;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        border-bottom: 2px solid #ddd;
+    }
+
+    #changelist table tbody td {
+        padding: 12px 15px !important;
+        border-bottom: 1px solid #eee;
+        color: #444;
+        font-size: 0.95rem;
+    }
+
+    #changelist table tbody tr:hover {
+        background-color: #fafafa;
+    }
+
+    /* Buttons */
+    .button,
+    .submit-row input,
+    a.button {
+        background: var(--primary-color) !important;
+        border: none !important;
+        border-radius: 4px !important;
+        padding: 10px 20px !important;
+        color: #fff !important;
+        font-weight: 500;
+        transition: background 0.3s;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+
+    .button:hover,
+    .submit-row input:hover,
+    a.button:hover {
+        background: var(--secondary-color) !important;
+    }
+
+    /* Form Fields */
+    .form-row {
+        padding: 15px 0 !important;
+        border-bottom: 1px solid #eee;
+    }
+
+    input[type=text],
+    input[type=password],
+    input[type=email],
+    select,
+    textarea {
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
+        padding: 8px 12px !important;
+        font-family: var(--font-main);
+    }
+
+    /* Module Headers */
+    .module h2,
+    .module caption,
+    .inline-group h2 {
+        background: #f8f9fa !important;
+        color: var(--text-color) !important;
+        font-weight: 600;
+        padding: 12px 15px !important;
+        font-size: 1.1rem;
+        border-top: 3px solid var(--primary-color);
+    }
+
+    /* Dashboard specific */
+    .dashboard .module table th {
+        width: 100%;
+    }
+
+    .dashboard .module table td {
+        white-space: nowrap;
+    }
+
+    /* Align everything left specifically */
+    h1,
+    h2,
+    h3,
+    p,
+    th,
+    td,
+    label {
+        text-align: left !important;
+    }
+
+    #site-name div {
+        text-align: left !important;
+    }
+
+    /* =========================================
+       MOBILE OPTIMIZATIONS
+       ========================================= */
+    @media (max-width: 768px) {
+
+        /* 1. Reset Container width and margins */
+        #container {
+            width: 100% !important;
+            margin: 0 !important;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* 2. Header Adjustments */
+        #header {
+            padding: 15px 20px !important;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        #site-name {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        #user-tools {
+            margin: 0;
+            text-align: left;
+            display: block;
+            font-size: 0.9em;
+            width: 100%;
+        }
+
+        /* 3. Content Padding */
+        #content {
+            padding: 15px !important;
+        }
+
+        /* 4. Scrollable Tables */
+        /* Make the results div scrollable, not the table itself breaking */
+        #changelist .results,
+        .module table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #changelist table {
+            min-width: 600px;
+            /* Force minimum width to trigger scroll */
+        }
+
+        /* 5. Stacked Form Rows */
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .form-row>div {
+            width: 100% !important;
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            flex: none;
+        }
+
+        .form-row label {
+            width: 100%;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-row .help {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+
+        /* 6. Stacked Action Buttons */
+        .submit-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 20px !important;
+        }
+
+        .submit-row input,
+        .submit-row a.button {
+            width: 100%;
+            margin: 0 !important;
+            text-align: center;
+            float: none !important;
+        }
+
+        .submit-row .deletelink-box {
+            float: none;
+        }
+
+        /* 7. Object Tools (Add new...) */
+        .object-tools {
+            float: none;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .object-tools li {
+            display: block;
+            margin: 0;
+        }
+
+        .object-tools a {
+            display: block;
+            text-align: center;
+        }
+
+        /* 8. Filters Sidebar */
+        #changelist-filter {
+            position: relative;
+            width: 100%;
+            border-left: none;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+            background: #fff;
+            padding-bottom: 20px;
+        }
+
+        #changelist-filter h2 {
+            background-color: #f8f9fa;
+        }
+
+        /* 9. Login Form */
+        .login #container {
+            width: 100% !important;
+        }
+
+        .login .form-row #id_username,
+        .login .form-row #id_password {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

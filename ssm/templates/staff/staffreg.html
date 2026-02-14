@@ -22,6 +22,10 @@
             --error-text: #842029;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--primary-bg);
@@ -33,18 +37,6 @@
         .container {
             max-width: 900px;
             margin: 0 auto;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                width: 100%;
-                padding: 0 15px;
-                box-sizing: border-box;
-            }
-
-            body {
-                padding: 10px;
-            }
         }
 
         .form-header {
@@ -88,6 +80,7 @@
             margin-bottom: 20px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            width: 100%;
         }
 
         .accordion-header {
@@ -96,6 +89,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            user-select: none;
         }
 
         .accordion-header h2 {
@@ -104,11 +98,23 @@
             font-weight: 600;
         }
 
+        .accordion-header::after {
+            content: '\25BC';
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-item.active .accordion-header::after {
+            content: '\25B2';
+        }
+
         .accordion-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s ease-out, padding 0.4s ease-out;
             padding: 0 20px;
+            width: 100%;
         }
 
         .accordion-item.active .accordion-content {
@@ -119,6 +125,20 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
+            width: 100%;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        .form-section-title {
+            grid-column: 1 / -1;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
         }
 
         .input-group {
@@ -130,6 +150,7 @@
             margin-bottom: 8px;
             font-weight: 500;
             color: var(--text-secondary);
+            font-size: 0.95em;
         }
 
         .input-group input,
@@ -143,7 +164,13 @@
             font-family: 'Poppins', sans-serif;
             font-size: 1em;
             width: 100%;
-            box-sizing: border-box;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
         }
 
         .input-group textarea {
@@ -168,6 +195,8 @@
             cursor: pointer;
             text-align: center;
             text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
         }
 
         .submit-btn {
@@ -175,10 +204,123 @@
             color: #ffffff;
         }
 
+        .submit-btn:hover {
+            background-color: var(--accent-color-hover);
+        }
+
         .cancel-btn {
             background-color: var(--secondary-bg);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
+        }
+
+        .cancel-btn:hover {
+            background-color: var(--primary-bg);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                width: 100%;
+                padding: 0 10px;
+            }
+
+            .form-header {
+                margin-bottom: 30px;
+            }
+
+            .form-header img {
+                height: 50px;
+                margin-bottom: 15px;
+            }
+
+            .form-header h1 {
+                font-size: 1.8em;
+            }
+
+            .form-header p {
+                font-size: 1em;
+            }
+
+            .accordion-header {
+                padding: 12px 15px;
+            }
+
+            .accordion-header h2 {
+                font-size: 1.1em;
+            }
+
+            .accordion-header::after {
+                font-size: 1em;
+            }
+
+            .accordion-content {
+                padding: 0 15px;
+            }
+
+            .accordion-item.active .accordion-content {
+                padding: 15px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .input-group label {
+                font-size: 0.9em;
+            }
+
+            .input-group input,
+            .input-group select,
+            .input-group textarea {
+                padding: 10px;
+                font-size: 0.95em;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            .submit-btn,
+            .cancel-btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 1em;
+            }
+
+            .messages li.error {
+                padding: 10px 12px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px 5px;
+            }
+
+            .form-header h1 {
+                font-size: 1.5em;
+            }
+
+            .form-header p {
+                font-size: 0.9em;
+            }
+
+            .accordion-item {
+                margin-bottom: 15px;
+            }
+
+            .input-group textarea {
+                min-height: 80px;
+            }
         }
     </style>
 </head>
@@ -191,9 +333,12 @@
             <p>Enter the details for the new staff member.</p>
         </div>
 
+        <!-- Django template syntax for messages -->
         {% if messages %}
         <ul class="messages">
-            {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
         </ul>
         {% endif %}
 
@@ -206,16 +351,26 @@
                 </div>
                 <div class="accordion-content">
                     <div class="form-grid">
-                        <div class="input-group"><label for="staff_id">Staff ID</label><input type="text" id="staff_id"
-                                name="staff_id" required></div>
-                        <div class="input-group"><label for="name">Full Name</label><input type="text" id="name"
-                                name="name" required></div>
-                        <div class="input-group"><label for="email">Email</label><input type="email" id="email"
-                                name="email" required></div>
-                        <div class="input-group"><label for="password">Password</label><input type="password"
-                                id="password" name="password" required></div>
-                        <div class="input-group"><label for="photo">Staff Photo</label><input type="file" id="photo"
-                                name="photo" accept="image/*"></div>
+                        <div class="input-group">
+                            <label for="staff_id">Staff ID</label>
+                            <input type="text" id="staff_id" name="staff_id" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="photo">Staff Photo</label>
+                            <input type="file" id="photo" name="photo" accept="image/*">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -226,45 +381,72 @@
                 </div>
                 <div class="accordion-content">
                     <div class="form-grid">
-                        <div class="input-group"><label for="salutation">Salutation</label><select id="salutation"
-                                name="salutation">
+                        <div class="input-group">
+                            <label for="salutation">Salutation</label>
+                            <select id="salutation" name="salutation">
                                 <option value="Dr.">Dr.</option>
                                 <option value="Prof.">Prof.</option>
                                 <option value="Mr.">Mr.</option>
                                 <option value="Ms.">Ms.</option>
-                            </select></div>
-
-                        <div class="input-group"><label for="designation">Designation</label><input type="text"
-                                id="designation" name="designation" placeholder="e.g., Assistant Professor" required>
+                            </select>
                         </div>
-                        <div class="input-group"><label for="department">Department</label><input type="text"
-                                id="department" name="department" value="Information Technology"></div>
-                        <div class="form-section-title">Personal Information</div>
-                        <div class="form-grid">
-                            <div class="input-group"><label for="date_of_birth">Date of Birth</label><input type="date"
-                                    id="date_of_birth" name="date_of_birth" required></div>
-                            <div class="input-group"><label for="date_of_joining">Date of Joining</label><input
-                                    type="date" id="date_of_joining" name="date_of_joining" required></div>
-                            <div class="input-group"><label for="gender">Gender</label><select id="gender"
-                                    name="gender">
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select></div>
-                            <div class="input-group"><label for="blood_group">Blood Group</label><input type="text"
-                                    id="blood_group" name="blood_group" placeholder="e.g. O+"></div>
-                            <div class="input-group"><label for="mobile_number">Mobile Number</label><input type="tel"
-                                    id="mobile_number" name="mobile_number" placeholder="10-digit number"></div>
-                            <div class="input-group" style="grid-column: 1 / -1;"><label for="address">Address for
-                                    Communication</label><textarea id="address" name="address"></textarea></div>
+                        <div class="input-group">
+                            <label for="designation">Designation</label>
+                            <input type="text" id="designation" name="designation" placeholder="e.g., Assistant Professor" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="department">Department</label>
+                            <input type="text" id="department" name="department" value="Information Technology" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="qualification">Qualification</label>
+                            <input type="text" id="qualification" name="qualification" placeholder="e.g., M.Tech, Ph.D" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="specialization">Specialization</label>
+                            <input type="text" id="specialization" name="specialization" placeholder="e.g., Data Science" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">Personal Information</div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="date_of_birth">Date of Birth</label>
+                            <input type="date" id="date_of_birth" name="date_of_birth" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="date_of_joining">Date of Joining</label>
+                            <input type="date" id="date_of_joining" name="date_of_joining" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="blood_group">Blood Group</label>
+                            <input type="text" id="blood_group" name="blood_group" placeholder="e.g. O+">
+                        </div>
+                        <div class="input-group">
+                            <label for="mobile_number">Mobile Number</label>
+                            <input type="tel" id="mobile_number" name="mobile_number" placeholder="10-digit number" required>
+                        </div>
+                        <div class="input-group" style="grid-column: 1 / -1;">
+                            <label for="address">Address for Communication</label>
+                            <textarea id="address" name="address" required></textarea>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="button-group">
-                    <a href="{% url 'staffs:stafflogin' %}" class="cancel-btn">Cancel</a>
-                    <button type="submit" class="submit-btn">Register Staff</button>
-                </div>
+            <div class="button-group">
+                <a href="{% url 'staffs:stafflogin' %}" class="cancel-btn">Cancel</a>
+                <button type="submit" class="submit-btn">Register Staff</button>
+            </div>
         </form>
     </div>
 
@@ -272,20 +454,25 @@
         document.addEventListener('DOMContentLoaded', function () {
             // --- Accordion Logic ---
             const accordionItems = document.querySelectorAll('.accordion-item');
+
             if (accordionItems.length > 0) {
                 accordionItems[0].classList.add('active');
                 const firstContent = accordionItems[0].querySelector('.accordion-content');
                 if (firstContent) firstContent.style.maxHeight = firstContent.scrollHeight + "px";
             }
+
             accordionItems.forEach(item => {
                 const header = item.querySelector('.accordion-header');
+
                 header.addEventListener('click', () => {
                     const content = item.querySelector('.accordion-content');
                     const isActive = item.classList.contains('active');
+
                     document.querySelectorAll('.accordion-item.active').forEach(openItem => {
                         openItem.classList.remove('active');
                         openItem.querySelector('.accordion-content').style.maxHeight = '0px';
                     });
+
                     if (!isActive) {
                         item.classList.add('active');
                         content.style.maxHeight = content.scrollHeight + "px";
@@ -295,12 +482,14 @@
 
             // --- Form Validation Logic ---
             const form = document.getElementById('staff-reg-form');
+
             if (form) {
                 form.addEventListener('submit', function (event) {
                     let errors = [];
 
                     // 1. Password Strength
                     const password = document.getElementById('password').value;
+
                     if (password.length < 6) {
                         errors.push("Password must be at least 6 characters long.");
                     }
@@ -308,14 +497,24 @@
                     // 2. Email Validation
                     const email = document.getElementById('email').value;
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
                     if (!emailRegex.test(email)) {
                         errors.push("Please enter a valid email address.");
                     }
 
-                    // 3. Staff ID Validation (Alphanumeric only ideally, or not empty)
+                    // 3. Staff ID Validation
                     const staffId = document.getElementById('staff_id').value;
+
                     if (!staffId.trim()) {
                         errors.push("Staff ID is required.");
+                    }
+
+                    // 4. Mobile Number Validation (10 digits)
+                    const mobileNumber = document.getElementById('mobile_number').value;
+                    const mobileRegex = /^\d{10}$/;
+
+                    if (!mobileRegex.test(mobileNumber)) {
+                        errors.push("Mobile number must be exactly 10 digits.");
                     }
 
                     // If errors exist, prevent submission
