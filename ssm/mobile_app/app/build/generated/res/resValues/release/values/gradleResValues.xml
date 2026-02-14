@@ -8,9 +8,9 @@
     <!-- Value from default config. -->
     <bool name="enableSiteSettingsShortcut">true</bool>
     <!-- Value from default config. -->
-    <color name="backgroundColor">#F8F9FA</color>
+    <color name="backgroundColor">#FFFFFF</color>
     <!-- Value from default config. -->
-    <color name="colorPrimary">#5A7D7C</color>
+    <color name="colorPrimary">#FFFFFF</color>
     <!-- Value from default config. -->
     <color name="colorPrimaryDark">#000000</color>
     <!-- Value from default config. -->
@@ -36,7 +36,7 @@
     <!-- Value from default config. -->
     <string name="launchUrl" translatable="false">https://ssms-web.onrender.com/</string>
     <!-- Value from default config. -->
-    <string name="launcherName" translatable="false">AUIT</string>
+    <string name="launcherName" translatable="false">AU-IT</string>
     <!-- Value from default config. -->
     <string name="orientation" translatable="false">portrait</string>
     <!-- Value from default config. -->

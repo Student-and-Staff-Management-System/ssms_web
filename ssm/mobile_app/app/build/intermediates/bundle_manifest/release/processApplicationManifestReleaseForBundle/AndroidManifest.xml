@@ -23,8 +23,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.au_it_dept.twa"
-    android:versionCode="2"
-    android:versionName="2" >
+    android:versionCode="5"
+    android:versionName="5" >
 
     <uses-sdk
         android:minSdkVersion="21"

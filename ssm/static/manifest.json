@@ -9,16 +9,16 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/static/imgs/aublack.png",
-      "sizes": "192x192",
+      "src": "/static/imgs/annamalai.png",
+      "sizes": "200x166",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/static/imgs/aublack.png",
+      "src": "/static/imgs/annamalai.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

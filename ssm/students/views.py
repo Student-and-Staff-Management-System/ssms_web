@@ -59,9 +59,20 @@ def prevhome(request):
     if 'student_roll_number' in request.session:
         return redirect('student_dashboard')
     
+    
     # Redirect logged-in staff directly to dashboard
     if 'staff_id' in request.session:
         return redirect('staffs:staff_dashboard')
+
+    # --- Mobile App Redirection Logic ---
+    # 1. Detect if coming from TWA (Mobile App)
+    if request.GET.get('source') == 'twa':
+        request.session['is_mobile_app'] = True
+
+    # 2. If valid mobile app session AND not explicitly asking for landing page -> Redirect to Login
+    if request.session.get('is_mobile_app') and not request.GET.get('show_landing'):
+        return redirect('student_login')
+    # ------------------------------------
     
     # Fetch public news for the home page
     today = timezone.now().date()
