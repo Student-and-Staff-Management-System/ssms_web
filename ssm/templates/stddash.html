@@ -337,7 +337,7 @@
                 <div class="header-actions">
                     {% block header_actions %}{% endblock %}
                     <button id="custom-webpush-button" class="action-btn icon-style"
-                        style="border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: #fff; color: #5a7d7c; border: 1px solid #e2e8f0; margin-right: 10px;"
+                        style="border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: #fff; color: #5a7d7c; border: 1px solid #e2e8f0; margin-right: 10px;"
                         title="Enable Notifications">🔔</button>
 
                     <button class="action-btn" id="stickyToggleBtn" onclick="toggleStickyNote()"
@@ -574,8 +574,9 @@
             <label for="stdSemSelector" style="font-weight: 500; color: #64748b;">Select Semester:</label>
             <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
                 style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
-                {% for record in gpa_records %} 
-                <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
+                {% for record in gpa_records %}
+                <option value="std_sem_{{ record.semester }}" {% if
+                    record.semester==student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
                 </option>
                 {% endfor %}
             </select>
@@ -1212,7 +1213,7 @@
                 );
 
                 const registration = await Promise.race([
-                    navigator.serviceWorker.ready,
+                    navigator.serviceWorker.register('/sw.js', { scope: '/' }),
                     timeoutPromise
                 ]);
 

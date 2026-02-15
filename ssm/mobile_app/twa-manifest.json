@@ -19,8 +19,8 @@
     "path": "C:\\Users\\sachi\\OneDrive\\Desktop\\nojinx\\ssm\\mobile_app\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "10",
-  "appVersionCode": 10,
+  "appVersionName": "12",
+  "appVersionCode": 12,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://www.au-it.app/static/manifest.json",
@@ -42,5 +42,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "10"
+  "appVersion": "12"
 }
