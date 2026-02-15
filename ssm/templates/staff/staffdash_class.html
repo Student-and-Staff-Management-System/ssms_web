@@ -71,10 +71,13 @@
                         style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
                         {{ staff.name }}
                     </div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Class Incharge {% if staff.assigned_semester %}{% endif %}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Class Incharge {% if
+                        staff.assigned_semester %}{% endif %}</div>
                 </div>
                 <a href="{% url 'staffs:staff_logout' %}" title="Logout"
-                    style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
+                    style="color: #ef4444; font-size: 0.9rem; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                    <span>Logout</span> 🚪
+                </a>
             </div>
         </aside>
 
@@ -90,10 +93,13 @@
                         </p>
                     </div>
                 </div>
-                <div class="clock-badge">
-                    <span>{% now "l, d F Y" %}</span>
-                    <span style="opacity: 0.3">|</span>
-                    <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
+                <div style="display: flex; align-items: center;">
+                    {% include 'staff/includes/notification_script.html' %}
+                    <div class="clock-badge">
+                        <span>{% now "l, d F Y" %}</span>
+                        <span style="opacity: 0.3">|</span>
+                        <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
+                    </div>
                 </div>
             </div>
 

@@ -249,6 +249,10 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None  # R2 doesn't use ACLs
 AWS_QUERYSTRING_AUTH = False  # Don't add auth params to URLs
 
+# Validation
+if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY or not AWS_STORAGE_BUCKET_NAME:
+    print("WARNING: R2 Storage credentials (R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME) are missing in .env! Boto3 will fail.")
+
 
 from urllib.parse import urlparse
 import os
@@ -339,6 +343,7 @@ JAZZMIN_SETTINGS = {
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "Audits / Logs", "url": "admin:staffs_auditlog_changelist", "permissions": ["staffs.view_auditlog"]},
         {"name": "Main Site", "url": "/", "new_window": True},
+        {"name": "Back to Dashboard", "url": "/staffs/dashboard/", "new_window": False, "icon": "fas fa-arrow-left"},
     ],
     "show_sidebar": True,
     "navigation_expanded": True,
@@ -400,8 +405,8 @@ JAZZMIN_UI_TWEAKS = {
 # WEBPUSH CONFIGURATION (VAPID)
 # ==========================================
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": "BEw6LWC0G64ByqHYGlJl7+Uuzp4E3MCGiENIkLEp3Kr228uOv/92V/LhXSyWZ1CSUzT135/8QuTOyfHbSW8gjA==",
-    "VAPID_PRIVATE_KEY": "NW2zAzsXXWh+mJK3ZqLeTXSItIEJ+icI0+7Z/pRAmrI=",
-    "VAPID_ADMIN_EMAIL": "admin@annamalai.edu"
+    "VAPID_PUBLIC_KEY": "BGM2HPOvDQ/xLSfPKovQ/nT1BVaA1g1WSCuxynHK7EklnqJsPd3mvUdaXLqLrV3VYqXNOOcHl8n/8SuwE09GDiI=",
+    "VAPID_PRIVATE_KEY": "6Ru6/1gnd9c12dSnVfLNTgWXD339YWpG67C+atRYu1g=",
+    "VAPID_ADMIN_EMAIL": "sachinytr@gmail.com"
 }
 

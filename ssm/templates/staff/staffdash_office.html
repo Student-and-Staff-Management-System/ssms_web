@@ -16,6 +16,9 @@
         <a href="{% url 'staffs:office_manage_bonafide' %}" class="nav-item">
             <span class="nav-icon">📜</span> Bonafide Requests
         </a>
+        <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item">
+            <span class="nav-icon">📢</span> Send Notification
+        </a>
         <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item">
             <span class="nav-icon">🎓</span> Scholarship Manager
         </a>
@@ -35,7 +38,9 @@
             <div style="font-size: 0.75rem; color: var(--text-muted);">Office Staff</div>
         </div>
         <a href="{% url 'staffs:staff_logout' %}" title="Logout"
-            style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
+            style="color: #ef4444; font-size: 0.9rem; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+            <span>Logout</span> 🚪
+        </a>
     </div>
 </aside>
 {% endblock %}
@@ -52,10 +57,13 @@
         </div>
     </div>
     <!-- Combined Clock & Date Badge -->
-    <div class="clock-badge">
-        <span>{% now "l, d F Y" %}</span>
-        <span style="opacity: 0.3">|</span>
-        <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
+    <div style="display: flex; align-items: center;">
+        {% include 'staff/includes/notification_script.html' %}
+        <div class="clock-badge">
+            <span>{% now "l, d F Y" %}</span>
+            <span style="opacity: 0.3">|</span>
+            <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
+        </div>
     </div>
 </div>
 
@@ -85,10 +93,13 @@
                     {% for req in recent_bonafide_requests %}
                     <tr style="border-bottom: 1px solid var(--bg-body);">
                         <td style="padding: 12px 10px;">
-                            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{ req.student.student_name }}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ req.student.roll_number }}</div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">
+                                {{req.student.student_name }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ req.student.roll_number }}
+                            </div>
                         </td>
-                        <td style="padding: 12px 10px; font-size: 0.85rem; color: var(--text-secondary);">{{ req.reason|truncatechars:25 }}</td>
+                        <td style="padding: 12px 10px; font-size: 0.85rem; color: var(--text-secondary);">
+                            {{req.reason|truncatechars:25 }}</td>
                         <td style="padding: 12px 10px;">
                             <span style="padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; 
                             {% if req.status == 'Approved' %}background: #dcfce7; color: #166534;

@@ -1,6 +1,6 @@
 {
   "packageId": "com.au_it_dept.twa",
-  "host": "ssms-web.onrender.com",
+  "host": "www.au-it.app",
   "name": "AU - IT",
   "launcherName": "AU-IT",
   "display": "standalone",
@@ -13,17 +13,17 @@
   "backgroundColor": "#FFFFFF",
   "enableNotifications": true,
   "startUrl": "/?source=twa",
-  "iconUrl": "https://ssms-web.onrender.com/static/imgs/annamalai.png",
+  "iconUrl": "https://www.au-it.app/static/imgs/annamalai.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "C:\\Users\\sachi\\OneDrive\\Desktop\\nojinx\\ssm\\mobile_app\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "6",
-  "appVersionCode": 6,
+  "appVersionName": "10",
+  "appVersionCode": 10,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://ssms-web.onrender.com/static/manifest.json",
+  "webManifestUrl": "https://www.au-it.app/static/manifest.json",
   "fallbackType": "twa",
   "features": {},
   "alphaDependencies": {
@@ -32,7 +32,7 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://ssms-web.onrender.com/static/",
+  "fullScopeUrl": "https://www.au-it.app/static/",
   "minSdkVersion": 21,
   "orientation": "portrait",
   "fingerprints": [],
@@ -42,5 +42,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "6"
+  "appVersion": "10"
 }

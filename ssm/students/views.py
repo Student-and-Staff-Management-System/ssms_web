@@ -1878,3 +1878,38 @@ def delete_project_api(request):
         return JsonResponse({'success': True})
     except Exception as e:
          return JsonResponse({'success': False, 'error': str(e)})
+
+# --- Test Notification ---
+from webpush import send_group_notification
+
+@student_login_required
+def send_test_notification(request):
+    if request.method == 'POST':
+        try:
+            # Handle both JSON and Form data
+            import json
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+                message = data.get('message', 'Test Notification')
+            else:
+                message = request.POST.get('message', 'Test Notification')
+
+            roll_number = request.session.get('student_roll_number')
+            if not roll_number:
+                return JsonResponse({'status': 'error', 'message': 'Not logged in'}, status=401)
+            
+            group_name = f'student_{roll_number}'
+            
+            payload = {
+                "head": "Test Notification",
+                "body": message,
+                "icon": "/static/images/logo.png", 
+                "url": request.build_absolute_uri('/dashboard/')
+            }
+            
+            # Send to the group (which should contain this user's subscription)
+            send_group_notification(group_name=group_name, payload=payload, ttl=1000)
+            return JsonResponse({'status': 'success', 'message': 'Notification sent!'})
+        except Exception as e:
+             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)

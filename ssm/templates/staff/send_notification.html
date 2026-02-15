@@ -1,0 +1,47 @@
+{% extends base_template %}
+{% block title %}Send Notification{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #1e293b;">📢 Send Custom Notification</h2>
+    </div>
+
+    <div
+        style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0;">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 25px;">
+                <p style="margin-top: 6px; font-size: 0.85rem; color: #64748b;">
+                    ℹ️ This notification will be sent to <strong>ALL STUDENTS</strong> ({{ students.count }} total).
+                </p>
+                <!-- Hidden input to simulate 'all' selection for backend -->
+                <input type="hidden" name="recipient_type" value="all">
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">Message
+                    Content</label>
+                <textarea name="message" rows="5"
+                    style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; font-family: inherit; outline: none; resize: vertical; transition: border-color 0.2s;"
+                    placeholder="Enter your notification message here..." required
+                    onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#cbd5e1'"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                <button type="submit"
+                    style="background: #e11d48; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 1rem; transition: background 0.2s;"
+                    onmouseover="this.style.background='#be123c'" onmouseout="this.style.background='#e11d48'">
+                    <span>🚀</span> Send Notification
+                </button>
+                <a href="{% url 'staffs:staff_dashboard' %}"
+                    style="padding: 12px 24px; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; color: #475569; font-weight: 600; background: #f8fafc; transition: background 0.2s;"
+                    onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

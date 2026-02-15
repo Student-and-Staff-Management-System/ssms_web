@@ -151,3 +151,47 @@ def send_attendance_deficit_email(student, month_name, percentage, total_hours, 
     except Exception as e:
         logger.error(f"Error sending attendance email: {e}")
         return False
+
+# --- Push Notification Helper ---
+def send_push_notification(student, title, body, url=None):
+    """
+    Sends a web push notification to a specific student using their roll number group.
+    """
+    try:
+        from webpush import send_group_notification
+        
+        group_name = f"student_{student.roll_number}"
+        payload = {
+            "head": title,
+            "title": title, # Redundant key for compatibility with some Service Workers
+            "body": body,
+            "icon": "https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png", 
+            "url": url if url else "/students/dashboard/"
+        }
+        # TTL 86400 = 24 hours
+        send_group_notification(group_name=group_name, payload=payload, ttl=86400)
+        return True
+    except Exception as e:
+        print(f"Push Notification Failed for {student.roll_number}: {e}")
+        return False
+
+def send_staff_notification(staff, title, body, url=None):
+    """
+    Sends a web push notification to a specific staff member.
+    """
+    try:
+        from webpush import send_group_notification
+        
+        group_name = f"staff_{staff.staff_id}"
+        payload = {
+            "head": title,
+            "title": title,
+            "body": body,
+            "icon": "https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png",
+            "url": url if url else "/staffs/"
+        }
+        send_group_notification(group_name=group_name, payload=payload, ttl=86400)
+        return True
+    except Exception as e:
+        print(f"Push Notification Failed for Staff {staff.staff_id}: {e}")
+        return False

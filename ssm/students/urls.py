@@ -85,6 +85,7 @@ urlpatterns = [
     path('api/skill/delete/', views.delete_skill_api, name='delete_skill_api'),
     path('api/project/add/', views.add_project_api, name='add_project_api'),
     path('api/project/delete/', views.delete_project_api, name='delete_project_api'),
+    path('api/test-notification/', views.send_test_notification, name='send_test_notification'),
     path('request/bonafide/', views.request_bonafide, name='request_bonafide'),
     path('bonafide/history/', views.bonafide_list, name='bonafide_list'),
     path('bonafide/download/<int:request_id>/', views.download_bonafide, name='download_bonafide'),

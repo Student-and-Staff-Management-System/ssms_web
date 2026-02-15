@@ -374,6 +374,7 @@ td .btn {
 
 /* Tablet Landscape & Below (1024px) */
 @media (max-width: 1024px) {
+
     /* Adjust content wrapper padding */
     .content-wrapper {
         padding: 15px !important;
@@ -560,13 +561,13 @@ td .btn {
     .table td,
     .table th {
         white-space: nowrap !important;
-        padding: 8px 6px !important;
+        padding: 10px 8px !important;
         font-size: 0.85rem !important;
     }
 
     .table thead th {
         font-size: 0.8rem !important;
-        padding: 10px 6px !important;
+        padding: 10px 8px !important;
     }
 
     /* Force horizontal scroll for tables */
@@ -577,32 +578,45 @@ td .btn {
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Action Column - Make it Sticky */
+    /* ========== IMPROVED BUTTON HANDLING FOR MOBILE ========== */
+
+    /* Action Column - Better spacing and no sticky */
     .table td:last-child,
     .table th:last-child {
-        position: sticky;
-        right: 0;
-        background-color: var(--secondary-bg) !important;
-        box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+        min-width: 140px !important;
+        padding: 10px !important;
     }
 
-    /* Action Buttons */
+    /* Button Groups - Stack vertically */
     .btn-group,
     .btn-group-vertical {
         display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 4px !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        width: 100%;
     }
 
-    .btn-sm {
-        padding: 0.25rem 0.5rem !important;
-        font-size: 0.75rem !important;
+    /* All buttons in tables */
+    td .btn,
+    td a.btn,
+    .btn-group .btn {
+        width: 100% !important;
+        padding: 8px 12px !important;
+        font-size: 0.875rem !important;
         margin: 0 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        border-radius: 6px !important;
+        display: block !important;
+        min-height: 40px !important;
+        line-height: 1.4 !important;
     }
 
-    td .btn {
-        margin: 2px !important;
-        min-width: 60px;
+    /* Small buttons specifically */
+    .btn-sm {
+        padding: 7px 10px !important;
+        font-size: 0.8rem !important;
+        min-height: 36px !important;
     }
 
     /* Forms */
@@ -629,16 +643,17 @@ td .btn {
     /* Submit Row (Save buttons) */
     .submit-row {
         flex-direction: column !important;
-        gap: 8px !important;
+        gap: 10px !important;
         text-align: center !important;
-        padding: 12px !important;
+        padding: 15px !important;
     }
 
     .submit-row .btn {
         width: 100% !important;
         margin: 0 !important;
-        padding: 10px !important;
-        font-size: 0.95rem !important;
+        padding: 12px !important;
+        font-size: 1rem !important;
+        min-height: 44px !important;
     }
 
     .submit-row p {
@@ -681,13 +696,20 @@ td .btn {
     }
 
     .pagination .page-link {
-        padding: 6px 12px !important;
-        font-size: 0.85rem !important;
+        padding: 8px 12px !important;
+        font-size: 0.875rem !important;
+        min-height: 40px !important;
     }
 
     /* Related Widget Wrapper */
     .related-widget-wrapper {
         flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .related-widget-wrapper .btn {
+        min-height: 40px !important;
+        padding: 8px 12px !important;
     }
 
     /* Info Boxes */
@@ -749,29 +771,60 @@ td .btn {
     /* Tables - Extra compact */
     .table td,
     .table th {
-        padding: 6px 4px !important;
+        padding: 8px 6px !important;
         font-size: 0.8rem !important;
     }
 
     .table thead th {
         font-size: 0.75rem !important;
-        padding: 8px 4px !important;
+        padding: 8px 6px !important;
     }
 
-    /* Buttons - Smaller */
-    .btn {
-        font-size: 0.85rem !important;
+    /* ========== OPTIMIZED BUTTONS FOR SMALL MOBILE ========== */
+
+    /* Action column spacing */
+    .table td:last-child {
+        min-width: 120px !important;
+        padding: 8px !important;
     }
 
+    /* All table buttons */
+    td .btn,
+    td a.btn,
+    .btn-group .btn {
+        width: 100% !important;
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+        min-height: 38px !important;
+        margin: 0 !important;
+        border-radius: 5px !important;
+    }
+
+    /* Small buttons */
     .btn-sm {
-        font-size: 0.7rem !important;
-        padding: 0.2rem 0.4rem !important;
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+        min-height: 36px !important;
+    }
+
+    /* Button groups - tighter spacing */
+    .btn-group,
+    .btn-group-vertical {
+        gap: 5px !important;
+    }
+
+    /* Regular buttons (not in tables) */
+    .btn:not(td .btn):not(.btn-group .btn) {
+        font-size: 0.85rem !important;
+        padding: 8px 12px !important;
+        min-height: 40px !important;
     }
 
     /* Form Controls */
     .form-control {
         font-size: 0.85rem !important;
         padding: 7px 8px !important;
+        min-height: 40px !important;
     }
 
     label {
@@ -789,12 +842,21 @@ td .btn {
 
     /* Submit Row */
     .submit-row {
-        padding: 10px !important;
+        padding: 12px !important;
+        gap: 8px !important;
     }
 
     .submit-row .btn {
-        padding: 9px !important;
+        padding: 10px !important;
         font-size: 0.9rem !important;
+        min-height: 42px !important;
+    }
+
+    /* Pagination buttons */
+    .pagination .page-link {
+        padding: 7px 10px !important;
+        font-size: 0.8rem !important;
+        min-height: 36px !important;
     }
 }
 
@@ -823,30 +885,59 @@ td .btn {
     /* Tables */
     .table td,
     .table th {
-        padding: 5px 3px !important;
+        padding: 6px 4px !important;
         font-size: 0.75rem !important;
     }
 
     .table thead th {
         font-size: 0.7rem !important;
+        padding: 6px 4px !important;
     }
 
-    /* Buttons */
-    .btn {
-        font-size: 0.8rem !important;
-        padding: 6px 10px !important;
+    /* ========== EXTRA SMALL MOBILE BUTTON OPTIMIZATION ========== */
+
+    /* Action column */
+    .table td:last-child {
+        min-width: 110px !important;
+        padding: 6px !important;
     }
 
+    /* All buttons in tables */
+    td .btn,
+    td a.btn,
+    .btn-group .btn {
+        width: 100% !important;
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+        min-height: 36px !important;
+        line-height: 1.3 !important;
+    }
+
+    /* Small buttons */
     .btn-sm {
-        font-size: 0.65rem !important;
-        padding: 0.15rem 0.3rem !important;
-        min-width: 50px;
+        padding: 5px 6px !important;
+        font-size: 0.7rem !important;
+        min-height: 34px !important;
+    }
+
+    /* Button groups */
+    .btn-group,
+    .btn-group-vertical {
+        gap: 4px !important;
+    }
+
+    /* Regular buttons */
+    .btn:not(td .btn):not(.btn-group .btn) {
+        font-size: 0.8rem !important;
+        padding: 7px 10px !important;
+        min-height: 38px !important;
     }
 
     /* Form */
     .form-control {
         font-size: 0.8rem !important;
         padding: 6px 7px !important;
+        min-height: 38px !important;
     }
 
     label {
@@ -861,25 +952,57 @@ td .btn {
     .small-box p {
         font-size: 0.8rem !important;
     }
-}
 
-/* Touch Device Optimizations */
-@media (hover: none) and (pointer: coarse) {
-
-    /* Larger tap targets */
-    .btn {
-        min-height: 44px;
-        min-width: 44px;
+    /* Submit row */
+    .submit-row {
+        padding: 10px !important;
+        gap: 6px !important;
     }
 
+    .submit-row .btn {
+        padding: 9px !important;
+        font-size: 0.85rem !important;
+        min-height: 40px !important;
+    }
+
+    /* Pagination */
+    .pagination .page-link {
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+        min-height: 34px !important;
+    }
+}
+
+/* ========== TOUCH DEVICE OPTIMIZATIONS ========== */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Larger tap targets for all buttons */
+    .btn {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        padding: 10px 14px !important;
+    }
+
+    /* Table buttons - full width with good tap target */
+    td .btn,
+    td a.btn,
+    .btn-group .btn {
+        min-height: 44px !important;
+        width: 100% !important;
+        padding: 10px 12px !important;
+        font-size: 0.875rem !important;
+    }
+
+    /* Small buttons */
     .btn-sm {
-        min-height: 36px;
-        min-width: 50px;
+        min-height: 40px !important;
+        padding: 8px 10px !important;
     }
 
     /* Better touch feedback */
     .btn:active {
         transform: scale(0.97);
+        opacity: 0.9;
     }
 
     .nav-link:active {
@@ -890,18 +1013,23 @@ td .btn {
         background-color: var(--light-accent-bg) !important;
     }
 
-    /* Form controls */
+    /* Form controls - prevent zoom on iOS */
     .form-control,
     select,
     textarea {
-        min-height: 44px;
-        font-size: 16px !important; /* Prevents zoom on iOS */
+        min-height: 44px !important;
+        font-size: 16px !important;
     }
 
-    /* Checkboxes and radios */
+    /* Checkboxes and radios - larger touch target */
     .form-check-input {
-        width: 20px;
-        height: 20px;
+        width: 24px !important;
+        height: 24px !important;
+        margin-top: 0 !important;
+    }
+
+    .form-check {
+        padding-left: 30px !important;
     }
 
     /* Links */
@@ -909,6 +1037,20 @@ td .btn {
         min-height: 44px;
         display: inline-flex;
         align-items: center;
+        padding: 4px 0;
+    }
+
+    /* Button groups - maintain spacing */
+    .btn-group,
+    .btn-group-vertical {
+        gap: 8px !important;
+    }
+
+    /* Pagination */
+    .pagination .page-link {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        padding: 10px 12px !important;
     }
 }
 
@@ -939,6 +1081,13 @@ td .btn {
         margin-bottom: 0.8rem !important;
     }
 
+    /* Buttons can be slightly smaller in landscape */
+    td .btn,
+    td a.btn {
+        min-height: 36px !important;
+        padding: 6px 10px !important;
+    }
+
     /* Two-column layout for forms if space allows */
     .form-row {
         display: flex;
@@ -952,8 +1101,9 @@ td .btn {
 }
 
 /* High DPI Screens (Retina) */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-    
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+
     /* Ensure crisp text rendering */
     body {
         -webkit-font-smoothing: antialiased;
@@ -976,7 +1126,7 @@ td .btn {
 
 /* Print Styles for Mobile */
 @media print {
-    
+
     /* Hide navigation */
     .main-header,
     .main-sidebar,
@@ -1016,11 +1166,113 @@ td .btn {
 
 /* Accessibility Improvements */
 @media (prefers-reduced-motion: reduce) {
-    
+
     /* Disable animations for users who prefer reduced motion */
-    * {
+    *,
+    *::before,
+    *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+}
+
+/* ================== EXTRA POLISH FOR BACK BUTTON & TOUCH ================== */
+
+/* Highlight 'Back to Dashboard' in Top Menu & Force Visibility on Mobile */
+.navbar-nav .nav-item a[href*="/staffs/dashboard/"] {
+    background-color: rgba(90, 125, 124, 0.15) !important;
+    border: 1px solid rgba(90, 125, 124, 0.3) !important;
+    border-radius: 20px;
+    font-weight: 600 !important;
+    color: var(--accent-color) !important;
+    padding: 8px 15px !important;
+    margin-top: 2px;
+    display: flex !important;
+    /* Force display */
+    align-items: center;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+/* Ensure it shows even when Jazzmin hides Top Menu items on mobile */
+@media (max-width: 991px) {
+    .navbar-nav .nav-item {
+        display: block !important;
+    }
+
+    .navbar-nav .nav-item a[href*="/staffs/dashboard/"] {
+        margin: 5px 10px;
+        justify-content: center;
+    }
+}
+
+.navbar-nav .nav-item a[href*="/staffs/dashboard/"]:hover {
+    background-color: var(--accent-color) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 8px rgba(90, 125, 124, 0.3);
+}
+
+/* ========== ADDITIONAL BUTTON IMPROVEMENTS ========== */
+
+/* Ensure icon buttons work well on mobile */
+@media (max-width: 768px) {
+
+    .btn i,
+    .btn .fa,
+    .btn .fas,
+    .btn .far {
+        margin-right: 4px;
+        font-size: 0.9em;
+    }
+
+    /* Icon-only buttons */
+    .btn:has(i:only-child),
+    .btn:has(.fa:only-child),
+    .btn:has(.fas:only-child),
+    .btn:has(.far:only-child) {
+        padding: 10px !important;
+        min-width: 44px !important;
+    }
+
+    /* Dropdown buttons */
+    .dropdown-toggle::after {
+        margin-left: 6px;
+    }
+
+    /* Button with icon and text */
+    .btn:not(.btn-sm) {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px;
+    }
+}
+
+/* Action buttons container optimization */
+@media (max-width: 768px) {
+
+    /* If there's a wrapper div around action buttons */
+    td>div,
+    td>span {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+
+    /* Nested button groups */
+    td .btn-group {
+        width: 100% !important;
+    }
+
+    /* Prevent button overflow */
+    td {
+        overflow: visible !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
     }
 }

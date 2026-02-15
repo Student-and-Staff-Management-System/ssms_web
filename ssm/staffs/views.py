@@ -94,13 +94,21 @@ def staff_dashboard(request):
     if staff.role == 'HOD':
         pending_leaves_count = LeaveRequest.objects.filter(status='Pending HOD').count()
         pending_staff_leaves_count = StaffLeaveRequest.objects.filter(status='Pending').count()
-        pending_bonafide_count = BonafideRequest.objects.filter(status='Pending HOD Approval').count()
+        # HOD sees requests waiting for sign
+        pending_bonafide_count = BonafideRequest.objects.filter(status__in=['Pending HOD Approval', 'Waiting for HOD Sign']).count()
     elif staff.role == 'Office Staff':
-         # Office Staff only sees Bonafide Requests (and Scholarships)
-         # Count requests waiting for Office Action (Approved by HOD -> Print, Waiting -> Mark Ready)
-         pending_bonafide_count = BonafideRequest.objects.filter(status__in=['Approved by HOD', 'Waiting for HOD Signature']).count()
-         # Fetch recent requests for the dashboard widget
-         recent_bonafide_requests = BonafideRequest.objects.select_related('student').all().order_by('-updated_at')[:5]
+         # Office Staff sees all active requests not yet collected/rejected
+         pending_bonafide_count = BonafideRequest.objects.filter(
+             status__in=[
+                 'Pending Office Approval', 
+                 'Approved by HOD', 
+                 'Waiting for HOD Sign', 
+                 'Signed', 
+                 'Ready for Collection'
+             ]
+         ).count()
+         # Fetch recent active requests for the dashboard widget
+         recent_bonafide_requests = BonafideRequest.objects.select_related('student').exclude(status__in=['Rejected', 'Collected']).order_by('-updated_at')[:5]
          # Ensure other counts are 0
          pending_leaves_count = 0
          pending_staff_leaves_count = 0
@@ -1242,15 +1250,30 @@ def update_leave_status(request, request_id):
             if staff.role == 'Class Incharge':
                  leave_request.status = 'Pending HOD'
                  messages.success(request, f"Leave forwarded to HOD for {leave_request.student.student_name}.")
+                 # Notify Student
+                 from .utils import send_push_notification
+                 send_push_notification(leave_request.student, "Leave Request Update", f"Forwarded to HOD by {staff.name}")
+
             elif staff.role == 'HOD':
                 leave_request.status = 'Approved'
                 messages.success(request, f"Leave approved for {leave_request.student.student_name}.")
+                # Notify Student
+                from .utils import send_push_notification, send_staff_notification
+                send_push_notification(leave_request.student, "Leave Approved ✅", f"Your leave request has been approved by HOD.")
+                
+                # Notify Class Incharges
+                class_incharges = Staff.objects.filter(role='Class Incharge', assigned_semester=leave_request.student.current_semester)
+                for ci in class_incharges:
+                    send_staff_notification(ci, "Student Leave Approved", f"{leave_request.student.student_name} (Sem {leave_request.student.current_semester}) leave approved.", url="/staffs/view_leave_requests/")
                 
         elif action == 'reject':
             leave_request.status = 'Rejected'
             leave_request.rejection_reason = reason
             leave_request.rejected_by = f"{staff.name} ({staff.role})"
             messages.warning(request, f"Leave rejected for {leave_request.student.student_name}.")
+            # Notify Student
+            from .utils import send_push_notification
+            send_push_notification(leave_request.student, "Leave Rejected ❌", f"Reason: {reason}")
         
         leave_request.save()
         
@@ -1372,10 +1395,17 @@ def hod_update_leave_status(request, request_id):
         if action == 'approve':
             leave_request.status = 'Approved'
             messages.success(request, f"Approved leave for {leave_request.staff.name}.")
+            # Notify Staff
+            from .utils import send_staff_notification
+            send_staff_notification(leave_request.staff, "Leave Approved ✅", "Your leave request has been approved by HOD.", url="/staffs/leave/history/")
+            
         elif action == 'reject':
             leave_request.status = 'Rejected'
             leave_request.rejection_reason = reason
             messages.warning(request, f"Rejected leave for {leave_request.staff.name}.")
+            # Notify Staff
+            from .utils import send_staff_notification
+            send_staff_notification(leave_request.staff, "Leave Rejected ❌", f"Reason: {reason}", url="/staffs/leave/history/")
         
         leave_request.save()
         
@@ -2992,3 +3022,81 @@ def send_deficit_email(request):
         
     from django.urls import reverse
     return redirect('staffs:attendance_deficit_list')
+
+# --- Notification Tool ---
+from webpush import send_group_notification
+
+def send_custom_notification(request):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+
+    # Determine Base Template
+    if staff.role == 'Class Incharge':
+        base_template = 'staff/staffdash_class.html'
+    elif staff.role == 'Course Incharge':
+        base_template = 'staff/staffdash_course.html'
+    elif staff.role == 'Scholarship Officer':
+        base_template = 'staff/staffdash_scholarship.html'
+    elif staff.role == 'Office Staff':
+        base_template = 'staff/staffdash_office.html'
+    else: # HOD
+        base_template = 'staff/staffdash_hod.html'
+
+    # Get student list (filtered by role)
+    students = Student.objects.all().order_by('roll_number')
+    if staff.role == 'Class Incharge' and staff.assigned_semester:
+        students = students.filter(current_semester=staff.assigned_semester)
+
+    if request.method == 'POST':
+        message = request.POST.get('message')
+        
+        if message:
+             count = 0
+             success_count = 0
+             
+             # Iterate and send to all
+             for student in students:
+                 group_name = f"student_{student.roll_number}"
+                 payload = {
+                     "head": "New Notification",
+                     "body": message,
+                     "icon": "/static/images/logo.png",
+                     "url": request.build_absolute_uri('/students/dashboard/') 
+                 }
+                 try:
+                     send_group_notification(group_name=group_name, payload=payload, ttl=1000)
+                     success_count += 1
+                 except Exception:
+                     # Failures might happen if group doesn't exist (no subscription yet)
+                     pass 
+                 count += 1
+            
+             # If HOD or Office Staff, also send to ALL Staff
+             if staff.role in ['HOD', 'Office Staff']:
+                 all_staff = Staff.objects.all()
+                 staff_count = 0
+                 for s in all_staff:
+                     # different payload url for staff?
+                     from .utils import send_staff_notification
+                     send_staff_notification(s, "New Notification", message, url="/staffs/")
+                     staff_count += 1
+                 # Add to success count purely for display (though existing count tracks students)
+                 # We can just append to message
+                 messages.success(request, f"Notification sent to {success_count} students and {staff_count} staff members.")
+             else:
+                 messages.success(request, f"Notification sent to {success_count} devices (out of {count} students).")
+        else:
+             messages.error(request, "Please enter a message.")
+             
+        return redirect('staffs:send_custom_notification')
+
+    return render(request, 'staff/send_notification.html', {
+        'students': students,
+        'base_template': base_template, 
+        'staff': staff
+    })

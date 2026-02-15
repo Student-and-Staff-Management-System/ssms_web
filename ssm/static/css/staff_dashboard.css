@@ -355,6 +355,36 @@ body {
         display: none;
     }
 
+    /* When sidebar is toggled open on mobile */
+    .sidebar[style*="display: flex"] {
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 280px !important;
+        height: 100vh !important;
+        z-index: 1000 !important;
+        overflow-y: auto !important;
+        box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Ensure profile-mini (logout) is always visible at bottom */
+    .sidebar .profile-mini {
+        position: sticky;
+        bottom: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        margin-top: auto;
+        z-index: 10;
+    }
+
+    /* Make nav-section scrollable if content is tall */
+    .sidebar .nav-section {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 0;
+    }
+
     .dashboard-grid {
         display: flex;
         flex-direction: column;
@@ -397,5 +427,35 @@ body {
 
     .news-section {
         min-height: 350px;
+    }
+
+    /* Ensure sidebar toggle button is easily tappable */
+    .menu-toggle-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+    }
+
+    /* Increase touch targets for nav items */
+    .nav-item {
+        padding: 14px 16px;
+        font-size: 1.05rem;
+    }
+
+    /* Make logout button more prominent on mobile */
+    .profile-mini a[href*="logout"] {
+        font-size: 1.3rem !important;
+        padding: 8px !important;
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobile-logout-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
     }
 }

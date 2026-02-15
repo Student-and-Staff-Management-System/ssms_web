@@ -101,4 +101,5 @@ urlpatterns = [
     
     # Web Push
     path('webpush/', include('webpush.urls')),
+    path('send-notification/', views.send_custom_notification, name='send_custom_notification'),
 ]

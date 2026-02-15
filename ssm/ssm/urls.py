@@ -31,6 +31,7 @@ urlpatterns = [
     path('', include('students.urls')),
     path('staffs/', include('staffs.urls')),
     path('api/auth/', include('authentication.urls')),
+    path('webpush/', include('webpush.urls')),  # Added webpush URLS
     path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/javascript'), name='sw.js'),
     path('.well-known/assetlinks.json', TemplateView.as_view(template_name='assetlinks.json', content_type='application/json'), name='assetlinks'),
     path('offline/', TemplateView.as_view(template_name='offline.html'), name='offline_page'),

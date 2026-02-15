@@ -89,14 +89,20 @@ def hod_bonafide_list(request):
         if action == 'approve':
             if bonafide_req.status == 'Pending HOD Approval':
                 bonafide_req.status = 'Approved by HOD'
-                bonafide_req.save()
-                messages.success(request, f"Approved request for {bonafide_req.student.student_name}.")
+            bonafide_req.save()
+            messages.success(request, f"Approved request for {bonafide_req.student.student_name}.")
+            # Notify Student
+            from .utils import send_push_notification
+            send_push_notification(bonafide_req.student, "Bonafide Request Approved ✅", "Your request has been signed by HOD.")
         
         elif action == 'reject':
             bonafide_req.status = 'Rejected'
             bonafide_req.rejection_reason = rejection_reason
             bonafide_req.save()
             messages.warning(request, f"Rejected request for {bonafide_req.student.student_name}.")
+            # Notify Student
+            from .utils import send_push_notification
+            send_push_notification(bonafide_req.student, "Bonafide Request Rejected ❌", f"Reason: {rejection_reason}")
 
         elif action == 'mark_collected':
              bonafide_req.status = 'Collected'
@@ -106,7 +112,7 @@ def hod_bonafide_list(request):
         return redirect('staffs:hod_manage_bonafide')
 
     # GET: List Data
-    pending_requests = BonafideRequest.objects.filter(status='Pending HOD Approval').order_by('-created_at')
+    pending_requests = BonafideRequest.objects.filter(status__in=['Pending HOD Approval', 'Waiting for HOD Sign']).order_by('-created_at')
     # Approved requests now visible to HOD for printing/issuing
     approved_requests = BonafideRequest.objects.filter(status='Approved by HOD').order_by('-updated_at')
     history_requests = BonafideRequest.objects.exclude(status__in=['Pending HOD Approval', 'Approved by HOD']).order_by('-updated_at')[:20]
@@ -207,18 +213,27 @@ def office_bonafide_list(request):
              bonafide_req.status = 'Waiting for HOD Sign'
              bonafide_req.save()
              messages.success(request, f"Approved request for {bonafide_req.student.student_name}. Moved to Waiting List.")
+             # Notify Student
+             from .utils import send_push_notification
+             send_push_notification(bonafide_req.student, "Bonafide Request Update", "Your request is processed and waiting for HOD signature.")
 
         elif action == 'reject':
             bonafide_req.status = 'Rejected'
             bonafide_req.rejection_reason = rejection_reason
             bonafide_req.save()
             messages.warning(request, f"Rejected request for {bonafide_req.student.student_name}.")
+            # Notify Student
+            from .utils import send_push_notification
+            send_push_notification(bonafide_req.student, "Bonafide Request Rejected ❌", f"Reason: {rejection_reason}")
 
         elif action == 'mark_signed':
             # WAITING -> SIGNED (Ready for Collection)
             bonafide_req.status = 'Signed'
             bonafide_req.save()
             messages.success(request, "Marked as Signed & Ready for Collection.")
+            # Notify Student
+            from .utils import send_push_notification
+            send_push_notification(bonafide_req.student, "Bonafide Certificate Ready! 📜", "Your certificate is signed and ready for collection.")
         
         elif action == 'mark_collected':
              # SIGNED -> COLLECTED

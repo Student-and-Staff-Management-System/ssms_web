@@ -174,11 +174,9 @@
                         <div class="input-group radio-group">
                             <label>Are you applying for a scholarship?</label>
                             <div>
-                                <input type="radio" id="scholarship-yes" name="has_scholarship" value="yes" {% if
-                                    personal.has_scholarship %}checked{% endif %}>
+                                <input type="radio" id="scholarship-yes" name="has_scholarship" value="yes" {% if personal.has_scholarship %}checked{% endif %}>
                                 <label for="scholarship-yes">Yes</label>
-                                <input type="radio" id="scholarship-no" name="has_scholarship" value="no" {% if not
-                                    personal.has_scholarship %}checked{% endif %}>
+                                <input type="radio" id="scholarship-no" name="has_scholarship" value="no" {% if not personal.has_scholarship %}checked{% endif %}>
                                 <label for="scholarship-no">No</label>
                             </div>
                         </div>
@@ -513,22 +511,19 @@
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>First Graduate</label>
-                                <input type="checkbox" id="is_first_graduate_sch" name="is_first_graduate" {% if
-                                    scholarship.is_first_graduate %}checked{% endif %}>
+                                <input type="checkbox" id="is_first_graduate_sch" name="is_first_graduate" {% if  scholarship.is_first_graduate %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>BC/MBC</label>
-                                <input type="checkbox" name="sch_bcmbc" {% if scholarship.sch_bcmbc %}checked{% endif
-                                    %}>
+                                <input type="checkbox" name="sch_bcmbc" {% if scholarship.sch_bcmbc %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Post Metric</label>
-                                <input type="checkbox" name="sch_postmetric" {% if scholarship.sch_postmetric
-                                    %}checked{% endif %}>
+                                <input type="checkbox" name="sch_postmetric" {% if scholarship.sch_postmetric %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
@@ -546,8 +541,7 @@
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Pudhumai Penn</label>
-                                <input type="checkbox" name="sch_pudhumai" {% if scholarship.sch_pudhumai %}checked{%
-                                    endif %}>
+                                <input type="checkbox" name="sch_pudhumai" {% if scholarship.sch_pudhumai %}checked{%endif %}>
                             </div>
                         </div>
                         <div class="input-group">

@@ -81,6 +81,9 @@
                 <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item">
                     <span class="nav-icon">📝</span> Student Leaves
                 </a>
+                <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item">
+                    <span class="nav-icon">📢</span> Send Notification
+                </a>
                 <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" style="color: var(--primary-dark);"
                     target="_blank" rel="noopener noreferrer">
                     <span class="nav-icon">⚙️</span> Admin Portal
@@ -101,7 +104,9 @@
                     <div style="font-size: 0.75rem; color: var(--text-muted);">Head of Dept</div>
                 </div>
                 <a href="{% url 'staffs:staff_logout' %}" title="Logout"
-                    style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
+                    style="color: #ef4444; font-size: 0.9rem; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                    <span>Logout</span> 🚪
+                </a>
             </div>
         </aside>
         {% endblock %}
@@ -118,10 +123,16 @@
                     </div>
                 </div>
                 <!-- Combined Clock & Date Badge -->
-                <div class="clock-badge">
-                    <span>{% now "l, d F Y" %}</span>
-                    <span style="opacity: 0.3">|</span>
-                    <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    {% include 'staff/includes/notification_script.html' %}
+                    <!-- Mobile Logout Button (Visible only on mobile via CSS) -->
+                    <a href="{% url 'staffs:staff_logout' %}" class="mobile-logout-btn" title="Logout"
+                        style="display: none; color: #ef4444; font-size: 1.5rem; text-decoration: none;">🚪</a>
+                    <div class="clock-badge">
+                        <span>{% now "l, d F Y" %}</span>
+                        <span style="opacity: 0.3">|</span>
+                        <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
+                    </div>
                 </div>
             </div>
 

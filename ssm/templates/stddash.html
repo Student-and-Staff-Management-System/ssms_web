@@ -1,4 +1,5 @@
 {% load static %}
+{% load webpush_notifications %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,6 +11,9 @@
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
         type="image/png">
     <!-- Custom Student CSS -->
+    <!-- Hardcoded VAPID Key for debugging/fallback -->
+    <meta name="vapid-key"
+        content="BGM2HPOvDQ/xLSfPKovQ/nT1BVaA1g1WSCuxynHK7EklnqJsPd3mvUdaXLqLrV3VYqXNOOcHl8n/8SuwE09GDiI=">
     <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -332,6 +336,10 @@
                 <!-- Top Right Actions -->
                 <div class="header-actions">
                     {% block header_actions %}{% endblock %}
+                    <button id="custom-webpush-button" class="action-btn icon-style"
+                        style="border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: #fff; color: #5a7d7c; border: 1px solid #e2e8f0; margin-right: 10px;"
+                        title="Enable Notifications">🔔</button>
+
                     <button class="action-btn" id="stickyToggleBtn" onclick="toggleStickyNote()"
                         style="background: #eab308; border-color: #ca8a04;">📝 Show Sticky Note</button>
                     <a href="{% url 'student_profile' %}" class="action-btn btn-primary">👤 View Full Profile</a>
@@ -566,7 +574,7 @@
             <label for="stdSemSelector" style="font-weight: 500; color: #64748b;">Select Semester:</label>
             <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
                 style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
-                {% for record in gpa_records %}
+                {% for record in gpa_records %} 
                 <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
                 </option>
                 {% endfor %}
@@ -996,6 +1004,8 @@
                 otherField.querySelector('textarea').required = true;
             }
         }
+
+
     </script>
 
     <script>
@@ -1055,6 +1065,289 @@
         }
     </script>
     <script>
+        async function unsubscribeUserCustom() {
+            const btn = document.getElementById('custom-webpush-button');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '⏳';
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    console.log('User is unsubscribed.');
+                    showToast('Notifications Disabled.', 'info');
+
+                    // Reset UI
+                    if (btn) {
+                        btn.disabled = false;
+                        if (btn.classList.contains('icon-style')) {
+                            btn.textContent = '🔔';
+                            btn.setAttribute('data-status', 'unsubscribed');
+                            btn.title = "Enable Notifications";
+                        } else {
+                            btn.textContent = '🔔 Enable Notifications';
+                            btn.setAttribute('data-status', 'unsubscribed');
+                        }
+                    }
+                } else {
+                    // Already unsubscribed
+                    if (btn) {
+                        btn.disabled = false;
+                        if (btn.classList.contains('icon-style')) {
+                            btn.textContent = '🔔';
+                            btn.setAttribute('data-status', 'unsubscribed');
+                        } else {
+                            btn.textContent = '🔔 Enable Notifications';
+                            btn.setAttribute('data-status', 'unsubscribed');
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error unsubscribing:', err);
+                showToast('Failed to unsubscribe.', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔕'; // Revert to subscribed state?
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const subscribeBtn = document.getElementById('custom-webpush-button');
+            if (subscribeBtn) {
+                subscribeBtn.addEventListener('click', function () {
+                    const status = subscribeBtn.getAttribute('data-status');
+                    if (status === 'subscribed') {
+                        unsubscribeUserCustom();
+                    } else {
+                        subscribeUserCustom();
+                    }
+                });
+            }
+
+            // Check if already subscribed
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.ready.then(function (registration) {
+                    registration.pushManager.getSubscription().then(function (subscription) {
+                        if (subscription) {
+                            if (subscribeBtn) {
+                                if (subscribeBtn.classList.contains('icon-style')) {
+                                    subscribeBtn.textContent = '🔕';
+                                    subscribeBtn.setAttribute('data-status', 'subscribed');
+                                    subscribeBtn.title = "Disable Notifications";
+                                } else {
+                                    subscribeBtn.textContent = '🔕 Disable Notifications';
+                                    subscribeBtn.setAttribute('data-status', 'subscribed');
+                                    subscribeBtn.style.backgroundColor = '#6c757d'; // Gray out
+                                }
+                            }
+                        } else {
+                            if (subscribeBtn) {
+                                if (subscribeBtn.classList.contains('icon-style')) {
+                                    subscribeBtn.textContent = '🔔';
+                                    subscribeBtn.setAttribute('data-status', 'unsubscribed');
+                                    subscribeBtn.title = "Enable Notifications";
+                                } else {
+                                    subscribeBtn.textContent = '🔔 Enable Notifications';
+                                    subscribeBtn.setAttribute('data-status', 'unsubscribed');
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(function (registration) {
+                console.log('Django Webpush ServiceWorker registration successful with scope: ', registration.scope);
+            }, function (err) {
+                console.log('Django Webpush ServiceWorker registration failed: ', err);
+            });
+        }
+
+        async function subscribeUserCustom() {
+            const btn = document.getElementById('custom-webpush-button');
+
+            // Check for secure context (HTTPS or localhost required for Service Workers)
+            if (!window.isSecureContext) {
+                showToast('Notifications require HTTPS or localhost. Use localhost instead of IP address.', 'error');
+                return;
+            }
+
+            // Store original content to revert if needed
+            if (btn) {
+                btn.dataset.originalContent = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⏳';
+            }
+
+            const vapidKeyMeta = document.querySelector('meta[name="vapid-key"]');
+            if (!vapidKeyMeta) {
+                console.error('VAPID key not found');
+                showToast('Push config missing. Contact admin.', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalContent;
+                }
+                return;
+            }
+
+            const vapidKeyString = vapidKeyMeta.getAttribute('content');
+            console.log('VAPID Key from meta:', vapidKeyString);
+            console.log('VAPID Key length:', vapidKeyString ? vapidKeyString.length : 0);
+
+            const applicationServerKey = urlBase64ToUint8Array(vapidKeyString);
+            console.log('Converted VAPID Key (Uint8Array):', applicationServerKey);
+
+            try {
+                // Add timeout to prevent infinite loading
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('timeout')), 10000)
+                );
+
+                const registration = await Promise.race([
+                    navigator.serviceWorker.ready,
+                    timeoutPromise
+                ]);
+
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey
+                });
+
+                console.log('User is subscribed:', subscription);
+                saveSubscription(subscription);
+
+            } catch (err) {
+                console.error('Subscription failed:', err);
+                let errorMsg = 'Failed to enable notifications.';
+
+                if (err.message === 'timeout') {
+                    errorMsg = 'Service Worker timeout. Please refresh the page.';
+                } else if (err.name === 'NotAllowedError') {
+                    errorMsg = 'Permission denied. Click the lock icon in address bar and allow notifications.';
+                } else {
+                    errorMsg = 'Error: ' + err.message;
+                }
+
+                showToast(errorMsg, 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalContent;
+                }
+            }
+        }
+
+        function saveSubscription(subscription) {
+            // Detect Browser Name
+            let browserName = 'Chrome'; // Default
+            const userAgent = navigator.userAgent;
+            if (userAgent.indexOf("Firefox") > -1) {
+                browserName = "Firefox";
+            } else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1) {
+                browserName = "Opera";
+            } else if (userAgent.indexOf("Trident") > -1) {
+                browserName = "Internet Explorer";
+            } else if (userAgent.indexOf("Edge") > -1) {
+                browserName = "Edge";
+            } else if (userAgent.indexOf("Chrome") > -1) {
+                browserName = "Chrome";
+            } else if (userAgent.indexOf("Safari") > -1) {
+                browserName = "Safari";
+            }
+
+            // Prepare payload
+            const payload = {
+                status_type: 'subscribe',
+                group: 'student_{{ student.roll_number }}',
+                subscription: subscription.toJSON(),
+                browser: browserName,
+                user_agent: userAgent
+            };
+
+            console.log('Sending subscription payload:', payload);
+
+            fetch('/webpush/save_information', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(payload)
+            }) // Added closing parenthesis and brace for fetch options
+                .then(async response => {
+                    const btn = document.getElementById('custom-webpush-button');
+
+                    if (response.ok) {
+                        if (btn) {
+                            btn.disabled = false;
+                            if (btn.classList.contains('icon-style')) {
+                                btn.textContent = '🔕';
+                                btn.setAttribute('data-status', 'subscribed');
+                                btn.title = "Disable Notifications";
+                            } else {
+                                btn.textContent = '🔕 Disable Notifications';
+                                btn.setAttribute('data-status', 'subscribed');
+                                btn.style.backgroundColor = '#6c757d';
+                            }
+                        }
+                        showToast('Notifications Enabled Successfully!', 'success');
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Failed to save subscription:', response.status, response.statusText, errorText);
+                        showToast(`Failed to save: ${response.status} ${response.statusText}`, 'error');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = btn.dataset.originalContent || '🔔';
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error saving subscription:', err);
+                    showToast('Network error. Check connection.', 'error');
+                    const btn = document.getElementById('custom-webpush-button');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = btn.dataset.originalContent || '🔔';
+                    }
+                });
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
         {% block extra_js %} {% endblock %}
     </script>
 </body>

@@ -553,14 +553,26 @@
           registration.pushManager.getSubscription().then(function (subscription) {
             if (subscription) {
               if (subscribeBtn) {
-                subscribeBtn.textContent = '🔕 Disable Notifications';
-                subscribeBtn.setAttribute('data-status', 'subscribed');
-                subscribeBtn.style.backgroundColor = '#6c757d'; // Gray out
+                if (subscribeBtn.classList.contains('icon-style')) {
+                  subscribeBtn.textContent = '🔕';
+                  subscribeBtn.setAttribute('data-status', 'subscribed');
+                  subscribeBtn.title = "Disable Notifications";
+                } else {
+                  subscribeBtn.textContent = '🔕 Disable Notifications';
+                  subscribeBtn.setAttribute('data-status', 'subscribed');
+                  subscribeBtn.style.backgroundColor = '#6c757d'; // Gray out
+                }
               }
             } else {
               if (subscribeBtn) {
-                subscribeBtn.textContent = '🔔 Enable Notifications';
-                subscribeBtn.setAttribute('data-status', 'unsubscribed');
+                if (subscribeBtn.classList.contains('icon-style')) {
+                  subscribeBtn.textContent = '🔔';
+                  subscribeBtn.setAttribute('data-status', 'unsubscribed');
+                  subscribeBtn.title = "Enable Notifications";
+                } else {
+                  subscribeBtn.textContent = '🔔 Enable Notifications';
+                  subscribeBtn.setAttribute('data-status', 'unsubscribed');
+                }
               }
             }
           });
@@ -609,9 +621,16 @@
           if (response.ok) {
             const btn = document.getElementById('webpush-subscribe-button');
             if (btn) {
-              btn.textContent = '🔕 Disable Notifications';
-              btn.setAttribute('data-status', 'subscribed');
-              btn.style.backgroundColor = '#6c757d';
+              if (btn.classList.contains('icon-style')) {
+                btn.textContent = '🔕';
+                btn.setAttribute('data-status', 'subscribed');
+                btn.title = "Disable Notifications";
+                // Optional: Visual feedback for active state if needed
+              } else {
+                btn.textContent = '🔕 Disable Notifications';
+                btn.setAttribute('data-status', 'subscribed');
+                btn.style.backgroundColor = '#6c757d';
+              }
             }
             alert('Notifications Enabled Successfully!');
           } else {
