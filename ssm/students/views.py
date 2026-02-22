@@ -1512,6 +1512,24 @@ def bonafide_list(request):
         else:
             # Unlimited requests
             BonafideRequest.objects.create(student=student, reason=reason)
+            
+            # --- EMAIL NOTIFICATION ---
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                from staffs.models import Staff
+                
+                office_staff = Staff.objects.filter(role='Office Staff', is_active=True).values_list('email', flat=True)
+                recipient_list = list(office_staff)
+                
+                if recipient_list:
+                    subject = f"New Bonafide Request - {student.student_name} ({student.roll_number})"
+                    message = f"A new bonafide request has been submitted by {student.student_name} (Roll No: {student.roll_number}, Semester: {student.current_semester}).\n\nReason: {reason}\n\nPlease log in to the portal to process the request."
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list, fail_silently=True)
+            except Exception as e:
+                print(f"Error sending bonafide email: {e}")
+            # ---------------------------
+
             messages.success(request, 'Bonafide Request submitted successfully to Office!')
             return redirect('bonafide_list')
 
@@ -1588,6 +1606,33 @@ def apply_leave(request):
             leave_request = form.save(commit=False)
             leave_request.student = student
             leave_request.save()
+            
+            # --- EMAIL NOTIFICATION ---
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                from staffs.models import Staff
+                
+                class_incharges = Staff.objects.filter(
+                    role='Class Incharge', 
+                    assigned_semester=student.current_semester, 
+                    is_active=True
+                ).values_list('email', flat=True)
+                
+                recipient_list = list(class_incharges)
+                
+                if not recipient_list:
+                    hods = Staff.objects.filter(role='HOD', is_active=True).values_list('email', flat=True)
+                    recipient_list = list(hods)
+                
+                if recipient_list:
+                    subject = f"New Leave Request - {student.student_name} ({student.roll_number})"
+                    message = f"A new leave request has been submitted by {student.student_name} (Roll No: {student.roll_number}, Semester: {student.current_semester}).\n\nPlease log in to the portal to review the request."
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list, fail_silently=True)
+            except Exception as e:
+                print(f"Error sending leave email: {e}")
+            # ---------------------------
+
             messages.success(request, 'Leave request submitted successfully!')
             return redirect('leave_history')
     else:
@@ -1639,6 +1684,24 @@ def request_bonafide(request):
         
         # Unlimited requests
         BonafideRequest.objects.create(student=student, reason=final_reason, status='Pending Office Approval')
+        
+        # --- EMAIL NOTIFICATION ---
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            from staffs.models import Staff
+            
+            office_staff = Staff.objects.filter(role='Office Staff', is_active=True).values_list('email', flat=True)
+            recipient_list = list(office_staff)
+            
+            if recipient_list:
+                subject = f"New Bonafide Request - {student.student_name} ({student.roll_number})"
+                message = f"A new bonafide request has been submitted by {student.student_name} (Roll No: {student.roll_number}, Semester: {student.current_semester}).\n\nReason: {final_reason}\n\nPlease log in to the portal to process the request."
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list, fail_silently=True)
+        except Exception as e:
+            print(f"Error sending bonafide email: {e}")
+        # ---------------------------
+
         messages.success(request, 'Bonafide Request submitted successfully to Office!')
         return redirect('bonafide_list')
     

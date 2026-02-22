@@ -212,6 +212,10 @@
                 {% endfor %}
             </select>
             <button type="submit" class="btn-view">View Timetable</button>
+            {% if staff.role == 'HOD' %}
+            <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn-view"
+                style="text-decoration: none; background: #e67e22; margin-left: auto;">Edit Timetable</a>
+            {% endif %}
         </form>
 
         <!-- Timetable -->

@@ -1090,6 +1090,129 @@ def timetable(request):
         'semesters': range(1, 9)
     })
 
+def edit_timetable(request, semester):
+    """View to edit weekly timetable. Restricted to HOD."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    
+    if staff.role != 'HOD':
+        messages.error(request, 'Access Denied: Only HOD can edit the timetable.')
+        return redirect('staffs:timetable')
+        
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    periods = range(1, 8)
+    
+    from .models import Subject
+    # Get all subjects for this semester to populate dropdowns
+    subjects = Subject.objects.filter(semester=semester)
+    # Get all active staff to populate dropdowns
+    all_staff = Staff.objects.filter(is_active=True).order_by('name')
+    
+    if request.method == 'POST':
+        from .utils import send_staff_notification
+        from django.db import transaction
+        
+        with transaction.atomic():
+            for day in days:
+                for period in periods:
+                    sub_val = request.POST.get(f'subject_{day}_{period}')
+                    staff_val = request.POST.get(f'staff_{day}_{period}')
+                    
+                    # Fetch existing entry
+                    entry_qs = Timetable.objects.filter(semester=semester, day=day, period=period)
+                    entry = entry_qs.first()
+                    
+                    if sub_val == '' and staff_val == '':
+                        # Clear period
+                        if entry:
+                            # If staff was assigned, notify them removal?
+                            if entry.staff:
+                                send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
+                                try:
+                                    from django.core.mail import send_mail
+                                    from django.conf import settings
+                                    if entry.staff.email:
+                                        send_mail("Timetable Updated", f"You have been removed from {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [entry.staff.email], fail_silently=True)
+                                except Exception: pass
+                            entry.delete()
+                        continue
+                        
+                    # Find subject and staff instances
+                    subject = Subject.objects.get(id=sub_val) if sub_val else None
+                    assigned_staff = Staff.objects.get(staff_id=staff_val) if staff_val else None
+                    
+                    if entry:
+                        changed = False
+                        old_staff = entry.staff
+                        if entry.subject != subject:
+                            entry.subject = subject
+                            changed = True
+                        if entry.staff != assigned_staff:
+                            entry.staff = assigned_staff
+                            changed = True
+                            
+                            entry.save()
+                            
+                            from django.core.mail import send_mail
+                            from django.conf import settings
+                            
+                            # Notify new staff
+                            if assigned_staff and old_staff != assigned_staff:
+                                send_staff_notification(assigned_staff, "📅 Timetable Updated", f"You've been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", url="/staffs/my-timetable/")
+                                try:
+                                    if assigned_staff.email:
+                                        send_mail("Timetable Updated", f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], fail_silently=True)
+                                except Exception: pass
+                                
+                            # Notify old staff
+                            if old_staff and old_staff != assigned_staff:
+                                send_staff_notification(old_staff, "📅 Timetable Updated", f"You are no longer assigned to {day} Period {period}.", url="/staffs/my-timetable/")
+                                try:
+                                    if old_staff.email:
+                                        send_mail("Timetable Updated", f"You are no longer assigned to {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [old_staff.email], fail_silently=True)
+                                except Exception: pass
+                    else:
+                        if subject or assigned_staff:
+                            new_entry = Timetable.objects.create(
+                                semester=semester,
+                                day=day,
+                                period=period,
+                                subject=subject,
+                                staff=assigned_staff
+                            )
+                            if assigned_staff:
+                                send_staff_notification(assigned_staff, "📅 Timetable Updated", f"You've been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", url="/staffs/my-timetable/")
+                                try:
+                                    from django.core.mail import send_mail
+                                    from django.conf import settings
+                                    if assigned_staff.email:
+                                        send_mail("Timetable Updated", f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], fail_silently=True)
+                                except Exception: pass
+                                
+        messages.success(request, f'Timetable for Semester {semester} updated successfully.')
+        return redirect(f'/staffs/timetable/?semester={semester}')
+        
+    # GET Request: Prepare grid data
+    entries = Timetable.objects.filter(semester=semester)
+    timetable_data = {day: [None]*7 for day in days}
+    for entry in entries:
+        if 1 <= entry.period <= 7:
+             timetable_data[entry.day][entry.period-1] = entry
+
+    timetable_rows = []
+    for day in days:
+        timetable_rows.append((day, timetable_data[day]))
+        
+    return render(request, 'staff/edit_timetable.html', {
+        'staff': staff,
+        'semester': semester,
+        'timetable_rows': timetable_rows,
+        'subjects': subjects,
+        'all_staff': all_staff,
+    })
+
 def my_timetable(request):
     """
     Displays only the timetable periods assigned to the currently logged-in staff.
@@ -1292,6 +1415,18 @@ def update_leave_status(request, request_id):
                  # Notify Student
                  from .utils import send_push_notification
                  send_push_notification(leave_request.student, "Leave Request Update", f"Forwarded to HOD by {staff.name}")
+                 
+                 # --- EMAIL NOTIFICATION ---
+                 try:
+                     from django.core.mail import send_mail
+                     from django.conf import settings
+                     subject = "Leave Request Status Update"
+                     message = f"Hello {leave_request.student.student_name},\n\nYour leave request has been forwarded to the HOD by your Class Incharge ({staff.name}).\n\nLogin to the portal to check further updates."
+                     if leave_request.student.student_email:
+                         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], fail_silently=True)
+                 except Exception as e:
+                     print(f"Error sending leave email: {e}")
+                 # ---------------------------
 
             elif staff.role == 'HOD':
                 leave_request.status = 'Approved'
@@ -1299,6 +1434,18 @@ def update_leave_status(request, request_id):
                 # Notify Student
                 from .utils import send_push_notification, send_staff_notification
                 send_push_notification(leave_request.student, "Leave Approved ✅", f"Your leave request has been approved by HOD.")
+                
+                # --- EMAIL NOTIFICATION ---
+                try:
+                    from django.core.mail import send_mail
+                    from django.conf import settings
+                    subject = "Leave Request Approved"
+                    message = f"Hello {leave_request.student.student_name},\n\nYour leave request has been approved by the HOD.\n\nLogin to the portal to view the details."
+                    if leave_request.student.student_email:
+                        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], fail_silently=True)
+                except Exception as e:
+                    print(f"Error sending leave email: {e}")
+                # ---------------------------
                 
                 # Notify Class Incharges
                 class_incharges = Staff.objects.filter(role='Class Incharge', assigned_semester=leave_request.student.current_semester)
@@ -1313,6 +1460,18 @@ def update_leave_status(request, request_id):
             # Notify Student
             from .utils import send_push_notification
             send_push_notification(leave_request.student, "Leave Rejected ❌", f"Reason: {reason}")
+            
+            # --- EMAIL NOTIFICATION ---
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                subject = "Leave Request Rejected"
+                message = f"Hello {leave_request.student.student_name},\n\nYour leave request has been rejected by {staff.name} ({staff.role}).\n\nReason: {reason}\n\nLogin to the portal to view the details."
+                if leave_request.student.student_email:
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], fail_silently=True)
+            except Exception as e:
+                print(f"Error sending leave email: {e}")
+            # ---------------------------
         
         leave_request.save()
         

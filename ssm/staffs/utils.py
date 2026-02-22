@@ -165,7 +165,8 @@ def send_push_notification(student, title, body, url=None):
             "head": title,
             "title": title, # Redundant key for compatibility with some Service Workers
             "body": body,
-            "icon": "https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png", 
+            "icon": "/static/imgs/annamalai.png", 
+            "badge": "/static/imgs/annamalai.png",
             "url": url if url else "/students/dashboard/"
         }
         # TTL 86400 = 24 hours
@@ -187,7 +188,8 @@ def send_staff_notification(staff, title, body, url=None):
             "head": title,
             "title": title,
             "body": body,
-            "icon": "https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png",
+            "icon": "/static/imgs/annamalai.png",
+            "badge": "/static/imgs/aublack.png",
             "url": url if url else "/staffs/"
         }
         send_group_notification(group_name=group_name, payload=payload, ttl=86400)

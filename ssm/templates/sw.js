@@ -91,8 +91,8 @@ self.addEventListener('push', function (event) {
         const title = data.title || data.head || 'Annamalai University';
         const options = {
             body: data.body || 'You have a new update.',
-            icon: '/static/imgs/annamalai.png',     // Main icon (192x192)
-            badge: '/static/imgs/aublack.png',       // Small monochrome icon for status bar
+            icon: data.icon || self.location.origin + '/static/imgs/annamalai.png',
+            badge: data.badge || self.location.origin + '/static/imgs/aublack.png',
             vibrate: [100, 50, 100],
             data: {
                 url: data.url || '/',                // Target URL for click

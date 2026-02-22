@@ -95,6 +95,18 @@ def hod_bonafide_list(request):
             # Notify Student
             from .utils import send_push_notification
             send_push_notification(bonafide_req.student, "Bonafide Request Approved ✅", "Your request has been signed by HOD.")
+            
+            # --- EMAIL NOTIFICATION ---
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                subject = "Bonafide Request Approved"
+                message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Request has been signed by the HOD.\n\nLogin to the portal to view the details."
+                if bonafide_req.student.student_email:
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+            except Exception as e:
+                print(f"Error sending bonafide email: {e}")
+            # ---------------------------
         
         elif action == 'reject':
             bonafide_req.status = 'Rejected'
@@ -104,11 +116,35 @@ def hod_bonafide_list(request):
             # Notify Student
             from .utils import send_push_notification
             send_push_notification(bonafide_req.student, "Bonafide Request Rejected ❌", f"Reason: {rejection_reason}")
+            
+            # --- EMAIL NOTIFICATION ---
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                subject = "Bonafide Request Rejected"
+                message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Request has been rejected.\n\nReason: {rejection_reason}\n\nLogin to the portal to view the details."
+                if bonafide_req.student.student_email:
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+            except Exception as e:
+                print(f"Error sending bonafide email: {e}")
+            # ---------------------------
 
         elif action == 'mark_collected':
              bonafide_req.status = 'Collected'
              bonafide_req.save()
              messages.success(request, "Marked as Collected.")
+             
+             # --- EMAIL NOTIFICATION ---
+             try:
+                 from django.core.mail import send_mail
+                 from django.conf import settings
+                 subject = "Bonafide Certificate Collected"
+                 message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Certificate has been marked as Collected.\n\nLogin to the portal to view the details."
+                 if bonafide_req.student.student_email:
+                     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+             except Exception as e:
+                 print(f"Error sending bonafide email: {e}")
+             # ---------------------------
 
         return redirect('staffs:hod_manage_bonafide')
 
@@ -216,6 +252,18 @@ def office_bonafide_list(request):
              # Notify Student
              from .utils import send_push_notification
              send_push_notification(bonafide_req.student, "Bonafide Request Update", "Your request is processed and waiting for HOD signature.")
+             
+             # --- EMAIL NOTIFICATION ---
+             try:
+                 from django.core.mail import send_mail
+                 from django.conf import settings
+                 subject = "Bonafide Request Update"
+                 message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Request has been processed by the Office and is waiting for the HOD's signature.\n\nLogin to the portal to view the details."
+                 if bonafide_req.student.student_email:
+                     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+             except Exception as e:
+                 print(f"Error sending bonafide email: {e}")
+             # ---------------------------
 
         elif action == 'reject':
             bonafide_req.status = 'Rejected'
@@ -225,6 +273,18 @@ def office_bonafide_list(request):
             # Notify Student
             from .utils import send_push_notification
             send_push_notification(bonafide_req.student, "Bonafide Request Rejected ❌", f"Reason: {rejection_reason}")
+            
+            # --- EMAIL NOTIFICATION ---
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                subject = "Bonafide Request Rejected"
+                message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Request has been rejected.\n\nReason: {rejection_reason}\n\nLogin to the portal to view the details."
+                if bonafide_req.student.student_email:
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+            except Exception as e:
+                print(f"Error sending bonafide email: {e}")
+            # ---------------------------
 
         elif action == 'mark_signed':
             # WAITING -> SIGNED (Ready for Collection)
@@ -234,12 +294,36 @@ def office_bonafide_list(request):
             # Notify Student
             from .utils import send_push_notification
             send_push_notification(bonafide_req.student, "Bonafide Certificate Ready! 📜", "Your certificate is signed and ready for collection.")
+            
+            # --- EMAIL NOTIFICATION ---
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                subject = "Bonafide Certificate Ready"
+                message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Certificate is signed and ready for collection at the Department Office.\n\nLogin to the portal to view the details."
+                if bonafide_req.student.student_email:
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+            except Exception as e:
+                print(f"Error sending bonafide email: {e}")
+            # ---------------------------
         
         elif action == 'mark_collected':
              # SIGNED -> COLLECTED
              bonafide_req.status = 'Collected'
              bonafide_req.save()
              messages.success(request, "Marked as Collected.")
+             
+             # --- EMAIL NOTIFICATION ---
+             try:
+                 from django.core.mail import send_mail
+                 from django.conf import settings
+                 subject = "Bonafide Certificate Collected"
+                 message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Certificate has been marked as Collected.\n\nLogin to the portal to view the details."
+                 if bonafide_req.student.student_email:
+                     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+             except Exception as e:
+                 print(f"Error sending bonafide email: {e}")
+             # ---------------------------
 
         return redirect('staffs:office_manage_bonafide')
 

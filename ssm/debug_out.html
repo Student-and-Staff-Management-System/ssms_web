@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable | staffthree</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <style>
+        :root {
+            --primary-color: #5a7d7c;
+            --secondary-color: #4a6b69;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-color: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .btn-back {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: var(--secondary-color);
+        }
+
+        .semester-filter {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+        }
+
+        select {
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        button.btn-view {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.3s ease;
+        }
+
+        button.btn-view:hover {
+            background: var(--primary-color);
+        }
+
+        .timetable-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            padding: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #eef6f6;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .day-column {
+            font-weight: 600;
+            background: #fafafa;
+            width: 100px;
+        }
+
+        .break-column {
+            background: #f0f0f0;
+            color: var(--text-muted);
+            font-weight: 600;
+            width: 40px;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            padding: 5px;
+        }
+
+        .subject-cell {
+            padding: 15px 5px;
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover .subject-cell {
+            background: #f9fafa;
+        }
+
+        .subject-code {
+            display: block;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 3px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 4px;
+            margin-bottom: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+        }
+
+        .staff-name {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .empty-slot {
+            color: #ccc;
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .semester-filter {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .timetable-container {
+                padding: 5px;
+            }
+
+            th,
+            td {
+                padding: 5px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="page-header">
+            <h1 style="color: var(--primary-color); margin: 0; font-size: 1.5rem;">✏️ Edit Timetable - Semester {{
+                semester }}</h1>
+            <a href="/staffs/timetable/?semester=1" class="btn-back">← Cancel</a>
+        </header>
+
+        <!-- Edit Form -->
+        <form method="POST" action="/staffs/timetable/edit/1/">
+            <input type="hidden" name="csrfmiddlewaretoken" value="5RSql3aApgWxrtK9ZLSctQ2vSGkwJBgRQTHTbYFPmjoBa4WMgkRMwTY1CusmvzbG">
+            <div style="text-align: right; margin-bottom: 15px;">
+                <button type="submit" class="btn-view"
+                    style="background: var(--primary-color); font-size: 1.1rem; padding: 10px 30px;">Save
+                    Changes</button>
+            </div>
+
+            <div class="timetable-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="day-column">Day \ Time</th>
+                            <th>08.30<br>to<br>09.30</th>
+                            <th>09.30<br>to<br>10.30</th>
+                            <th class="break-column">BREAK</th>
+                            <th>10.40<br>to<br>11.40</th>
+                            <th>11.40<br>to<br>12.40</th>
+                            <th class="break-column">LUNCH</th>
+                            <th>01.30<br>to<br>02.30</th>
+                            <th>02.30<br>to<br>03.30</th>
+                            <th>03.30<br>to<br>04.30</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td class="day-column">Monday</td>
+
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">B</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">L</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                        </tr>
+                        
+                        <tr>
+                            <td class="day-column">Tuesday</td>
+
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">B</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">L</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                        </tr>
+                        
+                        <tr>
+                            <td class="day-column">Wednesday</td>
+
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">B</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">L</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                        </tr>
+                        
+                        <tr>
+                            <td class="day-column">Thursday</td>
+
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">B</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">L</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                        </tr>
+                        
+                        <tr>
+                            <td class="day-column">Friday</td>
+
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">B</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+                            <td class="break-column">L</td>
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                            
+
+                            <td class="subject-cell">
+                                {# Django templates don't support dynamic array access effectively, so we unroll
+                                manually based on loop counter #}
+                                {% include
+                                "staff/partials/edit_period.html" %}
+                                
+                            </td>
+                            
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+    </div>
+</body>
+
+</html>

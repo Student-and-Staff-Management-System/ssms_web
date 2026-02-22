@@ -1,0 +1,13 @@
+<select name="subject_{{ day }}_{{ period }}" class="form-select">
+    <option value="">- Sub -</option>
+    {% for sub in subjects %}
+    <option value="{{ sub.id }}" {% if p and p.subject.id == sub.id %}selected{% endif %}>{{ sub.code }}</option>
+    {% endfor %}
+</select>
+<select name="staff_{{ day }}_{{ period }}" class="form-select">
+    <option value="">- Staff -</option>
+    {% for s in all_staff %}
+    <option value="{{ s.staff_id }}" {% if p and p.staff.staff_id == s.staff_id %}selected{% endif %}>{{ s.name }}
+    </option>
+    {% endfor %}
+</select>
