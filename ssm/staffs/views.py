@@ -1090,6 +1090,45 @@ def timetable(request):
         'semesters': range(1, 9)
     })
 
+def my_timetable(request):
+    """
+    Displays only the timetable periods assigned to the currently logged-in staff.
+    Each entry is annotated with is_mine=True so the template can highlight them.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    import datetime
+
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+
+    # Only fetch entries assigned to this staff member
+    entries = Timetable.objects.filter(staff=staff).select_related('subject')
+
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+
+    # Build a grid: day → list of 7 slots (None or entry)
+    timetable_data = {day: [None] * 7 for day in days}
+
+    for entry in entries:
+        if 1 <= entry.period <= 7:
+            # Annotate entry so template can colour it
+            entry.is_mine = True
+            timetable_data[entry.day][entry.period - 1] = entry
+
+    timetable_rows = [(day, timetable_data[day]) for day in days]
+
+    today_name = datetime.date.today().strftime('%A')  # e.g. "Monday"
+    has_entries = entries.exists()
+
+    return render(request, 'staff/my_timetable.html', {
+        'staff': staff,
+        'timetable_rows': timetable_rows,
+        'today_name': today_name,
+        'has_entries': has_entries,
+    })
+
+
 def risk_students(request):
     """
     Dedicated view to display students at risk (Low Attendance / Low Marks).

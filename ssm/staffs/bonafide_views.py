@@ -5,9 +5,11 @@ from django.http import HttpResponse
 from .models import Staff
 from students.models import BonafideRequest
 
-@login_required(login_url='staffs:stafflogin')
 def generate_bonafide_request_pdf(request, request_id):
     """Renders the printable Bonafide Certificate template."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
     bonafide_req = get_object_or_404(BonafideRequest, id=request_id)
     student = bonafide_req.student
     
@@ -60,7 +62,6 @@ def generate_bonafide_request_pdf(request, request_id):
     
     return render(request, 'staff/bonafide/certificate_print.html', context)
 
-@login_required(login_url='staffs:stafflogin')
 def hod_bonafide_list(request):
     """
     HOD View: Lists pending requests. actions: Approve / Reject.
@@ -126,7 +127,6 @@ def hod_bonafide_list(request):
     return render(request, 'staff/bonafide/hod_list.html', context)
 
 
-@login_required(login_url='staffs:stafflogin')
 def office_bonafide_list(request):
     """
     Office View: Lists requests with new workflow:

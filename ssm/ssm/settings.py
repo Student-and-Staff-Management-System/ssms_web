@@ -11,7 +11,7 @@ load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY=os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-dev-only')
 
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True').strip().lower() in ['true', '1', 't', 'y', 'yes']
 ALLOWED_HOSTS = ['10.165.244.80', 'localhost', '127.0.0.1', '*', '13.126.152.167']
 
 # CSRF Trusted Origins - REQUIRED for POST forms to work in production (HTTPS/non-localhost)

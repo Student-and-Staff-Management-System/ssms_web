@@ -1,0 +1,214 @@
+/* Resume Builder & AI Controls Styles */
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95em;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--light-accent-bg);
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* List Items (Skills & Projects) */
+.list-item {
+    background: var(--light-accent-bg);
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-item-content {
+    flex: 1;
+}
+
+.list-item-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95em;
+}
+
+.list-item-subtitle {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    padding: 5px;
+    font-size: 1.1em;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+}
+
+/* Header Layout */
+.rb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* AI Button & Controls */
+.btn-ai,
+.btn-secondary-outline,
+.btn-download {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.95em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    min-width: 160px;
+    /* Fixed width for uniformity */
+    height: 42px;
+    /* Fixed height */
+    text-decoration: none;
+}
+
+.btn-ai {
+    background: linear-gradient(135deg, #6f42c1, #5a32a3);
+    color: white;
+    border: none;
+}
+
+.btn-ai:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+    color: white;
+}
+
+.btn-secondary-outline {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: var(--text-secondary);
+}
+
+.btn-secondary-outline:hover {
+    background: #f3f4f6;
+    color: var(--text-primary);
+    border-color: #9ca3af;
+}
+
+.btn-download {
+    background: #547c7c;
+    /* Matching theme color */
+    color: white;
+    border: none;
+}
+
+.btn-download:hover {
+    background: #466767;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(84, 124, 124, 0.3);
+}
+
+.btn-primary {
+    background: #547c7c;
+    /* Matching theme color */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+}
+
+.btn-primary:hover {
+    background: #466767;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(84, 124, 124, 0.3);
+}
+
+/* AI Status Box */
+.ai-status-box {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #6f42c1;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.status-time {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Hide Dashboard Print Button */
+.page-header .action-btn[onclick="window.print()"] {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .rb-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

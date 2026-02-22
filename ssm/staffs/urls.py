@@ -60,6 +60,7 @@ urlpatterns = [
     path('passed-out/<int:year>/', views.batch_students, name='batch_students'),
     path('exam-schedule/', views.exam_schedule, name='exam_schedule'),
     path('timetable/', views.timetable, name='timetable'),
+    path('my-timetable/', views.my_timetable, name='my_timetable'),
 
     # Leave Management (Student -> Staff)
     path('leave/requests/', views.view_leave_requests, name='view_leave_requests'),

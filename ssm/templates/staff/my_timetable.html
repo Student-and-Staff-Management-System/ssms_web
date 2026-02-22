@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Timetable | {{ staff.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #2c3e50;
+            --muted: #7f8c8d;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --today-bg: #eef8f7;
+            --today-border: #5a7d7c;
+            --my-period-bg: #e0f2f1;
+            --my-period-text: #00695c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        /* ── Header ── */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            padding: 20px 28px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h1 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .page-header .subtitle {
+            font-size: 0.88rem;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .btn-back {
+            background: var(--primary);
+            color: white;
+            padding: 9px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-back:hover {
+            background: var(--primary-dark);
+        }
+
+        /* ── Today badge ── */
+        .today-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #e0f2f1;
+            color: var(--primary-dark);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border: 1px solid #b2dfdb;
+        }
+
+        /* ── Legend ── */
+        .legend {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background: var(--card);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+
+        .dot-my {
+            background: var(--my-period-bg);
+            border: 2px solid var(--my-period-text);
+        }
+
+        .dot-today {
+            background: var(--today-bg);
+            border: 2px solid var(--today-border);
+        }
+
+        /* ── Table ── */
+        .table-wrap {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            padding: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: 10px 8px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.88rem;
+        }
+
+        thead th {
+            background: #eef6f6;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .day-col {
+            font-weight: 600;
+            background: #fafafa;
+            width: 90px;
+            font-size: 0.85rem;
+        }
+
+        .day-col.today {
+            background: var(--today-bg);
+            color: var(--primary-dark);
+            border-left: 3px solid var(--today-border);
+        }
+
+        .break-col {
+            background: #f5f5f5;
+            color: #bbb;
+            font-size: 0.7rem;
+            font-weight: 700;
+            width: 32px;
+            letter-spacing: 2px;
+            writing-mode: vertical-rl;
+            padding: 4px;
+        }
+
+        .period-cell {
+            transition: background 0.15s;
+        }
+
+        .period-cell:hover {
+            background: #f8fafa;
+        }
+
+        .period-cell.today-row {
+            background: var(--today-bg);
+        }
+
+        .my-period {
+            background: var(--my-period-bg) !important;
+            border: 1px solid #80cbc4;
+        }
+
+        .subject-code {
+            display: block;
+            font-weight: 700;
+            color: #00695c;
+            font-size: 0.88rem;
+        }
+
+        .subject-name {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .sem-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            background: #b2dfdb;
+            color: #00695c;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        .empty-slot {
+            color: #ddd;
+            font-size: 1rem;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h3 {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            th,
+            td {
+                padding: 6px 4px;
+                font-size: 0.78rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <h1>🗓️ My Timetable</h1>
+                <div class="subtitle">{{ staff.name }} &nbsp;·&nbsp; {{ staff.designation|default:"Staff" }}</div>
+            </div>
+            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
+        </div>
+
+        {% if has_entries %}
+
+        <!-- Today badge -->
+        <div class="today-badge">
+            📍 Today is <strong>{{ today_name }}</strong> — your classes for today are highlighted below.
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot dot-my"></div>
+                <span>Your assigned period</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot dot-today"></div>
+                <span>Today's row</span>
+            </div>
+        </div>
+
+        <!-- Timetable grid -->
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="day-col">Day</th>
+                        <th>08:30<br>–<br>09:30</th>
+                        <th>09:30<br>–<br>10:30</th>
+                        <th class="break-col">B R K</th>
+                        <th>10:40<br>–<br>11:40</th>
+                        <th>11:40<br>–<br>12:40</th>
+                        <th class="break-col">L N C H</th>
+                        <th>01:30<br>–<br>02:30</th>
+                        <th>02:30<br>–<br>03:30</th>
+                        <th>03:30<br>–<br>04:30</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day, periods in timetable_rows %}
+                    <tr>
+                        <td class="day-col {% if day == today_name %}today{% endif %}">
+                            {{ day }}
+                            {% if day == today_name %}<br><span
+                                style="font-size:0.7rem; font-weight:400; color:#5a7d7c;">Today</span>{% endif %}
+                        </td>
+
+                        <!-- Period 1 -->
+                        <td
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.0 and periods.0.is_mine %}my-period{% endif %}">
+                            {% with p=periods.0 %}{% if p and p.subject %}
+                            <span class="subject-code">{{ p.subject.code }}</span>
+                            <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
+                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
+                        </td>
+
+                        <!-- Period 2 -->
+                        <td
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.1 and periods.1.is_mine %}my-period{% endif %}">
+                            {% with p=periods.1 %}{% if p and p.subject %}
+                            <span class="subject-code">{{ p.subject.code }}</span>
+                            <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
+                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
+                        </td>
+
+                        <td class="break-col">B R K</td>
+
+                        <!-- Period 3 -->
+                        <td
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.2 and periods.2.is_mine %}my-period{% endif %}">
+                            {% with p=periods.2 %}{% if p and p.subject %}
+                            <span class="subject-code">{{ p.subject.code }}</span>
+                            <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
+                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
+                        </td>
+
+                        <!-- Period 4 -->
+                        <td
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.3 and periods.3.is_mine %}my-period{% endif %}">
+                            {% with p=periods.3 %}{% if p and p.subject %}
+                            <span class="subject-code">{{ p.subject.code }}</span>
+                            <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
+                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
+                        </td>
+
+                        <td class="break-col">L N C H</td>
+
+                        <!-- Period 5 -->
+                        <td
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.4 and periods.4.is_mine %}my-period{% endif %}">
+                            {% with p=periods.4 %}{% if p and p.subject %}
+                            <span class="subject-code">{{ p.subject.code }}</span>
+                            <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
+                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
+                        </td>
+
+                        <!-- Period 6 -->
+                        <td
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.5 and periods.5.is_mine %}my-period{% endif %}">
+                            {% with p=periods.5 %}{% if p and p.subject %}
+                            <span class="subject-code">{{ p.subject.code }}</span>
+                            <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
+                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
+                        </td>
+
+                        <!-- Period 7 -->
+                        <td
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.6 and periods.6.is_mine %}my-period{% endif %}">
+                            {% with p=periods.6 %}{% if p and p.subject %}
+                            <span class="subject-code">{{ p.subject.code }}</span>
+                            <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
+                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="icon">📭</div>
+            <h3>No Timetable Entries Found</h3>
+            <p>You don't have any periods assigned in the timetable yet.<br>
+                Contact the HOD or Admin to assign your schedule.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+
+</html>

@@ -55,6 +55,24 @@ class TimetableAdmin(admin.ModelAdmin):
     list_filter = ('semester', 'day')
     ordering = ('semester', 'day', 'period')
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # Send push notification to the affected staff member
+        if obj.staff:
+            try:
+                from .utils import send_staff_notification
+                action = "updated" if change else "assigned"
+                subject_name = obj.subject.name if obj.subject else "a subject"
+                send_staff_notification(
+                    staff=obj.staff,
+                    title="📅 Timetable Updated",
+                    body=f"Your schedule has been {action}. {subject_name} — {obj.day}, Period {obj.period}.",
+                    url="/staffs/my-timetable/"
+                )
+            except Exception as e:
+                # Never block the admin save due to notification failure
+                pass
+
 from .models import News, StaffLeaveRequest, AuditLog
 
 
