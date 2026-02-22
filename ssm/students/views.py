@@ -1026,9 +1026,9 @@ def student_marks(request):
             radar_test2.append(0)
             radar_internal.append(0)
     
-    # Filter empty charts if essentially no data
-    if not has_any_data:
-        radar_labels = [] # Prevents empty chart rendering
+    # If we have subjects, we should show the empty chart frame at least
+    if radar_labels:
+        has_any_data = True
 
     context = {
         'student': student,

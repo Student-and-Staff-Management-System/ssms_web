@@ -2,7 +2,10 @@ import requests
 import json
 import base64
 
-BASE_URL = 'http://127.0.0.1:8000/api/auth/'
+# --- Switch between environments as needed ---
+# BASE_URL = 'http://127.0.0.1:8000/api/auth/'          # Local dev
+# BASE_URL = 'https://ssms-web.onrender.com/api/auth/'  # Production (Render)
+BASE_URL = 'https://au-it.app/api/auth/'              # Production (Custom domain)
 
 # Helper to decode JWT payload (without verifying signature)
 def decode_jwt(token):

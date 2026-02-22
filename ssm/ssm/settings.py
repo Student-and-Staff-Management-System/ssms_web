@@ -11,8 +11,24 @@ load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY=os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-dev-only')
 
-DEBUG = True
-ALLOWED_HOSTS = ['10.165.244.80', 'localhost', '127.0.0.1','*','13.126.152.167']
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = ['10.165.244.80', 'localhost', '127.0.0.1', '*', '13.126.152.167']
+
+# CSRF Trusted Origins - REQUIRED for POST forms to work in production (HTTPS/non-localhost)
+# Without this, Django silently rejects POST requests from the production domain,
+# causing forms to appear to just "refresh the page".
+CSRF_TRUSTED_ORIGINS = [
+    'http://13.126.152.167',
+    'https://13.126.152.167',
+    'http://localhost',
+    'http://127.0.0.1',
+    'https://localhost',
+    'https://127.0.0.1',
+    'https://au-it.app',
+    'https://www.au-it.app',
+    'https://ssms-web.onrender.com',
+    'https://ssms-web.onrender.com'
+]
 
 
 # --- APPLICATION DEFINITION ---

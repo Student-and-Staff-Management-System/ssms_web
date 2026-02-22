@@ -575,8 +575,7 @@
             <select id="stdSemSelector" onchange="showStudentSemester(this.value)"
                 style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; outline: none; background: #fff;">
                 {% for record in gpa_records %}
-                <option value="std_sem_{{ record.semester }}" {% if
-                    record.semester==student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
+                <option value="std_sem_{{ record.semester }}" {% if record.semester == student.current_semester%}selected{% endif %}>Semester {{ record.semester }}
                 </option>
                 {% endfor %}
             </select>
