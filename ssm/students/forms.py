@@ -39,16 +39,23 @@ class StudentForm(forms.ModelForm):
             'joining_year', 'ending_year'
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and getattr(self.instance, 'is_password_changed', False):
+            self.fields['password'].required = False
+            self.fields['confirm_password'].required = False
+
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
 
-        if confirm_password and password != confirm_password:
-            raise forms.ValidationError("Passwords do not match.")
-
-        if password and len(password) < 6:
-            self.add_error('password', "Password must be at least 6 characters long.")
+        # Only validate password if it is provided
+        if password:
+            if confirm_password and password != confirm_password:
+                self.add_error('confirm_password', "Passwords do not match.")
+            if len(password) < 6:
+                self.add_error('password', "Password must be at least 6 characters long.")
         
         # Logic: Ending year > Joining year
         start = cleaned_data.get('joining_year')
@@ -79,7 +86,9 @@ class StudentForm(forms.ModelForm):
 
     def save(self, commit=True):
         student = super().save(commit=False)
-        student.set_password(self.cleaned_data["password"])
+        password = self.cleaned_data.get("password")
+        if password:
+            student.set_password(password)
         if commit:
             student.save()
         return student

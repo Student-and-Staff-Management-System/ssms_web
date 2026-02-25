@@ -107,15 +107,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const cpw = document.getElementById('confirm-password');
 
             if (pw && isEffectivelyVisible(pw)) {
-                if (pw.value.length < 6) {
+                if (pw.value && pw.value.length < 6) {
                     errors.push("Password must be at least 6 characters.");
                     markFieldError(pw);
                 }
             }
             if (pw && cpw && isEffectivelyVisible(cpw)) {
-                if (pw.value !== cpw.value) {
-                    errors.push("Passwords do not match.");
-                    markFieldError(cpw);
+                if (pw.value || cpw.value) {
+                    if (pw.value !== cpw.value) {
+                        errors.push("Passwords do not match.");
+                        markFieldError(cpw);
+                    }
                 }
             }
 

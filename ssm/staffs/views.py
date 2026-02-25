@@ -1118,13 +1118,13 @@ def edit_timetable(request, semester):
             for day in days:
                 for period in periods:
                     sub_val = request.POST.get(f'subject_{day}_{period}')
-                    staff_val = request.POST.get(f'staff_{day}_{period}')
+                    # Staff is auto-assigned from subject — no manual staff picker
                     
                     # Fetch existing entry
                     entry_qs = Timetable.objects.filter(semester=semester, day=day, period=period)
                     entry = entry_qs.first()
                     
-                    if sub_val == '' and staff_val == '':
+                    if not sub_val:
                         # Clear period
                         if entry:
                             # If staff was assigned, notify them removal?
@@ -1139,9 +1139,17 @@ def edit_timetable(request, semester):
                             entry.delete()
                         continue
                         
-                    # Find subject and staff instances
-                    subject = Subject.objects.get(id=sub_val) if sub_val else None
-                    assigned_staff = Staff.objects.get(staff_id=staff_val) if staff_val else None
+                    # Handle virtual slots (LAB_SESSION, PLACEMENT, LIBRARY)
+                    VIRTUAL_SLOTS = ['LAB_SESSION', 'PLACEMENT', 'LIBRARY']
+                    if sub_val in VIRTUAL_SLOTS:
+                        subject = None
+                        assigned_staff = None
+                        virtual_label = sub_val
+                    else:
+                        subject = Subject.objects.filter(id=sub_val).first() if sub_val else None
+                        # Auto-assign the subject's own staff
+                        assigned_staff = subject.staff if subject else None
+                        virtual_label = None
                     
                     if entry:
                         changed = False
@@ -1205,12 +1213,23 @@ def edit_timetable(request, semester):
     for day in days:
         timetable_rows.append((day, timetable_data[day]))
         
+    import json as _json
+    # Build subject→staff/type map for JS (to auto-show staff name on subject selection)
+    subject_staff_map = {}
+    for subj in subjects:
+        subject_staff_map[str(subj.id)] = {
+            'staff': subj.staff.name if subj.staff else '—',
+            'type': subj.subject_type,  # 'Theory' or 'Lab'
+            'name': subj.name,
+            'code': subj.code,
+        }
+
     return render(request, 'staff/edit_timetable.html', {
         'staff': staff,
         'semester': semester,
         'timetable_rows': timetable_rows,
         'subjects': subjects,
-        'all_staff': all_staff,
+        'subject_staff_map_json': _json.dumps(subject_staff_map),
     })
 
 def my_timetable(request):

@@ -12,6 +12,10 @@
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jQuery + Select2 (for Caste dropdown) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <!-- Custom Student CSS -->
     <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
@@ -60,13 +64,24 @@
                                 value="{{ student.student_email|default:'' }}">
                         </div>
                         <div class="input-group">
-                            <label for="password">New Password</label>
-                            <input type="password" id="password" name="password" required
-                                placeholder="Enter new password">
+                            <label for="password">
+                                New Password
+                                {% if student.is_password_changed %}<span style="color:var(--text-secondary);font-weight:400;font-size:0.85em;"> (Already set)</span>{% endif %}
+                            </label>
+                            <input type="password" id="password" name="password"
+                                {% if not student.is_password_changed %}required{% endif %}
+                                {% if student.is_password_changed %}disabled{% endif %}
+                                placeholder="{% if student.is_password_changed %}Password already set{% else %}Enter new password{% endif %}">
                         </div>
                         <div class="input-group">
-                            <label for="confirm-password">Confirm New Password</label>
-                            <input type="password" id="confirm-password" required placeholder="Confirm new password">
+                            <label for="confirm-password">
+                                Confirm New Password
+                                {% if student.is_password_changed %}<span style="color:var(--text-secondary);font-weight:400;font-size:0.85em;"> (Already set)</span>{% endif %}
+                            </label>
+                            <input type="password" id="confirm-password"
+                                {% if not student.is_password_changed %}required{% endif %}
+                                {% if student.is_password_changed %}disabled{% endif %}
+                                placeholder="{% if student.is_password_changed %}Password already set{% else %}Confirm new password{% endif %}">
                         </div>
                     </div>
                 </div>
@@ -135,8 +150,9 @@
                         </div>
                         <div class="input-group">
                             <label for="caste">Caste</label>
-                            <select id="caste" name="caste"
-                                data-selected="{{ personal.caste.name|default:'' }}"></select>
+                            <select id="caste" name="caste" required
+                                data-selected="{{ personal.caste.name|default:'' }}"
+                                style="width:100%;"></select>
                         </div>
                         <div class="input-group" id="caste-other-group" style="display: none;">
                             <label for="caste_other">Please Specify Caste</label>
@@ -145,15 +161,13 @@
                         </div>
                         <div class="input-group">
                             <label for="religion">Religion</label>
-                            <select id="religion" name="religion" required>
-                                <option value="Hindu" {% if personal.religion == "Hindu" %}selected{% endif %}>Hindu
-                                </option>
-                                <option value="Christian" {% if personal.religion == "Christian" %}selected{% endif %}>
-                                    Christian</option>
-                                <option value="Muslim" {% if personal.religion == "Muslim" %}selected{% endif %}>Muslim
-                                </option>
-                                <option value="Other" {% if personal.religion == "Other" %}selected{% endif %}>Other
-                                </option>
+                            <select id="religion" name="religion" required
+                                data-selected="{{ personal.religion|default:'' }}">
+                                <option value="" selected>-- Select --</option>
+                                <option value="Hindu" {% if personal.religion == "Hindu" %}selected{% endif %}>Hindu</option>
+                                <option value="Christian" {% if personal.religion == "Christian" %}selected{% endif %}>Christian</option>
+                                <option value="Muslim" {% if personal.religion == "Muslim" %}selected{% endif %}>Muslim</option>
+                                <option value="Other" {% if personal.religion == "Other" %}selected{% endif %}>Other</option>
                             </select>
                         </div>
                         <div class="input-group">
@@ -191,42 +205,42 @@
                         </div>
                         <div class="input-group">
                             <label for="parent_email">Parent Email</label>
-                            <input type="email" id="parent_email" name="parent_email"
+                            <input type="email" id="parent_email" name="parent_email" required
                                 value="{{ personal.parent_email|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="father_name">Father's Name</label>
-                            <input type="text" id="father_name" name="father_name"
+                            <input type="text" id="father_name" name="father_name" required
                                 value="{{ personal.father_name|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="father_occupation">Father's Occupation</label>
-                            <input type="text" id="father_occupation" name="father_occupation"
+                            <input type="text" id="father_occupation" name="father_occupation" required
                                 value="{{ personal.father_occupation|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="father_mobile">Father's Mobile</label>
-                            <input type="tel" id="father_mobile" name="father_mobile"
+                            <input type="tel" id="father_mobile" name="father_mobile" required
                                 value="{{ personal.father_mobile|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="mother_name">Mother's Name</label>
-                            <input type="text" id="mother_name" name="mother_name"
+                            <input type="text" id="mother_name" name="mother_name" required
                                 value="{{ personal.mother_name|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="mother_occupation">Mother's Occupation</label>
-                            <input type="text" id="mother_occupation" name="mother_occupation"
+                            <input type="text" id="mother_occupation" name="mother_occupation" required
                                 value="{{ personal.mother_occupation|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="mother_mobile">Mother's Mobile</label>
-                            <input type="tel" id="mother_mobile" name="mother_mobile"
+                            <input type="tel" id="mother_mobile" name="mother_mobile" required
                                 value="{{ personal.mother_mobile|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="parent_annual_income">Parent's Annual Income</label>
-                            <input type="number" id="parent_annual_income" name="parent_annual_income" min="0"
+                            <input type="number" id="parent_annual_income" name="parent_annual_income" min="0" required
                                 value="{{ personal.parent_annual_income|default:'' }}">
                         </div>
                     </div>
@@ -511,7 +525,7 @@
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>First Graduate</label>
-                                <input type="checkbox" id="is_first_graduate_sch" name="is_first_graduate" {% if  scholarship.is_first_graduate %}checked{% endif %}>
+                                <input type="checkbox" id="is_first_graduate_sch" name="is_first_graduate" {% if scholarship.is_first_graduate %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
@@ -541,21 +555,19 @@
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Pudhumai Penn</label>
-                                <input type="checkbox" name="sch_pudhumai" {% if scholarship.sch_pudhumai %}checked{%endif %}>
+                                <input type="checkbox" name="sch_pudhumai" {% if scholarship.sch_pudhumai %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Tamizh Pudhalvan</label>
-                                <input type="checkbox" name="sch_tamizh" {% if scholarship.sch_tamizh %}checked{% endif
-                                    %}>
+                                <input type="checkbox" name="sch_tamizh" {% if scholarship.sch_tamizh %}checked{% endif %}>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="checkbox-group">
                                 <label>Private Scholarship</label>
-                                <input type="checkbox" id="sch_private" name="sch_private" {% if scholarship.sch_private
-                                    %}checked{% endif %}>
+                                <input type="checkbox" id="sch_private" name="sch_private" {% if scholarship.sch_private %}checked{% endif %}>
                             </div>
                         </div>
                     </div>
@@ -771,23 +783,28 @@
             const casteOtherGroup = document.getElementById('caste-other-group');
 
             function updateCasteOptions() {
-                if (!casteSelect) return;
                 const selectedCommunity = communitySelect ? communitySelect.value : "";
                 const castes = subCasteData[selectedCommunity] || [];
 
-                casteSelect.innerHTML = '';
                 casteOtherGroup.style.display = 'none';
 
+                // Destroy existing Select2 before repopulating
+                if ($.fn.select2 && $(casteSelect).data('select2')) {
+                    $(casteSelect).select2('destroy');
+                }
+
+                // Repopulate <select> options
+                casteSelect.innerHTML = '';
                 if (castes.length === 0) {
                     const opt = document.createElement('option');
                     opt.value = '';
-                    opt.textContent = 'Select Community First';
+                    opt.textContent = 'Select community first';
                     casteSelect.appendChild(opt);
                 } else {
-                    const opt = document.createElement('option');
-                    opt.value = '';
-                    opt.textContent = '-- Select --';
-                    casteSelect.appendChild(opt);
+                    const blank = document.createElement('option');
+                    blank.value = '';
+                    blank.textContent = '';
+                    casteSelect.appendChild(blank);
 
                     castes.forEach(c => {
                         const o = document.createElement('option');
@@ -801,36 +818,39 @@
                     other.textContent = 'Other';
                     casteSelect.appendChild(other);
 
-                    // Handle Pre-selection
-                    const selected = casteSelect.getAttribute('data-selected');
-                    if (selected) {
-                        casteSelect.value = selected;
-                        // If value isn't found (e.g. it was 'Other' but named specifically?), check logic
-                        // Actually if 'selected' is not in options, it might be custom.
-                        // But we just appended options from DB.
-                        // If it was 'Other', the value 'Other' is there.
-                        // If user typed something in 'Other', the select value should be 'Other'.
-
-                        if (casteSelect.value !== selected && selected !== '') {
-                            // Potentially it's a custom value that fell into "Other"? 
-                            // Or maybe the loop didn't cover it?
-                            // Assuming standard usage:
-                            casteSelect.value = 'Other';
-                        }
-
-                        // trigger change to show/hide other input
-                        casteSelect.dispatchEvent(new Event('change'));
+                    // Pre-select saved value
+                    const savedCaste = casteSelect.getAttribute('data-selected') || '';
+                    if (savedCaste) {
+                        casteSelect.value = savedCaste;
+                        if (!casteSelect.value) casteSelect.value = 'Other'; // fallback
+                        casteOtherGroup.style.display = (casteSelect.value === 'Other') ? 'block' : 'none';
                     }
                 }
+
+                // Initialize Select2
+                $(casteSelect).select2({
+                    placeholder: castes.length === 0 ? 'Select community first' : 'Search caste...',
+                    allowClear: true,
+                    width: '100%'
+                });
+
+                // Listen for Select2 change
+                $(casteSelect).off('change.caste').on('change.caste', function () {
+                    casteOtherGroup.style.display = (this.value === 'Other') ? 'block' : 'none';
+                    updateActiveAccordionHeight();
+                });
+
+                updateActiveAccordionHeight();
             }
+            // ---- End Caste Select2 ----
 
             if (communitySelect) communitySelect.addEventListener('change', updateCasteOptions);
 
-            if (casteSelect) {
-                casteSelect.addEventListener('change', function () {
-                    casteOtherGroup.style.display = this.value === 'Other' ? 'block' : 'none';
-                    updateActiveAccordionHeight();
-                });
+            // Religion: default to empty if no saved value
+            const religionSelect = document.getElementById('religion');
+            if (religionSelect) {
+                const savedReligion = religionSelect.getAttribute('data-selected') || '';
+                religionSelect.value = savedReligion; // '' will show '-- Select --'
             }
 
             // Conditional logic for program and entry type

@@ -217,6 +217,15 @@ a {
     font-size: 0.9em;
 }
 
+/* Red star on required field labels */
+.input-group:has(input[required]) label::after,
+.input-group:has(select[required]) label::after,
+.input-group:has(textarea[required]) label::after {
+    content: ' *';
+    color: var(--error-color);
+    font-weight: 700;
+}
+
 .input-group input,
 .input-group select,
 .input-group textarea {

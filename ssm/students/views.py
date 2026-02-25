@@ -233,6 +233,9 @@ def register_student(request):
                 personal = personal_form.save(commit=False)
                 personal.student = s
                 personal.caste = caste_obj
+                # Fix: radio buttons send 'yes'/'no' strings; BooleanField treats any
+                # non-empty string as True, so 'no' would incorrectly save as True.
+                personal.has_scholarship = (data.get('has_scholarship') == 'yes')
                 personal.save()
 
                 # Save others

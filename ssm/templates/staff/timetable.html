@@ -192,6 +192,38 @@
                 font-size: 0.8rem;
             }
         }
+        /* Lab merged cell highlight */
+        .lab-cell {
+            background: linear-gradient(135deg, #eaf7f7 0%, #d6f0f0 100%);
+            border-left: 4px solid var(--primary-color) !important;
+        }
+        .lab-cell .subject-code { color: var(--primary-color); }
+        .lab-cont {
+            background: #eaf7f7;
+            border-left: 2px solid var(--primary-color) !important;
+            opacity: 0.85;
+        }
+        /* Edit Timetable button */
+        .btn-edit {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-color);
+            color: #fff;
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            margin-left: auto;
+            box-shadow: 0 2px 8px rgba(90,125,124,.35);
+            transition: background .2s, box-shadow .2s;
+        }
+        .btn-edit:hover {
+            background: var(--secondary-color);
+            box-shadow: 0 4px 14px rgba(90,125,124,.45);
+        }
     </style>
 </head>
 
@@ -213,8 +245,7 @@
             </select>
             <button type="submit" class="btn-view">View Timetable</button>
             {% if staff.role == 'HOD' %}
-            <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn-view"
-                style="text-decoration: none; background: #e67e22; margin-left: auto;">Edit Timetable</a>
+            <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn-edit">✏️ Edit Timetable</a>
             {% endif %}
         </form>
 
@@ -237,97 +268,113 @@
                 </thead>
                 <tbody>
                     {% for day, periods in timetable_rows %}
+                    {% with p1=periods.0 p2=periods.1 p3=periods.2 p4=periods.3 p5=periods.4 p6=periods.5 p7=periods.6 %}
                     <tr>
                         <td class="day-column">{{ day }}</td>
 
-                        <!-- Period 1 -->
-                        <td class="subject-cell">
-                            {% with p=periods.0 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
+                        {# ── Morning block: P1, P2, BREAK, P3, P4 ── #}
+                        {# Check if P1+P2 are same lab subject #}
+                        {% if p1 and p2 and p1.subject and p2.subject and p1.subject.id == p2.subject.id and p1.subject.subject_type == 'Lab' %}
+                            {# P1+P2 merged (colspan=2) #}
+                            <td class="subject-cell lab-cell" colspan="2">
+                                <span class="subject-code">{{ p1.subject.code }}</span>
+                                {% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
+                                <span class="staff-name" style="font-size:.7rem;color:var(--primary-color)">Lab · 2h</span>
+                            </td>
+                            {# BREAK stays visible #}
+                            <td class="break-column">B</td>
+                            {# P3 — continuation if same subject #}
+                            {% if p3 and p3.subject and p3.subject.id == p1.subject.id %}
+                            <td class="subject-cell lab-cont">
+                                <span class="subject-code">{{ p1.subject.code }}</span>
+                                {% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
+                            </td>
                             {% else %}
-                            <span class="empty-slot">-</span>
+                            <td class="subject-cell">
+                                {% if p3 and p3.subject %}<span class="subject-code">{{ p3.subject.code }}</span>{% if p3.staff %}<span class="staff-name">{{ p3.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
                             {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 2 -->
-                        <td class="subject-cell">
-                            {% with p=periods.1 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <td class="break-column">B</td>
-
-                        <!-- Period 3 -->
-                        <td class="subject-cell">
-                            {% with p=periods.2 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 4 -->
-                        <td class="subject-cell">
-                            {% with p=periods.3 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
+                            {# P4 #}
+                            <td class="subject-cell">
+                                {% if p4 and p4.subject %}<span class="subject-code">{{ p4.subject.code }}</span>{% if p4.staff %}<span class="staff-name">{{ p4.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                        {% elif p2 and p3 and p4 and p2.subject and p3.subject and p4.subject and p2.subject.id == p3.subject.id and p3.subject.id == p4.subject.id and p2.subject.subject_type == 'Lab' %}
+                            {# P2 lab — P2 standalone, BREAK, P3+P4 merged #}
+                            <td class="subject-cell">
+                                {% if p1 and p1.subject %}<span class="subject-code">{{ p1.subject.code }}</span>{% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                            <td class="subject-cell lab-cell">
+                                <span class="subject-code">{{ p2.subject.code }}</span>
+                                {% if p2.staff %}<span class="staff-name">{{ p2.staff.name }}</span>{% endif %}
+                            </td>
+                            <td class="break-column">B</td>
+                            <td class="subject-cell lab-cont" colspan="2">
+                                <span class="subject-code">{{ p2.subject.code }}</span>
+                                {% if p2.staff %}<span class="staff-name">{{ p2.staff.name }}</span>{% endif %}
+                            </td>
+                        {% else %}
+                            {# Normal P1 #}
+                            <td class="subject-cell">
+                                {% if p1 and p1.subject %}<span class="subject-code">{{ p1.subject.code }}</span>{% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                            {# Normal P2 #}
+                            <td class="subject-cell">
+                                {% if p2 and p2.subject %}<span class="subject-code">{{ p2.subject.code }}</span>{% if p2.staff %}<span class="staff-name">{{ p2.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                            <td class="break-column">B</td>
+                            {# Normal P3 #}
+                            <td class="subject-cell">
+                                {% if p3 and p3.subject %}<span class="subject-code">{{ p3.subject.code }}</span>{% if p3.staff %}<span class="staff-name">{{ p3.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                            {# Normal P4 #}
+                            <td class="subject-cell">
+                                {% if p4 and p4.subject %}<span class="subject-code">{{ p4.subject.code }}</span>{% if p4.staff %}<span class="staff-name">{{ p4.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                        {% endif %}
 
                         <td class="break-column">L</td>
 
-                        <!-- Period 5 -->
-                        <td class="subject-cell">
-                            {% with p=periods.4 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 6 -->
-                        <td class="subject-cell">
-                            {% with p=periods.5 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 7 -->
-                        <td class="subject-cell">
-                            {% with p=periods.6 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
+                        {# ── Afternoon block: P5, P6, P7 ── #}
+                        {% if p5 and p6 and p7 and p5.subject and p6.subject and p7.subject and p5.subject.id == p6.subject.id and p6.subject.id == p7.subject.id %}
+                            {# Lab spans all 3 afternoon periods #}
+                            <td class="subject-cell lab-cell" colspan="3">
+                                <span class="subject-code">{{ p5.subject.code }}</span>
+                                {% if p5.staff %}<span class="staff-name">{{ p5.staff.name }}</span>{% endif %}
+                                <span class="staff-name" style="font-size:.7rem;color:var(--primary-color)">Lab · 3h</span>
+                            </td>
+                        {% elif p5 and p6 and p5.subject and p6.subject and p5.subject.id == p6.subject.id %}
+                            {# 2-period same subject #}
+                            <td class="subject-cell" colspan="2">
+                                <span class="subject-code">{{ p5.subject.code }}</span>
+                                {% if p5.staff %}<span class="staff-name">{{ p5.staff.name }}</span>{% endif %}
+                            </td>
+                            <td class="subject-cell">
+                                {% if p7 and p7.subject %}<span class="subject-code">{{ p7.subject.code }}</span>{% if p7.staff %}<span class="staff-name">{{ p7.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                        {% else %}
+                            <td class="subject-cell">
+                                {% if p5 and p5.subject %}<span class="subject-code">{{ p5.subject.code }}</span>{% if p5.staff %}<span class="staff-name">{{ p5.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                            <td class="subject-cell">
+                                {% if p6 and p6.subject %}<span class="subject-code">{{ p6.subject.code }}</span>{% if p6.staff %}<span class="staff-name">{{ p6.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                            <td class="subject-cell">
+                                {% if p7 and p7.subject %}<span class="subject-code">{{ p7.subject.code }}</span>{% if p7.staff %}<span class="staff-name">{{ p7.staff.name }}</span>{% endif %}
+                                {% else %}<span class="empty-slot">-</span>{% endif %}
+                            </td>
+                        {% endif %}
                     </tr>
+                    {% endwith %}
                     {% endfor %}
                 </tbody>
             </table>

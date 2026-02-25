@@ -1,275 +1,860 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timetable | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+    <title>Edit Timetable — Semester {{ semester }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
     <style>
         :root {
-            --primary-color: #5a7d7c;
-            --secondary-color: #4a6b69;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #2c3e50;
-            --text-muted: #7f8c8d;
-            --border-color: #e2e8f0;
-            --radius: 12px;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --primary:#5a7d7c; --primary-dark:#4a6b69;
+            --bg:#f0f4f3; --card:#fff; --text:#2c3e50;
+            --muted:#7f8c8d; --border:#dde4e4;
+            --radius:12px; --shadow:0 4px 24px rgba(0,0,0,.07);
+            --break-bg:#e8f0ef;
         }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
+        /* TOPBAR */
+        .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:13px 24px;
+            display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+            position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+        .tl{display:flex;align-items:center;gap:10px;}
+        .topbar h1{font-size:1.08rem;font-weight:600;color:var(--primary);}
+        .badge-sem{background:var(--primary);color:#fff;padding:3px 11px;border-radius:20px;font-size:.76rem;font-weight:500;}
+        .ta{display:flex;gap:9px;flex-wrap:wrap;}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;
+            font-size:.86rem;font-weight:500;font-family:'Poppins',sans-serif;cursor:pointer;
+            border:none;text-decoration:none;transition:all .2s;}
+        .btn-primary{background:var(--primary);color:#fff;}
+        .btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(90,125,124,.35);}
+        .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+        .btn-ghost:hover{background:#f5f5f5;color:var(--text);}
+        #unsaved{display:none;background:#fff3cd;color:#856404;border:1px solid #ffe69c;
+            padding:3px 11px;border-radius:6px;font-size:.76rem;font-weight:500;}
+
+        /* PAGE */
+        .pw{max-width:1420px;margin:22px auto;padding:0 18px 60px;}
+
+        /* STATS */
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+        .sc{background:var(--card);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;
+            gap:10px;box-shadow:var(--shadow);border-top:3px solid transparent;}
+        .sc.f{border-top-color:var(--primary);} .sc.e{border-top-color:#e67e22;}
+        .sc.t{border-top-color:#3498db;} .sc.s{border-top-color:#8e44ad;}
+        .si{font-size:1.4rem;width:38px;height:38px;display:grid;place-items:center;border-radius:9px;background:var(--bg);flex-shrink:0;}
+        .si strong{display:block;font-size:1.35rem;font-weight:700;line-height:1;}
+        .si-text span{font-size:.73rem;color:var(--muted);}
+
+        /* TABLE CARD */
+        .tc{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+        .ttb{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;
+            border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+        .ttb h2{font-size:.92rem;font-weight:600;}
+        
+        /* Updated Scrolling Container */
+        .tscroll{overflow:auto; max-height:70vh;}
+        table{width:100%;border-collapse:collapse;min-width:980px;}
+
+        /* Sticky header — offset set to 0 */
+        thead th{
+            position:sticky;top:0;z-index:100;
+            background:#eef6f5;color:var(--primary);font-weight:600;font-size:.76rem;
+            padding:9px 5px;border:1px solid var(--border);text-align:center;white-space:nowrap;
         }
-
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
+        /* top-left corner cell sticks in both directions */
+        thead th:first-child{
+            position:sticky;left:0;top:0;z-index:150;
+            background:#eef6f5;min-width:90px;
         }
+        tbody td{border:1px solid var(--border);vertical-align:top;padding:0;}
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 20px 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
+        /* Sticky day column */
+        td.daycol{
+            font-weight:700;font-size:.82rem;color:#1a2a3a;
+            background:#ffffff;width:90px;min-width:90px;max-width:90px;
+            text-align:center;vertical-align:middle;padding:8px 4px;
+            position:sticky;left:0;z-index:50;
+            border-right:3px solid var(--primary);
+            box-shadow:2px 0 5px rgba(0,0,0,.06);
         }
-
-        .btn-back {
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background 0.3s ease;
+        td.brcol,th.brcol{
+            background:var(--break-bg);width:32px;min-width:32px;text-align:center;vertical-align:middle;
+            font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:1px;
+            writing-mode:vertical-rl;padding:5px 2px;
         }
+        th.brcol{color:var(--muted)!important;background:var(--break-bg)!important;}
 
-        .btn-back:hover {
-            background: var(--secondary-color);
+        /* PERIOD CELL */
+        .pc{padding:7px 6px;position:relative;min-width:120px;}
+        .ctop{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+        .cbadge{font-size:.6rem;padding:2px 7px;border-radius:10px;font-weight:600;flex-shrink:0;}
+        .cbadge.emp{background:#f8d7da;color:#721c24;}
+        .cbadge.theory{background:#d4edda;color:#155724;}
+        .cbadge.lab{background:#d1ecf1;color:#0c5460;}
+        .cbadge.special{background:#fce8b2;color:#7d5a00;}
+        .bclear{background:none;border:none;cursor:pointer;color:#ccc;font-size:1.05rem;
+            padding:0 2px;line-height:1;transition:color .2s;flex-shrink:0;}
+        .bclear:hover{color:#dc3545;}
+        .pc select{width:100%;padding:5px 4px;border:1px solid var(--border);border-radius:6px;
+            font-size:.69rem;font-family:'Poppins',sans-serif;background:#fff;color:var(--text);
+            appearance:auto;transition:border-color .2s,box-shadow .2s;}
+        .pc select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(90,125,124,.15);}
+        .staffchip{display:block;font-size:.67rem;color:var(--muted);margin-top:3px;
+            background:var(--bg);border-radius:4px;padding:2px 5px;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;}
+
+        /* Special slot merged cell */
+        .merged-label{
+            display:none;flex-direction:column;align-items:center;justify-content:center;
+            text-align:center;padding:12px 8px;gap:5px;position:relative;min-height:80px;
         }
-
-        .semester-filter {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: var(--shadow);
-            flex-wrap: wrap;
+        .merged-label .ml-icon{font-size:1.6rem;}
+        .merged-label .ml-title{font-size:.82rem;font-weight:700;margin:0;}
+        .merged-label .ml-code{font-size:.7rem;color:var(--muted);}
+        .merged-label .ml-staff{font-size:.68rem;color:#555;background:rgba(0,0,0,.05);padding:1px 7px;border-radius:10px;}
+        .ml-clear{
+            position:absolute;top:5px;right:5px;
+            background:#dc3545;color:#fff;border:none;border-radius:20px;
+            font-size:.65rem;font-weight:600;padding:2px 9px;cursor:pointer;
+            transition:background .2s;
         }
+        .ml-clear:hover{background:#bb2d3b;}
+        td.merged-active .merged-label{display:flex;}
+        td.merged-active .pc-normal{display:none;}
 
-        select {
-            padding: 8px 15px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
+        /* Morning lab: BREAK column highlighted, P3 continuation */
+        td.brcol.lab-break{
+            background:#d1ecf1;color:#0c5460;font-size:.7rem;
+            font-weight:800;border-left:2px solid #17a2b8;border-right:2px solid #17a2b8;
         }
-
-        button.btn-view {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 9px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: background 0.3s ease;
+        .lab-cont-label{
+            display:none;flex-direction:column;align-items:center;justify-content:center;
+            text-align:center;padding:6px 4px;min-height:60px;gap:3px;
         }
-
-        button.btn-view:hover {
-            background: var(--primary-color);
+        .lab-cont-label span{font-size:.7rem;font-weight:600;}
+        .lab-cont-label .lc-icon{font-size:1.3rem;}
+        td.lab-cont-active .pc-normal{display:none;}
+        td.lab-cont-active .lab-cont-label{display:flex;}
+        /* Lab picker inside merged cell */
+        .lab-pick-sel{
+            width:90%;max-width:200px;padding:5px 8px;border:1px solid var(--border);
+            border-radius:6px;font-size:.75rem;font-family:'Poppins',sans-serif;
+            background:#fff;color:var(--text);margin-top:2px;
         }
+        .lab-pick-sel:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(90,125,124,.15);}
 
-        .timetable-container {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-            padding: 10px;
+        /* No subjects alert */
+        .no-subj-alert{
+            background:#fff3cd;border:1px solid #ffe69c;color:#856404;
+            padding:12px 18px;border-radius:8px;font-size:.85rem;margin-bottom:16px;
         }
+        .no-subj-alert a{color:var(--primary);font-weight:600;}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1000px;
-        }
+        /* LEGEND */
+        .legcard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:16px;padding:15px 18px;}
+        .legcard h3{font-size:.88rem;margin-bottom:10px;}
+        .legrid{display:flex;flex-wrap:wrap;gap:8px;}
+        .litem{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:8px;
+            font-size:.75rem;font-weight:500;border:1px solid transparent;}
+        .ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 
-        th,
-        td {
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            text-align: center;
-            vertical-align: middle;
-        }
+        /* Types guide */
+        .tcard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:12px;padding:14px 18px;}
+        .tcard h3{font-size:.88rem;margin-bottom:10px;}
+        .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;}
+        .titem{padding:9px 13px;border-radius:8px;border-left:4px solid transparent;}
+        .titem.lab{background:#f0fbfc;border-color:#17a2b8;}
+        .titem.pla{background:#fffaeb;border-color:#f39c12;}
+        .titem.lib{background:#f5f0ff;border-color:#8e44ad;}
+        .titem strong{display:block;font-size:.82rem;}
+        .titem span{font-size:.72rem;color:var(--muted);}
 
-        th {
-            background: #eef6f6;
-            color: var(--primary-color);
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .day-column {
-            font-weight: 600;
-            background: #fafafa;
-            width: 100px;
-        }
-
-        .break-column {
-            background: #f0f0f0;
-            color: var(--text-muted);
-            font-weight: 600;
-            width: 40px;
-            writing-mode: vertical-rl;
-            text-orientation: upright;
-            padding: 5px;
-        }
-
-        .subject-cell {
-            padding: 15px 5px;
-            transition: background 0.2s ease;
-        }
-
-        tbody tr:hover .subject-cell {
-            background: #f9fafa;
-        }
-
-        .subject-code {
-            display: block;
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 3px;
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 4px;
-            margin-bottom: 4px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-family: 'Poppins', sans-serif;
-            box-sizing: border-box;
-        }
-
-        .staff-name {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .empty-slot {
-            color: #ccc;
-            font-style: italic;
-            font-size: 0.8rem;
-        }
-
-        @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-
-            .semester-filter {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .timetable-container {
-                padding: 5px;
-            }
-
-            th,
-            td {
-                padding: 5px;
-                font-size: 0.8rem;
-            }
-        }
+        @media(max-width:768px){.topbar{padding:10px 12px;}.pw{padding:0 10px 40px;}}
     </style>
 </head>
-
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <header class="page-header">
-            <h1 style="color: var(--primary-color); margin: 0; font-size: 1.5rem;">✏️ Edit Timetable - Semester {{
-                semester }}</h1>
-            <a href="{% url 'staffs:timetable' %}?semester={{ semester }}" class="btn-back">← Cancel</a>
-        </header>
 
-        <!-- Edit Form -->
-        <form method="POST" action="{% url 'staffs:edit_timetable' semester %}">
-            {% csrf_token %}
-            <div style="text-align: right; margin-bottom: 15px;">
-                <button type="submit" class="btn-view"
-                    style="background: var(--primary-color); font-size: 1.1rem; padding: 10px 30px;">Save
-                    Changes</button>
+<div class="topbar">
+    <div class="tl">
+        <span style="font-size:1.25rem;">📅</span>
+        <h1>Timetable Editor</h1>
+        <span class="badge-sem">Semester {{ semester }}</span>
+        <span id="unsaved">⚠ Unsaved changes</span>
+    </div>
+    <div class="ta">
+        <a href="{% url 'staffs:timetable' %}?semester={{ semester }}" class="btn btn-ghost">← Cancel</a>
+        <button type="submit" form="tt-form" class="btn btn-primary">💾 Save Changes</button>
+    </div>
+</div>
+
+<div class="pw">
+
+    <div class="stats">
+        <div class="sc f"><div class="si">✅</div><div class="si-text"><strong id="cnt-filled">—</strong><span>Filled</span></div></div>
+        <div class="sc e"><div class="si">🟡</div><div class="si-text"><strong id="cnt-empty">—</strong><span>Empty</span></div></div>
+        <div class="sc t"><div class="si">📋</div><div class="si-text"><strong>35</strong><span>Total Slots</span></div></div>
+        <div class="sc s"><div class="si">📚</div><div class="si-text"><strong>{{ subjects|length }}</strong><span>Sem {{ semester }} Subjects</span></div></div>
+    </div>
+
+    {% if not subjects %}
+    <div class="no-subj-alert">
+        ⚠️ No subjects found for <strong>Semester {{ semester }}</strong>. Please add subjects via the
+        <a href="/admin/staffs/subject/add/" target="_blank">Admin Panel → Subjects</a> first.
+    </div>
+    {% endif %}
+
+    <form id="tt-form" method="POST" action="{% url 'staffs:edit_timetable' semester %}">
+        {% csrf_token %}
+        <div class="tc">
+            <div class="ttb">
+                <h2>📊 Week Grid — Mon to Fri · 7 Periods</h2>
+                <button type="button" class="btn btn-ghost" style="font-size:.78rem;" onclick="clearAll()">🗑 Clear All</button>
             </div>
-
-            <div class="timetable-container">
+            <div class="tscroll">
                 <table>
                     <thead>
                         <tr>
-                            <th class="day-column">Day \ Time</th>
-                            <th>08.30<br>to<br>09.30</th>
-                            <th>09.30<br>to<br>10.30</th>
-                            <th class="break-column">BREAK</th>
-                            <th>10.40<br>to<br>11.40</th>
-                            <th>11.40<br>to<br>12.40</th>
-                            <th class="break-column">LUNCH</th>
-                            <th>01.30<br>to<br>02.30</th>
-                            <th>02.30<br>to<br>03.30</th>
-                            <th>03.30<br>to<br>04.30</th>
+                            <th>Day \ Time</th>
+                            <th>P1<br>08:30–09:30</th>
+                            <th>P2<br>09:30–10:30</th>
+                            <th class="brcol">BREAK</th>
+                            <th>P3<br>10:40–11:40</th>
+                            <th>P4<br>11:40–12:40</th>
+                            <th class="brcol">LUNCH</th>
+                            <th>P5<br>01:30–02:30</th>
+                            <th>P6<br>02:30–03:30</th>
+                            <th>P7<br>03:30–04:30</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for day, periods in timetable_rows %}
-                        <tr>
-                            <td class="day-column">{{ day }}</td>
+                    {% for day, periods in timetable_rows %}
+                    <tr id="row-{{ day }}">
+                        <td class="daycol">{{ day }}</td>
 
-                            {% for i in '1234567'|make_list %}
-                            {% if i == '3' or i == '5' %}
-                            <td class="break-column">{% if i == '3' %}B{% else %}L{% endif %}</td>
-                            {% endif %}
+                        <td id="td-{{ day }}-1">
+                            <div class="pc-normal">
+                                <div class="pc">
+                                    <div class="ctop">
+                                        <span class="cbadge emp" id="badge-{{ day }}-1">{% if periods.0 and periods.0.subject %}{{ periods.0.subject.subject_type }}{% else %}Empty{% endif %}</span>
+                                        <button type="button" class="bclear" onclick="clearCell('{{ day }}',1)">×</button>
+                                    </div>
+                                    <select name="subject_{{ day }}_1" id="sel-{{ day }}-1" onchange="onSel('{{ day }}',1)">
+                                        <option value="">— Subject —</option>
+                                        <optgroup label="Subjects">
+                                        {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.0 and periods.0.subject and periods.0.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Special Slots">
+                                            <option value="LAB_SESSION">💻 Lab Session (3h)</option>
+                                            <option value="PLACEMENT">🎯 Placement (2h)</option>
+                                            <option value="LIBRARY">📚 Library (2h)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="staffchip" id="chip-{{ day }}-1">{% if periods.0 and periods.0.subject and periods.0.subject.staff %}👤 {{ periods.0.subject.staff.name }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="merged-label" id="ml-{{ day }}-1"></div>
+                        </td>
 
-                            <td class="subject-cell">
-                                {# Django templates don't support dynamic array access effectively, so we unroll                                 manually based on loop counter #}
-                                {% if i == '1' %}{% with p=periods.0 period=1 %}{% include                                 "staff/partials/edit_period.html" %}{% endwith %}
-                                {% elif i == '2' %}{% with p=periods.1 period=2 %}{% include                                 "staff/partials/edit_period.html" %}{% endwith %}
-                                {% elif i == '3' %}{% with p=periods.2 period=3 %}{% include                                 "staff/partials/edit_period.html" %}{% endwith %}
-                                {% elif i == '4' %}{% with p=periods.3 period=4 %}{% include                                 "staff/partials/edit_period.html" %}{% endwith %}
-                                {% elif i == '5' %}{% with p=periods.4 period=5 %}{% include                                 "staff/partials/edit_period.html" %}{% endwith %}
-                                {% elif i == '6' %}{% with p=periods.5 period=6 %}{% include                                 "staff/partials/edit_period.html" %}{% endwith %}
-                                {% elif i == '7' %}{% with p=periods.6 period=7 %}{% include                                 "staff/partials/edit_period.html" %}{% endwith %}
-                                {% endif %}
-                            </td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
+                        <td id="td-{{ day }}-2">
+                            <div class="pc-normal">
+                                <div class="pc">
+                                    <div class="ctop">
+                                        <span class="cbadge emp" id="badge-{{ day }}-2">{% if periods.1 and periods.1.subject %}{{ periods.1.subject.subject_type }}{% else %}Empty{% endif %}</span>
+                                        <button type="button" class="bclear" onclick="clearCell('{{ day }}',2)">×</button>
+                                    </div>
+                                    <select name="subject_{{ day }}_2" id="sel-{{ day }}-2" onchange="onSel('{{ day }}',2)">
+                                        <option value="">— Subject —</option>
+                                        <optgroup label="Subjects">
+                                        {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.1 and periods.1.subject and periods.1.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Special Slots">
+                                            <option value="LAB_SESSION">💻 Lab Session (3h)</option>
+                                            <option value="PLACEMENT">🎯 Placement (2h)</option>
+                                            <option value="LIBRARY">📚 Library (2h)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="staffchip" id="chip-{{ day }}-2">{% if periods.1 and periods.1.subject and periods.1.subject.staff %}👤 {{ periods.1.subject.staff.name }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="merged-label" id="ml-{{ day }}-2"></div>
+                        </td>
+
+                        <td class="brcol" id="break-{{ day }}">BREAK</td>
+
+                        <td id="td-{{ day }}-3">
+                            <div class="pc-normal">
+                                <div class="pc">
+                                    <div class="ctop">
+                                        <span class="cbadge emp" id="badge-{{ day }}-3">{% if periods.2 and periods.2.subject %}{{ periods.2.subject.subject_type }}{% else %}Empty{% endif %}</span>
+                                        <button type="button" class="bclear" onclick="clearCell('{{ day }}',3)">×</button>
+                                    </div>
+                                    <select name="subject_{{ day }}_3" id="sel-{{ day }}-3" onchange="onSel('{{ day }}',3)">
+                                        <option value="">— Subject —</option>
+                                        <optgroup label="Subjects">
+                                        {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.2 and periods.2.subject and periods.2.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Special Slots">
+                                            <option value="PLACEMENT">🎯 Placement (2h)</option>
+                                            <option value="LIBRARY">📚 Library (2h)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="staffchip" id="chip-{{ day }}-3">{% if periods.2 and periods.2.subject and periods.2.subject.staff %}👤 {{ periods.2.subject.staff.name }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="merged-label" id="ml-{{ day }}-3"></div>
+                            <div class="lab-cont-label" id="lc-{{ day }}-3"></div>
+                        </td>
+
+                        <td id="td-{{ day }}-4">
+                            <div class="pc-normal">
+                                <div class="pc">
+                                    <div class="ctop">
+                                        <span class="cbadge emp" id="badge-{{ day }}-4">{% if periods.3 and periods.3.subject %}{{ periods.3.subject.subject_type }}{% else %}Empty{% endif %}</span>
+                                        <button type="button" class="bclear" onclick="clearCell('{{ day }}',4)">×</button>
+                                    </div>
+                                    <select name="subject_{{ day }}_4" id="sel-{{ day }}-4" onchange="onSel('{{ day }}',4)">
+                                        <option value="">— Subject —</option>
+                                        <optgroup label="Subjects">
+                                        {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.3 and periods.3.subject and periods.3.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Special Slots">
+                                            <option value="PLACEMENT">🎯 Placement (2h)</option>
+                                            <option value="LIBRARY">📚 Library (2h)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="staffchip" id="chip-{{ day }}-4">{% if periods.3 and periods.3.subject and periods.3.subject.staff %}👤 {{ periods.3.subject.staff.name }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="merged-label" id="ml-{{ day }}-4"></div>
+                            <div class="lab-cont-label" id="lc-{{ day }}-4"></div>
+                        </td>
+
+                        <td class="brcol">LUNCH</td>
+
+                        <td id="td-{{ day }}-5">
+                            <div class="pc-normal">
+                                <div class="pc">
+                                    <div class="ctop">
+                                        <span class="cbadge emp" id="badge-{{ day }}-5">{% if periods.4 and periods.4.subject %}{{ periods.4.subject.subject_type }}{% else %}Empty{% endif %}</span>
+                                        <button type="button" class="bclear" onclick="clearCell('{{ day }}',5)">×</button>
+                                    </div>
+                                    <select name="subject_{{ day }}_5" id="sel-{{ day }}-5" onchange="onSel('{{ day }}',5)">
+                                        <option value="">— Subject —</option>
+                                        <optgroup label="Subjects">
+                                        {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.4 and periods.4.subject and periods.4.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Special Slots">
+                                            <option value="LAB_SESSION">💻 Lab Session (3h)</option>
+                                            <option value="PLACEMENT">🎯 Placement (2h)</option>
+                                            <option value="LIBRARY">📚 Library (2h)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="staffchip" id="chip-{{ day }}-5">{% if periods.4 and periods.4.subject and periods.4.subject.staff %}👤 {{ periods.4.subject.staff.name }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="merged-label" id="ml-{{ day }}-5"></div>
+                        </td>
+
+                        <td id="td-{{ day }}-6">
+                            <div class="pc-normal">
+                                <div class="pc">
+                                    <div class="ctop">
+                                        <span class="cbadge emp" id="badge-{{ day }}-6">{% if periods.5 and periods.5.subject %}{{ periods.5.subject.subject_type }}{% else %}Empty{% endif %}</span>
+                                        <button type="button" class="bclear" onclick="clearCell('{{ day }}',6)">×</button>
+                                    </div>
+                                    <select name="subject_{{ day }}_6" id="sel-{{ day }}-6" onchange="onSel('{{ day }}',6)">
+                                        <option value="">— Subject —</option>
+                                        <optgroup label="Subjects">
+                                        {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.5 and periods.5.subject and periods.5.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Special Slots">
+                                            <option value="PLACEMENT">🎯 Placement (2h)</option>
+                                            <option value="LIBRARY">📚 Library (2h)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="staffchip" id="chip-{{ day }}-6">{% if periods.5 and periods.5.subject and periods.5.subject.staff %}👤 {{ periods.5.subject.staff.name }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="merged-label" id="ml-{{ day }}-6"></div>
+                        </td>
+
+                        <td id="td-{{ day }}-7">
+                            <div class="pc-normal">
+                                <div class="pc">
+                                    <div class="ctop">
+                                        <span class="cbadge emp" id="badge-{{ day }}-7">{% if periods.6 and periods.6.subject %}{{ periods.6.subject.subject_type }}{% else %}Empty{% endif %}</span>
+                                        <button type="button" class="bclear" onclick="clearCell('{{ day }}',7)">×</button>
+                                    </div>
+                                    <select name="subject_{{ day }}_7" id="sel-{{ day }}-7" onchange="onSel('{{ day }}',7)">
+                                        <option value="">— Subject —</option>
+                                        <optgroup label="Subjects">
+                                        {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.6 and periods.6.subject and periods.6.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
+                                        </optgroup>
+                                        <optgroup label="Special Slots">
+                                            <option value="PLACEMENT">🎯 Placement (2h)</option>
+                                            <option value="LIBRARY">📚 Library (2h)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="staffchip" id="chip-{{ day }}-7">{% if periods.6 and periods.6.subject and periods.6.subject.staff %}👤 {{ periods.6.subject.staff.name }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="merged-label" id="ml-{{ day }}-7"></div>
+                        </td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </form>
-    </div>
-    </div>
-</body>
+        </div>
 
+        <div style="text-align:right;margin-top:13px;">
+            <button type="submit" class="btn btn-primary" style="padding:11px 28px;font-size:.93rem;">💾 Save Changes</button>
+        </div>
+    </form>
+
+    <div class="legcard">
+        <h3>📚 Subjects — Semester {{ semester }}</h3>
+        {% if subjects %}
+        <div class="legrid" id="legrid">
+        {% for subj in subjects %}
+            <div class="litem" id="li-{{ subj.id }}" style="background:#f4f4f4;border-color:#e0e0e0;">
+                <span class="ldot" id="ld-{{ subj.id }}" style="background:#aaa;"></span>
+                <strong>{{ subj.code }}</strong>
+                <span style="color:var(--muted);font-size:.7rem;">{{ subj.name }}{% if subj.subject_type == 'Lab' %}&nbsp;⚗{% endif %}</span>
+                {% if subj.staff %}<span style="font-size:.68rem;color:#555;">| 👤 {{ subj.staff.name }}</span>{% endif %}
+            </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:var(--muted);font-size:.82rem;">No subjects for Semester {{ semester }} — add them in admin first.</p>
+        {% endif %}
+    </div>
+
+    <div class="tcard">
+        <h3>ℹ️ Special Slot Rules</h3>
+        <div class="tgrid">
+            <div class="titem lab"><strong>⚗️ Lab Session (3h)</strong><span>Select in P5 — auto-merges P5+P6+P7 into one cell.</span></div>
+            <div class="titem pla"><strong>🎯 Placement Class (2h)</strong><span>Select in any period — auto-merges with the next cell.</span></div>
+            <div class="titem lib"><strong>📚 Library (2h)</strong><span>Select in any period — auto-merges with the next cell.</span></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ── Data from Django ── */
+const SUBJECT_MAP = {{ subject_staff_map_json|safe }};
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+/* ── Colour palette ── */
+const PAL = [
+    {bg:'#dff2f2',bdr:'#5a7d7c',dot:'#5a7d7c'},{bg:'#fde8d8',bdr:'#e67e22',dot:'#e67e22'},
+    {bg:'#ead6fd',bdr:'#8e44ad',dot:'#8e44ad'},{bg:'#d5eaff',bdr:'#2980b9',dot:'#2980b9'},
+    {bg:'#fef9c3',bdr:'#d4a017',dot:'#d4a017'},{bg:'#d8f5e4',bdr:'#27ae60',dot:'#27ae60'},
+    {bg:'#ffe4e4',bdr:'#e74c3c',dot:'#e74c3c'},{bg:'#fce4ec',bdr:'#e91e63',dot:'#e91e63'},
+    {bg:'#e8f8ff',bdr:'#00bcd4',dot:'#00bcd4'},{bg:'#fff3e0',bdr:'#f57c00',dot:'#f57c00'},
+];
+const subjIds = [{% for s in subjects %}{{ s.id }},{% endfor %}];
+const colorMap = {};
+subjIds.forEach((id,i)=>colorMap[id]=PAL[i%PAL.length]);
+
+/* ── Adjacent groups (no break/lunch between) ── */
+const GROUPS = [[1,2],[3,4],[5,6,7]];
+function getGroup(p){ return GROUPS.find(g=>g.includes(p))||[p]; }
+function spanOf(val){ 
+    if(val==='LAB_SESSION') return 3; // special Lab Session slot
+    if(val==='PLACEMENT'||val==='LIBRARY') return 2; 
+    if(SUBJECT_MAP[val] && SUBJECT_MAP[val].type==='Lab') return 3; // Lab-type subjects also auto-span 3
+    return 1; 
+}
+
+/* ── Merge state: key="Day-period" → {leader, periods} ── */
+const MRG = {};
+
+/* ── Special slot appearance ── */
+const SPECIAL_INFO = {
+    LAB_SESSION:{icon:'💻',title:'Lab Session',sub:'3 hours · P5–P6–P7',bg:'#f0fbfc',bdr:'#17a2b8'},
+    PLACEMENT:  {icon:'🎯',title:'Placement Class',sub:'2 hours',bg:'#fffaeb',bdr:'#f39c12'},
+    LIBRARY:    {icon:'📚',title:'Library',sub:'2 hours',bg:'#f5f0ff',bdr:'#8e44ad'},
+};
+
+/* ── Apply visual to a NORMAL (non-merged) cell ── */
+function applyNormal(day, period, val){
+    const td = document.getElementById('td-'+day+'-'+period);
+    const badge = document.getElementById('badge-'+day+'-'+period);
+    const chip  = document.getElementById('chip-'+day+'-'+period);
+    if(!td) return;
+    td.style.background=''; td.style.borderLeft='';
+
+    if(!val){
+        badge.textContent='Empty'; badge.className='cbadge emp'; chip.textContent='';
+    } else if(SPECIAL_INFO[val]){
+        const s=SPECIAL_INFO[val];
+        badge.textContent=s.title; badge.className='cbadge special';
+        chip.textContent=''; td.style.background=s.bg; td.style.borderLeft='3px solid '+s.bdr;
+    } else {
+        const info=SUBJECT_MAP[val];
+        const col=colorMap[parseInt(val)];
+        if(info){
+            badge.textContent=info.type==='Lab'?'Lab':'Theory';
+            badge.className='cbadge '+(info.type==='Lab'?'lab':'theory');
+            chip.textContent=info.staff!=='—'?('👤 '+info.staff):'';
+        }
+        if(col){ td.style.background=col.bg; td.style.borderLeft='3px solid '+col.bdr; }
+    }
+}
+
+/* ── Merge cells: set colspan, hide followers, show label ── */
+function doMerge(day, startP, val){
+    const grp = getGroup(startP);
+    const si   = grp.indexOf(startP);
+    const want = spanOf(val);
+
+    // Detect morning lab: 3h lab starting at P1 or P2 (crosses BREAK)
+    const isMorningLab = (want === 3 && (startP === 1 || startP === 2));
+
+    if (isMorningLab && startP === 1) {
+        // P1 lab: [P1+P2 merged] [BREAK highlighted] [P3 continuation]
+        const mp = [1, 2, 3];
+        const sl = new Set();
+        mp.forEach(p=>{ const ex=MRG[day+'-'+p]; if(ex&&!sl.has(ex.leader)){sl.add(ex.leader);unmerge(day,ex.leader);} });
+        mp.forEach(p=>MRG[day+'-'+p]={leader:1, periods:mp, morningLab:true, hiddenP:2, contP:3, contColSpan:1});
+
+        const leaderTd = document.getElementById('td-'+day+'-1');
+        leaderTd.colSpan = 2;               // P1 spans P1+P2 (DOM: P1→P2, no BREAK between)
+        leaderTd.classList.add('merged-active');
+
+        const td2=document.getElementById('td-'+day+'-2'); td2.style.display='none';
+        const sel2=document.getElementById('sel-'+day+'-2'); sel2.value=val;
+
+        const brk=document.getElementById('break-'+day);
+        if(brk){ brk.classList.add('lab-break'); brk.textContent='\u2697'; }
+
+        const td3=document.getElementById('td-'+day+'-3');
+        const sel3=document.getElementById('sel-'+day+'-3');
+        td3.classList.add('lab-cont-active'); sel3.value=val;
+
+        let bg='', bdr='';
+        if(SPECIAL_INFO[val]){ bg=SPECIAL_INFO[val].bg; bdr=SPECIAL_INFO[val].bdr; }
+        else { const col=colorMap[parseInt(val)]; if(col){bg=col.bg;bdr=col.bdr;} }
+        if(bg){ leaderTd.style.background=bg; leaderTd.style.borderLeft='4px solid '+bdr;
+                td3.style.background=bg; td3.style.borderLeft='4px solid '+bdr; }
+
+        const lc=document.getElementById('lc-'+day+'-3');
+        if(lc) lc.innerHTML='<span class="lc-icon">\u2697\ufe0f</span><span>Lab cont.</span>';
+        _buildMergedLabel(leaderTd, day, startP, val, 'Morning \u00b7 P1\u2013BREAK\u2013P3');
+        return;
+    }
+
+    if (isMorningLab && startP === 2) {
+        // P2 lab: [P2 label only] [BREAK highlighted] [P3+P4 continuation (colSpan=2)]
+        // NOTE: DOM order is P2 → BREAK-td → P3 → P4
+        // colSpan=2 from P2 would absorb BREAK, so we keep P2 standalone and merge P3+P4 instead
+        const mp = [2, 3, 4];
+        const sl = new Set();
+        mp.forEach(p=>{ const ex=MRG[day+'-'+p]; if(ex&&!sl.has(ex.leader)){sl.add(ex.leader);unmerge(day,ex.leader);} });
+        mp.forEach(p=>MRG[day+'-'+p]={leader:2, periods:mp, morningLab:true, hiddenP:4, contP:3, contColSpan:2});
+
+        const leaderTd2 = document.getElementById('td-'+day+'-2');
+        // NO colSpan change — P2 stays 1 column wide but shows merged label
+        leaderTd2.classList.add('merged-active');
+
+        const brk2=document.getElementById('break-'+day);
+        if(brk2){ brk2.classList.add('lab-break'); brk2.textContent='\u2697'; }
+
+        // P3 spans P3+P4 (colSpan=2); P4 hidden
+        const td3c=document.getElementById('td-'+day+'-3');
+        const sel3c=document.getElementById('sel-'+day+'-3');
+        td3c.colSpan = 2;                   // P3→P4 (no BREAK between them in DOM)
+        td3c.classList.add('lab-cont-active');
+        sel3c.value = val;
+
+        const td4=document.getElementById('td-'+day+'-4');
+        const sel4=document.getElementById('sel-'+day+'-4');
+        td4.style.display='none'; sel4.value=val;
+
+        let bg2='', bdr2='';
+        if(SPECIAL_INFO[val]){ bg2=SPECIAL_INFO[val].bg; bdr2=SPECIAL_INFO[val].bdr; }
+        else { const col=colorMap[parseInt(val)]; if(col){bg2=col.bg;bdr2=col.bdr;} }
+        if(bg2){ leaderTd2.style.background=bg2; leaderTd2.style.borderLeft='4px solid '+bdr2;
+                 td3c.style.background=bg2;  td3c.style.borderLeft='4px solid '+bdr2; }
+
+        const lc3=document.getElementById('lc-'+day+'-3');
+        if(lc3) lc3.innerHTML='<span class="lc-icon">\u2697\ufe0f</span><span>Lab cont.</span>';
+        _buildMergedLabel(leaderTd2, day, startP, val, 'Morning \u00b7 P2\u2013BREAK\u2013P4');
+        return;
+    }
+
+    const actual = Math.min(want, grp.length - si);
+    if(actual < 2) return;
+
+    const mergedPeriods = grp.slice(si, si+actual);
+
+    // Unmerge any pre-existing merges in the target range first
+    const seenLeaders = new Set();
+    mergedPeriods.forEach(p => {
+        const ex = MRG[day+'-'+p];
+        if (ex && !seenLeaders.has(ex.leader)) { seenLeaders.add(ex.leader); unmerge(day, ex.leader); }
+    });
+
+    // Track state
+    mergedPeriods.forEach(p=>MRG[day+'-'+p]={leader:startP, periods:mergedPeriods});
+
+    // Style leader cell
+    const leaderTd = document.getElementById('td-'+day+'-'+startP);
+    leaderTd.colSpan = actual;
+    leaderTd.classList.add('merged-active');
+
+    const periodLabel = (startP===1&&actual===3) ? 'Morning · P1–BREAK–P3'
+                      : (startP===5&&actual===3) ? 'Afternoon · P5–P6–P7'
+                      : `${actual} periods`;
+    _buildMergedLabel(leaderTd, day, startP, val, periodLabel);
+
+    // Hide follower cells
+    for(let i=1;i<actual;i++){
+        const p=mergedPeriods[i];
+        const td=document.getElementById('td-'+day+'-'+p);
+        const sel=document.getElementById('sel-'+day+'-'+p);
+        td.style.display='none'; sel.value=val;
+    }
+}
+
+/* ── Helper: build the merged label HTML ── */
+function _buildMergedLabel(leaderTd, day, startP, val, periodLabel){
+    const ml = document.getElementById('ml-'+day+'-'+startP);
+    if(!ml) return;
+    ml.style.minHeight = '90px';
+
+    if(SPECIAL_INFO[val] && val === 'LAB_SESSION') {
+        const labOpts = Object.entries(SUBJECT_MAP)
+            .filter(([id, info]) => info.type === 'Lab')
+            .map(([id, info]) => `<option value="${id}">${info.code} — ${info.name}</option>`)
+            .join('');
+        ml.innerHTML = [
+            `<button type="button" class="ml-clear" onclick="clearCell('${day}',${startP})">✕ Clear</button>`,
+            `<span class="ml-icon">💻</span>`,
+            `<span class="ml-title">Lab Session</span>`,
+            labOpts ? `<select class="lab-pick-sel" id="lab-sel-${day}-${startP}" onchange="setLabSubject('${day}',${startP},this.value)"><option value="">— Choose Lab Subject —</option>${labOpts}</select>`
+                    : `<span class="ml-code" style="color:#e67e22;">No lab subjects for this semester</span>`,
+            `<span class="ml-staff" id="lab-staff-${day}-${startP}"></span>`,
+            `<span class="ml-code">${periodLabel}</span>`,
+        ].join('');
+    } else if(SPECIAL_INFO[val]) {
+        const sp2 = SPECIAL_INFO[val];
+        if(leaderTd){ leaderTd.style.background=sp2.bg; leaderTd.style.borderLeft='4px solid '+sp2.bdr; }
+        ml.innerHTML = [
+            `<button type="button" class="ml-clear" onclick="clearCell('${day}',${startP})">✕ Clear</button>`,
+            `<span class="ml-icon">${sp2.icon}</span>`,
+            `<span class="ml-title">${sp2.title}</span>`,
+            `<span class="ml-code">${periodLabel}</span>`,
+        ].join('');
+    } else {
+        const info = SUBJECT_MAP[val];
+        const col  = colorMap[parseInt(val)];
+        if(col && leaderTd){ leaderTd.style.background=col.bg; leaderTd.style.borderLeft='4px solid '+col.bdr; }
+        ml.innerHTML = [
+            `<button type="button" class="ml-clear" onclick="clearCell('${day}',${startP})">✕ Clear</button>`,
+            `<span class="ml-icon">💻</span>`,
+            `<span class="ml-title">${info ? info.name : 'Lab'}</span>`,
+            info && info.code ? `<span class="ml-code">${info.code}</span>` : '',
+            info && info.staff!=='—' ? `<span class="ml-staff">👤 ${info.staff}</span>` : '',
+            `<span class="ml-code">${periodLabel}</span>`,
+        ].join('');
+    }
+}
+
+/* ── Unmerge: restore cells ── */
+function unmerge(day, period){
+    const key=day+'-'+period;
+    const state=MRG[key];
+    if(!state) return;
+    const{leader,periods,morningLab}=state;
+
+    const leaderTd=document.getElementById('td-'+day+'-'+leader);
+    leaderTd.colSpan=1;
+    leaderTd.classList.remove('merged-active');
+    leaderTd.style.background=''; leaderTd.style.borderLeft='';
+
+    if(morningLab){
+        const hiddenP = state.hiddenP || ((leader === 1) ? 2 : 4);
+        const contP   = state.contP   || ((leader === 1) ? 3 : 3);
+        const contCs  = state.contColSpan || 1;
+
+        // Restore hidden cell
+        const tdH=document.getElementById('td-'+day+'-'+hiddenP);
+        if(tdH){ tdH.style.display=''; tdH.colSpan=1; }
+        const selH=document.getElementById('sel-'+day+'-'+hiddenP); if(selH) selH.value='';
+        applyNormal(day, hiddenP, '');
+
+        // Remove BREAK highlight
+        const brk=document.getElementById('break-'+day);
+        if(brk){ brk.classList.remove('lab-break'); brk.textContent='BREAK'; }
+
+        // Remove continuation cell styling and reset its colSpan
+        const tdC=document.getElementById('td-'+day+'-'+contP);
+        const selC=document.getElementById('sel-'+day+'-'+contP);
+        if(tdC){ tdC.classList.remove('lab-cont-active'); tdC.style.background=''; tdC.style.borderLeft=''; tdC.colSpan=1; }
+        if(selC) selC.value='';
+        applyNormal(day, contP, '');
+        const lc=document.getElementById('lc-'+day+'-'+contP); if(lc) lc.innerHTML='';
+
+        periods.forEach(p=>delete MRG[day+'-'+p]);
+        return;
+    }
+
+    periods.forEach(p=>{
+        const td=document.getElementById('td-'+day+'-'+p);
+        const sel=document.getElementById('sel-'+day+'-'+p);
+        if(td) td.style.display='';
+        if(sel && p!==leader) sel.value='';
+        applyNormal(day, p, p===leader?sel.value:'');
+        delete MRG[day+'-'+p];
+    });
+}
+
+/* ── Lab subject chosen inside the merged cell picker ── */
+function setLabSubject(day, startP, subjId) {
+    const state = MRG[day+'-'+startP];
+    if (!state) return;
+
+    const staffSpan = document.getElementById('lab-staff-'+day+'-'+startP);
+    const leaderTd  = document.getElementById('td-'+day+'-'+startP);
+    const info = SUBJECT_MAP[subjId];
+    const col  = colorMap[parseInt(subjId)];
+
+    if (info) {
+        if (staffSpan) staffSpan.textContent = info.staff !== '—' ? '👤 ' + info.staff : '';
+        if (col) { leaderTd.style.background = col.bg; leaderTd.style.borderLeft = '4px solid ' + col.bdr; }
+        const titleEl = leaderTd.querySelector('.ml-title');
+        if (titleEl) titleEl.textContent = info.name;
+    }
+
+    // For morning lab: also update the continuation cell
+    if (state.morningLab) {
+        // contP is stored in MRG state: P1 lab → 3, P2 lab → 3 (P3 is the cont cell for both)
+        const contP = state.contP || 3;
+        const lc = document.getElementById('lc-'+day+'-'+contP);
+        const td = document.getElementById('td-'+day+'-'+contP);
+        if (lc) {
+            if (info) {
+                lc.innerHTML = `<span class="lc-icon">\ud83d\udcbb</span><span>${info.name}</span><span style="font-size:.65rem;color:var(--muted)">${info.code}</span>`;
+            } else {
+                lc.innerHTML = '<span class="lc-icon">\u2697\ufe0f</span><span>Lab cont.</span>';
+            }
+        }
+        if (col && td) { td.style.background = col.bg; td.style.borderLeft = '4px solid ' + col.bdr; }
+    }
+
+    // Sync all merged cells to the real subject ID
+    state.periods.forEach(p => {
+        const sel = document.getElementById('sel-'+day+'-'+p);
+        if (sel) sel.value = subjId || 'LAB_SESSION';
+    });
+
+    markDirty(); updateStats();
+}
+
+/* ── Main change handler ── */
+function onSel(day, period){
+    // Unmerge any existing merge covering this period
+    const key=day+'-'+period;
+    const existingMerge=MRG[key];
+    if(existingMerge) unmerge(day, existingMerge.leader);
+
+    const sel=document.getElementById('sel-'+day+'-'+period);
+    const val=sel.value;
+
+    if(spanOf(val)>=2){
+        doMerge(day, period, val);
+    } else {
+        applyNormal(day, period, val);
+    }
+    markDirty(); updateStats();
+}
+
+function clearCell(day, period){
+    const key = day+'-'+period;
+    const state = MRG[key];
+    if (state) {
+        const leader = state.leader;
+        unmerge(day, leader);            // unmerge restores all cells
+        // Now fully clear the leader cell (unmerge leaves it with its old value)
+        const leadSel = document.getElementById('sel-'+day+'-'+leader);
+        if (leadSel) leadSel.value = '';
+        applyNormal(day, leader, '');    // show 'Empty'
+    } else {
+        const sel = document.getElementById('sel-'+day+'-'+period);
+        if (sel) sel.value = '';
+        applyNormal(day, period, '');
+    }
+    markDirty(); updateStats();
+}
+
+function clearAll(){
+    if(!confirm('Clear all 35 slots?')) return;
+    // Step 1: unmerge every merged group (track by leader to avoid double-unmerge)
+    const seen = new Set();
+    DAYS.forEach(d=>{
+        for(let p=1;p<=7;p++){
+            const state = MRG[d+'-'+p];
+            if(state){
+                const lk = d+'-'+state.leader;
+                if(!seen.has(lk)){ seen.add(lk); unmerge(d, state.leader); }
+            }
+        }
+    });
+    // Step 2: clear every select and reset visuals
+    DAYS.forEach(d=>{
+        for(let p=1;p<=7;p++){
+            const sel = document.getElementById('sel-'+d+'-'+p);
+            if(sel){ sel.value=''; applyNormal(d,p,''); }
+        }
+    });
+    markDirty(); updateStats();
+}
+
+let dirty=false;
+function markDirty(){ dirty=true; document.getElementById('unsaved').style.display='inline-block'; }
+
+function updateStats(){
+    const sels=document.querySelectorAll('select[name^="subject_"]');
+    const filled=[...sels].filter(s=>s.value!=='').length;
+    document.getElementById('cnt-filled').textContent=filled;
+    document.getElementById('cnt-empty').textContent=sels.length-filled;
+}
+
+function buildLegend(){
+    subjIds.forEach(id=>{
+        const dot=document.getElementById('ld-'+id);
+        const item=document.getElementById('li-'+id);
+        if(dot&&colorMap[id]){
+            const c=colorMap[id];
+            dot.style.background=c.dot;
+            if(item){ item.style.background=c.bg; item.style.borderColor=c.bdr; }
+        }
+    });
+}
+
+function initPage(){
+    DAYS.forEach(d=>{
+        for(let p=1;p<=7;p++){
+            const sel=document.getElementById('sel-'+d+'-'+p);
+            if(sel&&sel.value){
+                const val=sel.value;
+                if(spanOf(val)>=2) doMerge(d,p,val);
+                else applyNormal(d,p,val);
+            }
+        }
+    });
+    buildLegend(); updateStats();
+}
+
+window.addEventListener('beforeunload',e=>{ if(dirty){e.preventDefault();e.returnValue='';} });
+document.getElementById('tt-form').addEventListener('submit',()=>{ dirty=false; });
+initPage();
+</script>
+</body>
 </html>
