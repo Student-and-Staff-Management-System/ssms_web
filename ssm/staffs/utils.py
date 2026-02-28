@@ -197,3 +197,58 @@ def send_staff_notification(staff, title, body, url=None):
     except Exception as e:
         print(f"Push Notification Failed for Staff {staff.staff_id}: {e}")
         return False
+
+def get_risk_metrics(subject):
+    """
+    Returns a list of students considered 'at risk' for a given subject.
+    Risk factors include Low Attendance (<75%) and Low Internal Marks (<25).
+    """
+    from students.models import Student, StudentAttendance, StudentMarks
+
+    # Get students in the current semester for the subject
+    students = Student.objects.filter(current_semester=subject.semester)
+    risk_list = []
+
+    for student in students:
+        risk_factors = []
+        
+        # Calculate Attendance
+        attendances = StudentAttendance.objects.filter(student=student, subject=subject)
+        total_classes = attendances.count()
+        if total_classes > 0:
+            presents = attendances.filter(status='Present').count()
+            attendance_percentage = round((presents / total_classes) * 100, 2)
+        else:
+            attendance_percentage = 100.0  # Safe default if no classes held
+
+        if attendance_percentage < 75.0 and total_classes > 0:
+            risk_factors.append("Low Attendance (<75%)")
+
+        # Check Marks
+        internal_marks = "N/A"
+        marks_obj = StudentMarks.objects.filter(student=student, subject=subject).first()
+        if marks_obj:
+            if marks_obj.internal_marks is not None:
+                internal_marks = marks_obj.internal_marks
+                # Flag if internals are low (e.g. < 25)
+                if marks_obj.internal_marks < 25:
+                    risk_factors.append("Low Internal Marks")
+            else:
+                # Check mid-term tests as indicators if internals aren't finalized
+                if marks_obj.test1_marks is not None and marks_obj.test1_marks < 25:
+                    risk_factors.append("Low Test 1 Marks")
+                if marks_obj.test2_marks is not None and marks_obj.test2_marks < 25:
+                    risk_factors.append("Low Test 2 Marks")
+
+        # If any risk factors are found, add to the risk list
+        if risk_factors:
+            risk_list.append({
+                'name': student.student_name,
+                'roll_number': student.roll_number,
+                'current_semester': student.current_semester,
+                'attendance_percentage': attendance_percentage,
+                'internal_marks': internal_marks,
+                'risk_factors': risk_factors
+            })
+
+    return risk_list
