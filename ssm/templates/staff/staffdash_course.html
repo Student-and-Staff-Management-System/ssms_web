@@ -43,6 +43,15 @@
                 <a href="{% url 'staffs:my_timetable' %}" class="nav-item">
                     <span class="nav-icon">🗓️</span> My Timetable
                 </a>
+                <a href="{% url 'staffs:manage_substitutions' %}" class="nav-item">
+                    <span class="nav-icon">🔄</span> Substitute Class
+                </a>
+                <a href="{% url 'staffs:incoming_substitutions' %}" class="nav-item">
+                    <span class="nav-icon">📥</span> Incoming Requests
+                </a>
+                <a href="{% url 'staffs:assigned_substitutions' %}" class="nav-item">
+                    <span class="nav-icon">👩‍🏫</span> Assigned Classes
+                </a>
                 <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item">
                     <span class="nav-icon">✈️</span> Apply Leave
                 </a>

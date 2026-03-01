@@ -55,6 +55,11 @@ urlpatterns = [
     path('subjects/<int:subject_id>/attendance/report/', views.attendance_report, name='attendance_report'),
     path('staff/list/', views.staff_list, name='staff_list'),
     
+    # Class Substitutions
+    path('substitutions/manage/', views.manage_substitutions, name='manage_substitutions'),
+    path('substitutions/incoming/', views.incoming_substitutions, name='incoming_substitutions'),
+    path('substitutions/assigned/', views.assigned_substitutions, name='assigned_substitutions'),
+    
     # Passed Out Students
     path('passed-out/', views.passed_out_batches, name='passed_out_batches'),
     path('passed-out/<int:year>/', views.batch_students, name='batch_students'),

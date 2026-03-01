@@ -502,3 +502,34 @@ class MailLog(models.Model):
     def __str__(self):
         return f"Mail to {self.student.student_name} ({self.remark_type}) - {self.sent_at}"
 
+
+class ClassSubstitutionRequest(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Cancelled', 'Cancelled')
+    ]
+    
+    requester = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='substitution_requests_made')
+    substitute = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='substitution_requests_received')
+    
+    date = models.DateField()
+    period = models.IntegerField(help_text="1 to 7")
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    
+    # Optional link to leave request
+    leave_request = models.ForeignKey('StaffLeaveRequest', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    rejection_reason = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', 'period']
+        unique_together = ('requester', 'date', 'period')
+
+    def __str__(self):
+        return f"{self.requester.name} -> {self.substitute.name} on {self.date} (P{self.period})"
+

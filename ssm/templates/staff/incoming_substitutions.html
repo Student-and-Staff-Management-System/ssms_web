@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incoming Substitutions | {{ staff.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #2c3e50;
+            --muted: #7f8c8d;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --danger: #e74c3c;
+            --success: #2ecc71;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            padding: 20px 28px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-back {
+            background: var(--primary);
+            color: white;
+            padding: 9px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .req-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .req-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .req-title { font-weight: 600; font-size: 1.1rem; color: var(--primary); }
+        .req-date { font-weight: 500; }
+
+        .req-details {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+        .detail-value { font-weight: 500; }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            color: white;
+        }
+
+        .btn-accept { background: var(--success); }
+        .btn-reject { background: var(--danger); }
+        
+        .messages { margin-bottom: 20px; }
+        .message { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-weight: 500; }
+        .message.success { background: #d1fae5; color: #059669; }
+        .message.warning { background: #fee2e2; color: #dc2626; }
+
+        .history-section {
+            margin-top: 40px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-approved { background: #d1fae5; color: #059669; }
+        .badge-rejected { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1>📥 Incoming Substitutions</h1>
+                <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Classes assigned to you by colleagues</div>
+            </div>
+            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <h3 style="margin-bottom: 20px; color: var(--primary);">Pending Requests</h3>
+        
+        {% if incoming_requests %}
+            {% for req in incoming_requests %}
+            <div class="req-card" style="border-left-color: #f39c12;">
+                <div class="req-header">
+                    <div class="req-title">{{ req.requester.name }} requested a substitute</div>
+                    <div class="req-date">🗓️ {{ req.date|date:"l, M d, Y" }}</div>
+                </div>
+                
+                <div class="req-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Period</span>
+                        <span class="detail-value">Period {{ req.period }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Subject</span>
+                        <span class="detail-value">{{ req.subject.code }} - {{ req.subject.name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Semester</span>
+                        <span class="detail-value">Semester {{ req.subject.semester }}</span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <form method="POST" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="accept">
+                        <input type="hidden" name="request_id" value="{{ req.id }}">
+                        <button type="submit" class="btn btn-accept">✅ Accept</button>
+                    </form>
+
+                    <form method="POST" style="display: flex; gap: 10px; flex-grow: 1;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reject">
+                        <input type="hidden" name="request_id" value="{{ req.id }}">
+                        <input type="text" name="rejection_reason" placeholder="Reason for rejection (Optional)" style="flex-grow: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit;">
+                        <button type="submit" class="btn btn-reject">❌ Reject</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 40px; background: white; border-radius: var(--radius); color: var(--muted); margin-bottom: 30px;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">☕</div>
+                <p>You have no pending substitution requests.</p>
+            </div>
+        {% endif %}
+
+        {% if history %}
+        <div class="history-section">
+            <h3 style="margin-bottom: 20px; color: var(--primary);">History</h3>
+            {% for req in history %}
+            <div class="req-card" style="border-left-color: {% if req.status == 'Approved' %}#2ecc71{% else %}#e74c3c{% endif %}; opacity: 0.8;">
+                <div class="req-header" style="padding-bottom: 10px; margin-bottom: 10px;">
+                    <div style="font-weight: 500;">
+                        {{ req.requester.name }} | {{ req.date|date:"M d, Y" }} | P{{ req.period }} ({{ req.subject.code }})
+                    </div>
+                    <span class="badge badge-{{ req.status|lower }}">{{ req.status }}</span>
+                </div>
+                {% if req.status == 'Rejected' and req.rejection_reason %}
+                <div style="font-size: 0.85rem; color: var(--danger);">Reason: {{ req.rejection_reason }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

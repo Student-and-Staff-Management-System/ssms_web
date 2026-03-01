@@ -559,11 +559,6 @@ def manage_attendance(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
 
-    # Access Control
-    if current_staff.role != 'HOD' and subject.staff != current_staff:
-        messages.error(request, "Access Denied: You are not assigned to this subject.")
-        return redirect('staffs:staff_dashboard')
-
     # --- Date Handling (Current Selected Date) ---
     date_str = request.GET.get('date')
     if date_str:
@@ -573,13 +568,27 @@ def manage_attendance(request, subject_id):
              date_obj = datetime.date.today()
     else:
         date_obj = datetime.date.today()
-    
+
+    # Check for Substitution
+    from .models import ClassSubstitutionRequest
+    is_substitute = ClassSubstitutionRequest.objects.filter(
+        substitute=current_staff,
+        subject=subject,
+        date=date_obj,
+        status='Approved'
+    ).exists()
+
+    # Access Control
+    if current_staff.role != 'HOD' and subject.staff != current_staff and not is_substitute:
+        messages.error(request, "Access Denied: You are not assigned to this subject.")
+        return redirect('staffs:staff_dashboard')
+
     formatted_date = date_obj.strftime('%Y-%m-%d')
     students = Student.objects.filter(current_semester=subject.semester).order_by('roll_number')
 
     # Determine if read-only
     is_readonly = False
-    if current_staff.role == 'HOD' and subject.staff != current_staff:
+    if current_staff.role == 'HOD' and subject.staff != current_staff and not is_substitute:
         is_readonly = True
 
     # --- POST Handler (Saving Attendance) ---
@@ -1820,6 +1829,159 @@ def scholarship_manager(request):
     }
     return render(request, 'staff/scholarship_manager.html', context)
 
+
+def manage_substitutions(request):
+    """View for staff to request substitutes for their classes on a specific date."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    from .models import Timetable, ClassSubstitutionRequest, Subject
+    import datetime
+    
+    date_str = request.GET.get('date', datetime.date.today().strftime('%Y-%m-%d'))
+    try:
+        selected_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = datetime.date.today()
+        
+    day_name = selected_date.strftime('%A')
+    
+    # Get regular classes
+    my_timetable = Timetable.objects.filter(staff=staff, day=day_name).order_by('period')
+    
+    # Get existing requests for this date
+    existing_requests = ClassSubstitutionRequest.objects.filter(requester=staff, date=selected_date)
+    existing_requests_dict = {req.period: req for req in existing_requests}
+    
+    # Combine data
+    classes_data = []
+    for entry in my_timetable:
+        classes_data.append({
+            'period': entry.period,
+            'subject': entry.subject,
+            'request': existing_requests_dict.get(entry.period)
+        })
+        
+    other_staff = Staff.objects.filter(is_active=True).exclude(staff_id=staff.staff_id).order_by('name')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'request_substitute':
+            period = int(request.POST.get('period'))
+            substitute_id = request.POST.get('substitute_id')
+            subject_id = request.POST.get('subject_id')
+            
+            substitute = get_object_or_404(Staff, staff_id=substitute_id)
+            subject = get_object_or_404(Subject, id=subject_id)
+            
+            # Create or update request
+            ClassSubstitutionRequest.objects.update_or_create(
+                requester=staff,
+                date=selected_date,
+                period=period,
+                defaults={
+                    'substitute': substitute,
+                    'subject': subject,
+                    'status': 'Pending'
+                }
+            )
+            messages.success(request, f"Substitution request sent to {substitute.name}.")
+            # Notify Substitute
+            from .utils import send_staff_notification, send_staff_email_notification
+            send_staff_notification(substitute, "📅 Substitution Request", f"{staff.name} requested you to substitute for Period {period} on {selected_date}.", url="/staffs/substitutions/incoming/")
+            send_staff_email_notification(
+                substitute,
+                "Class Substitution Request",
+                f"Hello {substitute.name},\n\n{staff.name} has requested you to substitute for their class on {selected_date}, Period {period}.\n\nPlease log in to the staff portal to accept or reject this request."
+            )
+            
+            return redirect(f'/staffs/substitutions/manage/?date={selected_date}')
+            
+        elif action == 'cancel_request':
+            req_id = request.POST.get('request_id')
+            req = get_object_or_404(ClassSubstitutionRequest, id=req_id, requester=staff)
+            req.delete()
+            messages.success(request, "Substitution request cancelled.")
+            return redirect(f'/staffs/substitutions/manage/?date={selected_date}')
+            
+    return render(request, 'staff/manage_substitutions.html', {
+        'staff': staff,
+        'selected_date': selected_date,
+        'classes_data': classes_data,
+        'other_staff': other_staff
+    })
+
+def incoming_substitutions(request):
+    """View for substitute staff to see incoming requests and accept/reject."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    from .models import ClassSubstitutionRequest
+    
+    incoming_requests = ClassSubstitutionRequest.objects.filter(substitute=staff, status='Pending').order_by('date', 'period')
+    history = ClassSubstitutionRequest.objects.filter(substitute=staff).exclude(status='Pending').order_by('-date', 'period')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        req_id = request.POST.get('request_id')
+        req = get_object_or_404(ClassSubstitutionRequest, id=req_id, substitute=staff)
+        
+        from .utils import send_staff_notification, send_staff_email_notification
+        
+        if action == 'accept':
+            req.status = 'Approved'
+            req.save()
+            messages.success(request, f"You have accepted the substitution request for Period {req.period} on {req.date}.")
+            send_staff_notification(req.requester, "✅ Substitution Accepted", f"{staff.name} accepted your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
+            send_staff_email_notification(
+                req.requester,
+                "Substitution Request Accepted",
+                f"Hello {req.requester.name},\n\n{staff.name} has accepted your substitution request for {req.date}, Period {req.period}."
+            )
+
+        elif action == 'reject':
+            req.status = 'Rejected'
+            req.rejection_reason = request.POST.get('rejection_reason', '')
+            req.save()
+            messages.success(request, f"You have rejected the substitution request for Period {req.period} on {req.date}.")
+            send_staff_notification(req.requester, "❌ Substitution Rejected", f"{staff.name} rejected your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
+            send_staff_email_notification(
+                req.requester,
+                "Substitution Request Rejected",
+                f"Hello {req.requester.name},\n\n{staff.name} has rejected your substitution request for {req.date}, Period {req.period}.\nReason: {req.rejection_reason}\n\nPlease request another staff member."
+            )
+            
+        return redirect('staffs:incoming_substitutions')
+        
+    return render(request, 'staff/incoming_substitutions.html', {
+        'staff': staff,
+        'incoming_requests': incoming_requests,
+        'history': history
+    })
+
+def assigned_substitutions(request):
+    """View assigned substitution classes for the logged-in staff."""
+    import datetime
+    from .models import ClassSubstitutionRequest
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    
+    today = datetime.date.today()
+    # Get all approved requests where this staff is the substitute
+    assigned_classes = ClassSubstitutionRequest.objects.filter(
+        substitute=staff,
+        status='Approved'
+    ).order_by('-date', 'period') # Newest first
+
+    return render(request, 'staff/assigned_substitutions.html', {
+        'staff': staff,
+        'assigned_classes': assigned_classes,
+        'today': today
+    })
 
 def staff_profile(request):
     """View to display the logged-in staff's profile."""

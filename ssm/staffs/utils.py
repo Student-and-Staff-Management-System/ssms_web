@@ -102,6 +102,34 @@ def send_parent_notification_email(student, remark_types, staff_name):
         logger.error(f"Error sending email: {e}")
         return False
 
+def send_staff_email_notification(staff, subject, message):
+    """
+    Send a simple email notification to a staff member.
+    """
+    import logging
+    from django.core.mail import send_mail
+    from django.conf import settings
+
+    logger = logging.getLogger(__name__)
+
+    if not staff.email:
+        logger.warning(f"No email found for staff {staff.staff_id}")
+        return False
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[staff.email],
+            fail_silently=False,
+        )
+        logger.info(f"Email sent successfully to {staff.email}")
+        return True
+    except Exception as e:
+        logger.error(f"Error sending staff email to {staff.email}: {e}")
+        return False
+
 def send_attendance_deficit_email(student, month_name, percentage, total_hours, attended_hours, staff_name):
     """
     Send low attendance alert email.

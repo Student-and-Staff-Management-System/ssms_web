@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Substitutions | {{ staff.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #2c3e50;
+            --muted: #7f8c8d;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --warning: #f39c12;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            padding: 20px 28px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h1 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-back {
+            background: var(--primary);
+            color: white;
+            padding: 9px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .btn-back:hover {
+            background: var(--primary-dark);
+        }
+
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: #f8fafc;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-pending { background: #fef3c7; color: #d97706; }
+        .badge-approved { background: #d1fae5; color: #059669; }
+        .badge-rejected { background: #fee2e2; color: #dc2626; }
+
+        .messages { margin-bottom: 20px; }
+        .message { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-weight: 500; }
+        .message.success { background: #d1fae5; color: #059669; }
+        .message.warning { background: #fee2e2; color: #dc2626; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1>🔄 Manage Substitutions</h1>
+                <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Request colleagues to substitute your classes</div>
+            </div>
+            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <form method="GET" style="display: flex; gap: 15px; align-items: flex-end;">
+                <div class="form-group" style="margin-bottom:0; flex-grow: 1;">
+                    <label>Select Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}" required>
+                </div>
+                <button type="submit" class="btn">View Classes</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Your Classes on {{ selected_date|date:"l, M d, Y" }}</h3>
+            
+            {% if classes_data %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Subject</th>
+                            <th>Substitute Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in classes_data %}
+                        <tr>
+                            <td>Period {{ data.period }}</td>
+                            <td>
+                                <strong>{{ data.subject.name }}</strong><br>
+                                <small style="color:var(--muted)">Sem {{ data.subject.semester }} | {{ data.subject.code }}</small>
+                            </td>
+                            <td>
+                                {% if data.request %}
+                                    <div style="margin-bottom: 5px;">{{ data.request.substitute.name }}</div>
+                                    <span class="badge badge-{{ data.request.status|lower }}">{{ data.request.status }}</span>
+                                    {% if data.request.status == 'Rejected' %}
+                                        <div style="font-size:0.8rem; color:var(--danger); margin-top:4px;">Reason: {{ data.request.rejection_reason }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color:var(--muted)">No substitute requested</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.request %}
+                                    {% if data.request.status == 'Pending' or data.request.status == 'Rejected' %}
+                                    <form method="POST" onsubmit="return confirm('Cancel this substitution request?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="cancel_request">
+                                        <input type="hidden" name="request_id" value="{{ data.request.id }}">
+                                        <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.85rem;">Cancel</button>
+                                    </form>
+                                    {% else %}
+                                    <span style="font-size:0.85rem; color:var(--success); font-weight:500;">Locked ✓</span>
+                                    {% endif %}
+                                {% else %}
+                                    <form method="POST" style="display: flex; gap: 8px;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="request_substitute">
+                                        <input type="hidden" name="period" value="{{ data.period }}">
+                                        <input type="hidden" name="subject_id" value="{{ data.subject.id }}">
+                                        <select name="substitute_id" class="form-control" style="padding: 6px; font-size: 0.85rem; width: 150px;" required>
+                                            <option value="">Select Staff...</option>
+                                            {% for s in other_staff %}
+                                            <option value="{{ s.staff_id }}">{{ s.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn" style="padding: 6px 12px; font-size: 0.85rem;">Assign</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: var(--muted);">
+                <div style="font-size: 2rem; margin-bottom: 10px;">🌴</div>
+                <p>You have no assigned classes on this date.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
