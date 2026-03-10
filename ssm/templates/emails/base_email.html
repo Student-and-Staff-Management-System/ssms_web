@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block subject %}Notification{% endblock %}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            color: #212529;
+        }
+
+        .email-wrapper {
+            width: 100%;
+            background-color: #f4f6f8;
+            padding: 40px 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid #eef2f2;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5a7d7c 0%, #3d5a59 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+            border-bottom: 4px solid #4a6b69;
+        }
+
+        .header-content-wrapper {
+            display: block;
+            width: 100%;
+        }
+
+        .logo-container {
+            display: inline-block;
+            margin: 0 auto 15px auto;
+        }
+
+        .logo-container img {
+            height: 130px;
+            width: auto;
+            display: block;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .text-container {
+            display: block;
+            margin-top: 5px;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 18px;
+            opacity: 0.95;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .content {
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .content h2 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 0;
+            font-weight: 600;
+        }
+
+        .content p {
+            color: #555;
+            font-size: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #5a7d7c;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .info-box strong {
+            color: #2c3e50;
+        }
+
+        .button-container {
+            margin: 35px 0;
+            text-align: center;
+        }
+
+        .action-button {
+            background-color: #5a7d7c;
+            color: #ffffff !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            display: inline-block;
+        }
+
+        .note {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 30px;
+            background-color: #fff9fa;
+            border-left: 3px solid #5a7d7c;
+            padding: 15px;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .footer {
+            background-color: #f1f3f5;
+            padding: 25px;
+            text-align: center;
+            font-size: 12px;
+            color: #8898aa;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer a {
+            color: #5a7d7c;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media only screen and (max-width: 480px) {
+            .header {
+                padding: 30px 20px;
+            }
+
+            .logo-container img {
+                height: 100px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .info-box {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-wrapper">
+        <div class="container">
+            <div class="header">
+                <div class="header-content-wrapper">
+                    <div class="logo-container">
+                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754201996/ANNAMALAI_UNIVERSITY_otmtf8.png"
+                            alt="AU Logo">
+                    </div>
+                    <div class="text-container">
+                        <p>Department of Information Technology</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                {% block content %}
+                {% endblock %}
+            </div>
+
+            <div class="footer">
+                <p>&copy; {% now "Y" %} Annamalai University. All rights reserved.</p>
+                <p>
+                    <a href="https://annamalaiuniversity.ac.in">University Site</a> •
+                    <a href="#">Student Portal</a>
+                </p>
+                <p style="margin-top: 10px; font-size: 11px; opacity: 0.7;">
+                    Automated system email. Please do not reply.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

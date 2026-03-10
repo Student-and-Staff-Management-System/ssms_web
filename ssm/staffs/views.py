@@ -1142,8 +1142,12 @@ def edit_timetable(request, semester):
                                 try:
                                     from django.core.mail import send_mail
                                     from django.conf import settings
+                                    from django.template.loader import render_to_string
+                                    from django.utils.html import strip_tags
                                     if entry.staff.email:
-                                        send_mail("Timetable Updated", f"You have been removed from {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [entry.staff.email], fail_silently=True)
+                                        msg = f"You have been removed from {day} Period {period}."
+                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': entry.staff.name, 'message': msg})
+                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [entry.staff.email], html_message=html_message, fail_silently=True)
                                 except Exception: pass
                             entry.delete()
                         continue
@@ -1174,13 +1178,17 @@ def edit_timetable(request, semester):
                             
                             from django.core.mail import send_mail
                             from django.conf import settings
+                            from django.template.loader import render_to_string
+                            from django.utils.html import strip_tags
                             
                             # Notify new staff
                             if assigned_staff and old_staff != assigned_staff:
                                 send_staff_notification(assigned_staff, "📅 Timetable Updated", f"You've been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", url="/staffs/my-timetable/")
                                 try:
                                     if assigned_staff.email:
-                                        send_mail("Timetable Updated", f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], fail_silently=True)
+                                        msg = f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}."
+                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': assigned_staff.name, 'message': msg})
+                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], html_message=html_message, fail_silently=True)
                                 except Exception: pass
                                 
                             # Notify old staff
@@ -1188,7 +1196,9 @@ def edit_timetable(request, semester):
                                 send_staff_notification(old_staff, "📅 Timetable Updated", f"You are no longer assigned to {day} Period {period}.", url="/staffs/my-timetable/")
                                 try:
                                     if old_staff.email:
-                                        send_mail("Timetable Updated", f"You are no longer assigned to {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [old_staff.email], fail_silently=True)
+                                        msg = f"You are no longer assigned to {day} Period {period}."
+                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': old_staff.name, 'message': msg})
+                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [old_staff.email], html_message=html_message, fail_silently=True)
                                 except Exception: pass
                     else:
                         if subject or assigned_staff:
@@ -1204,8 +1214,12 @@ def edit_timetable(request, semester):
                                 try:
                                     from django.core.mail import send_mail
                                     from django.conf import settings
+                                    from django.template.loader import render_to_string
+                                    from django.utils.html import strip_tags
                                     if assigned_staff.email:
-                                        send_mail("Timetable Updated", f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], fail_silently=True)
+                                        msg = f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}."
+                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': assigned_staff.name, 'message': msg})
+                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], html_message=html_message, fail_silently=True)
                                 except Exception: pass
                                 
         messages.success(request, f'Timetable for Semester {semester} updated successfully.')
@@ -1448,10 +1462,13 @@ def update_leave_status(request, request_id):
                  try:
                      from django.core.mail import send_mail
                      from django.conf import settings
+                     from django.template.loader import render_to_string
+                     from django.utils.html import strip_tags
                      subject = "Leave Request Status Update"
                      message = f"Hello {leave_request.student.student_name},\n\nYour leave request has been forwarded to the HOD by your Class Incharge ({staff.name}).\n\nLogin to the portal to check further updates."
                      if leave_request.student.student_email:
-                         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], fail_silently=True)
+                         html_message = render_to_string('emails/leave_status.html', {'student_name': leave_request.student.student_name, 'message': f"Your leave request has been forwarded to the HOD by your Class Incharge ({staff.name})."})
+                         send_mail(subject, strip_tags(message), settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], html_message=html_message, fail_silently=True)
                  except Exception as e:
                      print(f"Error sending leave email: {e}")
                  # ---------------------------
@@ -1467,10 +1484,13 @@ def update_leave_status(request, request_id):
                 try:
                     from django.core.mail import send_mail
                     from django.conf import settings
+                    from django.template.loader import render_to_string
+                    from django.utils.html import strip_tags
                     subject = "Leave Request Approved"
                     message = f"Hello {leave_request.student.student_name},\n\nYour leave request has been approved by the HOD.\n\nLogin to the portal to view the details."
                     if leave_request.student.student_email:
-                        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], fail_silently=True)
+                        html_message = render_to_string('emails/leave_status.html', {'student_name': leave_request.student.student_name, 'message': "Your leave request has been approved by the HOD."})
+                        send_mail(subject, strip_tags(message), settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], html_message=html_message, fail_silently=True)
                 except Exception as e:
                     print(f"Error sending leave email: {e}")
                 # ---------------------------
@@ -1493,10 +1513,13 @@ def update_leave_status(request, request_id):
             try:
                 from django.core.mail import send_mail
                 from django.conf import settings
+                from django.template.loader import render_to_string
+                from django.utils.html import strip_tags
                 subject = "Leave Request Rejected"
                 message = f"Hello {leave_request.student.student_name},\n\nYour leave request has been rejected by {staff.name} ({staff.role}).\n\nReason: {reason}\n\nLogin to the portal to view the details."
                 if leave_request.student.student_email:
-                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], fail_silently=True)
+                    html_message = render_to_string('emails/leave_status.html', {'student_name': leave_request.student.student_name, 'message': f"Your leave request has been rejected by {staff.name} ({staff.role}).\nReason: {reason}"})
+                    send_mail(subject, strip_tags(message), settings.DEFAULT_FROM_EMAIL, [leave_request.student.student_email], html_message=html_message, fail_silently=True)
             except Exception as e:
                 print(f"Error sending leave email: {e}")
             # ---------------------------

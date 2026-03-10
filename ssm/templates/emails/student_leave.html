@@ -1,0 +1,17 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Leave Request Update{% endblock %}
+
+{% block content %}
+    <h2 style="text-align: center;">Leave Request Notification</h2>
+    
+    <p>Hello <strong>{% if user_name %}{{ user_name }}{% else %}Student{% endif %}</strong>,</p>
+    
+    <p>There has been an update regarding a leave request.</p>
+    
+    <div class="info-box">
+        <p><strong>Message:</strong> {{ message }}</p>
+    </div>
+    
+    <p>If you have any questions, please contact your department.</p>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Timetable Update{% endblock %}
+
+{% block content %}
+    <h2 style="text-align: center;">Timetable Update Notice</h2>
+    
+    <p>Hello <strong>{% if staff_name %}{{ staff_name }}{% else %}Staff Member{% endif %}</strong>,</p>
+    
+    <p>There has been a change to your scheduled timetable.</p>
+    
+    <div class="info-box">
+        <p><strong>Update Details:</strong></p>
+        <p>{{ message }}</p>
+    </div>
+    
+    <p>Please log in to your staff portal to review your updated schedule.</p>
+    
+    <div class="button-container">
+        <a href="{{ login_url }}" class="action-button">Go to Portal</a>
+    </div>
+{% endblock %}

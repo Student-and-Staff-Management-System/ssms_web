@@ -100,10 +100,13 @@ def hod_bonafide_list(request):
             try:
                 from django.core.mail import send_mail
                 from django.conf import settings
+                from django.template.loader import render_to_string
+                from django.utils.html import strip_tags
                 subject = "Bonafide Request Approved"
                 message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Request has been signed by the HOD.\n\nLogin to the portal to view the details."
                 if bonafide_req.student.student_email:
-                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+                    html_message = render_to_string('emails/bonafide_status.html', {'student_name': bonafide_req.student.student_name, 'message': "Your Bonafide Request has been signed by the HOD."})
+                    send_mail(subject, strip_tags(message), settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], html_message=html_message, fail_silently=True)
             except Exception as e:
                 print(f"Error sending bonafide email: {e}")
             # ---------------------------
@@ -257,10 +260,13 @@ def office_bonafide_list(request):
              try:
                  from django.core.mail import send_mail
                  from django.conf import settings
+                 from django.template.loader import render_to_string
+                 from django.utils.html import strip_tags
                  subject = "Bonafide Request Update"
                  message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Request has been processed by the Office and is waiting for the HOD's signature.\n\nLogin to the portal to view the details."
                  if bonafide_req.student.student_email:
-                     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+                     html_message = render_to_string('emails/bonafide_status.html', {'student_name': bonafide_req.student.student_name, 'message': "Your Bonafide Request has been processed by the Office and is waiting for the HOD's signature."})
+                     send_mail(subject, strip_tags(message), settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], html_message=html_message, fail_silently=True)
              except Exception as e:
                  print(f"Error sending bonafide email: {e}")
              # ---------------------------
@@ -299,10 +305,13 @@ def office_bonafide_list(request):
             try:
                 from django.core.mail import send_mail
                 from django.conf import settings
+                from django.template.loader import render_to_string
+                from django.utils.html import strip_tags
                 subject = "Bonafide Certificate Ready"
                 message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Certificate is signed and ready for collection at the Department Office.\n\nLogin to the portal to view the details."
                 if bonafide_req.student.student_email:
-                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
+                    html_message = render_to_string('emails/bonafide_status.html', {'student_name': bonafide_req.student.student_name, 'message': "Your Bonafide Certificate is signed and ready for collection at the Department Office."})
+                    send_mail(subject, strip_tags(message), settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], html_message=html_message, fail_silently=True)
             except Exception as e:
                 print(f"Error sending bonafide email: {e}")
             # ---------------------------

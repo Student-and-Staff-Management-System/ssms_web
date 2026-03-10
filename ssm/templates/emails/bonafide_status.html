@@ -1,0 +1,17 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Bonafide Request Status{% endblock %}
+
+{% block content %}
+    <h2 style="text-align: center;">Bonafide Status Update</h2>
+    
+    <p>Hello <strong>{% if student_name %}{{ student_name }}{% else %}Student{% endif %}</strong>,</p>
+    
+    <p>There is an update regarding your recent bonafide request.</p>
+    
+    <div class="info-box">
+        <p><strong>Message:</strong> {{ message }}</p>
+    </div>
+    
+    <p>You can check your portal for more details or to download your certificate if it is ready.</p>
+{% endblock %}
