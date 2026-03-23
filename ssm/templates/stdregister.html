@@ -146,6 +146,7 @@
                                 <option value="MBC" {% if personal.community == "MBC" %}selected{% endif %}>MBC</option>
                                 <option value="SC" {% if personal.community == "SC" %}selected{% endif %}>SC</option>
                                 <option value="ST" {% if personal.community == "ST" %}selected{% endif %}>ST</option>
+                                <option value="BC MUSLIM" {% if personal.community == "BC MUSLIM" %}selected{% endif %}>BC-Muslim</option>
                             </select>
                         </div>
                         <div class="input-group">
@@ -787,6 +788,12 @@
                 const castes = subCasteData[selectedCommunity] || [];
 
                 casteOtherGroup.style.display = 'none';
+                
+                if (selectedCommunity === 'BC MUSLIM') {
+                    casteSelect.removeAttribute('required');
+                } else {
+                    casteSelect.setAttribute('required', 'required');
+                }
 
                 // Destroy existing Select2 before repopulating
                 if ($.fn.select2 && $(casteSelect).data('select2')) {

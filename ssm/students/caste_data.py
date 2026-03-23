@@ -141,5 +141,14 @@ CASTE_DATA = {
     ],
     'OC': [
         "Not Applicable"
+    ],
+    'BC MUSLIM': [
+        "Labbais including Rowthar and Marakayar (whether their spoken language is Tamil or Urdu)",
+        "Dekkani Muslims",
+        "Dudekula",
+        "Mapilla",
+        "Shaik",
+        "Syed",
+        "Other"
     ]
 }
