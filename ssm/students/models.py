@@ -100,6 +100,7 @@ class Student(models.Model):
     # Batch Info
     joining_year = models.IntegerField(null=True, blank=True)
     ending_year = models.IntegerField(null=True, blank=True)
+    lab_batch = models.CharField(max_length=1, choices=[('A', 'Batch A'), ('B', 'Batch B')], blank=True, null=True)
     
     # Security Questions (Added to fix DB sync issue)
     security_question_1 = models.CharField(max_length=255, blank=True, null=True)

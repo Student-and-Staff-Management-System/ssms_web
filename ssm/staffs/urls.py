@@ -61,6 +61,7 @@ urlpatterns = [
     path('substitutions/assigned/', views.assigned_substitutions, name='assigned_substitutions'),
     
     # Passed Out Students
+    path('assign-batches/', views.assign_lab_batches, name='assign_lab_batches'),
     path('passed-out/', views.passed_out_batches, name='passed_out_batches'),
     path('passed-out/<int:year>/', views.batch_students, name='batch_students'),
     path('exam-schedule/', views.exam_schedule, name='exam_schedule'),

@@ -637,9 +637,19 @@ function _buildMergedLabel(leaderTd, day, startP, val, periodLabel){
             `<button type="button" class="ml-clear" onclick="clearCell('${day}',${startP})">✕ Clear</button>`,
             `<span class="ml-icon">💻</span>`,
             `<span class="ml-title">Lab Session</span>`,
-            labOpts ? `<select class="lab-pick-sel" id="lab-sel-${day}-${startP}" onchange="setLabSubject('${day}',${startP},this.value)"><option value="">— Choose Lab Subject —</option>${labOpts}</select>`
+            labOpts ? `<div style="display:flex; gap:10px; margin-top:5px; width:100%; justify-content:center;">
+                        <select class="lab-pick-sel" style="flex:1; max-width:180px;" id="lab-a-sel-${day}-${startP}" onchange="setLabSubjectBatch('${day}',${startP},'A',this.value)">
+                            <option value="">— Batch A Lab —</option>${labOpts}
+                        </select>
+                        <select class="lab-pick-sel" style="flex:1; max-width:180px;" id="lab-b-sel-${day}-${startP}" onchange="setLabSubjectBatch('${day}',${startP},'B',this.value)">
+                            <option value="">— Batch B Lab —</option>${labOpts}
+                        </select>
+                       </div>`
                     : `<span class="ml-code" style="color:#e67e22;">No lab subjects for this semester</span>`,
-            `<span class="ml-staff" id="lab-staff-${day}-${startP}"></span>`,
+            `<div style="display:flex; justify-content:space-between; width:100%; max-width:370px; margin-top:5px; font-size:0.8rem;">
+                <span class="ml-staff" id="lab-a-staff-${day}-${startP}"></span>
+                <span class="ml-staff" id="lab-b-staff-${day}-${startP}"></span>
+             </div>`,
             `<span class="ml-code">${periodLabel}</span>`,
         ].join('');
     } else if(SPECIAL_INFO[val]) {
@@ -716,43 +726,53 @@ function unmerge(day, period){
 }
 
 /* ── Lab subject chosen inside the merged cell picker ── */
-function setLabSubject(day, startP, subjId) {
+function setLabSubjectBatch(day, startP, batch, subjId) {
     const state = MRG[day+'-'+startP];
     if (!state) return;
 
-    const staffSpan = document.getElementById('lab-staff-'+day+'-'+startP);
-    const leaderTd  = document.getElementById('td-'+day+'-'+startP);
-    const info = SUBJECT_MAP[subjId];
-    const col  = colorMap[parseInt(subjId)];
+    // Add hidden input fields to correctly submit Batch A and Batch B data
+    state.periods.forEach(p => {
+        let hiddenInput = document.getElementById(`hidden-lab-${batch.toLowerCase()}-${day}-${p}`);
+        if (!hiddenInput) {
+            hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.id = `hidden-lab-${batch.toLowerCase()}-${day}-${p}`;
+            hiddenInput.name = `lab_${batch.toLowerCase()}_${day}_${p}`;
+            document.getElementById('tt-form').appendChild(hiddenInput);
+        }
+        hiddenInput.value = subjId;
+        
+        // Ensure base select is 'LAB_SESSION'
+        const baseSel = document.getElementById('sel-'+day+'-'+p);
+        if (baseSel) baseSel.value = 'LAB_SESSION';
+    });
 
-    if (info) {
-        if (staffSpan) staffSpan.textContent = info.staff !== '—' ? '👤 ' + info.staff : '';
+    const staffSpan = document.getElementById(`lab-${batch.toLowerCase()}-staff-${day}-${startP}`);
+    const info = SUBJECT_MAP[subjId];
+    if (staffSpan) {
+        staffSpan.innerHTML = info && info.staff !== '—' ? `👤 ${info.staff} (Batch ${batch})` : '';
+    }
+    
+    // Update the visual representation
+    const leaderTd  = document.getElementById('td-'+day+'-'+startP);
+    if (leaderTd && info) {
+        const col = colorMap[parseInt(subjId)];
         if (col) { leaderTd.style.background = col.bg; leaderTd.style.borderLeft = '4px solid ' + col.bdr; }
-        const titleEl = leaderTd.querySelector('.ml-title');
-        if (titleEl) titleEl.textContent = info.name;
     }
 
     // For morning lab: also update the continuation cell
     if (state.morningLab) {
-        // contP is stored in MRG state: P1 lab → 3, P2 lab → 3 (P3 is the cont cell for both)
         const contP = state.contP || 3;
         const lc = document.getElementById('lc-'+day+'-'+contP);
         const td = document.getElementById('td-'+day+'-'+contP);
         if (lc) {
             if (info) {
-                lc.innerHTML = `<span class="lc-icon">\ud83d\udcbb</span><span>${info.name}</span><span style="font-size:.65rem;color:var(--muted)">${info.code}</span>`;
+                lc.innerHTML = `<span class="lc-icon">\ud83d\udcbb</span><span>${info.name} (Batch ${batch})</span><span style="font-size:.65rem;color:var(--muted)">${info.code}</span>`;
             } else {
                 lc.innerHTML = '<span class="lc-icon">\u2697\ufe0f</span><span>Lab cont.</span>';
             }
         }
-        if (col && td) { td.style.background = col.bg; td.style.borderLeft = '4px solid ' + col.bdr; }
     }
-
-    // Sync all merged cells to the real subject ID
-    state.periods.forEach(p => {
-        const sel = document.getElementById('sel-'+day+'-'+p);
-        if (sel) sel.value = subjId || 'LAB_SESSION';
-    });
 
     markDirty(); updateStats();
 }
@@ -784,6 +804,14 @@ function clearCell(day, period){
         // Now fully clear the leader cell (unmerge leaves it with its old value)
         const leadSel = document.getElementById('sel-'+day+'-'+leader);
         if (leadSel) leadSel.value = '';
+        
+        state.periods.forEach(p => {
+            ['a', 'b'].forEach(b => {
+                const hiddenInput = document.getElementById(`hidden-lab-${b}-${day}-${p}`);
+                if (hiddenInput) hiddenInput.remove();
+            });
+        });
+        
         applyNormal(day, leader, '');    // show 'Empty'
     } else {
         const sel = document.getElementById('sel-'+day+'-'+period);
@@ -853,7 +881,13 @@ function initPage(){
 }
 
 window.addEventListener('beforeunload',e=>{ if(dirty){e.preventDefault();e.returnValue='';} });
-document.getElementById('tt-form').addEventListener('submit',()=>{ dirty=false; });
+document.getElementById('tt-form').addEventListener('submit',function(){ 
+    dirty=false; 
+    document.querySelectorAll('button[type="submit"]').forEach(btn => {
+        btn.disabled = true;
+        btn.textContent = '💾 Saving...';
+    });
+});
 initPage();
 </script>
 </body>

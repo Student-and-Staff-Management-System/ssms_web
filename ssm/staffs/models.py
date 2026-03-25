@@ -252,15 +252,16 @@ class Timetable(models.Model):
     semester = models.IntegerField()
     day = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
     period = models.IntegerField(help_text="1 to 7")
+    batch = models.CharField(max_length=3, choices=[('All', 'All'), ('A', 'Batch A'), ('B', 'Batch B')], default='All')
     subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True)
     staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True) # Optional: Assign staff directly
 
     class Meta:
         ordering = ['semester', 'day', 'period']
-        unique_together = ('semester', 'day', 'period')
+        unique_together = ('semester', 'day', 'period', 'batch')
 
     def __str__(self):
-        return f"Sem {self.semester} - {self.day} - Period {self.period}"
+        return f"Sem {self.semester} - {self.day} - Period {self.period} ({self.batch})"
 
 class StaffLeaveRequest(models.Model):
     LEAVE_TYPES = [

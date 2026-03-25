@@ -246,6 +246,7 @@
             <button type="submit" class="btn-view">View Timetable</button>
             {% if staff.role == 'HOD' %}
             <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn-edit">✏️ Edit Timetable</a>
+            <a href="{% url 'staffs:assign_lab_batches' %}?semester={{ selected_semester }}" class="btn-edit" style="background: #e67e22;">👥 Assign Lab Batches</a>
             {% endif %}
         </form>
 
@@ -277,8 +278,16 @@
                         {% if p1 and p2 and p1.subject and p2.subject and p1.subject.id == p2.subject.id and p1.subject.subject_type == 'Lab' %}
                             {# P1+P2 merged (colspan=2) #}
                             <td class="subject-cell lab-cell" colspan="2">
+                                {% if p1.is_batch %}
+                                <div style="display:flex; justify-content:space-around; align-items:center;">
+                                    <div><span class="subject-code">{{ p1.A.subject.code|default:"-" }} <small>(A)</small></span><span class="staff-name">{{ p1.A.staff.name|default:"" }}</span></div>
+                                    <div style="border-left:1px solid #ccc; height:24px; margin:0 5px;"></div>
+                                    <div><span class="subject-code">{{ p1.B.subject.code|default:"-" }} <small>(B)</small></span><span class="staff-name">{{ p1.B.staff.name|default:"" }}</span></div>
+                                </div>
+                                {% else %}
                                 <span class="subject-code">{{ p1.subject.code }}</span>
                                 {% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
+                                {% endif %}
                                 <span class="staff-name" style="font-size:.7rem;color:var(--primary-color)">Lab · 2h</span>
                             </td>
                             {# BREAK stays visible #}
@@ -286,8 +295,16 @@
                             {# P3 — continuation if same subject #}
                             {% if p3 and p3.subject and p3.subject.id == p1.subject.id %}
                             <td class="subject-cell lab-cont">
+                                {% if p1.is_batch %}
+                                <div style="display:flex; justify-content:space-around; align-items:center;">
+                                    <div><span class="subject-code">{{ p1.A.subject.code|default:"-" }} <small>(A)</small></span></div>
+                                    <div style="border-left:1px solid #ccc; height:24px; margin:0 5px;"></div>
+                                    <div><span class="subject-code">{{ p1.B.subject.code|default:"-" }} <small>(B)</small></span></div>
+                                </div>
+                                {% else %}
                                 <span class="subject-code">{{ p1.subject.code }}</span>
                                 {% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
+                                {% endif %}
                             </td>
                             {% else %}
                             <td class="subject-cell">
@@ -307,13 +324,28 @@
                                 {% else %}<span class="empty-slot">-</span>{% endif %}
                             </td>
                             <td class="subject-cell lab-cell">
+                                {% if p2.is_batch %}
+                                <div style="display:flex; justify-content:space-around; align-items:center; flex-direction:column;">
+                                    <div><span class="subject-code">{{ p2.A.subject.code|default:"-" }} <small>(A)</small></span></div>
+                                    <div><span class="subject-code">{{ p2.B.subject.code|default:"-" }} <small>(B)</small></span></div>
+                                </div>
+                                {% else %}
                                 <span class="subject-code">{{ p2.subject.code }}</span>
                                 {% if p2.staff %}<span class="staff-name">{{ p2.staff.name }}</span>{% endif %}
+                                {% endif %}
                             </td>
                             <td class="break-column">B</td>
                             <td class="subject-cell lab-cont" colspan="2">
+                                {% if p2.is_batch %}
+                                <div style="display:flex; justify-content:space-around; align-items:center;">
+                                    <div><span class="subject-code">{{ p2.A.subject.code|default:"-" }} <small>(A)</small></span><span class="staff-name">{{ p2.A.staff.name|default:"" }}</span></div>
+                                    <div style="border-left:1px solid #ccc; height:24px; margin:0 5px;"></div>
+                                    <div><span class="subject-code">{{ p2.B.subject.code|default:"-" }} <small>(B)</small></span><span class="staff-name">{{ p2.B.staff.name|default:"" }}</span></div>
+                                </div>
+                                {% else %}
                                 <span class="subject-code">{{ p2.subject.code }}</span>
                                 {% if p2.staff %}<span class="staff-name">{{ p2.staff.name }}</span>{% endif %}
+                                {% endif %}
                             </td>
                         {% else %}
                             {# Normal P1 #}
@@ -345,8 +377,16 @@
                         {% if p5 and p6 and p7 and p5.subject and p6.subject and p7.subject and p5.subject.id == p6.subject.id and p6.subject.id == p7.subject.id %}
                             {# Lab spans all 3 afternoon periods #}
                             <td class="subject-cell lab-cell" colspan="3">
+                                {% if p5.is_batch %}
+                                <div style="display:flex; justify-content:space-around; align-items:center;">
+                                    <div><span class="subject-code">{{ p5.A.subject.code|default:"-" }} <small>(A)</small></span><span class="staff-name">{{ p5.A.staff.name|default:"" }}</span></div>
+                                    <div style="border-left:1px solid #ccc; height:24px; margin:0 5px;"></div>
+                                    <div><span class="subject-code">{{ p5.B.subject.code|default:"-" }} <small>(B)</small></span><span class="staff-name">{{ p5.B.staff.name|default:"" }}</span></div>
+                                </div>
+                                {% else %}
                                 <span class="subject-code">{{ p5.subject.code }}</span>
                                 {% if p5.staff %}<span class="staff-name">{{ p5.staff.name }}</span>{% endif %}
+                                {% endif %}
                                 <span class="staff-name" style="font-size:.7rem;color:var(--primary-color)">Lab · 3h</span>
                             </td>
                         {% elif p5 and p6 and p5.subject and p6.subject and p5.subject.id == p6.subject.id %}

@@ -125,7 +125,8 @@ def class_timetable(request):
     
     for entry in entries:
         if 1 <= entry.period <= 7:
-             timetable_data[entry.day][entry.period-1] = entry
+             if entry.batch == 'All' or entry.batch == student.lab_batch:
+                 timetable_data[entry.day][entry.period-1] = entry
 
     timetable_rows = []
     for day in days:

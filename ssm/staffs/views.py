@@ -1083,9 +1083,23 @@ def timetable(request):
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     timetable_data = {day: [None]*7 for day in days} # 7 Periods
     
+    class BatchBlock:
+        def __init__(self, e1, e2):
+            self.is_batch = True
+            self.A = e1 if e1.batch == 'A' else e2
+            self.B = e2 if e2.batch == 'B' else e1
+            class DummySubj:
+                id = 'BATCHED'
+                subject_type = 'Lab'
+            self.subject = DummySubj()
+            
     for entry in entries:
         if 1 <= entry.period <= 7:
-             timetable_data[entry.day][entry.period-1] = entry
+            curr = timetable_data[entry.day][entry.period-1]
+            if curr is None:
+                timetable_data[entry.day][entry.period-1] = entry
+            else:
+                timetable_data[entry.day][entry.period-1] = BatchBlock(curr, entry)
 
     # Convert to list of tuples for template iteration: [('Monday', [p1, p2...]), ...]
     timetable_rows = []
@@ -1095,6 +1109,48 @@ def timetable(request):
     return render(request, 'staff/timetable.html', {
         'staff': staff,
         'timetable_rows': timetable_rows,
+        'selected_semester': selected_semester,
+        'semesters': range(1, 9)
+    })
+
+def assign_lab_batches(request):
+    """View to assign students to Batch A or Batch B. Restricted to HOD."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: Only HOD can assign lab batches.")
+        return redirect('staffs:staff_dashboard')
+        
+    selected_semester = request.GET.get('semester', 1)
+    if request.method == 'POST':
+        selected_semester = request.POST.get('semester', selected_semester)
+    try:
+        selected_semester = int(selected_semester)
+    except ValueError:
+        selected_semester = 1
+        
+    students = Student.objects.filter(current_semester=selected_semester).order_by('roll_number')
+    
+    if request.method == 'POST':
+        from django.db import transaction
+        with transaction.atomic():
+            for student in students:
+                batch_val = request.POST.get(f'batch_{student.roll_number}', '')
+                if batch_val in ['A', 'B', '']:
+                    batch_val = None if not batch_val else batch_val
+                    if student.lab_batch != batch_val:
+                        student.lab_batch = batch_val
+                        student.save(update_fields=['lab_batch'])
+        
+        from django.contrib import messages
+        messages.success(request, f'Lab batches updated successfully for Semester {selected_semester}.')
+        return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
+        
+    return render(request, 'staff/assign_batches.html', {
+        'staff': staff,
+        'students': students,
         'selected_semester': selected_semester,
         'semesters': range(1, 9)
     })
@@ -1127,100 +1183,96 @@ def edit_timetable(request, semester):
             for day in days:
                 for period in periods:
                     sub_val = request.POST.get(f'subject_{day}_{period}')
-                    # Staff is auto-assigned from subject — no manual staff picker
+                    lab_a_val = request.POST.get(f'lab_a_{day}_{period}')
+                    lab_b_val = request.POST.get(f'lab_b_{day}_{period}')
                     
-                    # Fetch existing entry
-                    entry_qs = Timetable.objects.filter(semester=semester, day=day, period=period)
-                    entry = entry_qs.first()
+                    # Fetch existing entries for all batches
+                    entries = list(Timetable.objects.filter(semester=semester, day=day, period=period))
                     
+                    # Handle clearing
                     if not sub_val:
-                        # Clear period
-                        if entry:
-                            # If staff was assigned, notify them removal?
+                        for entry in entries:
                             if entry.staff:
                                 send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
-                                try:
-                                    from django.core.mail import send_mail
-                                    from django.conf import settings
-                                    from django.template.loader import render_to_string
-                                    from django.utils.html import strip_tags
-                                    if entry.staff.email:
-                                        msg = f"You have been removed from {day} Period {period}."
-                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': entry.staff.name, 'message': msg})
-                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [entry.staff.email], html_message=html_message, fail_silently=True)
-                                except Exception: pass
                             entry.delete()
                         continue
-                        
-                    # Handle virtual slots (LAB_SESSION, PLACEMENT, LIBRARY)
+
+                    # If LAB_SESSION or some virtual slot is selected, we check batch inputs
                     VIRTUAL_SLOTS = ['LAB_SESSION', 'PLACEMENT', 'LIBRARY']
-                    if sub_val in VIRTUAL_SLOTS:
-                        subject = None
-                        assigned_staff = None
-                        virtual_label = sub_val
-                    else:
-                        subject = Subject.objects.filter(id=sub_val).first() if sub_val else None
-                        # Auto-assign the subject's own staff
-                        assigned_staff = subject.staff if subject else None
-                        virtual_label = None
                     
-                    if entry:
-                        changed = False
-                        old_staff = entry.staff
-                        if entry.subject != subject:
-                            entry.subject = subject
-                            changed = True
-                        if entry.staff != assigned_staff:
-                            entry.staff = assigned_staff
-                            changed = True
+                    # Helper to manage creation/update of a batch entry
+                    def handle_batch_entry(batch_val, subj_id, virtual_sub=None):
+                        # Locate existing entry for this batch
+                        batch_entry = next((e for e in entries if e.batch == batch_val), None)
+                        
+                        if virtual_sub:
+                            b_subject = None
+                            b_staff = None
+                        else:
+                            b_subject = Subject.objects.filter(id=subj_id).first() if subj_id else None
+                            b_staff = b_subject.staff if b_subject else None
+
+                        if not b_subject and not virtual_sub:
+                            # If no subject and not virtual, delete if exists
+                            if batch_entry:
+                                if batch_entry.staff:
+                                    send_staff_notification(batch_entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
+                                batch_entry.delete()
+                            return
+                        
+                        if batch_entry:
+                            changed = False
+                            old_staff = batch_entry.staff
+                            if batch_entry.subject != b_subject:
+                                batch_entry.subject = b_subject
+                                changed = True
+                            if batch_entry.staff != b_staff:
+                                batch_entry.staff = b_staff
+                                changed = True
                             
-                            entry.save()
-                            
-                            from django.core.mail import send_mail
-                            from django.conf import settings
-                            from django.template.loader import render_to_string
-                            from django.utils.html import strip_tags
-                            
-                            # Notify new staff
-                            if assigned_staff and old_staff != assigned_staff:
-                                send_staff_notification(assigned_staff, "📅 Timetable Updated", f"You've been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", url="/staffs/my-timetable/")
-                                try:
-                                    if assigned_staff.email:
-                                        msg = f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}."
-                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': assigned_staff.name, 'message': msg})
-                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], html_message=html_message, fail_silently=True)
-                                except Exception: pass
-                                
-                            # Notify old staff
-                            if old_staff and old_staff != assigned_staff:
-                                send_staff_notification(old_staff, "📅 Timetable Updated", f"You are no longer assigned to {day} Period {period}.", url="/staffs/my-timetable/")
-                                try:
-                                    if old_staff.email:
-                                        msg = f"You are no longer assigned to {day} Period {period}."
-                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': old_staff.name, 'message': msg})
-                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [old_staff.email], html_message=html_message, fail_silently=True)
-                                except Exception: pass
+                            if changed:
+                                batch_entry.save()
+                                if b_staff and old_staff != b_staff:
+                                    send_staff_notification(b_staff, "📅 Timetable Updated", f"You've been assigned {b_subject.code if b_subject else 'a class'} on {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
+                                if old_staff and old_staff != b_staff:
+                                    send_staff_notification(old_staff, "📅 Timetable Updated", f"You are no longer assigned to {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
+                        else:
+                            try:
+                                new_entry = Timetable.objects.create(
+                                    semester=semester,
+                                    day=day,
+                                    period=period,
+                                    subject=b_subject,
+                                    staff=b_staff,
+                                    batch=batch_val
+                                )
+                                if b_staff:
+                                    send_staff_notification(b_staff, "📅 Timetable Assigned", f"You have been assigned {b_subject.code if b_subject else 'a class'} on {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
+                            except IntegrityError:
+                                pass
+
+                    if sub_val == 'LAB_SESSION':
+                        # Delete any 'All' batch entries
+                        for entry in entries:
+                            if entry.batch == 'All':
+                                if entry.staff:
+                                    send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
+                                entry.delete()
+                        
+                        handle_batch_entry('A', lab_a_val)
+                        handle_batch_entry('B', lab_b_val)
                     else:
-                        if subject or assigned_staff:
-                            new_entry = Timetable.objects.create(
-                                semester=semester,
-                                day=day,
-                                period=period,
-                                subject=subject,
-                                staff=assigned_staff
-                            )
-                            if assigned_staff:
-                                send_staff_notification(assigned_staff, "📅 Timetable Updated", f"You've been assigned {subject.code if subject else 'a class'} on {day} Period {period}.", url="/staffs/my-timetable/")
-                                try:
-                                    from django.core.mail import send_mail
-                                    from django.conf import settings
-                                    from django.template.loader import render_to_string
-                                    from django.utils.html import strip_tags
-                                    if assigned_staff.email:
-                                        msg = f"You have been assigned {subject.code if subject else 'a class'} on {day} Period {period}."
-                                        html_message = render_to_string('emails/timetable_update.html', {'staff_name': assigned_staff.name, 'message': msg})
-                                        send_mail("Timetable Updated", msg, settings.DEFAULT_FROM_EMAIL, [assigned_staff.email], html_message=html_message, fail_silently=True)
-                                except Exception: pass
+                        # Theory or other virtual slots: Clean up 'A' and 'B' entries first
+                        for entry in entries:
+                            if entry.batch in ['A', 'B']:
+                                if entry.staff:
+                                    send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {entry.batch}).", url="/staffs/my-timetable/")
+                                entry.delete()
+                        
+                        # Set everything as 'All' batch
+                        virt_lbl = sub_val if sub_val in VIRTUAL_SLOTS else None
+                        subj_id_to_use = None if virt_lbl else sub_val
+                        handle_batch_entry('All', subj_id_to_use, virtual_sub=virt_lbl)
                                 
         messages.success(request, f'Timetable for Semester {semester} updated successfully.')
         return redirect(f'/staffs/timetable/?semester={semester}')

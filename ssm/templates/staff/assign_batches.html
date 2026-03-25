@@ -1,0 +1,171 @@
+{% extends 'base2.html' %}
+
+{% block title %}Assign Lab Batches - Annamalai University{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    .btn-back {
+        background: #5a7d7c;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.3s ease;
+    }
+    .btn-back:hover {
+        background: #4a6b69;
+    }
+    .semester-filter {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    .semester-filter select, .semester-filter button {
+        padding: 8px 15px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        font-size: 1rem;
+    }
+    .semester-filter button {
+        background: #4a6b69;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    .semester-filter button:hover {
+        background: #5a7d7c;
+    }
+    .student-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    .student-table th, .student-table td {
+        padding: 15px 20px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .student-table th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #5a7d7c;
+    }
+    .batch-radio {
+        display: flex;
+        gap: 20px;
+    }
+    .batch-radio label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    .btn-submit {
+        background: #e67e22;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background 0.3s ease;
+        display: block;
+        width: 100%;
+    }
+    .btn-submit:hover {
+        background: #d35400;
+    }
+</style>
+
+<div class="dashboard-container">
+    <header class="page-header">
+        <h1 style="color: #5a7d7c; margin: 0; font-size: 1.5rem;">👥 Assign Lab Batches</h1>
+        <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Back to Dashboard</a>
+    </header>
+
+    <form method="GET" class="semester-filter">
+        <label for="semester" style="font-weight: 500;">Select Semester:</label>
+        <select name="semester" id="semester">
+            {% for sem in semesters %}
+            <option value="{{ sem }}" {% if sem == selected_semester %}selected{% endif %}>Semester {{ sem }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter Students</button>
+    </form>
+
+    <form method="POST" action="{% url 'staffs:assign_lab_batches' %}">
+        {% csrf_token %}
+        <input type="hidden" name="semester" value="{{ selected_semester }}">
+        
+        <table class="student-table">
+            <thead>
+                <tr>
+                    <th>Roll Number</th>
+                    <th>Student Name</th>
+                    <th>Lab Batch Assignment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.roll_number }}</td>
+                    <td>{{ student.student_name }}</td>
+                    <td>
+                        <div class="batch-radio">
+                            <label>
+                                <input type="radio" name="batch_{{ student.roll_number }}" value="A" {% if student.lab_batch == 'A' %}checked{% endif %}>
+                                Batch A
+                            </label>
+                            <label>
+                                <input type="radio" name="batch_{{ student.roll_number }}" value="B" {% if student.lab_batch == 'B' %}checked{% endif %}>
+                                Batch B
+                            </label>
+                            <label>
+                                <input type="radio" name="batch_{{ student.roll_number }}" value="" {% if not student.lab_batch %}checked{% endif %}>
+                                Not Assigned
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align:center; padding: 30px; color: #7f8c8d;">No students found for Semester {{ selected_semester }}.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if students %}
+        <button type="submit" class="btn-submit">💾 Save Batch Assignments</button>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}
