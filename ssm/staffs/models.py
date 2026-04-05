@@ -5,7 +5,8 @@ from ssm.upload_paths import (
     staff_photo_path, staff_award_document_path, staff_seminar_document_path,
     staff_student_guided_document_path, staff_leave_document_path,
     staff_conference_document_path, staff_journal_document_path,
-    staff_book_document_path, news_documents_path
+    staff_book_document_path, news_documents_path,
+    staff_qualification_document_path, staff_designation_document_path
 )
 
 
@@ -13,6 +14,7 @@ class Staff(models.Model):
     # Basic Info
     staff_id = models.CharField(max_length=50, primary_key=True)
     name = models.CharField(max_length=255)
+    initial = models.CharField(max_length=50, blank=True)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=128) # Stores the hashed password
     photo = models.ImageField(
@@ -65,6 +67,7 @@ class Staff(models.Model):
     research_gate_link = models.URLField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
+    is_profile_complete = models.BooleanField(default=False)
 
     def clean(self):
         """Validate staff role assignments."""
@@ -127,6 +130,67 @@ class StaffPublication(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.year})"
+
+
+class StaffQualification(models.Model):
+    """Educational qualifications of staff."""
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='qualifications')
+    degree = models.CharField(max_length=100)
+    university = models.CharField(max_length=255)
+    year_completed = models.CharField(max_length=10)
+    certificate = models.FileField(
+        upload_to=staff_qualification_document_path,
+        blank=True,
+        null=True,
+        help_text="Upload Certificate",
+        validators=[validate_file_size]
+    )
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-year_completed', '-order', 'degree']
+
+    def __str__(self):
+        return f"{self.degree} from {self.university} ({self.year_completed})"
+
+
+class StaffPastDesignation(models.Model):
+    """Past and alternative designations of staff."""
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='past_designations')
+    designation = models.CharField(max_length=100)
+    from_date = models.DateField(null=True, blank=True)
+    to_date = models.DateField(null=True, blank=True)
+    order_img = models.FileField(
+        upload_to=staff_designation_document_path,
+        blank=True,
+        null=True,
+        help_text="Upload Order Document",
+        validators=[validate_file_size]
+    )
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-from_date', '-order', 'designation']
+
+    def __str__(self):
+        return f"{self.designation} ({self.from_date} to {self.to_date or 'Present'})"
+
+
+class StaffMembership(models.Model):
+    """Professional memberships of staff."""
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='memberships')
+    institute_name = models.CharField(max_length=255)
+    membership_no = models.CharField(max_length=100)
+    membership_type = models.CharField(max_length=100)
+    year = models.CharField(max_length=10, blank=True)
+    month = models.CharField(max_length=20, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-year', '-order', 'institute_name']
+
+    def __str__(self):
+        return f"{self.membership_type} at {self.institute_name} ({self.year})"
 
 
 class StaffAwardHonour(models.Model):

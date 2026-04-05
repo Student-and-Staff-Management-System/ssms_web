@@ -4,1637 +4,1107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publications & Accomplishments | Staff Dashboard</title>
+    <title>My Portfolio | Annamalai University</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
     <style>
         :root {
             --primary: #5a7d7c;
             --primary-dark: #4a6b69;
-            --primary-light: #eef2f2;
+            --primary-light: #eef4f4;
+            --primary-glow: rgba(90, 125, 124, 0.15);
             --accent: #f59e0b;
-            --bg-body: #f9fafb;
+            --bg-body: #f0f4f4;
             --surface: #ffffff;
-            --text-main: #111827;
+            --text-main: #1a2e2e;
             --text-muted: #6b7280;
-            --border: #e2e8f0;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --border: #e2eded;
+            --shadow-sm: 0 1px 3px 0 rgba(90,125,124,0.08);
+            --shadow-md: 0 4px 16px -4px rgba(90,125,124,0.18);
+            --shadow-modal: 0 24px 48px -12px rgba(0,0,0,0.18);
             --radius: 16px;
+            --radius-sm: 8px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-body);
+            background: var(--bg-body);
             color: var(--text-main);
             margin: 0;
             padding: 0;
             min-height: 100vh;
         }
 
-        .app-container {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
+        /* ─── PAGE HEADER ─── */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            padding: 22px 40px 60px;
+            position: relative;
+            overflow: hidden;
         }
-
-
-
-        .brand {
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 250px; height: 250px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; left: 20%;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
+            justify-content: space-between;
         }
-
-        .brand img {
-            height: 35px;
-        }
-
-        .brand h1 {
-            font-size: 1.1rem;
+        .header-left h1 {
+            color: white;
+            font-size: 1.75rem;
             font-weight: 700;
-            color: var(--primary);
+            margin: 0 0 4px;
+        }
+        .header-left p {
+            color: rgba(255,255,255,0.72);
             margin: 0;
+            font-size: 0.95rem;
         }
-
-        .nav-section {
-            display: flex;
-            flex-direction: column;
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
             gap: 8px;
-            margin-bottom: 30px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 9px 18px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .btn-back:hover {
+            background: rgba(255,255,255,0.28);
         }
 
-        .nav-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
+        /* ─── MAIN CONTENT ─── */
+        .content-area {
+            max-width: 1200px;
+            margin: -32px auto 0;
+            padding: 0 20px 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── FLASH MESSAGES ─── */
+        .flash-messages { margin-bottom: 20px; }
+        .flash-msg {
+            padding: 13px 18px;
+            border-radius: var(--radius-sm);
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
             margin-bottom: 8px;
-            padding-left: 12px;
+            font-weight: 500;
+        }
+
+        /* ─── PILL TABS ─── */
+        .tab-scroll-wrapper {
+            position: relative;
+            margin-bottom: 28px;
+        }
+        .tab-scroll-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 40px;
+            background: linear-gradient(to right, transparent, var(--bg-body));
+            pointer-events: none;
+            border-radius: 0 100px 100px 0;
+        }
+        .tab-wrapper {
+            background: white;
+            border-radius: 100px;
+            padding: 5px;
+            display: flex;
+            gap: 2px;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tab-wrapper::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 11px 22px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 100px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .tab-btn:hover { color: var(--primary); background: var(--primary-light); }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(90,125,124,0.35);
             font-weight: 600;
         }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
+        /* ─── TAB PANELS ─── */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
 
-        .nav-item:hover,
-        .nav-item.active {
-            background-color: var(--primary-light);
-            color: var(--primary-dark);
-        }
-
-        .nav-icon {
-            font-size: 1.1rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .profile-mini {
-            margin-top: auto;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px;
-            background: var(--bg-body);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .profile-mini img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .main-content {
-            padding: 32px;
-            max-width: 1000px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .top-bar {
-            margin-bottom: 32px;
-        }
-
-        .page-title h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin: 0;
-            color: var(--text-main);
-        }
-
-        .page-title p {
-            margin: 4px 0 0 0;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
+        /* ─── SECTION CARD ─── */
         .section-card {
             background: var(--surface);
             border-radius: var(--radius);
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border);
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
+            overflow: hidden;
         }
-
-        .section-title {
-            font-size: 1.1rem;
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(90deg, var(--primary-light) 0%, white 100%);
+        }
+        .section-head h3 {
+            margin: 0;
+            font-size: 1.05rem;
             font-weight: 600;
             color: var(--primary-dark);
-            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 100px;
+            padding: 0 6px;
         }
 
+        /* ─── ADD BUTTON ─── */
         .btn-add {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: var(--primary);
             color: white;
             padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: background 0.2s;
+            border-radius: 100px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
             border: none;
             cursor: pointer;
-        }
-
-        .btn-add:hover {
-            background: var(--primary-dark);
-            color: white;
-        }
-
-        .item-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .item-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-            gap: 16px;
-        }
-
-        .item-row:last-child {
-            border-bottom: none;
-        }
-
-        .item-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .item-title {
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 4px;
-        }
-
-        .item-meta {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .item-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-            align-items: center;
-        }
-
-        .btn-edit,
-        .btn-delete {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
             text-decoration: none;
             transition: all 0.2s;
-            border: none;
-            cursor: pointer;
-            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(90,125,124,0.3);
+        }
+        .btn-add:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(90,125,124,0.4);
         }
 
+        /* ─── DATA TABLE ─── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.93rem;
+        }
+        .data-table thead tr {
+            background: var(--bg-body);
+        }
+        .data-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            line-height: 1.55;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: var(--primary-light); }
+
+        /* ─── ACTION BUTTONS ─── */
+        .action-group { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
         .btn-edit {
+            padding: 5px 12px;
             background: var(--primary-light);
             color: var(--primary-dark);
-            border: 1px solid var(--primary);
+            border: 1px solid rgba(90,125,124,0.2);
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
         }
-
-        .btn-edit:hover {
-            background: var(--primary);
-            color: white;
-        }
-
+        .btn-edit:hover { background: var(--primary); color: white; }
         .btn-delete {
-            background: #fee2e2;
+            padding: 5px 12px;
+            background: #fff1f2;
             color: #dc2626;
-            border: 1px solid #fca5a5;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
         }
+        .btn-delete:hover { background: #dc2626; color: white; }
 
-        .btn-delete:hover {
-            background: #dc2626;
-            color: white;
-        }
-
+        /* ─── EMPTY STATE ─── */
         .empty-state {
-            padding: 24px;
+            padding: 48px 24px;
             text-align: center;
             color: var(--text-muted);
-            font-size: 0.95rem;
         }
-
-        .empty-state a {
-            color: var(--primary);
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
         }
+        .empty-state p { margin: 0 0 6px; font-size: 0.95rem; }
+        .empty-state small { font-size: 0.85rem; }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: var(--text-main);
-            font-size: 0.95rem;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .form-help {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .btn-save {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-
-        /* Default hide toggle on desktop */
-        .menu-toggle {
-            display: none;
-        }
-
-        .sidebar-overlay {
-            display: none;
-        }
-
-        /* Tab Styles */
-        .tab-link {
-            background: none;
-            border: none;
-            padding: 12px 16px;
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
-            white-space: nowrap;
-        }
-
-        .tab-link.active {
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
-            font-weight: 600;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Modal Styles */
-        .modal {
+        /* ─── DYNAMIC MODAL ─── */
+        .d-modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background: rgba(15,25,25,0.5);
+            backdrop-filter: blur(5px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 16px;
         }
-
-        .modal-content {
+        .d-modal-overlay.open { display: flex; }
+        .d-modal-box {
             background: white;
-            margin: 20px;
-            padding: 0;
-            width: 90%;
-            max-width: 800px;
-            border-radius: 12px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-modal);
+            width: 100%;
+            max-width: 640px;
             max-height: 90vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: scale(0.92) translateY(20px);
+            opacity: 0;
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
         }
-
-        .modal-header {
+        .d-modal-overlay.open .d-modal-box {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .d-modal-header {
             padding: 20px 24px;
+            background: linear-gradient(90deg, var(--primary-light) 0%, white 100%);
             border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
             display: flex;
-            justify-content: center;
             align-items: center;
-            position: relative;
+            justify-content: space-between;
+            flex-shrink: 0;
         }
-
-        .modal-header h3 {
+        .d-modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary-dark);
             margin: 0;
-            flex-grow: 1;
-            text-align: center;
+        }
+        .d-modal-close {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            border: none;
+            color: var(--primary-dark);
             font-size: 1.25rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s;
+            line-height: 1;
+        }
+        .d-modal-close:hover { background: var(--primary); color: white; }
+        .d-modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 0;
         }
 
-        .modal-close {
+        /* ─── INJECTED FORM STYLES ─── */
+        .d-modal-body .form-container {
+            padding: 24px;
+        }
+        .d-modal-body .form-group {
+            margin-bottom: 18px;
+        }
+        .d-modal-body .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+        .d-modal-body .form-group input,
+        .d-modal-body .form-group select,
+        .d-modal-body .form-group textarea {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: border-color 0.18s;
+            background: white;
+        }
+        .d-modal-body .form-group input:focus,
+        .d-modal-body .form-group select:focus,
+        .d-modal-body .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        .d-modal-body .form-group textarea { min-height: 80px; resize: vertical; }
+        .d-modal-body .form-help { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .d-modal-body .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 11px 28px;
+            border-radius: 9px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .d-modal-body .btn-save:hover { background: var(--primary-dark); }
+        .d-modal-body .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+        .d-modal-body .btn-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
+        }
+        .d-modal-body .btn-cancel {
             background: none;
             border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
+            padding: 11px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
             color: var(--text-muted);
-            position: absolute;
-            right: 24px;
-            top: 50%;
-            transform: translateY(-50%);
+            cursor: pointer;
+            border-radius: 9px;
+            transition: all 0.18s;
         }
-
-        .modal-content form {
+        .d-modal-body .btn-cancel:hover { background: var(--primary-light); color: var(--primary-dark); }
+        .d-modal-body .errorlist {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0;
+            color: #dc2626;
+            font-size: 0.83rem;
+        }
+        .modal-spinner {
             display: flex;
             flex-direction: column;
-            flex: 1;
-            min-height: 0;
-            overflow: hidden;
-            padding: 0;
-            margin: 0;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text-muted);
         }
-
-        .form-grid {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            min-height: 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .modal-spinner .spinner {
+            width: 35px; height: 35px;
+            border: 3px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 14px;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .full-width {
-            grid-column: span 2;
-        }
-
-        /* ========== MOBILE OPTIMIZATIONS ========== */
-        @media (max-width: 1024px) {
-            .page-title {
-                display: flex;
-                align-items: flex-start;
-            }
-        }
-
-
-
+        /* ─── RESPONSIVE ─── */
         @media (max-width: 768px) {
-            .main-content {
-                padding: 16px;
+            .page-header { padding: 20px 20px 50px; }
+            .header-left h1 { font-size: 1.35rem; }
+            .content-area { padding: 0 12px 40px; }
+            .section-head { flex-direction: column; gap: 12px; align-items: flex-start; }
+            .data-table thead { display: none; }
+            .data-table, .data-table tbody, .data-table tr, .data-table td {
+                display: block; width: 100%;
             }
-
-            .top-bar {
-                margin-bottom: 20px;
-            }
-
-            .page-title h2 {
-                font-size: 1.35rem;
-            }
-
-            .page-title p {
-                font-size: 0.85rem;
-                margin-top: 6px;
-            }
-
-            /* Section Cards Mobile */
-            .section-card {
-                padding: 16px;
-                border-radius: 12px;
-                margin-bottom: 16px;
-            }
-
-            .section-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-
-            .section-title {
-                font-size: 1rem;
-            }
-
-            .btn-add {
-                width: 100%;
-                justify-content: center;
-                padding: 10px 16px;
-            }
-
-            /* Tabs Mobile - Horizontal Scroll */
-            .tab-container {
-                overflow-x: auto;
-                margin-bottom: 20px;
-                border-bottom: 2px solid var(--border);
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .tab-container::-webkit-scrollbar {
-                display: none;
-            }
-
-            .tab-links-wrapper {
-                display: flex;
-                gap: 0;
-                min-width: min-content;
-            }
-
-            .tab-link {
-                padding: 10px 14px;
-                font-size: 0.85rem;
-                flex-shrink: 0;
-            }
-
-            /* Tables Mobile - Card View */
-            table {
-                display: none;
-            }
-
-            .mobile-card-view {
-                display: block;
-            }
-
-            .mobile-entry-card {
-                background: var(--bg-body);
-                padding: 14px;
-                border-radius: 8px;
-                margin-bottom: 12px;
-                border: 1px solid var(--border);
-            }
-
-            .mobile-card-title {
-                font-weight: 600;
-                color: var(--text-main);
-                margin-bottom: 8px;
-                font-size: 0.95rem;
-                line-height: 1.4;
-            }
-
-            .mobile-card-meta {
-                font-size: 0.8rem;
-                color: var(--text-muted);
-                margin-bottom: 4px;
-                line-height: 1.5;
-            }
-
-            .mobile-card-actions {
-                margin-top: 12px;
-                padding-top: 12px;
-                border-top: 1px solid var(--border);
-                display: flex;
-                gap: 8px;
-            }
-
-            .mobile-card-actions .btn-delete {
-                flex: 1;
-                text-align: center;
-                padding: 8px 12px;
-            }
-
-            /* Item List Mobile */
-            .item-row {
-                flex-direction: column;
-                gap: 10px;
-                padding: 14px 0;
-            }
-
-            .item-title {
-                font-size: 0.9rem;
-                line-height: 1.4;
-            }
-
-            .item-meta {
-                font-size: 0.85rem;
-            }
-
-            .item-actions {
-                width: 100%;
-            }
-
-            .btn-delete {
-                flex: 1;
-                text-align: center;
-            }
-
-            /* Messages Mobile */
-            ul[style*="list-style: none"] li {
-                font-size: 0.9rem;
-                padding: 10px !important;
-            }
-
-            /* Modal Mobile */
-            .modal {
-                align-items: flex-end;
-            }
-
-            .modal-content {
-                width: 100%;
-                max-width: 100%;
-                margin: 0;
-                border-radius: 16px 16px 0 0;
-                max-height: 95vh;
-            }
-
-            .modal-header {
-                padding: 16px 20px;
-            }
-
-            .modal-header h3 {
-                font-size: 1.1rem;
-            }
-
-            .modal-close {
-                right: 20px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-                padding: 16px;
-                gap: 16px;
-            }
-
-            .full-width {
-                grid-column: span 1;
-            }
-
-            .form-group {
-                margin-bottom: 16px;
-            }
-
-            .form-group label {
-                font-size: 0.9rem;
-            }
-
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                padding: 10px;
-                font-size: 0.95rem;
-            }
-
-            .btn-save {
-                padding: 14px 24px;
-                font-size: 1rem;
-            }
-
-            /* Radio/Checkbox Groups Mobile */
-            .form-group div[style*="display:flex"] {
-                flex-direction: column !important;
-                gap: 10px !important;
-                align-items: flex-start !important;
-            }
-
-            /* Empty State Mobile */
-            .empty-state {
-                padding: 20px;
-                font-size: 0.9rem;
-            }
-        }
-
-        /* Extra Small Mobile (< 400px) */
-        @media (max-width: 400px) {
-            .main-content {
-                padding: 12px;
-            }
-
-            .page-title h2 {
-                font-size: 1.2rem;
-            }
-
-            .section-card {
-                padding: 12px;
-            }
-
-            .tab-link {
-                padding: 10px 12px;
-                font-size: 0.8rem;
-            }
-
-            .mobile-entry-card {
-                padding: 12px;
-            }
-
-            .mobile-card-title {
-                font-size: 0.9rem;
-            }
-
-            .mobile-card-meta {
-                font-size: 0.75rem;
-            }
-
-            .form-grid {
-                padding: 12px;
-                gap: 12px;
-            }
-
-            .modal-header {
-                padding: 14px 16px;
-            }
-        }
-
-        /* Touch Improvements */
-        @media (hover: none) and (pointer: coarse) {
-
-            .btn-add:active,
-            .btn-delete:active,
-            .btn-save:active,
-            .tab-link:active {
-                transform: scale(0.97);
-            }
-
-            .nav-item:active {
-                transform: scale(0.98);
-            }
-
-            /* Larger tap targets */
-            .btn-add,
-            .btn-delete,
-            .tab-link {
-                min-height: 44px;
-            }
-
-            .menu-toggle {
-                min-width: 44px;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        }
-
-        /* Desktop-only table display */
-        @media (min-width: 769px) {
-            .mobile-card-view {
-                display: none;
-            }
-
-            table {
-                display: table !important;
-            }
+            .data-table td { padding: 8px 16px; border-bottom: none; }
+            .data-table tr { border-bottom: 1px solid var(--border); padding: 8px 0; }
         }
     </style>
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Sidebar removed as per request -->
-
-
-        <main class="main-content">
-            <div class="top-bar" style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div class="page-title">
-                    <div>
-                        <h2>Publications & Accomplishments</h2>
-                        <p>Click "Add New" to add publications, awards, memberships, or students guided.</p>
-                    </div>
-                </div>
-                <a href="{% url 'staffs:staff_profile' %}" class="btn-header-back"
-                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 500; transition: color 0.2s;">
-                    Back to Profile <span>→</span>
-                </a>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <h1>📋 My Portfolio</h1>
+                <p>Manage your publications, qualifications, and academic achievements</p>
             </div>
-
-            {% if messages %}
-            <ul style="list-style: none; padding: 0; margin: 0 0 20px 0;">
-                {% for message in messages %}
-                <li style="padding: 12px; border-radius: 8px; background: #d1fae5; color: #065f46; margin-bottom: 8px;">
-                    {{ message }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-
-            <!-- Tabs Navigation -->
-            <div class="tab-container"
-                style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border);">
-                <div class="tab-links-wrapper">
-                    <button onclick="openTab(event, 'Conferences')" class="tab-link active">Conferences</button>
-                    <button onclick="openTab(event, 'Publications')" class="tab-link">Publications (Journal)</button>
-                    <button onclick="openTab(event, 'Books')" class="tab-link">Books / Popular Articles</button>
-                    <button onclick="openTab(event, 'Others')" class="tab-link">Awards & Guided</button>
-                </div>
-            </div>
-
-            <!-- 1. Conferences Tab -->
-            <div id="Conferences" class="tab-content active">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Conference Participation</h3>
-                        <button onclick="openModal('modalConference')" class="btn-add">➕ Add Conference</button>
-                    </div>
-                    {% if conferences %}
-                    <!-- Desktop Table View -->
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
-                            <thead style="background: var(--bg-body); text-align: left;">
-                                <tr>
-                                    <th style="padding: 12px; width: 85%;">Citation (MLA Format)</th>
-                                    <th style="padding: 12px; width: 15%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for c in conferences %}
-                                <tr style="border-bottom: 1px solid var(--border);">
-                                    <td style="padding: 16px; line-height: 1.6; color: var(--text-main);">
-                                        <!-- MLA Format Implementation -->
-                                        {% if c.participation_type == 'Presented' %}
-                                        <span>{{ c.author_name }}.</span>
-                                        <span>"{{ c.title_of_paper }}."</span>
-                                        <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>,
-                                        {% if c.publisher_proceedings %}{{ c.publisher_proceedings }}, {% endif %}
-                                        {% if c.year_of_publication %}{{ c.year_of_publication }}, {% endif %}
-                                        {% if c.page_numbers_from and c.page_numbers_to %}pp. {{ c.page_numbers_from
-                                        }}-{{ c.page_numbers_to }}.{% endif %}
-                                        <span style="color: var(--text-muted); font-size: 0.85em;">[Presented at {{
-                                            c.location }}]</span>
-                                        {% else %}
-                                        <!-- Fallback for 'Attended' type which doesn't fit standard MLA paper citation perfectly -->
-                                        <span>Attended </span>
-                                        <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>
-                                        <span> at {{ c.location }}</span>
-                                        <span>({{ c.date_from|date:"M Y" }}).</span>
-                                        {% endif %}
-
-                                        {% if c.supporting_document %}
-                                        <div style="margin-top: 4px;">
-                                            <a href="{{ c.supporting_document.url }}" target="_blank"
-                                                style="font-size:0.85rem; color:var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                                📄 View Certificate/Paper
-                                            </a>
-                                        </div>
-                                        {% endif %}
-                                    </td>
-                                    <td style="padding: 16px;">
-                                        <div class="item-actions">
-                                            <a href="{% url 'staffs:portfolio_edit_conference' c.pk %}"
-                                                class="btn-edit">Edit</a>
-                                            <a href="{% url 'staffs:portfolio_delete_entry' 'conference' c.pk %}"
-                                                class="btn-delete"
-                                                onclick="return confirm('Delete this entry?')">Delete</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Mobile Card View -->
-                    <div class="mobile-card-view">
-                        {% for c in conferences %}
-                        <div class="mobile-entry-card"
-                            style="padding: 16px; margin-bottom: 12px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                            <div class="mobile-card-content"
-                                style="line-height: 1.6; color: var(--text-main); font-size: 0.95rem;">
-                                <!-- MLA Format Implementation -->
-                                {% if c.participation_type == 'Presented' %}
-                                <span>{{ c.author_name }}.</span>
-                                <span>"{{ c.title_of_paper }}."</span>
-                                <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>,
-                                {% if c.publisher_proceedings %}{{ c.publisher_proceedings }}, {% endif %}
-                                {% if c.year_of_publication %}{{ c.year_of_publication }}, {% endif %}
-                                {% if c.page_numbers_from and c.page_numbers_to %}pp. {{ c.page_numbers_from }}-{{
-                                c.page_numbers_to }}.{% endif %}
-                                <span style="color: var(--text-muted); font-size: 0.85em;">[Presented at {{ c.location
-                                    }}]</span>
-                                {% else %}
-                                <!-- Fallback for 'Attended' type -->
-                                <span>Attended </span>
-                                <span style="font-style: italic;">{{ c.title_of_proceedings }}</span>
-                                <span> at {{ c.location }}</span>
-                                <span>({{ c.date_from|date:"M Y" }}).</span>
-                                {% endif %}
-                            </div>
-
-                            <div class="mobile-card-actions"
-                                style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                                {% if c.supporting_document %}
-                                <a href="{{ c.supporting_document.url }}" target="_blank"
-                                    style="color:var(--primary); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;">
-                                    📄 View Cert/Paper
-                                </a>
-                                {% else %}
-                                <span></span>
-                                {% endif %}
-
-                                <a href="{% url 'staffs:portfolio_edit_conference' c.pk %}" class="btn-edit">Edit</a>
-                                <a href="{% url 'staffs:portfolio_delete_entry' 'conference' c.pk %}" class="btn-delete"
-                                    onclick="return confirm('Delete this entry?')">Delete</a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state">No conference entries added.</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 2. Publications Tab -->
-            <div id="Publications" class="tab-content">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Journal Publications</h3>
-                        <button onclick="openModal('modalJournal')" class="btn-add">➕ Add Journal</button>
-                    </div>
-                    {% if journals %}
-                    <!-- Desktop Table View -->
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                            <thead style="background: var(--bg-body); text-align: left;">
-                                <tr>
-                                    <th style="padding: 10px;">Title</th>
-                                    <th style="padding: 10px;">Journal</th>
-                                    <th style="padding: 10px;">Author(s)</th>
-                                    <th style="padding: 10px;">Vol/Issue</th>
-                                    <th style="padding: 10px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for j in journals %}
-                                <tr style="border-bottom: 1px solid var(--border);">
-                                    <td style="padding: 10px;"><b>{{ j.title_of_paper }}</b><br><span
-                                            style="font-size:0.8rem; color:var(--text-muted);">{{
-                                            j.national_international }} · {{ j.published_month }} {{ j.published_year
-                                            }}</span></td>
-                                    <td style="padding: 10px;">{{ j.journal_name }}<br><span
-                                            style="font-size:0.8rem;">DOI/Year: {{ j.year_of_publication_doi }}</span>
-                                    </td>
-                                    <td style="padding: 10px;">{{ j.author_name }}<br>
-                                        {% if j.supporting_document %}
-                                        <a href="{{ j.supporting_document.url }}" target="_blank"
-                                            style="font-size:0.8rem; color:var(--primary);">View Paper</a>
-                                        {% endif %}
-                                    </td>
-                                    <td style="padding: 10px;">Vol: {{ j.volume_number }}<br>Iss: {{ j.issue_number }}
-                                    </td>
-                                    <td style="padding: 10px;">
-                                        <a href="{% url 'staffs:portfolio_edit_journal' j.pk %}"
-                                            class="btn-edit">Edit</a>
-                                        <a href="{% url 'staffs:portfolio_delete_entry' 'journal' j.pk %}"
-                                            class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Mobile Card View -->
-                    <div class="mobile-card-view">
-                        {% for j in journals %}
-                        <div class="mobile-entry-card">
-                            <div class="mobile-card-title">{{ j.title_of_paper }}</div>
-                            <div class="mobile-card-meta">
-                                <strong>Type:</strong> {{ j.national_international }} · {{ j.published_month }} {{
-                                j.published_year }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>Journal:</strong> {{ j.journal_name }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>DOI/Year:</strong> {{ j.year_of_publication_doi }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>Author(s):</strong> {{ j.author_name }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>Volume:</strong> {{ j.volume_number }} | <strong>Issue:</strong> {{
-                                j.issue_number }}
-                            </div>
-                            {% if j.supporting_document %}
-                            <div class="mobile-card-meta">
-                                <a href="{{ j.supporting_document.url }}" target="_blank"
-                                    style="color:var(--primary);">📄 View Paper</a>
-                            </div>
-                            {% endif %}
-                            <div class="mobile-card-actions">
-                                <a href="{% url 'staffs:portfolio_edit_journal' j.pk %}" class="btn-edit">Edit</a>
-                                <a href="{% url 'staffs:portfolio_delete_entry' 'journal' j.pk %}" class="btn-delete"
-                                    onclick="return confirm('Delete this entry?')">Delete</a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state">No journal publications added.</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 3. Books Tab -->
-            <div id="Books" class="tab-content">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Books / Popular Articles</h3>
-                        <button onclick="openModal('modalBook')" class="btn-add">➕ Add Book/Article</button>
-                    </div>
-                    {% if books %}
-                    <!-- Desktop Table View -->
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                            <thead style="background: var(--bg-body); text-align: left;">
-                                <tr>
-                                    <th style="padding: 10px;">Title</th>
-                                    <th style="padding: 10px;">Type</th>
-                                    <th style="padding: 10px;">Author(s)</th>
-                                    <th style="padding: 10px;">Publisher</th>
-                                    <th style="padding: 10px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for b in books %}
-                                <tr style="border-bottom: 1px solid var(--border);">
-                                    <td style="padding: 10px;"><b>{{ b.title_of_book }}</b><br><span
-                                            style="font-size:0.8rem; color:var(--text-muted);">{{ b.month_of_publication
-                                            }} {{ b.year_of_publication }}</span></td>
-                                    <td style="padding: 10px;">{{ b.type }}</td>
-                                    <td style="padding: 10px;">{{ b.author_name }}<br>
-                                        {% if b.supporting_document %}
-                                        <a href="{{ b.supporting_document.url }}" target="_blank"
-                                            style="font-size:0.8rem; color:var(--primary);">View Cover</a>
-                                        {% endif %}
-                                    </td>
-                                    <td style="padding: 10px;">{{ b.publisher_name }}<br><span
-                                            style="font-size:0.8rem;">ISBN: {{ b.isbn_issn_number }}</span></td>
-                                    <td style="padding: 10px;">
-                                        <a href="{% url 'staffs:portfolio_edit_book' b.pk %}" class="btn-edit">Edit</a>
-                                        <a href="{% url 'staffs:portfolio_delete_entry' 'book' b.pk %}"
-                                            class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Mobile Card View -->
-                    <div class="mobile-card-view">
-                        {% for b in books %}
-                        <div class="mobile-entry-card">
-                            <div class="mobile-card-title">{{ b.title_of_book }}</div>
-                            <div class="mobile-card-meta">
-                                <strong>Type:</strong> {{ b.type }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>Published:</strong> {{ b.month_of_publication }} {{ b.year_of_publication }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>Author(s):</strong> {{ b.author_name }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>Publisher:</strong> {{ b.publisher_name }}
-                            </div>
-                            <div class="mobile-card-meta">
-                                <strong>ISBN:</strong> {{ b.isbn_issn_number }}
-                            </div>
-                            {% if b.supporting_document %}
-                            <div class="mobile-card-meta">
-                                <a href="{{ b.supporting_document.url }}" target="_blank"
-                                    style="color:var(--primary);">📄 View Cover</a>
-                            </div>
-                            {% endif %}
-                            <div class="mobile-card-actions">
-                                <a href="{% url 'staffs:portfolio_edit_book' b.pk %}" class="btn-edit">Edit</a>
-                                <a href="{% url 'staffs:portfolio_delete_entry' 'book' b.pk %}" class="btn-delete"
-                                    onclick="return confirm('Delete this entry?')">Delete</a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state">No books or popular articles added.</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 4. Others Tab -->
-            <div id="Others" class="tab-content">
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Seminars / Workshops (Legacy)</h3>
-                        <button onclick="openModal('modalSeminar')" class="btn-add">➕ Add Seminar</button>
-                    </div>
-                    {% if seminars %}
-                    <ul class="item-list">
-                        {% for s in seminars %}
-                        <li class="item-row">
-                            <div class="item-content">
-                                <div class="item-title">{{ s.title }} ({{ s.get_event_type_display }})</div>
-                                <div class="item-meta">
-                                    {{ s.venue_or_description }} · {{ s.year }}
-                                    {% if s.date_from %}
-                                    · {{ s.date_from|date:"d M Y" }}
-                                    {% if s.date_to %}
-                                    - {{ s.date_to|date:"d M Y" }}
-                                    {% endif %}
-                                    {% endif %}
-
-                                    {% if s.supporting_document %}
-                                    <br><a href="{{ s.supporting_document.url }}" target="_blank"
-                                        style="font-size:0.85rem; color:var(--primary);">View Certificate</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="item-actions">
-                                <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}"
-                                    class="btn-delete">Delete</a>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <div class="empty-state">No legacy seminar entries.</div>
-                    {% endif %}
-                </div>
-
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Awards / Honours</h3>
-                        <button onclick="openModal('modalAward')" class="btn-add">➕ Add Award</button>
-                    </div>
-                    {% if awards %}
-                    <ul class="item-list">
-                        {% for a in awards %}
-                        <li class="item-row">
-                            <div class="item-content">
-                                <div class="item-title">{{ a.title }} ({{ a.get_category_display }}){% if a.awarded_by%}
-                                    - {{ a.awarded_by }}{% endif %}
-                                    {% if a.supporting_document %}
-                                    <span style="margin-left:8px;">
-                                        <a href="{{ a.supporting_document.url }}" target="_blank"
-                                            style="font-size:0.85rem; color:var(--primary);">[View Cert]</a>
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="item-actions">
-                                <a href="{% url 'staffs:portfolio_delete_entry' 'award' a.pk %}"
-                                    class="btn-delete">Delete</a>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <div class="empty-state">No awards added.</div>
-                    {% endif %}
-                </div>
-
-                <div class="section-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Students Guided</h3>
-                        <button onclick="openModal('modalStudent')" class="btn-add">➕ Add Student</button>
-                    </div>
-                    {% if students_guided %}
-                    <ul class="item-list">
-                        {% for s in students_guided %}
-                        <li class="item-row">
-                            <div class="item-content">
-                                <div class="item-title">{{ s.student_name }} · {{ s.degree_type }}
-                                    {% if s.supporting_document %}
-                                    <span style="margin-left:8px;">
-                                        <a href="{{ s.supporting_document.url }}" target="_blank"
-                                            style="font-size:0.85rem; color:var(--primary);">[View Doc]</a>
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="item-actions">
-                                <a href="{% url 'staffs:portfolio_delete_entry' 'student_guided' s.pk %}"
-                                    class="btn-delete">Delete</a>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <div class="empty-state">No students guided added.</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- MODALS -->
-
-            <!-- Conference Modal -->
-            <div id="modalConference" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Add Conference Participation</h3>
-                        <button onclick="closeModal('modalConference')" class="modal-close">×</button>
-                    </div>
-                    <form action="{% url 'staffs:portfolio_add_conference' %}" method="POST"
-                        enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>National / International</label>
-                                <div style="display:flex; gap:20px;">
-                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
-                                            value="National" checked> National</label>
-                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
-                                            value="International"> International</label>
-                                </div>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Participation Type</label>
-                                <div style="display:flex; gap:20px;">
-                                    <label style="font-weight:normal;">
-                                        <input type="radio" name="participation_type" value="Presented" checked
-                                            onchange="toggleConferenceFields()"> Presented Paper
-                                    </label>
-                                    <label style="font-weight:normal;">
-                                        <input type="radio" name="participation_type" value="Attended"
-                                            onchange="toggleConferenceFields()"> Attended Only
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="paper-field form-group">
-                                <label>Author(s) Name</label>
-                                <input type="text" name="author_name" id="conf_author_name">
-                            </div>
-                            <div class="form-group">
-                                <label>Year of Publication</label>
-                                <input type="text" name="year_of_publication">
-                            </div>
-                            <div class="paper-field form-group full-width">
-                                <label>Title of Paper</label>
-                                <input type="text" name="title_of_paper" id="conf_title_of_paper">
-                            </div>
-                            <div class="form-group full-width">
-                                <label id="lbl_proceedings">Title of Conference Proceedings</label>
-                                <input type="text" name="title_of_proceedings">
-                            </div>
-                            <div class="form-group">
-                                <label>Date From</label>
-                                <input type="date" name="date_from">
-                            </div>
-                            <div class="form-group">
-                                <label>Date To</label>
-                                <input type="date" name="date_to">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Location of Conference</label>
-                                <input type="text" name="location">
-                            </div>
-                            <div class="paper-field form-group">
-                                <label>Page Numbers From</label>
-                                <input type="text" name="page_numbers_from">
-                            </div>
-                            <div class="paper-field form-group">
-                                <label>Page Numbers To</label>
-                                <input type="text" name="page_numbers_to">
-                            </div>
-                            <div class="paper-field form-group full-width">
-                                <label>Place of Publication</label>
-                                <input type="text" name="place_of_publication">
-                            </div>
-                            <div class="paper-field form-group full-width">
-                                <label>Publisher of Proceedings</label>
-                                <input type="text" name="publisher_proceedings">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Supporting Document (PDF/Image)</label>
-                                <input type="file" name="supporting_document">
-                                <div class="form-help">Upload Certificate / Paper Copy</div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-save">Save Entry</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Journal Modal -->
-            <div id="modalJournal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Add Journal Publication</h3>
-                        <button onclick="closeModal('modalJournal')" class="modal-close">×</button>
-                    </div>
-                    <form action="{% url 'staffs:portfolio_add_journal' %}" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>National / International</label>
-                                <div style="display:flex; gap:20px;">
-                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
-                                            value="National" checked> National</label>
-                                    <label style="font-weight:normal;"><input type="radio" name="national_international"
-                                            value="International"> International</label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Published Month</label>
-                                <select name="published_month">
-                                    <option value="">Select Month</option>
-                                    <option value="January">January</option>
-                                    <option value="February">February</option>
-                                    <option value="March">March</option>
-                                    <option value="April">April</option>
-                                    <option value="May">May</option>
-                                    <option value="June">June</option>
-                                    <option value="July">July</option>
-                                    <option value="August">August</option>
-                                    <option value="September">September</option>
-                                    <option value="October">October</option>
-                                    <option value="November">November</option>
-                                    <option value="December">December</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Published Year</label>
-                                <input type="number" name="published_year" placeholder="YYYY">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Author(s) Name</label>
-                                <input type="text" name="author_name" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Title of Paper</label>
-                                <input type="text" name="title_of_paper" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Journal Name</label>
-                                <input type="text" name="journal_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Volume Number</label>
-                                <input type="text" name="volume_number">
-                            </div>
-                            <div class="form-group">
-                                <label>Issue Number</label>
-                                <input type="text" name="issue_number">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Year of Publication / DOI</label>
-                                <input type="text" name="year_of_publication_doi">
-                            </div>
-                            <div class="form-group">
-                                <label>Page Numbers From</label>
-                                <input type="text" name="page_numbers_from">
-                            </div>
-                            <div class="form-group">
-                                <label>Page Numbers To</label>
-                                <input type="text" name="page_numbers_to">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Supporting Document</label>
-                                <input type="file" name="supporting_document">
-                                <div class="form-help">Upload Paper Copy</div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-save">Save Entry</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Book Modal -->
-            <div id="modalBook" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Add Book / Popular Article</h3>
-                        <button onclick="closeModal('modalBook')" class="modal-close">×</button>
-                    </div>
-                    <form action="{% url 'staffs:portfolio_add_book' %}" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Publication Type</label>
-                                <div style="display:flex; gap:20px;">
-                                    <label style="font-weight:normal;"><input type="radio" name="type" value="Book"
-                                            checked>
-                                        Book</label>
-                                    <label style="font-weight:normal;"><input type="radio" name="type"
-                                            value="Popular Article">
-                                        Popular Article</label>
-                                </div>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Author(s) Name</label>
-                                <input type="text" name="author_name" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Title of Book</label>
-                                <input type="text" name="title_of_book" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Publisher Name</label>
-                                <input type="text" name="publisher_name">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Publisher Address</label>
-                                <textarea name="publisher_address" style="min-height:60px;"></textarea>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>ISBN / ISSN Number</label>
-                                <input type="text" name="isbn_issn_number">
-                            </div>
-                            <div class="form-group">
-                                <label>Page Numbers From</label>
-                                <input type="text" name="page_numbers_from">
-                            </div>
-                            <div class="form-group">
-                                <label>Page Numbers To</label>
-                                <input type="text" name="page_numbers_to">
-                            </div>
-                            <div class="form-group">
-                                <label>Month of Publication</label>
-                                <select name="month_of_publication">
-                                    <option value="">Select Month</option>
-                                    <option value="January">January</option>
-                                    <option value="February">February</option>
-                                    <option value="March">March</option>
-                                    <option value="April">April</option>
-                                    <option value="May">May</option>
-                                    <option value="June">June</option>
-                                    <option value="July">July</option>
-                                    <option value="August">August</option>
-                                    <option value="September">September</option>
-                                    <option value="October">October</option>
-                                    <option value="November">November</option>
-                                    <option value="December">December</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Year of Publication</label>
-                                <input type="number" name="year_of_publication" placeholder="YYYY">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>URL Address</label>
-                                <input type="url" name="url_address" placeholder="https://example.com">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Supporting Document</label>
-                                <input type="file" name="supporting_document">
-                                <div class="form-help">Upload Cover Page / Proof</div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-save">Save Entry</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Seminar Modal -->
-            <div id="modalSeminar" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Add Seminar / Workshop</h3>
-                        <button onclick="closeModal('modalSeminar')" class="modal-close">×</button>
-                    </div>
-                    <form action="{% url 'staffs:portfolio_add_seminar' %}" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Title of Event</label>
-                                <input type="text" name="title" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Event Type</label>
-                                <select name="event_type">
-                                    <option value="Seminar">Seminar</option>
-                                    <option value="Workshop">Workshop</option>
-                                    <option value="Conference">Conference</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Year</label>
-                                <input type="text" name="year" placeholder="e.g. 2023-2024">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Venue / Description</label>
-                                <input type="text" name="venue_or_description">
-                            </div>
-                            <div class="form-group">
-                                <label>Date From</label>
-                                <input type="date" name="date_from">
-                            </div>
-                            <div class="form-group">
-                                <label>Date To</label>
-                                <input type="date" name="date_to">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Supporting Document</label>
-                                <input type="file" name="supporting_document">
-                                <div class="form-help">Upload Certificate</div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-save">Save Entry</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Award Modal -->
-            <div id="modalAward" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Add Award / Honour</h3>
-                        <button onclick="closeModal('modalAward')" class="modal-close">×</button>
-                    </div>
-                    <form action="{% url 'staffs:portfolio_add_award' %}" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Title</label>
-                                <input type="text" name="title" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Awarded By</label>
-                                <input type="text" name="awarded_by" placeholder="Organization Name">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Description/Details</label>
-                                <textarea name="description" style="min-height:60px;"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Category</label>
-                                <select name="category">
-                                    <option value="Award">Award</option>
-                                    <option value="Honour">Honour</option>
-                                    <option value="Membership">Membership</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Year</label>
-                                <input type="text" name="year">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Supporting Document</label>
-                                <input type="file" name="supporting_document">
-                                <div class="form-help">Upload Certificate/Letter</div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-save">Save Entry</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Student Modal -->
-            <div id="modalStudent" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Add Student Guided</h3>
-                        <button onclick="closeModal('modalStudent')" class="modal-close">×</button>
-                    </div>
-                    <form action="{% url 'staffs:portfolio_add_student' %}" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label>Student Name</label>
-                                <input type="text" name="student_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Degree Type</label>
-                                <select name="degree_type">
-                                    <option value="PG">PG (M.Tech, M.Sc)</option>
-                                    <option value="PhD">PhD</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select name="status">
-                                    <option value="Ongoing">Ongoing</option>
-                                    <option value="Completed">Completed</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Year</label>
-                                <input type="text" name="year">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Supporting Document (PDF/Image)</label>
-                                <input type="file" name="supporting_document">
-                                <div class="form-help">Upload Memo / Provisional Certificate / Allocation Order</div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-save">Save Entry</button>
-                    </form>
-                </div>
-            </div>
-
-            <script>
-
-
-                toggleConferenceFields();
-
-                function toggleConferenceFields() {
-                    const type = document.querySelector('input[name="participation_type"]:checked').value;
-                    const paperFields = document.querySelectorAll('.paper-field');
-                    const lblProceedings = document.getElementById('lbl_proceedings');
-
-                    if (type === 'Attended') {
-                        paperFields.forEach(el => el.style.display = 'none');
-                        document.getElementById('conf_title_of_paper').required = false;
-                        document.getElementById('conf_author_name').required = false;
-                        if (lblProceedings) lblProceedings.innerText = "Conference Name";
-                    } else {
-                        paperFields.forEach(el => el.style.display = 'block');
-                        document.getElementById('conf_title_of_paper').required = true;
-                        document.getElementById('conf_author_name').required = true;
-                        if (lblProceedings) lblProceedings.innerText = "Title of Conference Proceedings";
-                    }
-                }
-
-                function openTab(evt, tabName) {
-                    var i, tabcontent, tablinks;
-                    tabcontent = document.getElementsByClassName("tab-content");
-                    for (i = 0; i < tabcontent.length; i++) {
-                        tabcontent[i].style.display = "none";
-                        tabcontent[i].classList.remove("active");
-                    }
-                    tablinks = document.getElementsByClassName("tab-link");
-                    for (i = 0; i < tablinks.length; i++) {
-                        tablinks[i].className = tablinks[i].className.replace(" active", "");
-                    }
-                    document.getElementById(tabName).style.display = "block";
-                    document.getElementById(tabName).classList.add("active");
-                    evt.currentTarget.className += " active";
-                }
-
-                document.addEventListener('DOMContentLoaded', function () {
-                    var firstTab = document.getElementsByClassName('tab-link')[0];
-                    if (firstTab) firstTab.click();
-                });
-
-                function openModal(modalId) {
-                    document.getElementById(modalId).style.display = "flex";
-                }
-
-                function closeModal(modalId) {
-                    document.getElementById(modalId).style.display = "none";
-                }
-
-                window.onclick = function (event) {
-                    if (event.target.classList.contains('modal')) {
-                        event.target.style.display = "none";
-                    }
-                }
-            </script>
-        </main>
+            <a href="{% url 'staffs:staff_profile' %}" class="btn-back">← Back to Profile</a>
+        </div>
     </div>
-</body>
 
+    <div class="content-area">
+
+        {% if messages %}
+        <div class="flash-messages">
+            {% for message in messages %}
+            <div class="flash-msg">✓ {{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Pill Tab Navigation -->
+        <div class="tab-scroll-wrapper">
+            <div class="tab-wrapper">
+                <button class="tab-btn active" onclick="switchTab(event, 'tab-conferences')">🎤 Conferences</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-journals')">📰 Journals</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-books')">📚 Books</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-qualifications')">🎓 Qualifications</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-designations')">💼 Designations</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-memberships')">🏅 Memberships</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-awards')">🏆 Awards & More</button>
+            </div>
+        </div>
+
+        <!-- ═══ CONFERENCES TAB ═══ -->
+        <div id="tab-conferences" class="tab-panel active">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🎤 Conference Participation <span class="count-badge">{{ conferences|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_conference" %}', 'Add Conference Participation')">+ Add Conference</button>
+                </div>
+                {% if conferences %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Citation</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for c in conferences %}
+                        <tr>
+                            <td>
+                                {% if c.participation_type == 'Presented' %}
+                                    <span style="font-weight:600;">{{ c.author_name }}.</span>
+                                    "{{ c.title_of_paper }}."
+                                    <em>{{ c.title_of_proceedings }}</em>{% if c.publisher_proceedings %}, {{ c.publisher_proceedings }}{% endif %}{% if c.year_of_publication %}, {{ c.year_of_publication }}{% endif %}{% if c.page_numbers_from and c.page_numbers_to %}, pp. {{ c.page_numbers_from }}-{{ c.page_numbers_to }}{% endif %}.
+                                    <span style="color:var(--text-muted); font-size:0.85em;">[{{ c.national_international }} · {{ c.location }}]</span>
+                                {% else %}
+                                    Attended <em>{{ c.title_of_proceedings }}</em> at {{ c.location }}{% if c.date_from %} ({{ c.date_from|date:"M Y" }}){% endif %}.
+                                {% endif %}
+                                {% if c.supporting_document %}
+                                <br><a href="{{ c.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Certificate/Paper</a>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_conference" c.pk %}', 'Edit Conference')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' 'conference' c.pk %}" class="btn-delete" onclick="return confirm('Delete this conference entry?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🎤</div>
+                    <p>No conference entries yet</p>
+                    <small>Click "+ Add Conference" to record your participations</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ JOURNALS TAB ═══ -->
+        <div id="tab-journals" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📰 Journal Publications <span class="count-badge">{{ journals|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_journal" %}', 'Add Journal Publication')">+ Add Journal</button>
+                </div>
+                {% if journals %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Citation</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for j in journals %}
+                        <tr>
+                            <td>
+                                <span style="font-weight:600;">{{ j.author_name }}.</span>
+                                "{{ j.title_of_paper }}."
+                                <em>{{ j.journal_name }}</em>{% if j.volume_number %} vol. {{ j.volume_number }}{% endif %}{% if j.issue_number %}, no. {{ j.issue_number }}{% endif %}{% if j.published_year %}, {{ j.published_year }}{% endif %}{% if j.page_numbers_from and j.page_numbers_to %}, pp. {{ j.page_numbers_from }}-{{ j.page_numbers_to }}{% endif %}.
+                                <span style="color:var(--text-muted); font-size:0.85em;">[{{ j.national_international }}]</span>
+                                {% if j.supporting_document %}<br><a href="{{ j.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Paper</a>{% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_journal" j.pk %}', 'Edit Journal')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' 'journal' j.pk %}" class="btn-delete" onclick="return confirm('Delete this journal entry?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📰</div>
+                    <p>No journal publications yet</p>
+                    <small>Click "+ Add Journal" to record your research papers</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ BOOKS TAB ═══ -->
+        <div id="tab-books" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📚 Books & Articles <span class="count-badge">{{ books|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_book" %}', 'Add Book / Popular Article')">+ Add Book</button>
+                </div>
+                {% if books %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Title</th>
+                            <th>Publisher</th>
+                            <th>Year</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for b in books %}
+                        <tr>
+                            <td>
+                                <strong>{{ b.title_of_book }}</strong>
+                                <br><small style="color:var(--text-muted);">{{ b.author_name }} · {{ b.type }}</small>
+                                {% if b.isbn_issn_number %}<br><small style="color:var(--text-muted);">ISBN: {{ b.isbn_issn_number }}</small>{% endif %}
+                                {% if b.supporting_document %}<br><a href="{{ b.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Cover</a>{% endif %}
+                            </td>
+                            <td><small>{{ b.publisher_name|default:"—" }}</small></td>
+                            <td><small>{{ b.year_of_publication|default:"—" }}</small></td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_book" b.pk %}', 'Edit Book')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' 'book' b.pk %}" class="btn-delete" onclick="return confirm('Delete this book entry?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📚</div>
+                    <p>No books or popular articles yet</p>
+                    <small>Click "+ Add Book" to record publications</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ QUALIFICATIONS TAB ═══ -->
+        <div id="tab-qualifications" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🎓 Academic Qualifications <span class="count-badge">{{ qualifications|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_qualification" %}', 'Add Qualification')">+ Add Qualification</button>
+                </div>
+                {% if qualifications %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Degree</th>
+                            <th>University / Institution</th>
+                            <th>Year</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for item in qualifications %}
+                        <tr>
+                            <td><strong>{{ item.degree }}</strong></td>
+                            <td>{{ item.university }}</td>
+                            <td>{{ item.year_completed }}</td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_qualification" pk=item.pk %}', 'Edit Qualification')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' model_name='qualification' pk=item.pk %}" class="btn-delete" onclick="return confirm('Delete this qualification?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🎓</div>
+                    <p>No qualifications added yet</p>
+                    <small>Add your degrees and academic credentials</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ DESIGNATIONS TAB ═══ -->
+        <div id="tab-designations" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>💼 Past Designations <span class="count-badge">{{ designations|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}', 'Add Designation')">+ Add Designation</button>
+                </div>
+                {% if designations %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Designation</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for item in designations %}
+                        <tr>
+                            <td><strong>{{ item.designation }}</strong></td>
+                            <td>{{ item.from_date|date:"d M Y"|default:"—" }}</td>
+                            <td>{% if item.to_date %}{{ item.to_date|date:"d M Y" }}{% else %}<span style="color:var(--primary);font-weight:600;">Present</span>{% endif %}</td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_designation" pk=item.pk %}', 'Edit Designation')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' model_name='designation' pk=item.pk %}" class="btn-delete" onclick="return confirm('Delete this designation?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">💼</div>
+                    <p>No past designations added</p>
+                    <small>Record your professional roles and experience</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ MEMBERSHIPS TAB ═══ -->
+        <div id="tab-memberships" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🏅 Professional Memberships <span class="count-badge">{{ memberships|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_membership" %}', 'Add Membership')">+ Add Membership</button>
+                </div>
+                {% if memberships %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Institute / Body</th>
+                            <th>Membership No.</th>
+                            <th>Type</th>
+                            <th>Year</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for item in memberships %}
+                        <tr>
+                            <td><strong>{{ item.institute_name }}</strong></td>
+                            <td><code style="font-size:0.85rem;">{{ item.membership_no }}</code></td>
+                            <td><span style="background:var(--primary-light); color:var(--primary-dark); padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">{{ item.get_membership_type_display }}</span></td>
+                            <td>{{ item.year }}{% if item.get_month_display %} {{ item.get_month_display }}{% endif %}</td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_membership" pk=item.pk %}', 'Edit Membership')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' model_name='membership' pk=item.pk %}" class="btn-delete" onclick="return confirm('Delete this membership?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🏅</div>
+                    <p>No memberships recorded</p>
+                    <small>Add professional body memberships like IEEE, ACM, etc.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ AWARDS & MORE TAB ═══ -->
+        <div id="tab-awards" class="tab-panel">
+
+            <!-- Awards / Honours -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🏆 Awards & Honours <span class="count-badge">{{ awards|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_award" %}', 'Add Award / Honour')">+ Add Award</button>
+                </div>
+                {% if awards %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Title</th>
+                            <th>Awarded By</th>
+                            <th>Year</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for a in awards %}
+                        <tr>
+                            <td>
+                                <strong>{{ a.title }}</strong>
+                                <span style="background:var(--primary-light); color:var(--primary-dark); padding:2px 8px; border-radius:100px; font-size:0.78rem; font-weight:600; margin-left:6px;">{{ a.get_category_display }}</span>
+                                {% if a.supporting_document %}<br><a href="{{ a.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Certificate</a>{% endif %}
+                            </td>
+                            <td>{{ a.awarded_by|default:"—" }}</td>
+                            <td>{{ a.year|default:"—" }}</td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <a href="{% url 'staffs:portfolio_delete_entry' 'award' a.pk %}" class="btn-delete" onclick="return confirm('Delete this award?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🏆</div>
+                    <p>No awards or honours recorded</p>
+                    <small>Recognitions, prizes, and honorary titles</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Students Guided -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>👨‍🎓 Students Guided <span class="count-badge">{{ students_guided|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_student" %}', 'Add Student Guided')">+ Add Student</button>
+                </div>
+                {% if students_guided %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Student Name</th>
+                            <th>Degree</th>
+                            <th>Status</th>
+                            <th>Year</th>
+                            <th style="width:100px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for s in students_guided %}
+                        <tr>
+                            <td>
+                                <strong>{{ s.student_name }}</strong>
+                                {% if s.supporting_document %}<br><a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Doc</a>{% endif %}
+                            </td>
+                            <td>{{ s.degree_type }}</td>
+                            <td><span style="background:{% if s.status == 'Completed' %}#d1fae5; color:#065f46{% else %}#fef3c7; color:#92400e{% endif %}; padding:2px 9px; border-radius:100px; font-size:0.8rem; font-weight:600;">{{ s.status }}</span></td>
+                            <td>{{ s.year|default:"—" }}</td>
+                            <td style="text-align:center;">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'student_guided' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">👨‍🎓</div>
+                    <p>No students guided yet</p>
+                    <small>Record PG and PhD students you have supervised</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Seminars (Legacy) -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📋 Seminars / Workshops <span class="count-badge">{{ seminars|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_seminar" %}', 'Add Seminar / Workshop')">+ Add Seminar</button>
+                </div>
+                {% if seminars %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Venue / Description</th>
+                            <th>Year</th>
+                            <th style="width:100px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for s in seminars %}
+                        <tr>
+                            <td><strong>{{ s.title }}</strong></td>
+                            <td>{{ s.get_event_type_display }}</td>
+                            <td>{{ s.venue_or_description }}</td>
+                            <td>{{ s.year }}</td>
+                            <td style="text-align:center;">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <p>No seminars recorded</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div><!-- /content-area -->
+
+    <!-- ═══ UNIFIED DYNAMIC MODAL ═══ -->
+    <div id="dModal" class="d-modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="d-modal-box">
+            <div class="d-modal-header">
+                <h2 class="d-modal-title" id="dModalTitle">Loading…</h2>
+                <button class="d-modal-close" onclick="closeModal()" aria-label="Close">×</button>
+            </div>
+            <div class="d-modal-body" id="dModalBody">
+                <div class="modal-spinner">
+                    <div class="spinner"></div>
+                    <small>Loading form…</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ── Tab switching – persists via URL hash ── */
+        function switchTab(evt, panelId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+            // Store active tab in hash so it survives reload
+            history.replaceState(null, '', '#' + panelId);
+        }
+
+        /* Restore active tab from hash on page load */
+        document.addEventListener('DOMContentLoaded', function () {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && document.getElementById(hash)) {
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(hash).classList.add('active');
+                // Match the button
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(hash)) {
+                        b.classList.add('active');
+                    }
+                });
+            }
+        });
+
+        /* ── Dynamic Modal ── */
+        let currentUrl = null;
+
+        function getActiveTab() {
+            const active = document.querySelector('.tab-panel.active');
+            return active ? active.id : 'tab-conferences';
+        }
+
+        /* Present checkbox toggle for designation form */
+        function toggleToDate(checkbox) {
+            const lbl = document.querySelector('[for="id_to_date"]');
+            const toDateGroup = lbl ? lbl.closest('.form-group') : null;
+            if (!toDateGroup) return;
+            const toDateInput = document.getElementById('id_to_date');
+            if (checkbox.checked) {
+                toDateGroup.style.opacity = '0.4';
+                toDateGroup.style.pointerEvents = 'none';
+                if (toDateInput) toDateInput.value = '';
+            } else {
+                toDateGroup.style.opacity = '1';
+                toDateGroup.style.pointerEvents = 'auto';
+            }
+        }
+
+        async function openModal(url, title) {
+            currentUrl = url;
+            const overlay = document.getElementById('dModal');
+            const body = document.getElementById('dModalBody');
+            const titleEl = document.getElementById('dModalTitle');
+
+            titleEl.textContent = title || 'Form';
+            body.innerHTML = '<div class="modal-spinner"><div class="spinner"></div><small>Loading form…</small></div>';
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            try {
+                const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                // Try .form-container first, then fallback to body content
+                const container = doc.querySelector('.form-container') || doc.querySelector('body');
+                const form = container ? container.querySelector('form') : null;
+
+                if (form) {
+                    // Patch the cancel button to close modal
+                    const cancelLink = form.querySelector('a.btn-cancel, .btn-cancel');
+                    if (cancelLink) {
+                        cancelLink.outerHTML = '<button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>';
+                    }
+                    const wrappedContent = '<div class="form-container">' + form.outerHTML + '</div>';
+                    body.innerHTML = wrappedContent;
+
+                    // Re-query, attach action and submit handler
+                    const newForm = body.querySelector('form');
+                    newForm.action = url;
+                    attachSubmitHandler(newForm, url);
+                    // Init Present toggle if designation form
+                    const presentCb = document.getElementById('id_is_present');
+                    if (presentCb) toggleToDate(presentCb);
+                } else {
+                    body.innerHTML = '<div style="padding:24px; color:#dc2626;">Could not load form. <a href="' + url + '">Open directly</a>.</div>';
+                }
+            } catch (err) {
+                body.innerHTML = '<div style="padding:24px; color:#dc2626;">Network error. <a href="' + url + '">Open directly</a>.</div>';
+            }
+        }
+
+        function attachSubmitHandler(form, url) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const submitBtn = form.querySelector('[type="submit"]');
+                const origText = submitBtn ? submitBtn.textContent : '';
+                if (submitBtn) { submitBtn.textContent = 'Saving…'; submitBtn.disabled = true; }
+
+                // Capture active tab BEFORE the async call
+                const activeTab = getActiveTab();
+
+                try {
+                    const formData = new FormData(form);
+                    const postRes = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        redirect: 'follow',
+                    });
+
+                    // Django redirects on success → final URL will be staff_portfolio (no sub-path)
+                    const finalUrl = postRes.url;
+                    const isSuccess = finalUrl && finalUrl.includes('portfolio') &&
+                        !finalUrl.includes('/add/') && !finalUrl.includes('/edit/') &&
+                        !finalUrl.includes('/qualification/') && !finalUrl.includes('/designation/') &&
+                        !finalUrl.includes('/membership/') && !finalUrl.includes('/conference/') &&
+                        !finalUrl.includes('/journal/') && !finalUrl.includes('/book/') &&
+                        !finalUrl.includes('/seminar/') && !finalUrl.includes('/award/') &&
+                        !finalUrl.includes('/student/');
+
+                    if (isSuccess) {
+                        // Navigate to portfolio with the active tab in hash so it restores
+                        closeModal();
+                        window.location.href = '/staffs/profile/portfolio/#' + activeTab;
+                        return;
+                    }
+
+                    // Validation errors — re-render form inside modal
+                    const errHtml = await postRes.text();
+                    const errDoc = new DOMParser().parseFromString(errHtml, 'text/html');
+                    const errContainer = errDoc.querySelector('.form-container') || errDoc.querySelector('body');
+                    const errForm = errContainer ? errContainer.querySelector('form') : null;
+                    if (errForm) {
+                        const cancelLink = errForm.querySelector('a.btn-cancel, .btn-cancel');
+                        if (cancelLink) cancelLink.outerHTML = '<button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>';
+                        document.getElementById('dModalBody').innerHTML = '<div class="form-container">' + errForm.outerHTML + '</div>';
+                        const reForm = document.getElementById('dModalBody').querySelector('form');
+                        reForm.action = url;
+                        attachSubmitHandler(reForm, url);
+                    } else {
+                        // Unknown response, navigate to active tab
+                        closeModal();
+                        window.location.href = '/staffs/profile/portfolio/#' + activeTab;
+                    }
+                } catch (err) {
+                    if (submitBtn) { submitBtn.textContent = origText; submitBtn.disabled = false; }
+                    alert('Error saving. Please try again or refresh the page.');
+                }
+            });
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('dModal');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            currentUrl = null;
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('dModal')) closeModal();
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    </script>
+
+</body>
 </html>

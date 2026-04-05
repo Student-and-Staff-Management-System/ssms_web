@@ -161,3 +161,19 @@ def staff_book_document_path(instance, filename):
     title_slug = instance.title_of_book[:30].replace(' ', '_').lower()
     year = instance.year_of_publication or 'undated'
     return f'staff/{instance.staff.staff_id}/book_{title_slug}_{year}.{ext}'
+
+
+def staff_qualification_document_path(instance, filename):
+    """Upload path for staff qualification certificates."""
+    ext = filename.split('.')[-1]
+    degree_slug = instance.degree[:20].replace(' ', '_').lower()
+    year = instance.year_completed or 'undated'
+    return f'staff/{instance.staff.staff_id}/qualification_{degree_slug}_{year}.{ext}'
+
+
+def staff_designation_document_path(instance, filename):
+    """Upload path for staff designation order images."""
+    ext = filename.split('.')[-1]
+    designation_slug = instance.designation[:30].replace(' ', '_').lower()
+    return f'staff/{instance.staff.staff_id}/designation_{designation_slug}.{ext}'
+

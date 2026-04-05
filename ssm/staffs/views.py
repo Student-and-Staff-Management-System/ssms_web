@@ -67,6 +67,10 @@ def staff_dashboard(request):
         
     print(f"DEBUG: staff_dashboard - Role: '{staff.role}' -> Template: '{template_name}'")
         
+    _completion_data = get_staff_profile_completion_data(staff)
+    if not staff.is_profile_complete:
+        template_name = 'staff/staff_profile_status.html'
+
     # Fetch assigned subjects for this staff member
     if staff.role == 'Office Staff':
         assigned_subjects = []
@@ -167,8 +171,77 @@ def staff_dashboard(request):
         'recent_bonafide_requests': locals().get('recent_bonafide_requests', []),
         'news_list': news_list,
         'scholarship_students': scholarship_students,
-        'selected_scholarship': selected_scholarship
+        'selected_scholarship': selected_scholarship,
+        'profile_completion_percentage': _completion_data['percentage'],
+        'profile_missing_fields': _completion_data['missing_fields'],
     })
+
+def get_staff_profile_completion_data(staff):
+    """
+    Returns a dict with:
+      - 'percentage': int (0-100)
+      - 'missing_fields': list of human-readable field names that are empty
+    """
+    total_fields = 0
+    filled_fields = 0
+    missing_fields = []
+
+    FIELD_LABELS = {
+        'name': 'Full Name',
+        'email': 'Email Address',
+        'mobile_number': 'Mobile Number',
+        'date_of_birth': 'Date of Birth',
+        'date_of_joining': 'Date of Joining',
+        'address': 'Address',
+        'salutation': 'Salutation',
+    }
+
+    def check_fields(model_instance, fields_to_check):
+        nonlocal total_fields, filled_fields
+        if not model_instance:
+            total_fields += len(fields_to_check)
+            for f in fields_to_check:
+                missing_fields.append(FIELD_LABELS.get(f, f.replace('_', ' ').title()))
+            return
+        for field in fields_to_check:
+            total_fields += 1
+            val = getattr(model_instance, field, None)
+            if val and str(val).strip():
+                filled_fields += 1
+            else:
+                missing_fields.append(FIELD_LABELS.get(field, field.replace('_', ' ').title()))
+
+    # Check basic fields
+    check_fields(staff, ['name', 'email', 'mobile_number', 'date_of_birth', 'date_of_joining', 'address', 'salutation'])
+
+    # Qualifications
+    total_fields += 1
+    if staff.qualifications.exists():
+        filled_fields += 1
+    else:
+        missing_fields.append('Qualifications (At least 1)')
+
+    # Past Designations (Optional based on typical needs, but part of profile completion)
+    total_fields += 1
+    if staff.past_designations.exists() or staff.designation: # Either past designation or current designation filled
+        filled_fields += 1
+    else:
+        missing_fields.append('Designation History (At least 1)')
+
+    percentage = int((filled_fields / total_fields) * 100) if total_fields > 0 else 0
+    
+    # Auto-update status
+    if percentage == 100 and not staff.is_profile_complete:
+        staff.is_profile_complete = True
+        staff.save(update_fields=['is_profile_complete'])
+    elif percentage < 100 and staff.is_profile_complete:
+        staff.is_profile_complete = False
+        staff.save(update_fields=['is_profile_complete'])
+
+    return {
+        'percentage': min(percentage, 100),
+        'missing_fields': missing_fields,
+    }
 
 def staff_logout(request):
     """Logs the staff member out."""
@@ -249,8 +322,19 @@ def student_list(request):
         except ValueError:
             pass  # ignore invalid semester input
 
+    # Compute profile completion for each student
+    from students.views import get_profile_completion_data
+    students_with_completion = []
+    for s in students:
+        comp = get_profile_completion_data(s)
+        students_with_completion.append({
+            'student': s,
+            'completion_pct': comp['percentage'],
+            'missing_fields': comp['missing_fields'],
+        })
+
     return render(request, 'studlist.html', {
-        'students': students,
+        'students_with_completion': students_with_completion,
         'query': query,
         'selected_semester': semester
     })
@@ -278,6 +362,9 @@ def student_detail(request, roll_number):
         StudentGPA 
     )
 
+    from students.views import get_profile_completion_data
+    _comp = get_profile_completion_data(student)
+
     context = {
         'student': student,
         'personal_info': get_or_none(PersonalInfo, student=student),
@@ -291,6 +378,8 @@ def student_detail(request, roll_number):
         'bank_details': get_or_none(BankDetails, student=student),
         'docs': get_or_none(StudentDocuments, student=student),
         'other_details': get_or_none(OtherDetails, student=student),
+        'profile_completion_percentage': _comp['percentage'],
+        'profile_missing_fields': _comp['missing_fields'],
     }
 
     return render(request, 'staff/stud_detail.html', context)
@@ -2084,10 +2173,9 @@ def staff_edit_profile(request):
         staff.gender = request.POST.get('gender', '') or None
         dob = request.POST.get('date_of_birth')
         staff.date_of_birth = dob if dob else None
-        staff.qualification = request.POST.get('qualification', '')
-        staff.specialization = request.POST.get('specialization', '')
-        staff.academic_details = request.POST.get('academic_details', '')
-        staff.experience = request.POST.get('experience', '')
+        doj = request.POST.get('date_of_joining')
+        staff.date_of_joining = doj if doj else None
+        pass
 
         # New Fields
         staff.research_interests = request.POST.get('research_interests', '')
@@ -2129,6 +2217,10 @@ def staff_portfolio(request):
     conferences = staff.conferences.all().order_by('-year_of_publication', '-created_at')
     journals = staff.journals.all().order_by('-published_year', '-created_at')
     books = staff.books.all().order_by('-year_of_publication', '-created_at')
+    
+    qualifications = staff.qualifications.all().order_by('-year_completed')
+    designations = staff.past_designations.all()
+    memberships = staff.memberships.all()
 
     return render(request, 'staff/staff_portfolio.html', {
         'staff': staff,
@@ -2139,6 +2231,9 @@ def staff_portfolio(request):
         'conferences': conferences,
         'journals': journals,
         'books': books,
+        'qualifications': qualifications,
+        'designations': designations,
+        'memberships': memberships,
     })
 
 
@@ -2356,11 +2451,118 @@ def portfolio_add_book(request):
         'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Popular Article',
     })
 
+from .forms import StaffQualificationForm, StaffPastDesignationForm, StaffMembershipForm
+
+def portfolio_add_qualification(request):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    
+    if request.method == 'POST':
+        form = StaffQualificationForm(request.POST, request.FILES)
+        if form.is_valid():
+            qual = form.save(commit=False)
+            qual.staff = staff
+            qual.save()
+            messages.success(request, "Qualification added successfully.")
+            return redirect('staffs:staff_portfolio')
+    else:
+        form = StaffQualificationForm()
+        
+    return render(request, 'staff/portfolio_generic_form.html', {
+        'staff': staff, 'form': form, 'title': 'Add Qualification'
+    })
+
+def portfolio_edit_qualification(request, pk):
+    from .models import StaffQualification
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    item = get_object_or_404(StaffQualification, pk=pk, staff=staff)
+    if request.method == 'POST':
+        form = StaffQualificationForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Qualification updated.")
+            return redirect('staffs:staff_portfolio')
+    else:
+        form = StaffQualificationForm(instance=item)
+    return render(request, 'staff/portfolio_generic_form.html', {
+        'staff': staff, 'form': form, 'title': 'Edit Qualification'
+    })
+
+def portfolio_add_designation(request):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    if request.method == 'POST':
+        form = StaffPastDesignationForm(request.POST, request.FILES)
+        if form.is_valid():
+            des = form.save(commit=False)
+            des.staff = staff
+            des.save()
+            messages.success(request, "Designation added.")
+            return redirect('staffs:staff_portfolio')
+    else:
+        form = StaffPastDesignationForm()
+    return render(request, 'staff/portfolio_generic_form.html', {
+        'staff': staff, 'form': form, 'title': 'Add Designation'
+    })
+
+def portfolio_edit_designation(request, pk):
+    from .models import StaffPastDesignation
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    item = get_object_or_404(StaffPastDesignation, pk=pk, staff=staff)
+    if request.method == 'POST':
+        form = StaffPastDesignationForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Designation updated.")
+            return redirect('staffs:staff_portfolio')
+    else:
+        form = StaffPastDesignationForm(instance=item)
+    return render(request, 'staff/portfolio_generic_form.html', {
+        'staff': staff, 'form': form, 'title': 'Edit Designation'
+    })
+
+def portfolio_add_membership(request):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    if request.method == 'POST':
+        form = StaffMembershipForm(request.POST, request.FILES)
+        if form.is_valid():
+            mem = form.save(commit=False)
+            mem.staff = staff
+            mem.save()
+            messages.success(request, "Membership added.")
+            return redirect('staffs:staff_portfolio')
+    else:
+        form = StaffMembershipForm()
+    return render(request, 'staff/portfolio_generic_form.html', {
+        'staff': staff, 'form': form, 'title': 'Add Membership'
+    })
+
+def portfolio_edit_membership(request, pk):
+    from .models import StaffMembership
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+    item = get_object_or_404(StaffMembership, pk=pk, staff=staff)
+    if request.method == 'POST':
+        form = StaffMembershipForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Membership updated.")
+            return redirect('staffs:staff_portfolio')
+    else:
+        form = StaffMembershipForm(instance=item)
+    return render(request, 'staff/portfolio_generic_form.html', {
+        'staff': staff, 'form': form, 'title': 'Edit Membership'
+    })
+
+
 def portfolio_delete_entry(request, model_name, pk):
     staff = _get_staff_for_portfolio(request)
     if not staff: return redirect('staffs:stafflogin')
     
-    from .models import ConferenceParticipation, JournalPublication, BookPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, StaffPublication
+    from .models import ConferenceParticipation, JournalPublication, BookPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, StaffPublication, StaffQualification, StaffPastDesignation, StaffMembership
     
     model_map = {
         'conference': ConferenceParticipation,
@@ -2369,6 +2571,9 @@ def portfolio_delete_entry(request, model_name, pk):
         'award': StaffAwardHonour,
         'seminar': StaffSeminar,
         'student_guided': StaffStudentGuided,
+        'qualification': StaffQualification,
+        'designation': StaffPastDesignation,
+        'membership': StaffMembership,
     }
     
     ModelClass = model_map.get(model_name)

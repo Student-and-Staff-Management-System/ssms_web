@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | Staff Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c; --primary-dark: #4a6b69;
+            --primary-light: #eef4f4; --bg-body: #f0f4f4;
+            --surface: #ffffff; --text-main: #1a2e2e;
+            --text-muted: #6b7280; --border: #e2eded; --radius: 12px;
+        }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 40px 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .form-container { background: var(--surface); padding: 36px; border-radius: var(--radius); box-shadow: 0 4px 20px rgba(90,125,124,0.12); max-width: 580px; width: 100%; }
+        .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .form-header h2 { margin: 0; color: var(--primary-dark); font-size: 1.35rem; }
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: var(--primary); }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Outfit', sans-serif; font-size: 0.95rem; box-sizing: border-box; transition: border-color 0.18s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(90,125,124,0.12); }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-group input[type="file"] { padding: 8px; }
+        .helptext { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
+        .errorlist { color: #dc2626; font-size: 0.83rem; list-style: none; padding: 0; margin: 5px 0 0; }
+        .btn-bar { display: flex; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .btn-submit { background: var(--primary); color: white; padding: 11px 28px; border: none; border-radius: 9px; font-size: 0.95rem; font-family: 'Outfit', sans-serif; font-weight: 600; cursor: pointer; transition: background 0.18s; }
+        .btn-submit:hover { background: var(--primary-dark); }
+        .btn-cancel { color: var(--text-muted); text-decoration: none; padding: 11px 16px; border-radius: 9px; font-weight: 500; transition: all 0.18s; display: inline-block; }
+        .btn-cancel:hover { background: var(--primary-light); color: var(--primary-dark); }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h2>{{ title }}</h2>
+            <a href="{% url 'staffs:staff_portfolio' %}" class="back-link">← Back to Portfolio</a>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                <div class="helptext">{{ field.help_text }}</div>
+                {% endif %}
+                {% if field.errors %}
+                {{ field.errors }}
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div class="btn-bar">
+                <button type="submit" class="btn-submit">Save changes</button>
+                <a href="{% url 'staffs:staff_portfolio' %}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+<script>
+    function toggleToDate(checkbox) {
+        const toDateGroup = document.querySelector('[for="id_to_date"]') 
+            ? document.querySelector('[for="id_to_date"]').closest('.form-group')
+            : null;
+        if (!toDateGroup) return;
+        if (checkbox.checked) {
+            toDateGroup.style.opacity = '0.4';
+            toDateGroup.style.pointerEvents = 'none';
+            const toDateInput = document.getElementById('id_to_date');
+            if (toDateInput) toDateInput.value = '';
+        } else {
+            toDateGroup.style.opacity = '1';
+            toDateGroup.style.pointerEvents = 'auto';
+        }
+    }
+    // Run on page load to apply state
+    document.addEventListener('DOMContentLoaded', function () {
+        const cb = document.getElementById('id_is_present');
+        if (cb) toggleToDate(cb);
+    });
+</script>
+</html>

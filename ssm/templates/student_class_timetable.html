@@ -55,6 +55,11 @@
             border-radius: 6px;
             text-decoration: none;
             font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: var(--secondary-color);
         }
 
         .timetable-container {
@@ -71,8 +76,7 @@
             min-width: 1000px;
         }
 
-        th,
-        td {
+        th, td {
             border: 1px solid var(--border-color);
             padding: 10px;
             text-align: center;
@@ -104,6 +108,11 @@
 
         .subject-cell {
             padding: 15px 5px;
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover .subject-cell {
+            background: #f9fafa;
         }
 
         .subject-code {
@@ -125,6 +134,16 @@
             font-size: 0.8rem;
         }
 
+        /* Lab merged cell highlight */
+        .lab-cell {
+            background: linear-gradient(135deg, #eaf7f7 0%, #d6f0f0 100%);
+            border-left: 4px solid var(--primary-color) !important;
+        }
+        
+        .lab-cell .subject-code {
+            color: var(--primary-color);
+        }
+
         @media (max-width: 768px) {
             .page-header {
                 flex-direction: column;
@@ -136,8 +155,7 @@
                 padding: 5px;
             }
 
-            th,
-            td {
+            th, td {
                 padding: 5px;
                 font-size: 0.8rem;
             }
@@ -157,6 +175,7 @@
         <div
             style="background: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-weight: 500; color: var(--primary-color);">
             Showing timetable for Semester {{ student.current_semester }}
+            {% if student.lab_batch %} &nbsp;·&nbsp; Lab Batch: <strong>{{ student.lab_batch }}</strong>{% endif %}
         </div>
 
         <!-- Timetable -->
@@ -167,7 +186,7 @@
                         <th class="day-column">Day / Time</th>
                         <th>08.30<br>to<br>09.30</th>
                         <th>09.30<br>to<br>10.30</th>
-                        <th class="break-column">TEA</th>
+                        <th class="break-column">BREAK</th>
                         <th>10.40<br>to<br>11.40</th>
                         <th>11.40<br>to<br>12.40</th>
                         <th class="break-column">LUNCH</th>
@@ -177,97 +196,33 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for day, periods in timetable_rows %}
+                    {% for day, cells in timetable_rows %}
                     <tr>
                         <td class="day-column">{{ day }}</td>
 
-                        <!-- Period 1 -->
-                        <td class="subject-cell">
-                            {% with p=periods.0 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
+                        {% for cell in cells %}
+                            {% if cell.skip %}
+                                {# absorbed into a colspan — render nothing #}
+                            {% elif cell.type == 'break' %}
+                                <td class="break-column">{{ cell.label }}</td>
                             {% else %}
-                            <span class="empty-slot">-</span>
+                                {% with e=cell.entry %}
+                                    {% if e and e.subject %}
+                                        <td class="subject-cell {% if e.subject.subject_type == 'Lab' %}lab-cell{% endif %}" colspan="{{ cell.colspan }}">
+                                            <span class="subject-code">{{ e.subject.code }}</span>
+                                            {% if e.staff %}<span class="staff-name">{{ e.staff.name }}</span>{% endif %}
+                                            {% if e.subject.subject_type == 'Lab' and cell.colspan > 1 %}
+                                                <span class="staff-name" style="font-size:.7rem;color:var(--primary-color)">Lab · {{ cell.colspan }}h</span>
+                                            {% endif %}
+                                        </td>
+                                    {% else %}
+                                        <td class="subject-cell" colspan="{{ cell.colspan }}">
+                                            <span class="empty-slot">-</span>
+                                        </td>
+                                    {% endif %}
+                                {% endwith %}
                             {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 2 -->
-                        <td class="subject-cell">
-                            {% with p=periods.1 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <td class="break-column">B</td>
-
-                        <!-- Period 3 -->
-                        <td class="subject-cell">
-                            {% with p=periods.2 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 4 -->
-                        <td class="subject-cell">
-                            {% with p=periods.3 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <td class="break-column">L</td>
-
-                        <!-- Period 5 -->
-                        <td class="subject-cell">
-                            {% with p=periods.4 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 6 -->
-                        <td class="subject-cell">
-                            {% with p=periods.5 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
-
-                        <!-- Period 7 -->
-                        <td class="subject-cell">
-                            {% with p=periods.6 %}
-                            {% if p and p.subject %}
-                            <span class="subject-code">{{ p.subject.code }}</span>
-                            {% if p.staff %}<span class="staff-name">{{ p.staff.name }}</span>{% endif %}
-                            {% else %}
-                            <span class="empty-slot">-</span>
-                            {% endif %}
-                            {% endwith %}
-                        </td>
+                        {% endfor %}
                     </tr>
                     {% endfor %}
                 </tbody>

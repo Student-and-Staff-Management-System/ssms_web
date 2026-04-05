@@ -353,22 +353,29 @@
             <div class="quick-actions-bar" style="display: block;">
                 <!-- Profile Completion Status (Visible if incomplete) -->
                 {% if not is_profile_complete or profile_completion_percentage < 100 %} <div
-                    style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-                    <div style="flex: 1;">
+                    style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 180px;">
                         <h4 style="margin: 0 0 5px 0; color: #be123c;">⚠️ Complete Your Profile</h4>
-                        <p style="margin: 0; font-size: 0.9rem; color: #881337;">Your profile is
+                        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: #881337;">Your profile is
                             <strong>{{profile_completion_percentage }}%</strong> complete. Please update your details
-                            toaccess full features.
+                            to access full features.
                         </p>
                         <div
-                            style="background: #fecdd3; height: 8px; border-radius: 4px; margin-top: 10px; width: 100%; max-width: 400px; overflow: hidden;">
+                            style="background: #fecdd3; height: 8px; border-radius: 4px; margin-bottom: 10px; width: 100%; max-width: 400px; overflow: hidden;">
                             <div
-                                style="background: #e11d48; height: 100%; width: {{ profile_completion_percentage|default:0 }}%;">
+                                style="background: #e11d48; height: 100%; width: {{ profile_completion_percentage|default:0 }}%; border-radius: 4px;">
                             </div>
                         </div>
+                        {% if profile_missing_fields %}
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                            {% for field in profile_missing_fields %}
+                            <span style="font-size: 0.75rem; background: white; color: #be123c; border: 1px solid #fda4af; border-radius: 4px; padding: 2px 7px; font-weight: 500;">{{ field }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
                     <a href="{% url 'student_register' %}" class="btn"
-                        style="background: #e11d48; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; white-space: nowrap; margin-left: 20px;">Complete
+                        style="background: #e11d48; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; white-space: nowrap; margin-top: 4px;">Complete
                         Now &rarr;</a>
             </div>
             {% endif %}

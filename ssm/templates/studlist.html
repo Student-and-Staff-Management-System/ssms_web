@@ -116,36 +116,44 @@
         /* List */
         .student-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
         .student-card {
             background: var(--secondary-bg);
-            padding: 14px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 12px;
-            align-items: center;
-            transition: transform 0.15s;
-            min-height: 110px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            box-sizing: border-box;
         }
 
         .student-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
             border-color: var(--accent-color);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .student-card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .student-img-container {
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid var(--light-accent-bg);
+            background: var(--primary-bg);
+            flex-shrink: 0;
         }
 
         .student-img {
@@ -154,30 +162,54 @@
             object-fit: cover;
         }
 
+        .student-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .student-info h3 {
             margin: 0 0 4px 0;
-            font-size: 1em;
+            font-size: 1.1em;
             color: var(--text-primary);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .student-info p {
             margin: 0;
             color: var(--text-secondary);
-            font-size: 0.9em;
+            font-size: 0.85em;
             line-height: 1.4;
+        }
+        
+        .student-card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .student-card-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
         }
 
         .view-link {
-            justify-self: end;
+            display: block;
+            text-align: center;
             color: var(--accent-color);
             text-decoration: none;
-            font-weight: 500;
-            border: 1px solid var(--accent-color);
-            padding: 6px 12px;
-            border-radius: 14px;
-            font-size: 0.82em;
+            font-weight: 600;
+            background: var(--light-accent-bg);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.9em;
             transition: all 0.2s;
-            white-space: nowrap;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .view-link:hover {
@@ -237,6 +269,64 @@
                 font-size: 20px;
             }
         }
+
+        /* Profile Completion Bar */
+        .completion-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            cursor: default;
+        }
+
+        .completion-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .completion-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .bar-green { background: #22c55e; }
+        .bar-amber { background: #f59e0b; }
+        .bar-red   { background: #ef4444; }
+
+        .completion-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .label-green { color: #16a34a; }
+        .label-amber { color: #d97706; }
+        .label-red   { color: #dc2626; }
+
+        /* Missing fields */
+        .missing-fields-list {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #b45309;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-weight: 500;
+            width: fit-content;
+        }
+
+        .missing-icon {
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -268,23 +358,50 @@
         </form>
 
         <div class="student-list">
-            {% for student in students %}
+            {% for item in students_with_completion %}
+            {% with student=item.student pct=item.completion_pct missing=item.missing_fields %}
             <div class="student-card">
-                <div class="student-img-container">
-                    {% if student.studentdocuments.student_photo %}
-                    <img src="{{ student.studentdocuments.student_photo.url }}" alt="{{ student.student_name }}"
-                        class="student-img">
+                <div class="student-card-header">
+                    <div class="student-img-container">
+                        {% if student.studentdocuments.student_photo %}
+                        <img src="{{ student.studentdocuments.student_photo.url }}" alt="{{ student.student_name }}"
+                            class="student-img">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ student.student_name }}&background=random&size=200"
+                            alt="{{ student.student_name }}" class="student-img">
+                        {% endif %}
+                    </div>
+                    <div class="student-info">
+                        <h3>{{ student.student_name }}</h3>
+                        <p>{{ student.roll_number }}<br>{{ student.program_level }}</p>
+                    </div>
+                </div>
+                
+                <div class="student-card-body" title="{% if missing %}Missing: {{ missing|join:', ' }}{% else %}Profile Complete!{% endif %}">
+                    <div class="completion-row">
+                        <div class="completion-bar-bg">
+                            <div class="completion-bar-fill {% if pct == 100 %}bar-green{% elif pct >= 70 %}bar-amber{% else %}bar-red{% endif %}"
+                                style="width: {{ pct }}%;"></div>
+                        </div>
+                        <span class="completion-label {% if pct == 100 %}label-green{% elif pct >= 70 %}label-amber{% else %}label-red{% endif %}">{{ pct }}%</span>
+                    </div>
+                    {% if missing %}
+                    <div class="missing-fields-list">
+                        <span class="missing-icon">⚠</span>
+                        <span>{{ missing|length }} detail{{ missing|length|pluralize }} missing</span>
+                    </div>
                     {% else %}
-                    <img src="https://ui-avatars.com/api/?name={{ student.student_name }}&background=random&size=200"
-                        alt="{{ student.student_name }}" class="student-img">
+                    <div style="margin-top: 10px; font-size: 0.8em; color: #16a34a; font-weight: 500;">
+                        ✅ Profile completely updated
+                    </div>
                     {% endif %}
                 </div>
-                <div class="student-info">
-                    <h3>{{ student.student_name }}</h3>
-                    <p>{{ student.roll_number }} ({{ student.program_level }})</p>
+                
+                <div class="student-card-footer">
+                    <a href="{% url 'staffs:student_detail' student.roll_number %}" class="view-link">View Profile</a>
                 </div>
-                <a href="{% url 'staffs:student_detail' student.roll_number %}" class="view-link">View Profile</a>
             </div>
+            {% endwith %}
             {% empty %}
             <p style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 50px;">No students
                 found matching your criteria.</p>

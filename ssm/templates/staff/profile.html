@@ -462,13 +462,10 @@
                         style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
                         <span>✏️</span> Edit Profile
                     </a>
-                    {% if staff.role != 'Office Staff' %}
                     <a href="{% url 'staffs:staff_portfolio' %}" class="tab-btn"
                         style="background: white; color: var(--primary); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
                         <span>💼</span> Manage Portfolio
                     </a>
-                    {% endif %}
-                </div>
             </div>
         </div>
     </header>
@@ -585,30 +582,41 @@
             <div id="academic" class="tab-content">
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">🎓 Qualifications</div>
+                        <div class="card-title">🎓 Qualifications ({{ staff.qualifications.count }})</div>
                     </div>
-                    <div class="info-list" style="margin-bottom: 20px;">
-                        <div class="info-item">
-                            <span class="info-label">Highest Qualification</span>
-                            <span class="info-value">{{ staff.qualification|default:"--" }}</span>
+                    <div class="items-list">
+                        {% for q in staff.qualifications.all %}
+                        <div class="item-card">
+                            <div class="item-title">{{ q.degree }}</div>
+                            <div class="item-meta">{{ q.university }} • {{ q.year_completed }}</div>
                         </div>
-                        <div class="info-item">
-                            <span class="info-label">Specialization</span>
-                            <span class="info-value">{{ staff.specialization|default:"--" }}</span>
-                        </div>
-                    </div>
-                    <div
-                        style="background: #f8fafc; padding: 20px; border-radius: var(--radius-lg); border-left: 4px solid var(--accent);">
-                        {{ staff.academic_details|default:"No detailed academic history provided."|linebreaksbr }}
+                        {% empty %}
+                        <div style="padding: 20px; color: var(--text-light);">No completed qualifications mapped.</div>
+                        {% endfor %}
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">💼 Professional Experience</div>
+                        <div class="card-title">💼 Professional Experience ({{ staff.past_designations.count }})</div>
                     </div>
-                    <div style="line-height: 1.7;">
-                        {{ staff.experience|default:"No experience details provided."|linebreaksbr }}
+                    <div class="items-list">
+                        {% for exp in staff.past_designations.all %}
+                        <div class="item-card">
+                            <div class="item-title">{{ exp.designation }}</div>
+                            <div class="item-meta">
+                                {% if exp.from_date and exp.to_date %}
+                                    {{ exp.from_date|date:"M Y" }} - {{ exp.to_date|date:"M Y" }}
+                                {% elif exp.from_date %}
+                                    {{ exp.from_date|date:"M Y" }} - Present
+                                {% else %}
+                                    No dates provided
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div style="padding: 20px; color: var(--text-light);">No past experiences mapped.</div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

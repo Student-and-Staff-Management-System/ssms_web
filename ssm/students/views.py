@@ -118,23 +118,86 @@ def class_timetable(request):
         return redirect('student_login')
         
     student = Student.objects.get(roll_number=request.session['student_roll_number'])
-    entries = Timetable.objects.filter(semester=student.current_semester)
+    entries = Timetable.objects.filter(semester=student.current_semester).select_related('subject', 'staff')
     
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     timetable_data = {day: [None]*7 for day in days}
     
     for entry in entries:
         if 1 <= entry.period <= 7:
-             if entry.batch == 'All' or entry.batch == student.lab_batch:
-                 timetable_data[entry.day][entry.period-1] = entry
+            if entry.batch == 'All' or entry.batch == student.lab_batch:
+                timetable_data[entry.day][entry.period-1] = entry
 
-    timetable_rows = []
-    for day in days:
-        timetable_rows.append((day, timetable_data[day]))
+    def build_row_cells(periods):
+        """
+        Converts 7-slot period list into a list of cell dicts with colspan info.
+        Each cell dict has: entry, colspan, skip (True = absorbed into previous colspan).
+        The visual columns are: P1 | P2 | TEA | P3 | P4 | LUNCH | P5 | P6 | P7
+        Period indices (0-based): 0   1    -    2    3    -      4    5    6
+        Column positions:         0   1    2    3    4    5      6    7    8   (9 total)
+        period_to_col maps period index to column position.
+        """
+        # Map: period index (0-6) -> visual column position (skipping break columns)
+        period_to_col = {0: 0, 1: 1, 2: 3, 3: 4, 4: 6, 5: 7, 6: 8}
+        col_to_period = {v: k for k, v in period_to_col.items()}
+        # TEA is col 2 (between P2 and P3), LUNCH is col 5 (between P4 and P5)
+        break_cols = {2: 'B', 5: 'L'}
+        total_cols = 9  # P1 P2 TEA P3 P4 LUNCH P5 P6 P7
+
+        # Build base cell list - one per column
+        cells = []
+        for col in range(total_cols):
+            if col in break_cols:
+                cells.append({'type': 'break', 'label': break_cols[col], 'skip': False})
+            else:
+                p_idx = col_to_period[col]
+                cells.append({'type': 'period', 'entry': periods[p_idx], 'colspan': 1, 'skip': False})
+
+        # Merge consecutive period cells with the same non-empty subject
+        i = 0
+        while i < total_cols:
+            if cells[i].get('type') == 'period' and not cells[i].get('skip'):
+                entry = cells[i]['entry']
+                if entry and entry.subject:
+                    j = i + 1
+                    span = 1
+                    while j < total_cols:
+                        c = cells[j]
+                        if c['type'] == 'break':
+                            # Look ahead past the break to see if the lab continues
+                            if j + 1 < total_cols and cells[j+1].get('type') == 'period':
+                                next_e = cells[j+1]['entry']
+                                if next_e and next_e.subject and next_e.subject.id == entry.subject.id:
+                                    # Absorb the break column AND the next period into the span
+                                    c['skip'] = True
+                                    cells[j+1]['skip'] = True
+                                    span += 2  # break + next period
+                                    j += 2
+                                    continue
+                            break
+                        elif c['type'] == 'period':
+                            next_e = c['entry']
+                            if next_e and next_e.subject and next_e.subject.id == entry.subject.id:
+                                c['skip'] = True
+                                span += 1
+                                j += 1
+                                continue
+                            break
+                        j += 1
+                    cells[i]['colspan'] = span
+            i += 1
+
+        return cells
+
+    timetable_rows = [(day, timetable_data[day]) for day in days]
+
+    processed_rows = []
+    for day, periods in timetable_rows:
+        processed_rows.append((day, build_row_cells(periods)))
     
     return render(request, 'student_class_timetable.html', {
         'student': student,
-        'timetable_rows': timetable_rows
+        'timetable_rows': processed_rows,
     })
 def service_unavailable(request):
     return render(request, 'service.html')
@@ -455,6 +518,7 @@ def student_dashboard(request):
     # Helper for calendar data
     calendar_data = get_attendance_calendar_data(student)
 
+    _completion_data = get_profile_completion_data(student)
     context = {
         'student': student,
         'recent_leaves': recent_leaves,
@@ -469,7 +533,8 @@ def student_dashboard(request):
 
         'today': timezone.now().strftime('%A'),
         'calendar_data': calendar_data,
-        'profile_completion_percentage': calculate_profile_completion(student),
+        'profile_completion_percentage': _completion_data['percentage'],
+        'profile_missing_fields': _completion_data['missing_fields'],
         'is_profile_complete': student.is_profile_complete
     }
     
@@ -480,55 +545,88 @@ def student_dashboard(request):
 
     return render(request, 'stddash.html', context)
 
+def get_profile_completion_data(student):
+    """
+    Returns a dict with:
+      - 'percentage': int (0-100)
+      - 'missing_fields': list of human-readable field names that are empty
+    """
+    total_fields = 0
+    filled_fields = 0
+    missing_fields = []
+
+    FIELD_LABELS = {
+        # Student model
+        'student_name': 'Full Name',
+        'student_email': 'Email Address',
+        'program_level': 'Program Level',
+        'current_semester': 'Current Semester',
+        # PersonalInfo
+        'date_of_birth': 'Date of Birth',
+        'gender': 'Gender',
+        'student_mobile': 'Mobile Number',
+        'father_name': "Father's Name",
+        'father_mobile': "Father's Mobile",
+        'present_address': 'Present Address',
+        # AcademicHistory
+        'sslc_percentage': 'SSLC Percentage',
+        'sslc_year_of_passing': 'SSLC Year of Passing',
+        'hsc_percentage': 'HSC Percentage',
+        'hsc_year_of_passing': 'HSC Year of Passing',
+    }
+
+    def check_fields(model_instance, fields_to_check, section_label=''):
+        nonlocal total_fields, filled_fields
+        if not model_instance:
+            total_fields += len(fields_to_check)
+            for f in fields_to_check:
+                missing_fields.append(FIELD_LABELS.get(f, f.replace('_', ' ').title()))
+            return
+        for field in fields_to_check:
+            total_fields += 1
+            val = getattr(model_instance, field, None)
+            if val and str(val).strip():
+                filled_fields += 1
+            else:
+                missing_fields.append(FIELD_LABELS.get(field, field.replace('_', ' ').title()))
+
+    # 1. Student core fields
+    check_fields(student, ['student_name', 'student_email', 'program_level', 'current_semester'])
+
+    # 2. Personal Info
+    try:
+        p_info = getattr(student, 'personalinfo', None)
+        if not p_info:
+            p_info = PersonalInfo.objects.filter(student=student).first()
+        check_fields(p_info, ['date_of_birth', 'gender', 'student_mobile', 'father_name', 'father_mobile', 'present_address'])
+    except Exception:
+        total_fields += 6
+        for f in ['date_of_birth', 'gender', 'student_mobile', 'father_name', 'father_mobile', 'present_address']:
+            missing_fields.append(FIELD_LABELS.get(f, f))
+
+    # 3. Academic History
+    try:
+        acad = AcademicHistory.objects.filter(student=student).first()
+        check_fields(acad, ['sslc_percentage', 'sslc_year_of_passing', 'hsc_percentage', 'hsc_year_of_passing'])
+    except Exception:
+        total_fields += 4
+        for f in ['sslc_percentage', 'sslc_year_of_passing', 'hsc_percentage', 'hsc_year_of_passing']:
+            missing_fields.append(FIELD_LABELS.get(f, f))
+
+    percentage = int((filled_fields / total_fields) * 100) if total_fields > 0 else 0
+    return {
+        'percentage': min(percentage, 100),
+        'missing_fields': missing_fields,
+    }
+
+
 def calculate_profile_completion(student):
     """
     Calculates the percentage of the profile that is complete.
     Based on key fields in Student and related models.
+    Returns an integer (0-100). Use get_profile_completion_data() for full details.
     """
-    total_fields = 0
-    filled_fields = 0
-    
-    # helper
-    def check_model_fields(model_instance, fields_to_check):
-        nonlocal total_fields, filled_fields
-        if not model_instance:
-             total_fields += len(fields_to_check)
-             return
-        
-        for field in fields_to_check:
-            total_fields += 1
-            val = getattr(model_instance, field, None)
-            if val and str(val).strip(): # Check for non-empty
-                filled_fields += 1
-    
-    # 1. Student Model (Core)
-    check_model_fields(student, ['student_name', 'student_email', 'program_level', 'current_semester'])
-    
-    # 2. Personal Info
-    try:
-        p_info = getattr(student, 'personalinfo', None) # OneToOne related name default is lowercase modelname or defined? 
-        # Models.py says 'personalinfo' (implied) or we need to check. Usually standard is lowercase.
-        # Checking implementation: PersonalInfo.student = models.OneToOneField(..., related_name='personalinfo') (Assumption)
-        # Actually standard Django default related_name is 'personalinfo' if class is PersonalInfo.
-        # Let's rely on views.py logic using PersonalInfo.objects.get(student=student) usually.
-        # But we passed `student` object. Let's try accessor.
-        if not p_info:
-             p_info = PersonalInfo.objects.filter(student=student).first()
-        check_model_fields(p_info, ['date_of_birth', 'gender', 'student_mobile', 'father_name', 'father_mobile', 'present_address'])
-    except:
-        total_fields += 6 # Punishment for missing model
-        
-    # 3. Academic History
-    try:
-         acad = AcademicHistory.objects.filter(student=student).first()
-         check_model_fields(acad, ['sslc_percentage', 'sslc_year_of_passing', 'hsc_percentage', 'hsc_year_of_passing'])
-    except:
-         total_fields += 4
-
-    if total_fields == 0: return 0
-    
-    percentage = int((filled_fields / total_fields) * 100)
-    return min(percentage, 100)
+    return get_profile_completion_data(student)['percentage']
 
 def get_attendance_calendar_data(student):
     """Helper to prepare attendance data for calendar."""
@@ -587,6 +685,7 @@ def student_profile(request):
         except model_class.DoesNotExist:
             return None
 
+    _completion_data = get_profile_completion_data(student)
     context = {
         'student': student,
         'diploma': get_related_or_none(DiplomaDetails, student),
@@ -594,6 +693,8 @@ def student_profile(request):
         'pg': get_related_or_none(PGDetails, student),
         'phd': get_related_or_none(PhDDetails, student),
         'other_details': get_related_or_none(OtherDetails, student),
+        'profile_completion_percentage': _completion_data['percentage'],
+        'profile_missing_fields': _completion_data['missing_fields'],
     }
     return render(request, 'student_profile.html', context)
 

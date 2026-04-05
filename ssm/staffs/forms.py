@@ -12,9 +12,7 @@ class StaffRegistrationForm(forms.ModelForm):
     
     # Strict Field Validators
     name = forms.CharField(validators=[alpha_space_validator])
-    # Designation/Dept can be loose text (e.g. "H.O.D", "Assistant Prof.") allow dots/spaces
-    designation = forms.CharField(validators=[RegexValidator(r'^[a-zA-Z\s\.]+$', "Designation contains invalid characters.")])
-    department = forms.CharField(validators=[RegexValidator(r'^[a-zA-Z\s\.]+$', "Department contains invalid characters.")])
+    initial = forms.CharField(validators=[alpha_space_validator], required=False)
     
     date_of_birth = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}))
     date_of_joining = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}))
@@ -25,10 +23,8 @@ class StaffRegistrationForm(forms.ModelForm):
     class Meta:
         model = Staff
         fields = [
-            'staff_id', 'name', 'email', 'password', 'photo',
-            'salutation', 'designation', 'department', 
-            'qualification', 'specialization',
-            'date_of_birth', 'date_of_joining', 'gender', 'blood_group', 'mobile_number', 'address'
+            'staff_id', 'name', 'initial', 'email', 'password', 'photo',
+            'salutation', 'date_of_birth', 'date_of_joining', 'mobile_number', 'address'
         ]
 
     def clean_staff_id(self):
@@ -140,3 +136,46 @@ class StaffLeaveRequestForm(forms.ModelForm):
                          raise forms.ValidationError(f"{leave_name} limit exceeded. You have {remaining} days remaining for this academic year. Requested: {requested_days} days.")
         
         return cleaned_data
+
+from .models import StaffQualification, StaffPastDesignation, StaffMembership
+
+class StaffQualificationForm(forms.ModelForm):
+    class Meta:
+        model = StaffQualification
+        fields = ['degree', 'university', 'year_completed', 'certificate']
+
+class StaffPastDesignationForm(forms.ModelForm):
+    is_present = forms.BooleanField(
+        required=False,
+        label='Currently holding this position (Present)',
+        widget=forms.CheckboxInput(attrs={'id': 'id_is_present', 'onchange': 'toggleToDate(this)'})
+    )
+    
+    class Meta:
+        model = StaffPastDesignation
+        fields = ['designation', 'from_date', 'to_date', 'order_img']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date', 'id': 'id_to_date'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-check 'is_present' if to_date is null on an existing instance
+        if self.instance and self.instance.pk and not self.instance.to_date:
+            self.initial['is_present'] = True
+        # Reorder fields: designation → from_date → is_present → to_date → order_img
+        desired_order = ['designation', 'from_date', 'is_present', 'to_date', 'order_img']
+        self.fields = {k: self.fields[k] for k in desired_order if k in self.fields}
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('is_present'):
+            cleaned_data['to_date'] = None
+        return cleaned_data
+
+class StaffMembershipForm(forms.ModelForm):
+    class Meta:
+        model = StaffMembership
+        fields = ['institute_name', 'membership_no', 'membership_type', 'year', 'month']
+

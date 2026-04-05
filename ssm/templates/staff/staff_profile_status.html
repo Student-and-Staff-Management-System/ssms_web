@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile | Staff Portal</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --bg-body: #f9fafb;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-body);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #334155;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: slideUp 0.6s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .icon-box {
+            width: 90px;
+            height: 90px;
+            margin: 20px auto;
+            border-radius: 50%;
+            background: #eef2ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .icon-box span {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0); }
+        }
+
+        h3 {
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+
+        p.desc {
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .progress-container {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .progress-bar-bg {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 12px;
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            background: var(--primary);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+            width: {{ profile_completion_percentage }}%;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .missing-items {
+            text-align: left;
+            background: #fffbeb;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #f59e0b;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .missing-items ul {
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+            color: #b45309;
+        }
+
+        .btn-complete {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            box-shadow: 0 4px 6px rgba(90, 125, 124, 0.25);
+        }
+
+        .btn-complete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(90, 125, 124, 0.35);
+            background: var(--primary-dark);
+        }
+
+        .note {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Welcome, {{ staff.name }}</h1>
+        <p style="font-size: 1.1rem; color: #475569;">Let’s get your professional profile ready</p>
+
+        <div class="icon-box">
+            <span>📝</span>
+        </div>
+
+        <h3>Profile Completion</h3>
+
+        <div class="progress-container">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill"></div>
+            </div>
+            <div class="progress-text">
+                <span>Completion Status</span>
+                <span style="color: var(--primary);">{{ profile_completion_percentage }}%</span>
+            </div>
+        </div>
+
+        {% if profile_missing_fields %}
+        <div class="missing-items">
+            <strong>Missing Information:</strong>
+            <ul>
+                {% for field in profile_missing_fields %}
+                    <li>{{ field }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <p class="desc">
+            Please complete your profile to unlock all features in the staff portal.
+        </p>
+
+        <a href="{% url 'staffs:staff_profile' %}" class="btn-complete">
+            Complete Profile Now →
+        </a>
+
+        <div style="margin-top: 25px;">
+            <a href="{% url 'staffs:staff_logout' %}" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">
+                Logout
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

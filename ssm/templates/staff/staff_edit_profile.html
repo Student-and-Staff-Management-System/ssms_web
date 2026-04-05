@@ -368,6 +368,11 @@
                             value="{{ staff.date_of_birth|date:'Y-m-d' }}">
                     </div>
                     <div class="form-group">
+                        <label for="date_of_joining">Date of Joining (DOJ)</label>
+                        <input type="date" id="date_of_joining" name="date_of_joining"
+                            value="{{ staff.date_of_joining|date:'Y-m-d' }}">
+                    </div>
+                    <div class="form-group">
                         <label for="gender">Gender</label>
                         <select id="gender" name="gender">
                             <option value="">— Select —</option>
@@ -393,27 +398,10 @@
             <!-- TAB 2: ACADEMIC -->
             <div id="academic" class="form-card">
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label for="qualification">Qualifications</label>
-                        <input type="text" id="qualification" name="qualification" value="{{ staff.qualification }}"
-                            placeholder="e.g. M.Tech, Ph.D">
-                    </div>
-                    <div class="form-group">
-                        <label for="specialization">Area of Specialization</label>
-                        <input type="text" id="specialization" name="specialization" value="{{ staff.specialization }}"
-                            placeholder="e.g. Machine Learning, Data Science">
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="academic_details">Detailed Academic History</label>
-                        <textarea id="academic_details" name="academic_details"
-                            placeholder="List your degrees, institutions, and years (one per line)...">{{ staff.academic_details }}</textarea>
-                        <span class="helper-text">Tip: Use a new line for each degree.</span>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="experience">Professional Experience</label>
-                        <textarea id="experience" name="experience"
-                            placeholder="List your previous positions and companies (one per line)...">{{ staff.experience }}</textarea>
-                        <span class="helper-text">Tip: Chronological order is recommended.</span>
+                    <div class="form-group full-width text-center" style="padding: 30px; background: rgba(59, 130, 246, 0.05); border: 1px dashed var(--primary); border-radius: 12px; text-align: center;">
+                        <h3 style="color: var(--primary); margin-top: 0;">Qualifications & Experience</h3>
+                        <p style="color: var(--text-light); margin-bottom: 20px;">Detailed academic qualifications and professional experience are now securely managed within your centralized professional portfolio.</p>
+                        <a href="{% url 'staffs:staff_portfolio' %}" class="btn btn-save" style="display: inline-block;">Go to Portfolio Manager</a>
                     </div>
                 </div>
             </div>

@@ -74,6 +74,44 @@
                 </div>
             </header>
 
+            <!-- Profile Completion Widget -->
+            {% if profile_completion_percentage is not None %}
+            <div class="card no-print" style="margin-bottom: 20px; border-left: 4px solid {% if profile_completion_percentage == 100 %}#22c55e{% elif profile_completion_percentage >= 70 %}#f59e0b{% else %}#ef4444{% endif %}; padding: 18px 22px;">
+                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                    <!-- % label + bar -->
+                    <div style="flex: 1; min-width: 180px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">📋 Profile Completion</span>
+                            <span style="font-weight: 700; font-size: 1rem; color: {% if profile_completion_percentage == 100 %}#16a34a{% elif profile_completion_percentage >= 70 %}#d97706{% else %}#dc2626{% endif %};">
+                                {{ profile_completion_percentage }}%
+                            </span>
+                        </div>
+                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; border-radius: 4px; background: {% if profile_completion_percentage == 100 %}#22c55e{% elif profile_completion_percentage >= 70 %}#f59e0b{% else %}#ef4444{% endif %}; width: {{ profile_completion_percentage|default:0 }}%; transition: width 0.5s ease;"></div>
+                        </div>
+                        {% if profile_completion_percentage == 100 %}
+                        <p style="margin: 6px 0 0 0; font-size: 0.82rem; color: #16a34a;">✅ Your profile is complete!</p>
+                        {% else %}
+                        <p style="margin: 6px 0 0 0; font-size: 0.82rem; color: #64748b;">Fill in the missing details below to complete your profile.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if profile_missing_fields %}
+                    <!-- Missing fields -->
+                    <div style="flex: 1; min-width: 180px;">
+                        <div style="font-size: 0.78rem; font-weight: 600; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Missing Details</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                            {% for field in profile_missing_fields %}
+                            <span style="font-size: 0.76rem; background: #fff1f2; color: #be123c; border: 1px solid #fda4af; border-radius: 4px; padding: 2px 7px; font-weight: 500;">{{ field }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <a href="{% url 'student_editprofile' %}" style="background: #e11d48; color: white; padding: 7px 14px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">Complete Now →</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Content Grid (Full Details) -->
             <div class="content-grid">
 
