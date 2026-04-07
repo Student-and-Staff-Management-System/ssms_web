@@ -160,14 +160,16 @@
                             </span>
                         </div>
                         <div class="detail-item">
-                            <strong>Batch</strong>
-                            <span>
-                                {% if student.joining_year and student.ending_year %}
-                                {{ student.joining_year }} - {{ student.ending_year }}
-                                {% else %}
-                                -
-                                {% endif %}
-                            </span>
+                            <strong>Joining Year</strong>
+                            <span>{{ student.joining_year|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Ending Year</strong>
+                            <span>{{ student.ending_year|default:"-" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Lab Batch</strong>
+                            <span>{{ student.get_lab_batch_display|default:"-" }}</span>
                         </div>
                     </div>
                     {% if student.academichistory.hsc_school_name %}

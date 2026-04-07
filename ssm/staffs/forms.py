@@ -29,7 +29,10 @@ class StaffRegistrationForm(forms.ModelForm):
 
     def clean_staff_id(self):
         staff_id = self.cleaned_data.get('staff_id')
-        if Staff.objects.filter(staff_id=staff_id).exists():
+        qs = Staff.objects.filter(staff_id=staff_id)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise forms.ValidationError(f"A staff member with ID '{staff_id}' already exists.")
         # Optional: Force ID format (e.g. STF-001) if required, assuming free text for now but alphanumeric check good?
         # if not staff_id.isalnum(): raise forms.ValidationError("Staff ID must be alphanumeric.")
@@ -37,7 +40,10 @@ class StaffRegistrationForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if Staff.objects.filter(email=email).exists():
+        qs = Staff.objects.filter(email=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise forms.ValidationError("This email is already registered.")
         return email
 

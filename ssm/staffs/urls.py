@@ -95,6 +95,7 @@ urlpatterns = [
     path('risk-students/', views.risk_students, name='risk_students'),
     path('risk-students/export/<int:subject_id>/', views.export_risk_list, name='export_risk_list'),
     path('generate-student/', views.generate_student, name='generate_student'),
+    path('generate-staff/', views.generate_staff, name='generate_staff'),
 
     # Superuser & Admin Tools
     path('restricted/create-superuser/', views.create_superuser, name='create_superuser'),

@@ -15,7 +15,7 @@ class Staff(models.Model):
     staff_id = models.CharField(max_length=50, primary_key=True)
     name = models.CharField(max_length=255)
     initial = models.CharField(max_length=50, blank=True)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, blank=True, null=True)
     password = models.CharField(max_length=128) # Stores the hashed password
     photo = models.ImageField(
         upload_to=staff_photo_path,
@@ -107,6 +107,12 @@ class Staff(models.Model):
 
     def __str__(self):
         return f"{self.salutation} {self.name}"
+
+class StaffGenerator(Staff):
+    class Meta:
+        proxy = True
+        verbose_name = "Generate Staff"
+        verbose_name_plural = "Generate Staff"
 
 
 class StaffPublication(models.Model):

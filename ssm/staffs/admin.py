@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Staff, Subject, ExamSchedule, Timetable
+from .models import Staff, Subject, ExamSchedule, Timetable, News, StaffLeaveRequest, AuditLog, StaffGenerator
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db import transaction
+import csv
+import random
+from django.http import HttpResponse
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
@@ -31,17 +37,13 @@ class StaffAdmin(admin.ModelAdmin):
             'fields': ('academic_details', 'publications', 'awards_and_memberships')
         }),
         ('Permissions', {
-            'fields': ('is_active',) # Removed password field for security, use set_password via custom form or shell if really needed via admin, but standard is fine
+            'fields': ('is_active',)
         }),
     )
     
     def save_model(self, request, obj, form, change):
-        """Trigger model validation before saving."""
-        obj.full_clean()  # This calls the model's clean() method
+        obj.full_clean()
         super().save_model(request, obj, form, change)
-
-
-from .models import ExamSchedule, Timetable
 
 @admin.register(ExamSchedule)
 class ExamScheduleAdmin(admin.ModelAdmin):
@@ -57,7 +59,6 @@ class TimetableAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        # Send push notification to the affected staff member
         if obj.staff:
             try:
                 from .utils import send_staff_notification
@@ -69,12 +70,8 @@ class TimetableAdmin(admin.ModelAdmin):
                     body=f"Your schedule has been {action}. {subject_name} — {obj.day}, Period {obj.period}.",
                     url="/staffs/my-timetable/"
                 )
-            except Exception as e:
-                # Never block the admin save due to notification failure
+            except Exception:
                 pass
-
-from .models import News, StaffLeaveRequest, AuditLog
-
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
@@ -99,7 +96,6 @@ class AuditLogAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
 
-
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
     list_display = ('content_short', 'target', 'date', 'start_date', 'end_date', 'is_active', 'has_document', 'has_new_indicator')
@@ -113,11 +109,11 @@ class NewsAdmin(admin.ModelAdmin):
         }),
         ('Visibility', {
             'fields': ('target', 'is_active', 'start_date', 'end_date'),
-            'description': 'News will auto-disable after end date. Run "python manage.py disable_expired_news" to update.'
+            'description': 'News will auto-disable after end date.'
         }),
         ('NEW Indicator', {
             'fields': ('new_gif_start_date', 'new_gif_end_date'),
-            'description': 'Show a NEW indicator during this date range. End date must not exceed news end date.'
+            'description': 'Show a NEW indicator during this date range.'
         }),
     )
     
@@ -134,11 +130,114 @@ class NewsAdmin(admin.ModelAdmin):
     has_new_indicator.short_description = 'NEW'
     
     def save_model(self, request, obj, form, change):
-        """Trigger model validation before saving."""
-        obj.full_clean()  # This calls the model's clean() method
+        obj.full_clean()
         super().save_model(request, obj, form, change)
 
-@admin.register(StaffLeaveRequest)
-class StaffLeaveRequestAdmin(admin.ModelAdmin):
-    list_display = ('staff', 'leave_type', 'start_date', 'status')
-    list_filter = ('staff', 'leave_type', 'status')
+@admin.register(StaffGenerator)
+class StaffGeneratorAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+        
+    def has_change_permission(self, request, obj=None):
+        return False
+        
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        return self.generate_staff_view(request)
+
+    def generate_staff_view(self, request):
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            try:
+                if action == 'preview_bulk':
+                    bulk_input = request.POST.get('bulk_input', '').strip()
+                    if not bulk_input:
+                        messages.error(request, "Please enter staff details.")
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk'})
+                    
+                    preview_list = []
+                    lines = bulk_input.split('\n')
+                    for line in lines:
+                        if ',' in line:
+                            s_id, s_name = line.split(',', 1)
+                            s_id = s_id.strip()
+                            s_name = s_name.strip()
+                            if s_id:
+                                exists = Staff.objects.filter(staff_id=s_id).exists()
+                                preview_list.append({'staff_id': s_id, 'name': s_name, 'exists': exists})
+                    
+                    if not preview_list:
+                        messages.error(request, "No valid staff details found. Use format: ID, Name")
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'bulk_input': bulk_input})
+
+                    return render(request, 'staff/generate_staff.html', {
+                        'show_preview': True,
+                        'preview_list': preview_list,
+                        'bulk_input': bulk_input
+                    })
+
+                elif action == 'generate_bulk':
+                    selected_entries = request.POST.getlist('selected_entries')
+                    if not selected_entries:
+                        messages.error(request, "No staff selected.")
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk'})
+
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = 'attachment; filename="generated_staff.csv"'
+                    writer = csv.writer(response)
+                    writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+
+                    with transaction.atomic():
+                        for entry in selected_entries:
+                            s_id, s_name = entry.split('||', 1)
+                            staff, created = Staff.objects.get_or_create(
+                                staff_id=s_id,
+                                defaults={
+                                    'name': s_name,
+                                    'is_active': True
+                                }
+                            )
+                            pwd = "Staff" + str(random.randint(1000, 9999))
+                            if created:
+                                staff.set_password(pwd)
+                                staff.save()
+                                writer.writerow([f'="{s_id}"', s_name, pwd])
+                            else:
+                                writer.writerow([f'="{s_id}"', s_name, "Existing"])
+
+                    response.set_cookie('download_complete', 'true', max_age=20)
+                    return response
+
+                elif action == 'generate_single':
+                    s_id = request.POST.get('single_staff_id', '').strip()
+                    s_name = request.POST.get('single_name', '').strip()
+                    
+                    if not s_id or not s_name:
+                        messages.error(request, "Please enter both Staff ID and Name.")
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'single', 'single_staff_id': s_id, 'single_name': s_name})
+
+                    response = HttpResponse(content_type='text/csv')
+                    response['Content-Disposition'] = f'attachment; filename="staff_{s_id}.csv"'
+                    writer = csv.writer(response)
+                    writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+
+                    with transaction.atomic():
+                        staff, created = Staff.objects.get_or_create(
+                            staff_id=s_id,
+                            defaults={'name': s_name, 'is_active': True}
+                        )
+                        pwd = "Staff" + str(random.randint(1000, 9999))
+                        staff.set_password(pwd)
+                        staff.save()
+                        writer.writerow([f'="{s_id}"', s_name, pwd])
+
+                    response.set_cookie('download_complete', 'true', max_age=20)
+                    return response
+
+            except Exception as e:
+                messages.error(request, f"Error: {str(e)}")
+
+        return render(request, 'staff/generate_staff.html', {})

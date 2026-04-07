@@ -1,0 +1,11 @@
+Timetable for Semester 6:
+Friday P7 Batch:All Subject:6it1 Staff:None
+Monday P1 Batch:All Subject:6it1 Staff:None
+Monday P2 Batch:A Subject:6it10 Staff:staffthree
+Monday P2 Batch:B Subject:6it6 Staff:STAFFFIVE
+Thursday P5 Batch:All Subject:6it2 Staff:None
+Tuesday P2 Batch:All Subject:6it10 Staff:staffthree
+Tuesday P4 Batch:All Subject:6it10 Staff:staffthree
+Wednesday P1 Batch:All Subject:6it1 Staff:None
+Wednesday P2 Batch:All Subject:6it6 Staff:STAFFFIVE
+Wednesday P4 Batch:All Subject:6it6 Staff:STAFFFIVE

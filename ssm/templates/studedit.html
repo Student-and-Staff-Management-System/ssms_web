@@ -506,6 +506,18 @@
                     </div>
 
                     <div class="document-upload-item">
+                        <label for="student_id_card">ID Card Document <span
+                                style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
+                        <input type="file" id="student_id_card" name="student_id_card" accept="image/*,application/pdf">
+                        {% if studentdocuments.student_id_card %}
+                        <div class="current-file">Current: <a href="{{ studentdocuments.student_id_card.url }}"
+                                target="_blank">View Document</a></div>
+                        {% else %}
+                        <div class="current-file not-uploaded">Not uploaded yet</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="document-upload-item">
                         <label for="aadhaar_card">Aadhaar Card <span style="font-size:0.8em; color:#6c757d;">(Max:
                                 100KB)</span></label>
                         <input type="file" id="aadhaar_card" name="aadhaar_card" accept="image/*,application/pdf">
@@ -590,6 +602,30 @@
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
                     </div>
+
+                    <div class="document-upload-item" style="grid-column: span 2; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px;">
+                        <label style="font-weight: 600; color: var(--accent-color); margin-bottom: 12px; display: block; font-size: 1.1em;">First Graduate Status</label>
+                        <p style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 15px;">Are you a First Graduate in your family? If yes, please upload the First Graduate Certificate.</p>
+                        
+                        <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 20px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500;">
+                                <input type="radio" name="is_first_graduate" value="yes" {% if scholarshipinfo.is_first_graduate %}checked{% endif %} onchange="toggleFGDoc(true)" style="width: 18px; height: 18px; cursor: pointer;"> Yes, I am a First Graduate
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500;">
+                                <input type="radio" name="is_first_graduate" value="no" {% if not scholarshipinfo.is_first_graduate %}checked{% endif %} onchange="toggleFGDoc(false)" style="width: 18px; height: 18px; cursor: pointer;"> No
+                            </label>
+                        </div>
+
+                        <div id="fg_doc_container" style="display: {% if scholarshipinfo.is_first_graduate %}block{% else %}none{% endif %}; padding-top: 15px; border-top: 1px dashed #cbd5e1;">
+                            <label for="first_graduate_certificate" style="margin-bottom: 8px; display: block;">First Graduate Certificate <span style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
+                            <input type="file" id="first_graduate_certificate" name="first_graduate_certificate" accept="image/*,application/pdf">
+                            {% if studentdocuments.first_graduate_certificate %}
+                            <div class="current-file" style="margin-top: 8px;">Current: <a href="{{ studentdocuments.first_graduate_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600;">View Certificate</a></div>
+                            {% else %}
+                            <div class="current-file not-uploaded" style="margin-top: 8px;">Not uploaded yet</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -601,6 +637,17 @@
     </div>
     <script src="{% static 'js/file-upload-validation.js' %}"></script>
     <script>
+        function toggleFGDoc(show) {
+            const container = document.getElementById('fg_doc_container');
+            if (show) {
+                container.style.display = 'block';
+                // Optional: scroll into view
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {

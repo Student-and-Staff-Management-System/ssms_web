@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Student | Staff Admin</title>
+    <title>Generate Staff | Admin Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
         type="image/png">
@@ -191,24 +191,18 @@
     <nav class="top-nav">
         <div class="nav-container">
             <div class="nav-brand">
-                <span>✨</span> Generate Students
+                <span>✨</span> Generate Staff
             </div>
-            {% if is_admin %}
-            <a href="{% url 'admin:students_student_changelist' %}" class="back-btn">
-                &larr; Back to Student List
+            <a href="{% url 'admin:staffs_staff_changelist' %}" class="back-btn">
+                &larr; Back to Staff List
             </a>
-            {% else %}
-            <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">
-                &larr; Back to Dashboard
-            </a>
-            {% endif %}
         </div>
     </nav>
 
     <div class="main-container">
         <div class="card">
             <div class="card-header">
-                <h1>Bulk Student Generation</h1>
+                <h1>Bulk Staff Generation</h1>
                 <p>Generate accounts sequentially and export credentials.</p>
             </div>
 
@@ -223,17 +217,15 @@
             {% if show_preview %}
             <div class="alert-info">
                 <strong>Confirm Generation List</strong><br>
-                Please review the list below. Uncheck any Roll Numbers you do not wish to generate (e.g., discontinued
-                students).
+                Please review the list below. Uncheck any Staff IDs you do not wish to generate.
                 <br>Click "Confirm & Generate" to create accounts and download the CSV.
             </div>
 
             <form method="POST" action="">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="generate">
-                <input type="hidden" name="start_roll" value="{{ start_roll }}">
+                <input type="hidden" name="start_id" value="{{ start_id }}">
                 <input type="hidden" name="end_suffix" value="{{ end_suffix }}">
-                <input type="hidden" name="reset_existing" value="{{ reset_existing }}">
 
                 <div
                     style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px;">
@@ -244,7 +236,7 @@
                                     <input type="checkbox" id="selectAll" checked>
                                 </th>
                                 <th style="padding: 12px; text-align: left; border-bottom: 1px solid var(--border);">
-                                    Roll Number</th>
+                                    Staff ID</th>
                                 <th style="padding: 12px; text-align: left; border-bottom: 1px solid var(--border);">
                                     Status</th>
                             </tr>
@@ -253,10 +245,10 @@
                             {% for item in preview_list %}
                             <tr style="border-bottom: 1px solid var(--border);">
                                 <td style="padding: 12px;">
-                                    <input type="checkbox" name="selected_rolls" value="{{ item.roll }}"
-                                        class="roll-checkbox" {% if not item.exists %}checked{% endif %}>
+                                    <input type="checkbox" name="selected_ids" value="{{ item.id }}"
+                                        class="id-checkbox" {% if not item.exists %}checked{% endif %}>
                                 </td>
-                                <td style="padding: 12px;">{{ item.roll }}</td>
+                                <td style="padding: 12px;">{{ item.id }}</td>
                                 <td style="padding: 12px;">
                                     {% if item.exists %}
                                     <span style="color: #ef4444; font-weight: 500;">Already Exists</span>
@@ -271,13 +263,12 @@
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <a href="{% url 'staffs:generate_student' %}" class="btn-submit"
+                    <a href="{% url 'admin:staffs_staffgenerator_changelist' %}" class="btn-submit"
                         style="background: var(--text-muted); text-align: center; text-decoration: none; margin-top: 0;">Cancel</a>
                     <button type="submit" class="btn-submit" style="margin-top: 0;">Confirm & Generate (CSV)</button>
                 </div>
             </form>
 
-            <!-- Loading Overlay -->
             <div id="loadingOverlay"
                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; align-items: center; justify-content: center; flex-direction: column;">
                 <div class="spinner"
@@ -289,33 +280,25 @@
 
             <style>
                 @keyframes spin {
-                    0% {
-                        transform: rotate(0deg);
-                    }
-
-                    100% {
-                        transform: rotate(360deg);
-                    }
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
                 }
             </style>
 
             <script>
                 document.getElementById('selectAll').addEventListener('change', function (e) {
-                    const checkboxes = document.querySelectorAll('.roll-checkbox');
+                    const checkboxes = document.querySelectorAll('.id-checkbox');
                     checkboxes.forEach(cb => cb.checked = e.target.checked);
                 });
 
-                // Show loading on submit and poll for cookie
                 document.querySelector('form[action=""]').addEventListener('submit', function () {
                     const overlay = document.getElementById('loadingOverlay');
                     overlay.style.display = 'flex';
 
-                    // Poll for the download_complete cookie
                     const timer = setInterval(function () {
                         if (document.cookie.includes('download_complete=true')) {
                             clearInterval(timer);
                             overlay.style.display = 'none';
-                            // Clear the cookie
                             document.cookie = 'download_complete=; Max-Age=-99999999; path=/';
                         }
                     }, 1000);
@@ -326,9 +309,9 @@
 
             <div class="alert-info">
                 <strong>How it works:</strong><br>
-                Enter the starting Roll Number (e.g., <code>2338010001</code>) and the sequence number you want to end
-                at (e.g., <code>110</code> for ...110).
-                <br>The system will PREVIEW the list first, allowing you to remove specific numbers before generation.
+                Enter the starting Staff ID (e.g., <code>ST202401</code>) and the sequence number you want to end
+                at (e.g., <code>10</code> for ...10).
+                <br>The system will PREVIEW the list first, allowing you to remove specific IDs before generation.
             </div>
 
             <div class="tabs"
@@ -338,47 +321,45 @@
                     Generate</button>
                 <button type="button" onclick="switchTab('single')" id="tab-single"
                     style="padding: 10px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer;">Single
-                    Student</button>
+                    Staff</button>
             </div>
 
-            <!-- Bulk Form -->
             <form method="POST" id="form-bulk">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="preview">
 
                 <div class="form-group">
-                    <label for="start_roll">Start Roll Number</label>
-                    <input type="text" class="form-control" id="start_roll" name="start_roll"
-                        placeholder="e.g. 2338010001" value="{{ start_roll|default:'' }}" required>
+                    <label for="start_id">Start Staff ID</label>
+                    <input type="text" class="form-control" id="start_id" name="start_id"
+                        placeholder="e.g. ST202401" value="{{ start_id|default:'' }}" required>
                 </div>
 
                 <div class="form-group">
                     <label for="end_suffix">End Sequence Number (The last digits)</label>
-                    <input type="number" class="form-control" id="end_suffix" name="end_suffix" placeholder="e.g. 110"
+                    <input type="number" class="form-control" id="end_suffix" name="end_suffix" placeholder="e.g. 10"
                         value="{{ end_suffix|default:'' }}" required>
                 </div>
 
                 <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> Existing passwords will <strong>NOT</strong> be changed.
+                    <i class="fas fa-info-circle"></i> Existing staff will <strong>NOT</strong> be modified.
                 </p>
 
                 <button type="submit" class="btn-submit">Preview List</button>
             </form>
 
-            <!-- Single Form -->
             <form method="POST" id="form-single" style="display: none;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="generate_single">
 
                 <div class="form-group">
-                    <label for="single_roll">Student Roll Number</label>
-                    <input type="text" class="form-control" id="single_roll" name="single_roll"
-                        placeholder="e.g. 2338010055" value="{{ single_roll|default:'' }}">
+                    <label for="single_id">Staff ID</label>
+                    <input type="text" class="form-control" id="single_id" name="single_id"
+                        placeholder="e.g. ST202415" value="{{ single_id|default:'' }}">
                 </div>
 
                 <p style="font-size: 0.9em; color: var(--text-muted); margin-top: 10px;">
                     <i class="fas fa-exclamation-circle"></i> This will <strong>RESET</strong> the password for this
-                    specific student if they already exist.
+                    specific staff member if they already exist.
                 </p>
 
                 <button type="submit" class="btn-submit">Generate Single Pass</button>
@@ -392,34 +373,29 @@
                 });
 
                 function switchTab(tab) {
-                    // Hide all forms
                     document.getElementById('form-bulk').style.display = 'none';
                     document.getElementById('form-single').style.display = 'none';
 
-                    // Reset tab styles
                     document.getElementById('tab-bulk').style.borderBottomColor = 'transparent';
                     document.getElementById('tab-bulk').style.color = 'var(--text-muted)';
                     document.getElementById('tab-single').style.borderBottomColor = 'transparent';
                     document.getElementById('tab-single').style.color = 'var(--text-muted)';
 
-                    // Show selected
                     document.getElementById('form-' + tab).style.display = 'block';
                     document.getElementById('tab-' + tab).style.borderBottomColor = 'var(--primary)';
                     document.getElementById('tab-' + tab).style.color = 'var(--text-body)';
 
-                    // Add required attribute dynamically
                     if (tab === 'bulk') {
-                        document.getElementById('start_roll').setAttribute('required', '');
+                        document.getElementById('start_id').setAttribute('required', '');
                         document.getElementById('end_suffix').setAttribute('required', '');
-                        document.getElementById('single_roll').removeAttribute('required');
+                        document.getElementById('single_id').removeAttribute('required');
                     } else {
-                        document.getElementById('start_roll').removeAttribute('required');
+                        document.getElementById('start_id').removeAttribute('required');
                         document.getElementById('end_suffix').removeAttribute('required');
-                        document.getElementById('single_roll').setAttribute('required', '');
+                        document.getElementById('single_id').setAttribute('required', '');
                     }
                 }
 
-                // Attach cookie poller to both forms
                 const forms = ['form-bulk', 'form-single'];
                 forms.forEach(id => {
                     const form = document.getElementById(id);
@@ -430,21 +406,17 @@
                             const title = overlay.querySelector('h3');
                             const text = overlay.querySelector('p');
 
-                            // Reset overlay state
                             spinner.style.display = 'block';
                             title.innerText = 'Generating & Downloading...';
                             title.style.color = 'var(--primary)';
                             text.innerText = 'Please wait while we create the account.';
                             overlay.style.display = 'flex';
 
-                            // Poll for the download_complete cookie
                             const timer = setInterval(function () {
                                 if (document.cookie.includes('download_complete=true')) {
                                     clearInterval(timer);
-                                    // Clear the cookie
                                     document.cookie = 'download_complete=; Max-Age=-99999999; path=/';
 
-                                    // Show Success Message
                                     spinner.style.display = 'none';
                                     title.innerText = 'Success!';
                                     title.style.color = '#10b981';

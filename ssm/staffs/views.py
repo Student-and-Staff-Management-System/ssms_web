@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
+import random
+import string
 
 from .models import Staff, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog
 from students.models import Student
@@ -25,6 +27,12 @@ def stafflogin(request):
                 request.session['staff_id'] = staff.staff_id
                 from .utils import log_audit
                 log_audit(request, 'login', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, message='Staff logged in')
+                # First login / incomplete profile should go to registration page
+                # with preloaded identity details for completion.
+                if not staff.is_profile_complete:
+                    request.session['onboarding_staff_id'] = staff.staff_id
+                    messages.info(request, 'Please complete your profile before accessing dashboard.')
+                    return redirect('staffs:staff_register')
                 return redirect('staffs:staff_dashboard')
             else:
                 messages.error(request, 'Invalid Staff ID or Password.')
@@ -265,13 +273,37 @@ def staff_logout(request):
 from .forms import StaffRegistrationForm
 
 def staff_register(request):
+    onboarding_staff = None
+    onboarding_staff_id = request.session.get('onboarding_staff_id')
+    if onboarding_staff_id:
+        onboarding_staff = Staff.objects.filter(staff_id=onboarding_staff_id).first()
+
     if request.method == 'POST':
-        form = StaffRegistrationForm(request.POST, request.FILES)
+        if onboarding_staff:
+            form = StaffRegistrationForm(request.POST, request.FILES, instance=onboarding_staff)
+        else:
+            form = StaffRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             new_staff = form.save()
             from .utils import log_audit
-            log_audit(request, 'create', actor_type='system', actor_id='system', actor_name='System', object_type='Staff', object_id=new_staff.staff_id, message=f'New staff registered: {new_staff.name}')
-            messages.success(request, f"Staff member {new_staff.name} has been registered successfully.")
+            if onboarding_staff:
+                new_staff.is_profile_complete = True
+                new_staff.save(update_fields=['is_profile_complete'])
+                request.session.pop('onboarding_staff_id', None)
+                log_audit(
+                    request, 'update',
+                    actor_type='staff',
+                    actor_id=new_staff.staff_id,
+                    actor_name=new_staff.name,
+                    object_type='Staff',
+                    object_id=new_staff.staff_id,
+                    message='Staff onboarding profile completed'
+                )
+                messages.success(request, f"Welcome {new_staff.name}! Your profile is now complete.")
+                return redirect('staffs:staff_dashboard')
+            else:
+                log_audit(request, 'create', actor_type='system', actor_id='system', actor_name='System', object_type='Staff', object_id=new_staff.staff_id, message=f'New staff registered: {new_staff.name}')
+                messages.success(request, f"Staff member {new_staff.name} has been registered successfully.")
             return redirect('staffs:stafflogin')
         else:
             # Pass form errors to messages so they appear in the UI
@@ -279,9 +311,145 @@ def staff_register(request):
                 for error in errors:
                     messages.error(request, f"{field.title()}: {error}")
             # Render the form again with the entered data (optional, but good UX)
-            return render(request, 'staff/staffreg.html', {'form': form})
+            return render(request, 'staff/staffreg.html', {'form': form, 'onboarding_staff': onboarding_staff})
 
-    return render(request, 'staff/staffreg.html')
+    return render(request, 'staff/staffreg.html', {'onboarding_staff': onboarding_staff})
+
+
+def generate_staff(request):
+    """
+    Admin-only helper: generate temporary credentials for a staff record
+    using Staff ID + Name, then force profile completion on first login.
+    """
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        messages.error(request, "Access Denied: This page is available only in Admin Dashboard.")
+        return redirect('/admin/')
+
+    import csv
+    from django.http import HttpResponse
+
+    def next_temp_email(staff_id):
+        base_email = f"{staff_id.lower()}@temp.staff.local"
+        email_candidate = base_email
+        suffix = 1
+        while Staff.objects.filter(email=email_candidate).exclude(staff_id=staff_id).exists():
+            suffix += 1
+            email_candidate = f"{staff_id.lower()}{suffix}@temp.staff.local"
+        return email_candidate
+
+    def upsert_staff_identity(staff_id, name):
+        email_candidate = next_temp_email(staff_id)
+        defaults = {
+            'name': name,
+            'email': email_candidate,
+            'salutation': 'Mr.',
+            'designation': 'To be updated',
+            'qualification': 'To be updated',
+            'specialization': 'To be updated',
+            'department': 'Information Technology',
+            'is_profile_complete': False,
+        }
+        staff_obj, created = Staff.objects.get_or_create(staff_id=staff_id, defaults=defaults)
+        if not created:
+            update_fields = []
+            if staff_obj.name != name:
+                staff_obj.name = name
+                update_fields.append('name')
+            if not staff_obj.email:
+                staff_obj.email = email_candidate
+                update_fields.append('email')
+            if staff_obj.is_profile_complete:
+                staff_obj.is_profile_complete = False
+                update_fields.append('is_profile_complete')
+            if update_fields:
+                staff_obj.save(update_fields=update_fields)
+        return staff_obj, created
+
+    if request.method == 'POST':
+        action = request.POST.get('action', 'preview_bulk')
+
+        if action == 'preview_bulk':
+            bulk_input = (request.POST.get('bulk_input') or '').strip()
+            if not bulk_input:
+                messages.error(request, "Please enter at least one 'StaffID, Name' row.")
+                return render(request, 'staff/generate_staff.html')
+
+            preview_list = []
+            lines = [line.strip() for line in bulk_input.splitlines() if line.strip()]
+            for idx, line in enumerate(lines, start=1):
+                if ',' not in line:
+                    messages.error(request, f"Row {idx} invalid. Use format: STAFF_ID, Staff Name")
+                    return render(request, 'staff/generate_staff.html')
+                raw_id, raw_name = line.split(',', 1)
+                staff_id = raw_id.strip()
+                name = raw_name.strip()
+                if not staff_id or not name:
+                    messages.error(request, f"Row {idx} invalid. Staff ID and Name are required.")
+                    return render(request, 'staff/generate_staff.html')
+                exists = Staff.objects.filter(staff_id=staff_id).exists()
+                preview_list.append({'staff_id': staff_id, 'name': name, 'exists': exists})
+
+            return render(request, 'staff/generate_staff.html', {
+                'show_preview': True,
+                'preview_list': preview_list,
+                'bulk_input': bulk_input,
+            })
+
+        if action == 'generate_bulk':
+            selected_entries = request.POST.getlist('selected_entries')
+            if not selected_entries:
+                messages.error(request, "No staff selected for generation.")
+                return redirect('staffs:generate_staff')
+
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="generated_staff_credentials.csv"'
+            writer = csv.writer(response)
+            writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+
+            with transaction.atomic():
+                for entry in selected_entries:
+                    try:
+                        staff_id, name = entry.split('||', 1)
+                    except ValueError:
+                        continue
+
+                    already_exists = Staff.objects.filter(staff_id=staff_id).exists()
+                    staff_obj, _ = upsert_staff_identity(staff_id, name)
+                    if already_exists:
+                        pass_label = "Existing Password"
+                    else:
+                        temp_pass = "Tmp" + ''.join(random.choices(string.digits, k=5))
+                        staff_obj.set_password(temp_pass)
+                        staff_obj.save(update_fields=['password'])
+                        pass_label = temp_pass
+                    writer.writerow([staff_id, name, pass_label])
+
+            response.set_cookie('download_complete', 'true', max_age=20)
+            return response
+
+        if action == 'generate_single':
+            staff_id = (request.POST.get('single_staff_id') or '').strip()
+            name = (request.POST.get('single_name') or '').strip()
+            if not staff_id or not name:
+                messages.error(request, "Staff ID and Name are required.")
+                return redirect('staffs:generate_staff')
+
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="generated_staff_{staff_id}.csv"'
+            writer = csv.writer(response)
+            writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+
+            with transaction.atomic():
+                staff_obj, _ = upsert_staff_identity(staff_id, name)
+                temp_pass = "Tmp" + ''.join(random.choices(string.digits, k=5))
+                staff_obj.set_password(temp_pass)
+                staff_obj.save(update_fields=['password'])
+                writer.writerow([staff_id, name, temp_pass])
+
+            response.set_cookie('download_complete', 'true', max_age=20)
+            return response
+
+    return render(request, 'staff/generate_staff.html')
 
 
 def student_list(request):
@@ -1177,9 +1345,14 @@ def timetable(request):
             self.is_batch = True
             self.A = e1 if e1.batch == 'A' else e2
             self.B = e2 if e2.batch == 'B' else e1
+            self.staff = None
+
             class DummySubj:
                 id = 'BATCHED'
                 subject_type = 'Lab'
+                code = e1.subject.code if e1.subject and e2.subject and e1.subject.id == e2.subject.id else "LAB"
+                name = e1.subject.name if e1.subject and e2.subject and e1.subject.id == e2.subject.id else "Lab Session"
+
             self.subject = DummySubj()
             
     for entry in entries:
@@ -1187,8 +1360,19 @@ def timetable(request):
             curr = timetable_data[entry.day][entry.period-1]
             if curr is None:
                 timetable_data[entry.day][entry.period-1] = entry
-            else:
+            elif getattr(curr, 'is_batch', False):
+                # Keep the first complete batch-pair representation for this slot.
+                continue
+            elif curr.batch in ['A', 'B'] and entry.batch in ['A', 'B'] and curr.batch != entry.batch:
                 timetable_data[entry.day][entry.period-1] = BatchBlock(curr, entry)
+            elif curr.batch == 'All' and entry.batch in ['A', 'B']:
+                # Prefer explicit split-batch data over an older 'All' row.
+                timetable_data[entry.day][entry.period-1] = entry
+            elif curr.batch in ['A', 'B'] and entry.batch == 'All':
+                # Keep batch entry; it better represents LAB_SESSION slots.
+                continue
+            else:
+                timetable_data[entry.day][entry.period-1] = entry
 
     # Convert to list of tuples for template iteration: [('Monday', [p1, p2...]), ...]
     timetable_rows = []
@@ -1267,6 +1451,9 @@ def edit_timetable(request, semester):
     if request.method == 'POST':
         from .utils import send_staff_notification
         from django.db import transaction
+        VIRTUAL_SLOTS = ['LAB_SESSION', 'PLACEMENT', 'LIBRARY']
+        MORNING_LAB_BLOCKS = [(1, 2, 3), (2, 3, 4)]
+        AFTERNOON_LAB_BLOCK = (5, 6, 7)
         
         with transaction.atomic():
             for day in days:
@@ -1274,6 +1461,20 @@ def edit_timetable(request, semester):
                     sub_val = request.POST.get(f'subject_{day}_{period}')
                     lab_a_val = request.POST.get(f'lab_a_{day}_{period}')
                     lab_b_val = request.POST.get(f'lab_b_{day}_{period}')
+                    
+                    # Recover batch picks from linked 3-hour lab periods when hidden inputs
+                    # were attached only on leader/continuation slots.
+                    if sub_val == 'LAB_SESSION' and (not lab_a_val or not lab_b_val):
+                        related_periods = []
+                        for block in MORNING_LAB_BLOCKS + [AFTERNOON_LAB_BLOCK]:
+                            if period in block:
+                                related_periods = block
+                                break
+                        for p in related_periods:
+                            if not lab_a_val:
+                                lab_a_val = request.POST.get(f'lab_a_{day}_{p}') or lab_a_val
+                            if not lab_b_val:
+                                lab_b_val = request.POST.get(f'lab_b_{day}_{p}') or lab_b_val
                     
                     # Fetch existing entries for all batches
                     entries = list(Timetable.objects.filter(semester=semester, day=day, period=period))
@@ -1286,9 +1487,6 @@ def edit_timetable(request, semester):
                             entry.delete()
                         continue
 
-                    # If LAB_SESSION or some virtual slot is selected, we check batch inputs
-                    VIRTUAL_SLOTS = ['LAB_SESSION', 'PLACEMENT', 'LIBRARY']
-                    
                     # Helper to manage creation/update of a batch entry
                     def handle_batch_entry(batch_val, subj_id, virtual_sub=None):
                         # Locate existing entry for this batch
@@ -1341,6 +1539,11 @@ def edit_timetable(request, semester):
                                 pass
 
                     if sub_val == 'LAB_SESSION':
+                        # If no batch payload came from UI but A/B rows already exist, retain
+                        # existing assignments to avoid creating mid-session data holes.
+                        if not lab_a_val and not lab_b_val and any(e.batch in ['A', 'B'] for e in entries):
+                            continue
+
                         # Delete any 'All' batch entries
                         for entry in entries:
                             if entry.batch == 'All':
@@ -1369,9 +1572,38 @@ def edit_timetable(request, semester):
     # GET Request: Prepare grid data
     entries = Timetable.objects.filter(semester=semester)
     timetable_data = {day: [None]*7 for day in days}
+    
+    class BatchBlock:
+        def __init__(self, e1, e2):
+            self.is_batch = True
+            self.A = e1 if e1.batch == 'A' else e2
+            self.B = e2 if e2.batch == 'B' else e1
+            self.staff = None
+            class DummySubj:
+                id = 'LAB_SESSION'
+                subject_type = 'Lab'
+                code = e1.subject.code if e1.subject and e2.subject and e1.subject.id == e2.subject.id else "LAB"
+                name = e1.subject.name if e1.subject and e2.subject and e1.subject.id == e2.subject.id else "Lab Session"
+            self.subject = DummySubj()
+
     for entry in entries:
         if 1 <= entry.period <= 7:
-             timetable_data[entry.day][entry.period-1] = entry
+            curr = timetable_data[entry.day][entry.period-1]
+            if curr is None:
+                timetable_data[entry.day][entry.period-1] = entry
+            elif getattr(curr, 'is_batch', False):
+                # Keep first complete batch-pair representation in the slot.
+                continue
+            elif curr.batch in ['A', 'B'] and entry.batch in ['A', 'B'] and curr.batch != entry.batch:
+                timetable_data[entry.day][entry.period-1] = BatchBlock(curr, entry)
+            elif curr.batch == 'All' and entry.batch in ['A', 'B']:
+                # Prefer explicit split-batch data over an older 'All' record in same slot.
+                timetable_data[entry.day][entry.period-1] = entry
+            elif curr.batch in ['A', 'B'] and entry.batch == 'All':
+                # Keep batch entry; it better represents LAB_SESSION slots.
+                continue
+            else:
+                timetable_data[entry.day][entry.period-1] = entry
 
     timetable_rows = []
     for day in days:

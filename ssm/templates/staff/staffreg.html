@@ -330,7 +330,7 @@
         <div class="form-header">
             <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo">
             <h1>Staff Registration</h1>
-            <p>Enter the details for the new staff member.</p>
+            <p>{% if onboarding_staff %}Complete your profile to continue.{% else %}Enter the details for the new staff member.{% endif %}</p>
         </div>
 
         <!-- Django template syntax for messages -->
@@ -353,11 +353,11 @@
                     <div class="form-grid">
                         <div class="input-group">
                             <label for="staff_id">Staff ID</label>
-                            <input type="text" id="staff_id" name="staff_id" required>
+                            <input type="text" id="staff_id" name="staff_id" required value="{{ onboarding_staff.staff_id|default:'' }}" {% if onboarding_staff %}readonly{% endif %}>
                         </div>
                         <div class="input-group">
                             <label for="name">Full Name</label>
-                            <input type="text" id="name" name="name" required>
+                            <input type="text" id="name" name="name" required value="{{ onboarding_staff.name|default:'' }}" {% if onboarding_staff %}readonly{% endif %}>
                         </div>
                         <div class="input-group">
                             <label for="initial">Initial</label>
@@ -365,7 +365,7 @@
                         </div>
                         <div class="input-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" required>
+                            <input type="email" id="email" name="email" required value="{{ onboarding_staff.email|default:'' }}">
                         </div>
                         <div class="input-group">
                             <label for="password">Password</label>
@@ -418,7 +418,7 @@
 
             <div class="button-group">
                 <a href="{% url 'staffs:stafflogin' %}" class="cancel-btn">Cancel</a>
-                <button type="submit" class="submit-btn">Register Staff</button>
+                <button type="submit" class="submit-btn">{% if onboarding_staff %}Complete Profile{% else %}Register Staff{% endif %}</button>
             </div>
         </form>
     </div>

@@ -724,9 +724,10 @@ def student_editprofile(request):
     student_docs, _ = StudentDocuments.objects.get_or_create(student=student)
     bank_details, _ = BankDetails.objects.get_or_create(student=student)
     other_details, _ = OtherDetails.objects.get_or_create(student=student)
+    scholarship_info, _ = ScholarshipInfo.objects.get_or_create(student=student)
 
     if request.method == 'POST':
-        # Update student email
+        # Update student details
         student.student_email = request.POST.get('student_email')
         student.save()
         
@@ -746,10 +747,16 @@ def student_editprofile(request):
         bank_details.branch_name = request.POST.get('branch_name')
         bank_details.ifsc_code = request.POST.get('ifsc_code')
         bank_details.save()
+
+        # Update Scholarship Info
+        scholarship_info.is_first_graduate = (request.POST.get('is_first_graduate') == 'yes')
+        scholarship_info.save()
         
         # Update document uploads
         if 'student_photo' in request.FILES:
             student_docs.student_photo = request.FILES['student_photo']
+        if 'student_id_card' in request.FILES:
+            student_docs.student_id_card = request.FILES['student_id_card']
         if 'aadhaar_card' in request.FILES:
             student_docs.aadhaar_card = request.FILES['aadhaar_card']
         if 'community_certificate' in request.FILES:
@@ -764,6 +771,8 @@ def student_editprofile(request):
             student_docs.bank_passbook = request.FILES['bank_passbook']
         if 'driving_license' in request.FILES:
             student_docs.driving_license = request.FILES['driving_license']
+        if 'first_graduate_certificate' in request.FILES:
+            student_docs.first_graduate_certificate = request.FILES['first_graduate_certificate']
         
         student_docs.save()
         
@@ -778,6 +787,7 @@ def student_editprofile(request):
         'personalinfo': personal_info,
         'studentdocuments': student_docs,
         'bankdetails': bank_details,
+        'scholarshipinfo': scholarship_info,
         'otherdetails': other_details,
         'skills': student.skills.all(),
         'projects': student.projects.all(),

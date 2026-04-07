@@ -247,7 +247,7 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.0 and periods.0.subject and periods.0.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION">💻 Lab Session (3h)</option>
+                                            <option value="LAB_SESSION" {% if periods.0 and periods.0.is_batch %}selected{% endif %}>💻 Lab Session (3h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -271,7 +271,7 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.1 and periods.1.subject and periods.1.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION">💻 Lab Session (3h)</option>
+                                            <option value="LAB_SESSION" {% if periods.1 and periods.1.is_batch %}selected{% endif %}>💻 Lab Session (3h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -297,6 +297,7 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.2 and periods.2.subject and periods.2.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
+                                            <option value="LAB_SESSION" {% if periods.2 and periods.2.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -321,6 +322,7 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.3 and periods.3.subject and periods.3.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
+                                            <option value="LAB_SESSION" {% if periods.3 and periods.3.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -347,7 +349,7 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.4 and periods.4.subject and periods.4.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION">💻 Lab Session (3h)</option>
+                                            <option value="LAB_SESSION" {% if periods.4 and periods.4.is_batch %}selected{% endif %}>💻 Lab Session (3h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -371,6 +373,7 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.5 and periods.5.subject and periods.5.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
+                                            <option value="LAB_SESSION" {% if periods.5 and periods.5.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -394,6 +397,7 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.6 and periods.6.subject and periods.6.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
+                                            <option value="LAB_SESSION" {% if periods.6 and periods.6.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -517,59 +521,52 @@ function doMerge(day, startP, val){
     const isMorningLab = (want === 3 && (startP === 1 || startP === 2));
 
     if (isMorningLab && startP === 1) {
-        // P1 lab: [P1+P2 merged] [BREAK highlighted] [P3 continuation]
+        // P1 lab: single horizontal merge across P1 + P2 + BREAK + P3
         const mp = [1, 2, 3];
         const sl = new Set();
         mp.forEach(p=>{ const ex=MRG[day+'-'+p]; if(ex&&!sl.has(ex.leader)){sl.add(ex.leader);unmerge(day,ex.leader);} });
-        mp.forEach(p=>MRG[day+'-'+p]={leader:1, periods:mp, morningLab:true, hiddenP:2, contP:3, contColSpan:1});
+        mp.forEach(p=>MRG[day+'-'+p]={leader:1, periods:mp, morningLab:true, hiddenP:2, contP:3, contColSpan:1, mergedAcrossBreak:true});
 
         const leaderTd = document.getElementById('td-'+day+'-1');
-        leaderTd.colSpan = 2;               // P1 spans P1+P2 (DOM: P1→P2, no BREAK between)
+        leaderTd.colSpan = 4;               // P1 spans P1 + P2 + BREAK + P3
         leaderTd.classList.add('merged-active');
 
         const td2=document.getElementById('td-'+day+'-2'); td2.style.display='none';
         const sel2=document.getElementById('sel-'+day+'-2'); sel2.value=val;
 
         const brk=document.getElementById('break-'+day);
-        if(brk){ brk.classList.add('lab-break'); brk.textContent='\u2697'; }
+        if(brk){ brk.classList.add('lab-break'); brk.textContent='\u2697'; brk.style.display='none'; }
 
         const td3=document.getElementById('td-'+day+'-3');
         const sel3=document.getElementById('sel-'+day+'-3');
-        td3.classList.add('lab-cont-active'); sel3.value=val;
+        td3.style.display='none'; sel3.value=val;
 
         let bg='', bdr='';
         if(SPECIAL_INFO[val]){ bg=SPECIAL_INFO[val].bg; bdr=SPECIAL_INFO[val].bdr; }
         else { const col=colorMap[parseInt(val)]; if(col){bg=col.bg;bdr=col.bdr;} }
-        if(bg){ leaderTd.style.background=bg; leaderTd.style.borderLeft='4px solid '+bdr;
-                td3.style.background=bg; td3.style.borderLeft='4px solid '+bdr; }
-
-        const lc=document.getElementById('lc-'+day+'-3');
-        if(lc) lc.innerHTML='<span class="lc-icon">\u2697\ufe0f</span><span>Lab cont.</span>';
+        if(bg){ leaderTd.style.background=bg; leaderTd.style.borderLeft='4px solid '+bdr; }
         _buildMergedLabel(leaderTd, day, startP, val, 'Morning \u00b7 P1\u2013BREAK\u2013P3');
         return;
     }
 
     if (isMorningLab && startP === 2) {
-        // P2 lab: [P2 label only] [BREAK highlighted] [P3+P4 continuation (colSpan=2)]
-        // NOTE: DOM order is P2 → BREAK-td → P3 → P4
-        // colSpan=2 from P2 would absorb BREAK, so we keep P2 standalone and merge P3+P4 instead
+        // P2 lab: single horizontal merge across P2 + BREAK + P3 + P4
         const mp = [2, 3, 4];
         const sl = new Set();
         mp.forEach(p=>{ const ex=MRG[day+'-'+p]; if(ex&&!sl.has(ex.leader)){sl.add(ex.leader);unmerge(day,ex.leader);} });
-        mp.forEach(p=>MRG[day+'-'+p]={leader:2, periods:mp, morningLab:true, hiddenP:4, contP:3, contColSpan:2});
+        mp.forEach(p=>MRG[day+'-'+p]={leader:2, periods:mp, morningLab:true, hiddenP:4, contP:3, contColSpan:2, mergedAcrossBreak:true});
 
         const leaderTd2 = document.getElementById('td-'+day+'-2');
-        // NO colSpan change — P2 stays 1 column wide but shows merged label
+        leaderTd2.colSpan = 4;              // P2 spans P2 + BREAK + P3 + P4
         leaderTd2.classList.add('merged-active');
 
         const brk2=document.getElementById('break-'+day);
-        if(brk2){ brk2.classList.add('lab-break'); brk2.textContent='\u2697'; }
+        if(brk2){ brk2.classList.add('lab-break'); brk2.textContent='\u2697'; brk2.style.display='none'; }
 
-        // P3 spans P3+P4 (colSpan=2); P4 hidden
+        // Hide absorbed continuation cells
         const td3c=document.getElementById('td-'+day+'-3');
         const sel3c=document.getElementById('sel-'+day+'-3');
-        td3c.colSpan = 2;                   // P3→P4 (no BREAK between them in DOM)
-        td3c.classList.add('lab-cont-active');
+        td3c.style.display='none';
         sel3c.value = val;
 
         const td4=document.getElementById('td-'+day+'-4');
@@ -579,11 +576,7 @@ function doMerge(day, startP, val){
         let bg2='', bdr2='';
         if(SPECIAL_INFO[val]){ bg2=SPECIAL_INFO[val].bg; bdr2=SPECIAL_INFO[val].bdr; }
         else { const col=colorMap[parseInt(val)]; if(col){bg2=col.bg;bdr2=col.bdr;} }
-        if(bg2){ leaderTd2.style.background=bg2; leaderTd2.style.borderLeft='4px solid '+bdr2;
-                 td3c.style.background=bg2;  td3c.style.borderLeft='4px solid '+bdr2; }
-
-        const lc3=document.getElementById('lc-'+day+'-3');
-        if(lc3) lc3.innerHTML='<span class="lc-icon">\u2697\ufe0f</span><span>Lab cont.</span>';
+        if(bg2){ leaderTd2.style.background=bg2; leaderTd2.style.borderLeft='4px solid '+bdr2; }
         _buildMergedLabel(leaderTd2, day, startP, val, 'Morning \u00b7 P2\u2013BREAK\u2013P4');
         return;
     }
@@ -699,14 +692,14 @@ function unmerge(day, period){
         const selH=document.getElementById('sel-'+day+'-'+hiddenP); if(selH) selH.value='';
         applyNormal(day, hiddenP, '');
 
-        // Remove BREAK highlight
+        // Remove BREAK highlight and show break cell again if it was absorbed
         const brk=document.getElementById('break-'+day);
-        if(brk){ brk.classList.remove('lab-break'); brk.textContent='BREAK'; }
+        if(brk){ brk.classList.remove('lab-break'); brk.textContent='BREAK'; brk.style.display=''; }
 
         // Remove continuation cell styling and reset its colSpan
         const tdC=document.getElementById('td-'+day+'-'+contP);
         const selC=document.getElementById('sel-'+day+'-'+contP);
-        if(tdC){ tdC.classList.remove('lab-cont-active'); tdC.style.background=''; tdC.style.borderLeft=''; tdC.colSpan=1; }
+        if(tdC){ tdC.classList.remove('lab-cont-active'); tdC.style.background=''; tdC.style.borderLeft=''; tdC.colSpan=1; tdC.style.display=''; }
         if(selC) selC.value='';
         applyNormal(day, contP, '');
         const lc=document.getElementById('lc-'+day+'-'+contP); if(lc) lc.innerHTML='';
@@ -797,22 +790,38 @@ function onSel(day, period){
 
 function clearCell(day, period){
     const key = day+'-'+period;
-    const state = MRG[key];
+    let state = MRG[key];
+
+    // If this exact period is not marked (edge DOM cases), resolve to any merge
+    // that covers this contiguous group so one clear action resets the full block.
+    if (!state) {
+        const grp = getGroup(period);
+        for (const p of grp) {
+            const candidate = MRG[day+'-'+p];
+            if (candidate) {
+                state = candidate;
+                break;
+            }
+        }
+    }
+
     if (state) {
         const leader = state.leader;
         unmerge(day, leader);            // unmerge restores all cells
-        // Now fully clear the leader cell (unmerge leaves it with its old value)
-        const leadSel = document.getElementById('sel-'+day+'-'+leader);
-        if (leadSel) leadSel.value = '';
-        
+
+        // Fully clear all periods from this merged block.
+        state.periods.forEach(p => {
+            const sel = document.getElementById('sel-'+day+'-'+p);
+            if (sel) sel.value = '';
+            applyNormal(day, p, '');
+        });
+
         state.periods.forEach(p => {
             ['a', 'b'].forEach(b => {
                 const hiddenInput = document.getElementById(`hidden-lab-${b}-${day}-${p}`);
                 if (hiddenInput) hiddenInput.remove();
             });
         });
-        
-        applyNormal(day, leader, '');    // show 'Empty'
     } else {
         const sel = document.getElementById('sel-'+day+'-'+period);
         if (sel) sel.value = '';

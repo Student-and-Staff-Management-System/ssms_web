@@ -142,12 +142,12 @@ class StudentGeneratorAdmin(admin.ModelAdmin):
             
             try:
                 if action == 'preview':
-                    start_roll = request.POST.get('start_roll')
-                    end_suffix = request.POST.get('end_suffix') # e.g. 110
+                    start_roll = request.POST.get('start_roll', '').strip()
+                    end_suffix = request.POST.get('end_suffix', '').strip()
                     
                     if not start_roll or not end_suffix:
                         messages.error(request, "Start Roll Number and End Suffix are required.")
-                        return render(request, 'staff/generate_student.html', {'is_admin': True})
+                        return render(request, 'staff/generate_student.html', {'is_admin': True, 'active_tab': 'bulk', 'start_roll': start_roll, 'end_suffix': end_suffix})
                     
                     n = len(end_suffix)
                     if n > len(start_roll):
@@ -220,11 +220,11 @@ class StudentGeneratorAdmin(admin.ModelAdmin):
                     return response
                 
                 elif action == 'generate_single':
-                    single_roll = request.POST.get('single_roll').strip()
+                    single_roll = request.POST.get('single_roll', '').strip()
                     
                     if not single_roll:
                          messages.error(request, "Please enter a Roll Number.")
-                         return redirect('admin:students_studentgenerator_changelist')
+                         return render(request, 'staff/generate_student.html', {'is_admin': True, 'active_tab': 'single', 'single_roll': single_roll})
                          
                     response = HttpResponse(content_type='text/csv')
                     filename = f"generated_student_{single_roll}.csv"
