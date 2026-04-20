@@ -142,6 +142,9 @@
                         <div class="detail-item" style="grid-column: 1 / -1;"><strong>Address</strong>
                             <span>{{student.personalinfo.present_address|default:"-" }}</span>
                         </div>
+                        <div class="detail-item"><strong>Hostel Status</strong>
+                            <span>{% if student.personalinfo.is_hosteler %}Hosteler{% else %}Day Scholar{% endif %}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -251,6 +254,24 @@
                             <span>Not Uploaded</span>
                             {% endif %}
                         </div>
+                        <div class="document-link-item">
+                            <strong>Tuition Fee Challan</strong>
+                            {% if student.studentdocuments.tuition_fee_challan %}
+                            <a href="{{ student.studentdocuments.tuition_fee_challan.url }}" target="_blank" rel="noopener">View</a>
+                            {% else %}
+                            <span>Not Uploaded</span>
+                            {% endif %}
+                        </div>
+                        {% if student.personalinfo.is_hosteler %}
+                        <div class="document-link-item">
+                            <strong>Hostel Fee Challan</strong>
+                            {% if student.studentdocuments.hostel_fee_challan %}
+                            <a href="{{ student.studentdocuments.hostel_fee_challan.url }}" target="_blank" rel="noopener">View</a>
+                            {% else %}
+                            <span>Not Uploaded</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -270,6 +291,7 @@
                                 {% if student.scholarshipinfo.is_first_graduate %}<li>First Graduate</li>{% endif %}
                                 {% if student.scholarshipinfo.sch_govt %}<li>Govt 7.5% Quota</li>{% endif %}
                                 {% if student.scholarshipinfo.sch_postmetric %}<li>Post-Matric</li>{% endif %}
+                                {% if student.scholarshipinfo.is_7_5_reservation %}<li>7.5% Reservation (UG/Research)</li>{% endif %}
                             </ul>
                         </div>
                         {% endif %}

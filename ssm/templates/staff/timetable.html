@@ -1,519 +1,565 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timetable | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
-    <style>
-        :root {
-            --primary-color: #5a7d7c;
-            --secondary-color: #4a6b69;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #2c3e50;
-            --text-muted: #7f8c8d;
-            --border-color: #e2e8f0;
-            --soft-teal: #e9f4f3;
-            --soft-teal-2: #dff0ef;
-            --soft-break: #edf3f3;
-            --radius: 12px;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timetable | {{ staff.name }}</title>
+  <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       TOKENS & VARIABLES
+    ═══════════════════════════════════════════════════════ */
+    :root {
+      --teal-50:   #e1f5ee;
+      --teal-100:  #9fe1cb;
+      --teal-200:  #5dcaa5;
+      --teal-400:  #1d9e75;
+      --teal-600:  #0f6e56;
+      --teal-800:  #085041;
+      
+      --amber-50:  #fef9ee;
+      --amber-100: #fde7b3;
+      --amber-200: #f9c96a;
+      --amber-400: #e8960c;
+      --amber-600: #a96606;
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
+      --gray-50:   #f7f8f7;
+      --gray-100:  #eceeed;
+      --gray-200:  #d3d5d3;
+      --gray-300:  #b5b8b5;
+      --gray-400:  #9ea09e;
+      --gray-600:  #5f5e5a;
+      --gray-800:  #2c2c2a;
 
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
+      --bg:        #f2f5f4;
+      --surface:   #ffffff;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      
+      --shadow-sm: 0 2px 4px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.02);
+      --shadow-md: 0 6px 12px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 20px 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
+      --ff: 'DM Sans', sans-serif;
+      --fm: 'DM Mono', monospace;
+    }
 
-        .btn-back {
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background 0.3s ease;
-        }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .btn-back:hover {
-            background: var(--secondary-color);
-        }
+    body {
+      font-family: var(--ff);
+      background: var(--bg);
+      color: var(--gray-800);
+      min-height: 100vh;
+      padding: 24px 16px 56px;
+    }
 
-        .semester-filter {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: var(--shadow);
-            flex-wrap: wrap;
-            border: 1px solid var(--border-color);
-        }
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-        select {
-            padding: 8px 15px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
-            color: var(--text-main);
-            background: #fff;
-        }
+    /* ═══════════════════════════════════════════════════════
+       HEADER & FILTER BAR (Retained & Polished)
+    ═══════════════════════════════════════════════════════ */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
 
-        select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15);
-        }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    
+    .header-avatar {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-md);
+      background: var(--teal-50);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 700; color: var(--teal-600);
+    }
 
-        button.btn-view {
-            background: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 9px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: background 0.3s ease;
-        }
+    .header-info h1 { font-size: 1.15rem; font-weight: 600; color: var(--gray-800); }
+    .header-info p { font-size: 0.85rem; color: var(--gray-600); margin-top: 4px; }
 
-        button.btn-view:hover {
-            background: var(--primary-color);
-        }
+    .header-actions, .filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    
+    .filter-bar {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 12px 20px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
 
-        .btn-edit {
-            background: #fff;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            padding: 9px 14px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
+    .filter-label { font-size: 0.85rem; font-weight: 600; color: var(--gray-600); }
+    .filter-bar select {
+      font-family: var(--ff); font-size: 0.85rem; font-weight: 500;
+      padding: 8px 32px 8px 12px;
+      border-radius: var(--radius-sm); border: 1px solid var(--gray-200);
+      background-color: var(--gray-50); cursor: pointer; outline: none;
+    }
+    .filter-bar select:focus { border-color: var(--teal-400); }
 
-        .btn-edit:hover {
-            background: var(--primary-color);
-            color: #fff;
-        }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--ff); font-size: 0.85rem; font-weight: 600;
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-primary { background: var(--teal-400); color: #fff; }
+    .btn-primary:hover { background: var(--teal-600); transform: translateY(-1px); }
+    .btn-outline { background: var(--surface); color: var(--teal-600); border: 1px solid var(--teal-200); }
+    .btn-outline:hover { background: var(--teal-50); }
+    .btn-warning { background: var(--amber-50); color: var(--amber-600); border: 1px solid var(--amber-200); }
+    .btn-warning:hover { background: var(--amber-100); }
 
-        .timetable-container {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-        }
+    /* ═══════════════════════════════════════════════════════
+       MODERN GRID TIMETABLE
+    ═══════════════════════════════════════════════════════ */
+    .tt-container {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--gray-200);
+      padding: 20px;
+      overflow-x: auto; /* Handles smaller screens seamlessly */
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1000px;
-        }
+    .tt-grid-wrapper {
+      min-width: 1050px; /* Ensures minimum readable width */
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-        th,
-        td {
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            text-align: center;
-            vertical-align: middle;
-        }
+    /* 10-column layout: Day(1) + P1,P2(2) + Break(1) + P3,P4(2) + Lunch(1) + P5,P6,P7(3) */
+    .tt-row, .tt-header-row {
+      display: grid;
+      grid-template-columns: 80px repeat(2, minmax(110px, 1fr)) 36px repeat(2, minmax(110px, 1fr)) 36px repeat(3, minmax(110px, 1fr));
+      gap: 10px;
+    }
 
-        th {
-            background: var(--soft-teal);
-            color: var(--primary-color);
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
+    /* --- Header Row --- */
+    .tt-header-cell {
+      padding: 12px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--teal-600);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+      background: var(--teal-50);
+      border-radius: var(--radius-sm);
+    }
+    .tt-header-cell.day-col { background: transparent; color: var(--gray-400); text-align: left; padding-left: 10px; }
+    .tt-header-cell.break-col { background: var(--gray-100); color: var(--gray-400); }
 
-        .day-column {
-            font-weight: 600;
-            background: #f8fbfb;
-            width: 100px;
-        }
+    /* --- Timetable Rows --- */
+    .tt-day {
+      display: flex; align-items: center; justify-content: flex-start;
+      font-weight: 700; color: var(--gray-800); font-size: 0.95rem;
+      padding-left: 10px;
+    }
 
-        .break-column {
-            background: var(--soft-break);
-            color: var(--text-muted);
-            font-weight: 600;
-            width: 40px;
-            writing-mode: vertical-rl;
-            text-orientation: upright;
-            padding: 5px;
-        }
+    .tt-break {
+      background: var(--gray-50);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+      color: var(--gray-400);
+    }
+    
+    /* When a lab bridges across a break */
+    .tt-break.bridged {
+      background: var(--teal-50);
+      color: var(--teal-600);
+      border: 1px dashed var(--teal-300);
+    }
 
-        .subject-cell {
-            padding: 15px 5px;
-            transition: background 0.2s ease;
-        }
+    /* --- Time Slots / Cards --- */
+    .tt-slot {
+      background: var(--surface);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 6px;
+      transition: all 0.2s ease;
+    }
 
-        tbody tr:hover .subject-cell {
-            background: #f7fbfb;
-        }
+    .tt-slot:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+      border-color: var(--teal-200);
+      transform: translateY(-2px);
+    }
 
-        .subject-code {
-            display: block;
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 3px;
-        }
+    .tt-slot.empty {
+      background: transparent;
+      border: 1px dashed var(--gray-200);
+      box-shadow: none;
+      color: var(--gray-300);
+    }
+    .tt-slot.empty:hover { transform: none; box-shadow: none; border-color: var(--gray-300); }
 
-        .staff-name {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
+    .tt-slot.theory {
+      border-top: 3px solid var(--gray-300);
+    }
 
-        .empty-slot {
-            color: #ccc;
-            font-style: italic;
-            font-size: 0.8rem;
-        }
+    .tt-slot.lab {
+      background: var(--teal-50);
+      border-color: var(--teal-200);
+      border-top: 4px solid var(--teal-400);
+    }
 
-        @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
+    /* Span utilities replace colspan */
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: span 3; }
 
-            .semester-filter {
-                flex-direction: column;
-                align-items: stretch;
-            }
+    /* --- Card Content Inner --- */
+    .slot-code {
+      font-family: var(--fm); font-size: 0.85rem; font-weight: 600;
+      color: var(--gray-800); line-height: 1.1;
+    }
+    .lab .slot-code { color: var(--teal-800); }
 
-            .timetable-container {
-                padding: 5px;
-            }
+    .slot-staff { font-size: 0.7rem; font-weight: 500; color: var(--gray-600); }
+    
+    .slot-badge {
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 99px; letter-spacing: 0.05em;
+      background: var(--teal-100); color: var(--teal-800); margin-top: 2px;
+    }
 
-            th,
-            td {
-                padding: 5px;
-                font-size: 0.8rem;
-            }
-        }
-        /* Lab merged cell highlight */
-        .lab-cell {
-            background: linear-gradient(135deg, var(--soft-teal) 0%, var(--soft-teal-2) 100%);
-            border-left: 4px solid var(--primary-color) !important;
-            box-shadow: inset 0 0 15px rgba(90, 125, 124, 0.05);
-        }
-        .lab-cell .subject-code { color: var(--primary-color); font-weight: 700; }
-        .lab-cont {
-            background: var(--soft-teal);
-            border-left: 2px solid var(--primary-color) !important;
-            opacity: 0.9;
-        }
+    /* --- Batch styling inside slot --- */
+    .batch-container {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 2px;
+    }
+    .batch-pill {
+      font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+    }
+    .batch-a { background: var(--surface); color: var(--teal-800); border: 1px solid var(--teal-200); }
+    .batch-b { background: var(--amber-50); color: var(--amber-600); border: 1px solid var(--amber-200); }
 
-        /* Bridge styling to connect across BREAK/LUNCH */
-        .bridge-active {
-            background: var(--soft-teal) !important;
-            color: var(--primary-color) !important;
-            position: relative;
-            opacity: 0.8;
-            border-left: none !important;
-            border-right: none !important;
-        }
-
-        /* Batch styling improvements */
-        .batch-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            margin-top: 5px;
-            flex-wrap: wrap;
-        }
-        .batch-badge {
-            font-size: 0.68rem;
-            padding: 2px 8px;
-            border-radius: 20px;
-            background: #fff;
-            border: 1px solid var(--border-color);
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .batch-badge.a { border-color: #5a7d7c; color: #5a7d7c; }
-        .batch-badge.b { border-color: #7d9f9e; color: #4a6b69; background: #f7fbfb; }
-
-        .cont-label {
-            display: block;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--primary-color);
-            font-weight: 600;
-            opacity: 0.7;
-            margin-top: 4px;
-        }
-
-        /* Seamless Merge Helpers */
-        .no-border-right { border-right: none !important; }
-        .no-border-left { border-left: none !important; }
-        .bridge-active {
-            background: var(--soft-teal) !important;
-            color: var(--primary-color) !important;
-            border-left: none !important;
-            border-right: none !important;
-            opacity: 1 !important;
-        }
-        .seamless-merged {
-            border-right: none !important;
-            border-left: none !important;
-            box-shadow: none !important;
-        }
-    </style>
+    /* ═══════════════════════════════════════════════════════
+       LEGEND
+    ═══════════════════════════════════════════════════════ */
+    .legend {
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+      padding: 16px 24px; background: var(--surface);
+      border-radius: var(--radius-md); border: 1px solid var(--gray-200);
+    }
+    .legend-heading { font-size: 0.75rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.05em; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 500; color: var(--gray-800); }
+    .legend-swatch { width: 14px; height: 14px; border-radius: 4px; }
+  </style>
 </head>
-
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <header class="page-header">
-            <h1 style="color: var(--primary-color); margin: 0; font-size: 1.5rem;">📅 Class Timetable</h1>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Back to Dashboard</a>
-        </header>
+<div class="page">
 
-        <!-- Filter -->
-        <form method="GET" class="semester-filter">
-            <label for="semester" style="font-weight: 500;">Select Semester:</label>
-            <select name="semester" id="semester">
-                {% for sem in semesters %}
-                <option value="{{ sem }}" {% if sem == selected_semester %}selected{% endif %}>Semester {{ sem }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn-view">View Timetable</button>
-            {% if staff.role == 'HOD' %}
-            <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn-edit">✏️ Edit Timetable</a>
-            <a href="{% url 'staffs:assign_lab_batches' %}?semester={{ selected_semester }}" class="btn-edit" style="background: #e67e22;">👥 Assign Lab Batches</a>
-            {% endif %}
-        </form>
-
-        <!-- Timetable -->
-        <div class="timetable-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="day-column">Day / Time</th>
-                        <th>08.30<br>to<br>09.30</th>
-                        <th>09.30<br>to<br>10.30</th>
-                        <th class="break-column">BREAK</th>
-                        <th>10.40<br>to<br>11.40</th>
-                        <th>11.40<br>to<br>12.40</th>
-                        <th class="break-column">LUNCH</th>
-                        <th>01.30<br>to<br>02.30</th>
-                        <th>02.30<br>to<br>03.30</th>
-                        <th>03.30<br>to<br>04.30</th>
-                    </tr>
-                              <tbody>
-                    {% for day, periods in timetable_rows %}
-                    {% with p1=periods.0 p2=periods.1 p3=periods.2 p4=periods.3 p5=periods.4 p6=periods.5 p7=periods.6 %}
-                    <tr>
-                        <td class="day-column">{{ day }}</td>
-
-                        {# ── P1 Block ── #}
-                        {# Case: P1-P2-P3 Merged #}
-                        {% if p1 and p2 and p3 and p1.subject and p2.subject and p3.subject and p1.subject.id == p2.subject.id and p2.subject.id == p3.subject.id and p1.subject.id != 'BATCHED' %}
-                            <td class="subject-cell lab-cell no-border-right" colspan="2">
-                                <span class="subject-code">{{ p1.subject.code }}</span>
-                                {% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
-                                <span class="cont-label">3H Session</span>
-                            </td>
-                        {# Case: P1-P2 Merged #}
-                        {% elif p1 and p2 and p1.subject and p2.subject and p1.subject.id == p2.subject.id and p1.subject.id != 'BATCHED' or p1.is_batch and p2.is_batch and p1.A.subject.id == p2.A.subject.id and p1.B.subject.id == p2.B.subject.id %}
-                            <td class="subject-cell lab-cell" colspan="2">
-                                {% if p1.is_batch %}
-                                <div class="batch-container">
-                                    <div class="batch-badge a">A: {{ p1.A.subject.code|default:"-" }}</div>
-                                    <div class="batch-badge b">B: {{ p1.B.subject.code|default:"-" }}</div>
-                                </div>
-                                <span class="staff-name" style="margin-top:4px;">👤 {{ p1.A.staff.name|default:"-" }} & {{ p1.B.staff.name|default:"-" }}</span>
-                                {% else %}
-                                <span class="subject-code">{{ p1.subject.code }}</span>
-                                {% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
-                                {% endif %}
-                                <span class="cont-label">2H Session</span>
-                            </td>
-                        {% else %}
-                            <td class="subject-cell">
-                                {% if p1.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p1.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p1.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p1 and p1.subject %}<span class="subject-code">{{ p1.subject.code }}</span>{% if p1.staff %}<span class="staff-name">{{ p1.staff.name }}</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                            <td class="subject-cell {% if p2 and p3 and p2.subject.id == p3.subject.id or p2 and p4 and p2.subject.id == p4.subject.id %}lab-cell no-border-right{% endif %}">
-                                {% if p2.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p2.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p2.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p2 and p2.subject %}<span class="subject-code">{{ p2.subject.code }}</span>{% if p2.staff %}<span class="staff-name">{{ p2.staff.name }}</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                        {% endif %}
-
-                        {# BRIDGE BREAK: Seamlessly highlight if P2 continues into P3 or P4 #}
-                        <td class="break-column {% if p2 and p3 and p2.subject.id == p3.subject.id or p2 and p4 and p2.subject.id == p4.subject.id %}bridge-active{% endif %}">B</td>
-
-                        {# ── P3-P4 Block ── #}
-                        {# Case: P2-P3-P4 Merged (Unified 3H Box across Break) #}
-                        {% if p3 and p4 and p2 and p3.subject and p4.subject and p2.subject and p2.subject.id == p3.subject.id and p3.subject.id == p4.subject.id %}
-                            <td class="subject-cell lab-cell no-border-left" colspan="2">
-                                <span class="subject-code">{{ p3.subject.code }}</span>
-                                {% if p3.staff %}<span class="staff-name">{{ p3.staff.name }}</span>{% endif %}
-                                <span class="cont-label">P2-P4 Merged</span>
-                            </td>
-                        {# Case: P3-P4 Merged (Standard 2H) #}
-                        {% elif p3 and p4 and p3.subject and p4.subject and p3.subject.id == p4.subject.id and p3.subject.id != 'BATCHED' or p3.is_batch and p4.is_batch and p3.A.subject.id == p4.A.subject.id and p3.B.subject.id == p4.B.subject.id %}
-                            <td class="subject-cell lab-cell {% if p3 and p2 and p3.subject.id == p2.subject.id %}no-border-left{% endif %}" colspan="2">
-                                {% if p3.is_batch %}
-                                <div class="batch-container">
-                                    <div class="batch-badge a">A: {{ p3.A.subject.code|default:"-" }}</div>
-                                    <div class="batch-badge b">B: {{ p3.B.subject.code|default:"-" }}</div>
-                                </div>
-                                <span class="staff-name" style="margin-top:4px;">👤 {{ p3.A.staff.name|default:"-" }} & {{ p3.B.staff.name|default:"-" }}</span>
-                                {% else %}
-                                <span class="subject-code">{{ p3.subject.code }}</span>
-                                {% if p3.staff %}<span class="staff-name">{{ p3.staff.name }}</span>{% endif %}
-                                {% endif %}
-                                <span class="cont-label">Merged Session</span>
-                            </td>
-                        {# Case: Individual P3 / P4 #}
-                        {% else %}
-                            <td class="subject-cell {% if p3 and p2 and p3.subject and p2.subject and p3.subject.id == p2.subject.id %}lab-cell no-border-left{% endif %}">
-                                {% if p3.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p3.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p3.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p3 and p3.subject %}<span class="subject-code">{{ p3.subject.code }}</span>{% if p3.staff %}<span class="staff-name">{{ p3.staff.name }}</span>{% endif %}
-                                {% if p3 and p2 and p3.subject.id == p2.subject.id %}<span class="cont-label">Cont.</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                            <td class="subject-cell {% if p4 and p2 and p4.subject and p2.subject and p4.subject.id == p2.subject.id %}lab-cell{% endif %}">
-                                {% if p4.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p4.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p4.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p4 and p4.subject %}<span class="subject-code">{{ p4.subject.code }}</span>{% if p4.staff %}<span class="staff-name">{{ p4.staff.name }}</span>{% endif %}
-                                {% if p4 and p2 and p4.subject.id == p2.subject.id %}<span class="cont-label">Final</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                        {% endif %}
-
-                        {# BRIDGE LUNCH: Highlight if P4 == P5 #}
-                        <td class="break-column {% if p4 and p5 and p4.subject and p5.subject and p4.subject.id == p5.subject.id %}bridge-active{% endif %}">L</td>
-
-                        {# ── P5, P6, P7 ── #}
-                        {% if p5 and p6 and p7 and p5.subject and p6.subject and p7.subject and p5.subject.id == p6.subject.id and p6.subject.id == p7.subject.id %}
-                            <td class="subject-cell lab-cell" colspan="3">
-                                {% if p5.is_batch %}
-                                <div class="batch-container">
-                                    <div class="batch-badge a">A: {{ p5.A.subject.code|default:"-" }}</div>
-                                    <div class="batch-badge b">B: {{ p5.B.subject.code|default:"-" }}</div>
-                                </div>
-                                <span class="staff-name" style="margin-top:4px;">👤 {{ p5.A.staff.name|default:"-" }} & {{ p5.B.staff.name|default:"-" }}</span>
-                                {% else %}
-                                <span class="subject-code">{{ p5.subject.code }}</span>
-                                {% if p5.staff %}<span class="staff-name">{{ p5.staff.name }}</span>{% endif %}
-                                {% endif %}
-                                <span class="cont-label">3H Special Session</span>
-                            </td>
-                        {% elif p5 and p6 and p5.subject and p6.subject and p5.subject.id == p6.subject.id %}
-                            <td class="subject-cell lab-cell" colspan="2">
-                                {% if p5.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p5.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p5.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% else %}
-                                    <span class="subject-code">{{ p5.subject.code }}</span>
-                                    {% if p5.staff %}<span class="staff-name">{{ p5.staff.name }}</span>{% endif %}
-                                {% endif %}
-                                <span class="cont-label">Merged</span>
-                            </td>
-                            <td class="subject-cell">
-                                {% if p7.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p7.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p7.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p7 and p7.subject %}<span class="subject-code">{{ p7.subject.code }}</span>{% if p7.staff %}<span class="staff-name">{{ p7.staff.name }}</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                        {% else %}
-                            <td class="subject-cell">
-                                {% if p5.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p5.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p5.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p5 and p5.subject %}<span class="subject-code">{{ p5.subject.code }}</span>{% if p5.staff %}<span class="staff-name">{{ p5.staff.name }}</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                            <td class="subject-cell">
-                                {% if p6.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p6.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p6.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p6 and p6.subject %}<span class="subject-code">{{ p6.subject.code }}</span>{% if p6.staff %}<span class="staff-name">{{ p6.staff.name }}</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                            <td class="subject-cell">
-                                {% if p7.is_batch %}
-                                    <div class="batch-container">
-                                        <div class="batch-badge a">A: {{ p7.A.subject.code|default:"-" }}</div>
-                                        <div class="batch-badge b">B: {{ p7.B.subject.code|default:"-" }}</div>
-                                    </div>
-                                {% elif p7 and p7.subject %}<span class="subject-code">{{ p7.subject.code }}</span>{% if p7.staff %}<span class="staff-name">{{ p7.staff.name }}</span>{% endif %}
-                                {% else %}<span class="empty-slot">-</span>{% endif %}
-                            </td>
-                        {% endif %}
-                    </tr>
-                    {% endwith %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <header class="header">
+    <div class="header-left">
+      <div class="header-avatar">{{ staff.name|slice:":2"|upper }}</div>
+      <div class="header-info">
+        <h1>{{ staff.name }}</h1>
+        <p>{{ staff.department }} &nbsp;·&nbsp; {{ staff.designation|default:"Faculty" }}{% if staff.role == 'HOD' %} &nbsp;·&nbsp; <strong>HOD</strong>{% endif %}</p>
+      </div>
     </div>
-</body>
+    <div class="header-actions">
+      <a href="{% url 'staffs:staff_dashboard' %}" class="btn btn-primary">Dashboard</a>
+    </div>
+  </header>
 
+  <form method="GET" class="filter-bar">
+    <span class="filter-label">Semester</span>
+    <select name="semester" id="semester">
+      {% for sem in semesters %}
+        <option value="{{ sem }}" {% if sem == selected_semester %}selected{% endif %}>Semester {{ sem }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">View</button>
+
+    {% if staff.role == 'HOD' %}
+      <div style="width: 1px; height: 24px; background: var(--gray-200); margin: 0 4px;"></div>
+      <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn btn-outline">Edit Timetable</a>
+      <a href="{% url 'staffs:assign_lab_batches' %}?semester={{ selected_semester }}" class="btn btn-warning">Assign Batches</a>
+    {% endif %}
+  </form>
+
+  <div class="tt-container">
+    <div class="tt-grid-wrapper">
+      
+      <div class="tt-header-row">
+        <div class="tt-header-cell day-col">Day</div>
+        <div class="tt-header-cell">08:30 – 09:30</div>
+        <div class="tt-header-cell">09:30 – 10:30</div>
+        <div class="tt-header-cell break-col">BRK</div>
+        <div class="tt-header-cell">10:40 – 11:40</div>
+        <div class="tt-header-cell">11:40 – 12:40</div>
+        <div class="tt-header-cell break-col">LCH</div>
+        <div class="tt-header-cell">13:30 – 14:30</div>
+        <div class="tt-header-cell">14:30 – 15:30</div>
+        <div class="tt-header-cell">15:30 – 16:30</div>
+      </div>
+
+      {% for day, periods in timetable_rows %}
+        {% with p1=periods.0 p2=periods.1 p3=periods.2 p4=periods.3 p5=periods.4 p6=periods.5 p7=periods.6 %}
+        <div class="tt-row">
+          
+          <div class="tt-day">{{ day }}</div>
+
+          {% if p1 and p2 and p1.subject and p2.subject and p1.subject.id == p2.subject.id and not p1.is_batch and not p2.is_batch %}
+            <div class="tt-slot lab span-2" title="{{ p1.subject.name }}">
+              <span class="slot-code">{{ p1.subject.code }}</span>
+              {% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}
+              <span class="slot-badge">2h Lab</span>
+            </div>
+          {% elif p1 and p2 and p1.is_batch and p2.is_batch and p1.A.subject and p2.A.subject and p1.A.subject.id == p2.A.subject.id and p1.B.subject and p2.B.subject and p1.B.subject.id == p2.B.subject.id %}
+            <div class="tt-slot lab span-2">
+              <div class="batch-container">
+                <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
+                <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
+              </div>
+              <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
+              <span class="slot-badge">2h Lab</span>
+            </div>
+          {% else %}
+            {% if p1 %}
+              <div class="tt-slot theory" title="{{ p1.subject.name|default:'' }}">
+                {% if p1.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p1.subject.code }}</span>
+                  {% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+
+            {% if p2 %}
+              <div class="tt-slot theory" title="{{ p2.subject.name|default:'' }}">
+                {% if p2.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p2.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p2.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p2.A.staff.name|default:"-" }} / {{ p2.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p2.subject.code }}</span>
+                  {% if p2.staff %}<span class="slot-staff">{{ p2.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+          {% endif %}
+
+          {% if p2 and p3 and p2.subject and p3.subject and p2.subject.id == p3.subject.id and not p2.is_batch and not p3.is_batch %}
+            <div class="tt-break bridged">BRK</div>
+          {% else %}
+            <div class="tt-break">BRK</div>
+          {% endif %}
+
+          {% if p3 and p4 and p3.subject and p4.subject and p3.subject.id == p4.subject.id and not p3.is_batch and not p4.is_batch %}
+            <div class="tt-slot lab span-2" title="{{ p3.subject.name }}">
+              <span class="slot-code">{{ p3.subject.code }}</span>
+              {% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}
+              <span class="slot-badge">2h Lab</span>
+            </div>
+          {% elif p3 and p4 and p3.is_batch and p4.is_batch and p3.A.subject and p4.A.subject and p3.A.subject.id == p4.A.subject.id and p3.B.subject and p4.B.subject and p3.B.subject.id == p4.B.subject.id %}
+            <div class="tt-slot lab span-2">
+              <div class="batch-container">
+                <span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span>
+                <span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span>
+              </div>
+              <span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
+              <span class="slot-badge">2h Lab</span>
+            </div>
+          {% else %}
+            {% if p3 %}
+              <div class="tt-slot theory" title="{{ p3.subject.name|default:'' }}">
+                {% if p3.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p3.subject.code }}</span>
+                  {% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+
+            {% if p4 %}
+              <div class="tt-slot theory" title="{{ p4.subject.name|default:'' }}">
+                {% if p4.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p4.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p4.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p4.A.staff.name|default:"-" }} / {{ p4.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p4.subject.code }}</span>
+                  {% if p4.staff %}<span class="slot-staff">{{ p4.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+          {% endif %}
+
+          {% if p4 and p5 and p4.subject and p5.subject and p4.subject.id == p5.subject.id and not p4.is_batch and not p5.is_batch %}
+            <div class="tt-break bridged">LCH</div>
+          {% else %}
+            <div class="tt-break">LCH</div>
+          {% endif %}
+
+          {% if p5 and p6 and p7 and p5.subject and p6.subject and p7.subject and p5.subject.id == p6.subject.id and p6.subject.id == p7.subject.id and not p5.is_batch and not p6.is_batch and not p7.is_batch %}
+            <div class="tt-slot lab span-3" title="{{ p5.subject.name }}">
+              <span class="slot-code">{{ p5.subject.code }}</span>
+              {% if p5.staff %}<span class="slot-staff">{{ p5.staff.name }}</span>{% endif %}
+              <span class="slot-badge">3h Lab</span>
+            </div>
+          {% elif p5 and p6 and p7 and p5.is_batch and p6.is_batch and p7.is_batch and p5.A.subject and p6.A.subject and p7.A.subject and p5.A.subject.id == p6.A.subject.id and p6.A.subject.id == p7.A.subject.id and p5.B.subject and p6.B.subject and p7.B.subject and p5.B.subject.id == p6.B.subject.id and p6.B.subject.id == p7.B.subject.id %}
+            <div class="tt-slot lab span-3">
+              <div class="batch-container">
+                <span class="batch-pill batch-a">A: {{ p5.A.subject.code|default:"-" }}</span>
+                <span class="batch-pill batch-b">B: {{ p5.B.subject.code|default:"-" }}</span>
+              </div>
+              <span class="slot-staff">{{ p5.A.staff.name|default:"-" }} / {{ p5.B.staff.name|default:"-" }}</span>
+              <span class="slot-badge">3h Lab</span>
+            </div>
+          
+          {% elif p5 and p6 and p5.subject and p6.subject and p5.subject.id == p6.subject.id and not p5.is_batch and not p6.is_batch %}
+            <div class="tt-slot lab span-2" title="{{ p5.subject.name }}">
+              <span class="slot-code">{{ p5.subject.code }}</span>
+              {% if p5.staff %}<span class="slot-staff">{{ p5.staff.name }}</span>{% endif %}
+              <span class="slot-badge">2h Lab</span>
+            </div>
+            {% if p7 %}
+              <div class="tt-slot theory" title="{{ p7.subject.name|default:'' }}">
+                {% if p7.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p7.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p7.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p7.A.staff.name|default:"-" }} / {{ p7.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p7.subject.code }}</span>
+                  {% if p7.staff %}<span class="slot-staff">{{ p7.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+
+          {% elif p6 and p7 and p6.subject and p7.subject and p6.subject.id == p7.subject.id and not p6.is_batch and not p7.is_batch %}
+            {% if p5 %}
+              <div class="tt-slot theory" title="{{ p5.subject.name|default:'' }}">
+                {% if p5.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p5.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p5.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p5.A.staff.name|default:"-" }} / {{ p5.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p5.subject.code }}</span>
+                  {% if p5.staff %}<span class="slot-staff">{{ p5.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+            
+            <div class="tt-slot lab span-2" title="{{ p6.subject.name }}">
+              <span class="slot-code">{{ p6.subject.code }}</span>
+              {% if p6.staff %}<span class="slot-staff">{{ p6.staff.name }}</span>{% endif %}
+              <span class="slot-badge">2h Lab</span>
+            </div>
+
+          {% else %}
+            {% if p5 %}
+              <div class="tt-slot theory" title="{{ p5.subject.name|default:'' }}">
+                {% if p5.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p5.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p5.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p5.A.staff.name|default:"-" }} / {{ p5.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p5.subject.code }}</span>
+                  {% if p5.staff %}<span class="slot-staff">{{ p5.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+
+            {% if p6 %}
+              <div class="tt-slot theory" title="{{ p6.subject.name|default:'' }}">
+                {% if p6.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p6.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p6.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p6.A.staff.name|default:"-" }} / {{ p6.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p6.subject.code }}</span>
+                  {% if p6.staff %}<span class="slot-staff">{{ p6.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+
+            {% if p7 %}
+              <div class="tt-slot theory" title="{{ p7.subject.name|default:'' }}">
+                {% if p7.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p7.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p7.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p7.A.staff.name|default:"-" }} / {{ p7.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p7.subject.code }}</span>
+                  {% if p7.staff %}<span class="slot-staff">{{ p7.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+          {% endif %}
+
+        </div>
+        {% endwith %}
+      {% empty %}
+        <div style="padding: 40px; text-align: center; color: var(--gray-400); font-weight: 500;">
+          No timetable configured for Semester {{ selected_semester }}.
+        </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-heading">Legend</span>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--surface); border-top:3px solid var(--gray-300);"></div> Theory Period
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--teal-50); border-top:4px solid var(--teal-400);"></div> Lab / Merged Session
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--surface); border:1px solid var(--teal-200);"></div> Batch A
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--amber-50); border:1px solid var(--amber-200);"></div> Batch B
+    </div>
+  </div>
+
+</div>
+</body>
 </html>

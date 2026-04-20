@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Leave History | {{ student.student_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png">
+  <style>
+    :root {
+      --primary: #5a7d7c;
+      --primary-dark: #4a6b69;
+      --dark: #111827;
+      --text: #374151;
+      --text-light: #6B7280;
+      --border: #E5E7EB;
+      --surface: #FFFFFF;
+      --bg: #F3F4F6;
+      --shadow: 0 4px 20px rgba(0,0,0,0.07);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Navbar */
+    .navbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 28px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .navbar-brand { display: flex; align-items: center; gap: 12px; }
+    .navbar-brand img { width: 36px; height: 36px; object-fit: contain; }
+    .navbar-brand h1 { font-family: 'Outfit', sans-serif; font-size: 17px; color: var(--dark); }
+    .navbar-brand p  { font-size: 11px; color: var(--text-light); }
+    .nav-links { display: flex; gap: 10px; align-items: center; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      text-decoration: none; padding: 8px 16px;
+      border-radius: 8px; font-size: 13px; font-weight: 500; transition: all 0.2s;
+    }
+    .nav-btn-outline { color: var(--text-light); border: 1px solid var(--border); background: transparent; }
+    .nav-btn-outline:hover { background: var(--bg); color: var(--dark); }
+    .nav-btn-primary { background: var(--primary); color: white; }
+    .nav-btn-primary:hover { background: var(--primary-dark); }
+
+    .page-wrapper { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; flex-wrap: wrap; gap: 14px;
+    }
+    .page-title { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 700; color: var(--dark); }
+    .page-sub   { font-size: 13px; color: var(--text-light); margin-top: 3px; }
+
+    /* Summary pills */
+    .summary-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .pill {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 16px; font-size: 13px;
+    }
+    .pill-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .pill-count { font-size: 18px; font-weight: 700; color: var(--dark); }
+    .dot-pending  { background: #F59E0B; }
+    .dot-approved { background: #10B981; }
+    .dot-rejected { background: #EF4444; }
+
+    /* Leave cards */
+    .leave-card {
+      background: var(--surface); border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
+      margin-bottom: 14px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .leave-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.09); }
+
+    .leave-card-left { flex: 1; min-width: 0; }
+    .leave-type-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+    .leave-type-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; background: #F3F4F6;
+    }
+    .leave-type-name { font-size: 16px; font-weight: 600; color: var(--dark); }
+    .leave-dates { font-size: 13px; color: var(--text-light); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .leave-reason { font-size: 13px; color: #555; font-style: italic; margin-top: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .reject-info {
+      margin-top: 8px; padding: 8px 12px; border-radius: 8px;
+      background: #FFF5F5; border-left: 3px solid #EF4444; font-size: 12px;
+    }
+    .reject-info strong { color: #DC2626; }
+
+    .status-badge {
+      flex-shrink: 0; padding: 5px 13px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .badge-pending  { background: #FEF3C7; color: #92400E; }
+    .badge-approved { background: #D1FAE5; color: #065F46; }
+    .badge-rejected { background: #FEE2E2; color: #991B1B; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 64px 24px;
+      background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-title { font-size: 18px; font-weight: 600; color: var(--dark); margin-bottom: 6px; }
+    .empty-sub   { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--primary); color: white; text-decoration: none;
+      padding: 11px 22px; border-radius: 9px; font-size: 14px; font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    @media (max-width: 600px) {
+      .leave-card { flex-direction: column; }
+      .status-badge { align-self: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="AU">
+    <div>
+      <h1>Research Scholar Portal</h1>
+      <p>{{ student.student_name }}</p>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="{% url 'scholar_apply_leave' %}" class="nav-btn nav-btn-primary">
+      <i class='bx bx-plus'></i> New Request
+    </a>
+    <a href="{% url 'scholar_dashboard' %}" class="nav-btn nav-btn-outline">
+      <i class='bx bx-chevron-left'></i> Dashboard
+    </a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My Leave History</h1>
+      <p class="page-sub">All leave requests submitted to your supervisor.</p>
+    </div>
+  </div>
+
+  {% if leaves %}
+  <!-- Summary pills -->
+  <div class="summary-row">
+    <div class="pill">
+      <span class="pill-dot dot-pending"></span>
+      <span class="pill-count">{{ leaves|length }}</span>
+      <span>Total</span>
+    </div>
+    <div class="pill">
+      <span class="pill-dot dot-approved"></span>
+      <span class="pill-count">{{ approved_count }}</span>
+      <span>Approved</span>
+    </div>
+    <div class="pill">
+      <span class="pill-dot" style="background:#EF4444;"></span>
+      <span class="pill-count">{{ rejected_count }}</span>
+      <span>Rejected</span>
+    </div>
+    <div class="pill">
+      <span class="pill-dot dot-pending"></span>
+      <span class="pill-count">{{ pending_count }}</span>
+      <span>Awaiting</span>
+    </div>
+  </div>
+
+  <!-- Leave cards -->
+  {% for leave in leaves %}
+  <div class="leave-card">
+    <div class="leave-card-left">
+      <div class="leave-type-row">
+        <div class="leave-type-icon">
+          {% if leave.leave_type == 'Medical' %}🏥{% elif leave.leave_type == 'OD' %}🏢{% elif leave.leave_type == 'Casual' %}🌴{% else %}📋{% endif %}
+        </div>
+        <span class="leave-type-name">{{ leave.get_leave_type_display }}</span>
+      </div>
+      <div class="leave-dates">
+        <i class='bx bx-calendar'></i>
+        {{ leave.start_date|date:"d M Y" }} — {{ leave.end_date|date:"d M Y" }}
+        &nbsp;·&nbsp; {{ leave.start_date|timeuntil:leave.end_date }} duration
+      </div>
+      <div class="leave-reason">"{{ leave.reason }}"</div>
+
+      {% if leave.status == 'Rejected' %}
+      <div class="reject-info">
+        {% if leave.rejection_reason %}
+        <div><strong>Reason:</strong> {{ leave.rejection_reason }}</div>
+        {% endif %}
+        {% if leave.rejected_by %}
+        <div style="margin-top:3px;color:#666;"><strong>Rejected By:</strong> {{ leave.rejected_by }}</div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if leave.document %}
+      <div style="margin-top:8px;">
+        <a href="{{ leave.document.url }}" target="_blank"
+           style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:500;">
+          <i class='bx bx-paperclip'></i> View Document
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    {% if leave.status == 'Pending Guide' %}
+    <span class="status-badge badge-pending">⏳ Awaiting Review</span>
+    {% elif leave.status == 'Approved' %}
+    <span class="status-badge badge-approved">✓ Approved</span>
+    {% elif leave.status == 'Rejected' %}
+    <span class="status-badge badge-rejected">✗ Rejected</span>
+    {% else %}
+    <span class="status-badge badge-pending">{{ leave.status }}</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📂</div>
+    <div class="empty-title">No Leave Requests Found</div>
+    <p class="empty-sub">You haven't submitted any leave requests yet.</p>
+    <a href="{% url 'scholar_apply_leave' %}" class="btn-primary">
+      <i class='bx bx-plus'></i> Apply for Leave
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+</body>
+</html>

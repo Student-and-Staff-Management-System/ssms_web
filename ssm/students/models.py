@@ -7,7 +7,10 @@ from ssm.upload_paths import (
     student_photo_path, student_id_card_path, community_certificate_path,
     aadhaar_card_path, first_graduate_certificate_path, sslc_marksheet_path,
     hsc_marksheet_path, income_certificate_path, bank_passbook_path,
-    driving_license_path, student_leave_document_path, result_screenshot_path
+    driving_license_path, student_leave_document_path, result_screenshot_path,
+    scholar_admission_doc_path, scholar_zeroth_review_exam1_path,
+    scholar_zeroth_review_exam2_path, scholar_rcw_document_path,
+    tuition_fee_challan_path, hostel_fee_challan_path
 )
 
 
@@ -156,6 +159,7 @@ class PersonalInfo(models.Model):
     mother_mobile = models.CharField(max_length=15, blank=True)
     parent_annual_income = models.PositiveIntegerField(blank=True, null=True)
     has_scholarship = models.BooleanField(default=False)
+    is_hosteler = models.BooleanField(default=False)
 
 class BankDetails(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
@@ -217,6 +221,7 @@ class ScholarshipInfo(models.Model):
     sch_tamizh = models.BooleanField(default=False)
     sch_private = models.BooleanField(default=False)
     private_scholarship_name = models.CharField(max_length=100, blank=True)
+    is_7_5_reservation = models.BooleanField(default=False)
 
 class StudentDocuments(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
@@ -280,7 +285,38 @@ class StudentDocuments(models.Model):
         null=True,
         validators=[validate_file_size]
     )
-    
+
+class FeeChallanRecord(models.Model):
+    YEAR_CHOICES = [
+        (1, 'Year 1'),
+        (2, 'Year 2'),
+        (3, 'Year 3'),
+        (4, 'Year 4'),
+    ]
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='fee_challans')
+    academic_year = models.IntegerField(choices=YEAR_CHOICES)
+    is_hosteler = models.BooleanField(default=False)
+    tuition_fee_challan = models.FileField(
+        upload_to=tuition_fee_challan_path,
+        blank=True,
+        null=True,
+        validators=[validate_file_size]
+    )
+    hostel_fee_challan = models.FileField(
+        upload_to=hostel_fee_challan_path,
+        blank=True,
+        null=True,
+        validators=[validate_file_size]
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'academic_year')
+        ordering = ['student', 'academic_year']
+
+    def __str__(self):
+        return f"{self.student.student_name} - Year {self.academic_year}"
+
 class OtherDetails(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
     ambition = models.CharField(max_length=200, blank=True)
@@ -348,6 +384,7 @@ class LeaveRequest(models.Model):
     STATUS_CHOICES = [
         ('Pending Class Incharge', 'Pending Class Incharge'),
         ('Pending HOD', 'Pending HOD'),
+        ('Pending Guide', 'Pending Guide'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected')
     ]
@@ -423,3 +460,124 @@ class BonafideRequest(models.Model):
 
     def __str__(self):
         return f"{self.student.student_name} - Bonafide ({self.status})"
+
+class ScholarAttendance(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected')
+    ]
+    scholar = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scholar_attendance')
+    date = models.DateField(default=datetime.date.today)
+    time_marked = models.TimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    rejection_reason = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        unique_together = ('scholar', 'date')
+        ordering = ['-date', '-time_marked']
+
+    def __str__(self):
+        return f"{self.scholar.student_name} - {self.date} ({self.status})"
+
+
+class ResearchScholarProfile(models.Model):
+    SCHOLAR_TYPE_CHOICES = [
+        ('Full Time', 'Full Time'),
+        ('Part Time Internal', 'Part Time Internal'),
+        ('Part Time External', 'Part Time External'),
+    ]
+
+    student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='scholar_profile')
+    scholar_type = models.CharField(max_length=50, choices=SCHOLAR_TYPE_CHOICES)
+    admission_date = models.DateField()
+    admission_order_doc = models.FileField(
+        upload_to=scholar_admission_doc_path, 
+        blank=True, 
+        null=True,
+        validators=[validate_file_size]
+    )
+    supervisor = models.ForeignKey(
+        'staffs.Staff', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='supervised_scholars'
+    )
+
+    def __str__(self):
+        return f"Scholar Profile - {self.student.student_name}"
+
+class RACMember(models.Model):
+    MEMBER_TYPE_CHOICES = [
+        ('Internal', 'Intra Department'),
+        ('External', 'Inter Department'),
+    ]
+
+    scholar = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='rac_members')
+    member_type = models.CharField(max_length=20, choices=MEMBER_TYPE_CHOICES)
+    
+    # Internal Member (Same Department)
+    staff = models.ForeignKey(
+        'staffs.Staff', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='rac_memberships'
+    )
+    
+    # External Member (Other Department)
+    external_name = models.CharField(max_length=255, blank=True)
+    external_designation = models.CharField(max_length=255, blank=True)
+    external_department = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        if self.member_type == 'Internal' and self.staff:
+            return f"Internal: {self.staff.name}"
+        return f"External: {self.external_name} ({self.external_department})"
+
+class ZerothReview(models.Model):
+    scholar = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='zeroth_review')
+    tentative_title = models.CharField(max_length=500, blank=True)
+    
+    # Course Works
+    rcw001_subject = models.CharField(max_length=255, blank=True)
+    rcw002_subject = models.CharField(max_length=255, blank=True)
+    rcw003_subject = models.CharField(max_length=255, blank=True)
+    rcw004_subject = models.CharField(max_length=255, blank=True)
+
+    exam1_marksheet = models.FileField(
+        upload_to=scholar_zeroth_review_exam1_path, 
+        blank=True, 
+        null=True,
+        validators=[validate_file_size],
+        help_text="Upload marksheet for RCW001 and RCW002"
+    )
+    exam2_marksheet = models.FileField(
+        upload_to=scholar_zeroth_review_exam2_path, 
+        blank=True, 
+        null=True,
+        validators=[validate_file_size],
+        help_text="Upload marksheet for RCW003 and RCW004"
+    )
+
+    def __str__(self):
+        return f"Zeroth Review - {self.scholar.student_name}"
+
+class RCWReview(models.Model):
+    scholar = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='rcw_reviews')
+    date = models.DateField()
+    time = models.TimeField()
+    progress = models.TextField()
+    document = models.FileField(
+        upload_to=scholar_rcw_document_path, 
+        blank=True, 
+        null=True,
+        validators=[validate_file_size]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'time']
+
+    def __str__(self):
+        return f"RCW Review - {self.scholar.student_name} on {self.date}"

@@ -101,6 +101,14 @@ urlpatterns = [
     path('restricted/create-superuser/', views.create_superuser, name='create_superuser'),
     path('scholarship-manager/', views.scholarship_manager, name='scholarship_manager'),
     
+    # Scholar Attendance
+    path('scholar-attendance/', views.manage_scholar_attendance, name='manage_scholar_attendance'),
+    path('scholar-attendance/update/<int:attendance_id>/', views.update_scholar_attendance, name='update_scholar_attendance'),
+
+    # Scholar Leave (Guide Approval)
+    path('scholar-leave/', views.manage_scholar_leave, name='manage_scholar_leave'),
+    path('scholar-leave/update/<int:leave_id>/', views.update_scholar_leave_status, name='update_scholar_leave_status'),
+    
     # Password Reset
     path('password-reset/', views.staff_password_reset_identify, name='password_reset_identify'),
     path('password-reset/verify/', views.staff_password_reset_verify, name='password_reset_verify'),

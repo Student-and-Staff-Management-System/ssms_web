@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply Leave | {{ student.student_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png">
+  <style>
+    :root {
+      --primary: #5a7d7c;
+      --primary-dark: #4a6b69;
+      --dark: #111827;
+      --text: #374151;
+      --text-light: #6B7280;
+      --border: #E5E7EB;
+      --surface: #FFFFFF;
+      --bg: #F3F4F6;
+      --radius: 14px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Navbar */
+    .navbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .navbar-brand { display: flex; align-items: center; gap: 12px; }
+    .navbar-brand img { width: 36px; height: 36px; object-fit: contain; }
+    .navbar-brand h1 { font-family: 'Outfit', sans-serif; font-size: 17px; color: var(--dark); }
+    .navbar-brand p { font-size: 11px; color: var(--text-light); }
+    .nav-links { display: flex; gap: 10px; align-items: center; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      text-decoration: none; padding: 8px 16px;
+      border-radius: 8px; font-size: 13px; font-weight: 500;
+      transition: all 0.2s;
+    }
+    .nav-btn-outline {
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      background: transparent;
+    }
+    .nav-btn-outline:hover { background: var(--bg); color: var(--dark); }
+    .nav-btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .nav-btn-primary:hover { background: var(--primary-dark); }
+
+    .page-wrapper { max-width: 720px; margin: 48px auto; padding: 0 20px 80px; }
+
+    .page-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .page-sub { font-size: 14px; color: var(--text-light); margin-bottom: 28px; }
+
+    /* Alert messages */
+    .alert {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 14px;
+    }
+    .alert-success { background: #D1FAE5; color: #065F46; }
+    .alert-error   { background: #FEE2E2; color: #991B1B; }
+
+    /* Form card */
+    .form-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+    }
+
+    .form-group { margin-bottom: 22px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 7px;
+    }
+    .form-label span { color: var(--text-light); font-weight: 400; }
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--dark);
+      background: #FAFAFA;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(90,125,124,0.12);
+    }
+    textarea.form-control { resize: vertical; min-height: 96px; }
+    select.form-control { cursor: pointer; }
+
+    .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 500px) { .date-row { grid-template-columns: 1fr; } }
+
+    .doc-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-light);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .errorlist { color: #DC2626; font-size: 12px; margin-top: 5px; padding-left: 14px; }
+
+    .form-actions {
+      margin-top: 28px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 11px 24px; border-radius: 9px; font-size: 14px;
+      font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(90,125,124,0.3); }
+    .btn-ghost { background: transparent; color: var(--text-light); border: 1.5px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg); color: var(--dark); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="AU">
+    <div>
+      <h1>Research Scholar Portal</h1>
+      <p>{{ student.student_name }}</p>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="{% url 'scholar_leave_history' %}" class="nav-btn nav-btn-outline">
+      <i class='bx bx-history'></i> Leave History
+    </a>
+    <a href="{% url 'scholar_dashboard' %}" class="nav-btn nav-btn-outline">
+      <i class='bx bx-chevron-left'></i> Dashboard
+    </a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <h1 class="page-title">Apply for Leave</h1>
+  <p class="page-sub">Your request will be sent to your assigned supervisor for review.</p>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+      <i class='bx {% if message.tags == "error" %}bx-error-circle{% else %}bx-check-circle{% endif %}'></i>
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="form-card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">Leave Type</label>
+        {{ form.leave_type }}
+        {% if form.leave_type.errors %}<ul class="errorlist">{% for e in form.leave_type.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+
+      <div class="date-row">
+        <div class="form-group">
+          <label class="form-label">From Date</label>
+          {{ form.start_date }}
+          {% if form.start_date.errors %}<ul class="errorlist">{% for e in form.start_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">To Date</label>
+          {{ form.end_date }}
+          {% if form.end_date.errors %}<ul class="errorlist">{% for e in form.end_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Reason for Leave</label>
+        {{ form.reason }}
+        {% if form.reason.errors %}<ul class="errorlist">{% for e in form.reason.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+
+      <div class="form-group" id="doc-group">
+        <label class="form-label">
+          Supporting Document <span>(Required for Medical / OD leave)</span>
+        </label>
+        {{ form.document }}
+        <p class="doc-note"><i class='bx bx-info-circle'></i> Accepted: PDF, JPG, PNG. Max 5 MB.</p>
+        {% if form.document.errors %}<ul class="errorlist">{% for e in form.document.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'scholar_leave_history' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <i class='bx bx-send'></i> Submit Request
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Style all form controls
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+      el.classList.add('form-control');
+    });
+
+    const typeSelect = document.querySelector('select[name="leave_type"]');
+    const docGroup   = document.getElementById('doc-group');
+    const docInput   = document.querySelector('input[name="document"]');
+    const form       = document.querySelector('form');
+
+    function toggleDoc() {
+      const v = typeSelect ? typeSelect.value : '';
+      if (v === 'Medical' || v === 'OD') {
+        docGroup.style.display = 'block';
+      } else {
+        docGroup.style.display = 'none';
+        if (docInput) docInput.value = '';
+      }
+    }
+
+    if (typeSelect) { toggleDoc(); typeSelect.addEventListener('change', toggleDoc); }
+
+    form.addEventListener('submit', function (e) {
+      const v = typeSelect ? typeSelect.value : '';
+      if ((v === 'Medical' || v === 'OD') && docInput && docInput.files.length === 0) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Document Required',
+          text: 'A supporting document is required for ' + v + ' leave. Please upload one.',
+          confirmButtonColor: '#5a7d7c',
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>

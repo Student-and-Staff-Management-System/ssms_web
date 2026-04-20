@@ -5,7 +5,7 @@ import random
 import string
 
 from .models import Staff, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog
-from students.models import Student
+from students.models import Student, ResearchScholarProfile, ScholarAttendance
 from django.db.models import Q, Case, When
 from django.db import transaction
 
@@ -168,6 +168,24 @@ def staff_dashboard(request):
 
         scholarship_students = scholarship_qs
 
+
+    # ── Research Scholar (RS) data ──────────────────────────────────────────
+    from students.models import ResearchScholarProfile, ScholarAttendance, LeaveRequest
+    
+    if staff.role == 'HOD':
+        # HOD sees all scholars and all pending requests
+        rs_scholars = Student.objects.filter(program_level='PHD').select_related('scholar_profile')
+        rs_pending_leaves = LeaveRequest.objects.filter(student__program_level='PHD', status='Pending Guide').count()
+        rs_pending_attendance = ScholarAttendance.objects.filter(scholar__program_level='PHD', status='Pending').count()
+    else:
+        # Other staff see only their assigned scholars
+        rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile')
+        rs_ids = rs_scholars.values_list('id', flat=True)
+        rs_pending_leaves = LeaveRequest.objects.filter(student_id__in=rs_ids, status='Pending Guide').count() if rs_scholars.exists() else 0
+        rs_pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').count() if rs_scholars.exists() else 0
+
+    rs_count = rs_scholars.count()
+    # ────────────────────────────────────────────────────────────────────────
     return render(request, template_name, {
         'staff': staff, 
         'student_count': student_count,
@@ -182,6 +200,12 @@ def staff_dashboard(request):
         'selected_scholarship': selected_scholarship,
         'profile_completion_percentage': _completion_data['percentage'],
         'profile_missing_fields': _completion_data['missing_fields'],
+        # Research Scholar Context
+        'rs_count': rs_count,
+        'rs_pending_leaves': rs_pending_leaves,
+        'rs_pending_attendance': rs_pending_attendance,
+        'rs_scholars': rs_scholars,
+
     })
 
 def get_staff_profile_completion_data(staff):
@@ -3991,3 +4015,151 @@ def send_custom_notification(request):
         'base_template': base_template, 
         'staff': staff
     })
+
+def manage_scholar_attendance(request):
+    staff_id = request.session.get('staff_id')
+    if not staff_id:
+        return redirect('stafflogin')
+        
+    staff = get_object_or_404(Staff, staff_id=staff_id)
+    
+    # Scholars assigned to this staff
+    assigned_scholars = ResearchScholarProfile.objects.filter(supervisor=staff).values_list('student', flat=True)
+    
+    # Get attendance records
+    pending_attendance = ScholarAttendance.objects.filter(scholar__in=assigned_scholars, status='Pending').order_by('-date', '-time_marked')
+    history_attendance = ScholarAttendance.objects.filter(scholar__in=assigned_scholars).exclude(status='Pending').order_by('-date', '-time_marked')[:50]
+    
+    context = {
+        'staff': staff,
+        'pending_attendance': pending_attendance,
+        'history_attendance': history_attendance
+    }
+    return render(request, 'staff/scholar_attendance.html', context)
+
+def update_scholar_attendance(request, attendance_id):
+    staff_id = request.session.get('staff_id')
+    if not staff_id:
+        return redirect('stafflogin')
+        
+    staff = get_object_or_404(Staff, staff_id=staff_id)
+    attendance = get_object_or_404(ScholarAttendance, id=attendance_id)
+    
+    # Verify ownership
+    if not getattr(attendance.scholar, 'scholar_profile', None) or attendance.scholar.scholar_profile.supervisor != staff:
+        messages.error(request, "You are not authorized to update this attendance record.")
+        return redirect('staffs:manage_scholar_attendance')
+        
+    action = request.POST.get('action')
+    reason = request.POST.get('reason', '')
+    
+    if action == 'Approve':
+        attendance.status = 'Approved'
+        messages.success(request, f"Attendance approved for {attendance.scholar.student_name}.")
+    elif action == 'Reject':
+        attendance.status = 'Rejected'
+        attendance.rejection_reason = reason
+        messages.warning(request, f"Attendance rejected for {attendance.scholar.student_name}.")
+        
+    attendance.save()
+    
+    # Email notification to Scholar
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        subject = f"Attendance {attendance.status} - {attendance.date}"
+        message_body = f"Dear {attendance.scholar.student_name},\n\nYour attendance for {attendance.date.strftime('%d %B %Y')} has been {attendance.status} by your supervisor {staff.name}."
+        if action == 'Reject' and reason:
+            message_body += f"\n\nReason: {reason}"
+        message_body += "\n\nThank you,\nAnnamalai University SSMSystem"
+        
+        if attendance.scholar.student_email:
+            send_mail(subject, message_body, settings.DEFAULT_FROM_EMAIL, [attendance.scholar.student_email], fail_silently=True)
+    except Exception as e:
+        pass
+        
+    return redirect('staffs:manage_scholar_attendance')
+
+def manage_scholar_leave(request):
+    """Staff/Guide view to manage RS leave requests assigned to them."""
+    staff_id = request.session.get('staff_id')
+    if not staff_id:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=staff_id)
+    from students.models import LeaveRequest, ResearchScholarProfile
+
+    # Scholars supervised by this staff member
+    assigned_scholars = Student.objects.filter(
+        scholar_profile__supervisor=staff,
+        program_level='PHD'
+    )
+
+    pending_leaves = LeaveRequest.objects.filter(
+        student__in=assigned_scholars,
+        status='Pending Guide'
+    ).order_by('created_at')
+
+    history_leaves = LeaveRequest.objects.filter(
+        student__in=assigned_scholars
+    ).exclude(status='Pending Guide').order_by('-updated_at')[:50]
+
+    return render(request, 'staff/scholar_leave_management.html', {
+        'staff': staff,
+        'pending_leaves': pending_leaves,
+        'history_leaves': history_leaves,
+    })
+
+
+def update_scholar_leave_status(request, leave_id):
+    """Approve or reject an RS leave request."""
+    staff_id = request.session.get('staff_id')
+    if not staff_id:
+        return redirect('staffs:stafflogin')
+
+    if request.method == 'POST':
+        from students.models import LeaveRequest
+        leave = get_object_or_404(LeaveRequest, id=leave_id)
+        staff = get_object_or_404(Staff, staff_id=staff_id)
+
+        # Security: only the assigned supervisor may act
+        profile = getattr(leave.student, 'scholar_profile', None)
+        if not profile or profile.supervisor != staff:
+            messages.error(request, "You are not authorised to manage this leave request.")
+            return redirect('staffs:manage_scholar_leave')
+
+        action = request.POST.get('action')
+        reason = request.POST.get('rejection_reason', '').strip()
+
+        if action == 'approve':
+            leave.status = 'Approved'
+            messages.success(request, "Leave approved for " + leave.student.student_name + ".")
+        elif action == 'reject':
+            leave.status = 'Rejected'
+            leave.rejection_reason = reason
+            leave.rejected_by = staff.name + " (Guide)"
+            messages.warning(request, "Leave rejected for " + leave.student.student_name + ".")
+
+        leave.save()
+
+        # Email scholar
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            if leave.student.student_email:
+                subj = "Leave Request " + leave.status + " - " + leave.start_date.strftime('%d %b %Y')
+                body = (
+                    "Dear " + leave.student.student_name + ",\n\n"
+                    "Your leave request (" + leave.get_leave_type_display() + ") from "
+                    + leave.start_date.strftime('%d %B %Y') + " to " + leave.end_date.strftime('%d %B %Y')
+                    + " has been " + leave.status + " by your supervisor " + staff.name + "."
+                )
+                if action == 'reject' and reason:
+                    body += "\n\nReason: " + reason
+                body += "\n\nAnnamalai University SSMSystem"
+                send_mail(subj, body, settings.DEFAULT_FROM_EMAIL, [leave.student.student_email], fail_silently=True)
+        except Exception:
+            pass
+
+    return redirect('staffs:manage_scholar_leave')
+

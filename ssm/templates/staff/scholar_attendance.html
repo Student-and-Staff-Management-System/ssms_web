@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholar Attendance | Staff Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <style>
+        :root {
+            --primary-bg: #f8f9fa;
+            --secondary-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #1a4f76;
+            --accent-color-hover: #154162;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: var(--accent-color);
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .section-card {
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f8fcfc;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .action-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .action-form input[type="text"] {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            transition: opacity 0.2s;
+        }
+        
+        .btn:hover { opacity: 0.9; }
+        .btn-approve { background: var(--success-color); }
+        .btn-reject { background: var(--danger-color); }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-pending { background: #FEF3C7; color: #D97706; }
+        .badge-approved { background: #D1FAE5; color: #059669; }
+        .badge-rejected { background: #FEE2E2; color: #DC2626; }
+        
+        .empty-state {
+            padding: 30px;
+            text-align: center;
+            color: var(--text-secondary);
+            background: #FAFAFA;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        /* Messages */
+        .messages { padding: 0; margin-bottom: 20px; list-style: none; }
+        .messages li { padding: 12px 16px; margin-bottom: 8px; border-radius: 4px; font-size: 14px; }
+        .messages .success { background: #D1FAE5; color: #065F46; }
+        .messages .error { background: #FEE2E2; color: #991B1B; }
+        .messages .warning { background: #FEF3C7; color: #92400E; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>Research Scholar Attendance</h1>
+            <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
+        </header>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="section-card">
+            <h2 class="section-title">Pending Approvals</h2>
+            {% if pending_attendance %}
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scholar</th>
+                            <th>Roll Number</th>
+                            <th>Date</th>
+                            <th>Time Marked</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in pending_attendance %}
+                        <tr>
+                            <td style="font-weight: 500;">{{ att.scholar.student_name }}</td>
+                            <td>{{ att.scholar.roll_number }}</td>
+                            <td>{{ att.date|date:"D, d M y" }}</td>
+                            <td>{{ att.time_marked|time:"h:i A" }}</td>
+                            <td><span class="badge badge-pending">Pending</span></td>
+                            <td>
+                                <form method="post" action="{% url 'staffs:update_scholar_attendance' att.id %}" class="action-form">
+                                    {% csrf_token %}
+                                    <input type="text" name="reason" placeholder="Reject reason (optional)" style="width: 140px;">
+                                    <button type="submit" name="action" value="Approve" class="btn btn-approve">Approve</button>
+                                    <button type="submit" name="action" value="Reject" class="btn btn-reject">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">No pending attendance requests at this time.</div>
+            {% endif %}
+        </div>
+        
+        <div class="section-card">
+            <h2 class="section-title">Recent History</h2>
+            {% if history_attendance %}
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scholar</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Reason (if rejected)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in history_attendance %}
+                        <tr>
+                            <td>{{ att.scholar.student_name }} ({{ att.scholar.roll_number }})</td>
+                            <td>{{ att.date|date:"d M y" }}</td>
+                            <td>
+                                {% if att.status == 'Approved' %}
+                                    <span class="badge badge-approved">Approved</span>
+                                {% else %}
+                                    <span class="badge badge-rejected">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: var(--text-secondary); font-size: 13px;">
+                                {% if att.status == 'Rejected' and att.rejection_reason %}
+                                    {{ att.rejection_reason }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">No past history records found.</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

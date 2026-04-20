@@ -58,6 +58,14 @@ def student_id_card_path(instance, filename):
     return student_certificate_path(instance, filename, 'student_id_card')
 
 
+def tuition_fee_challan_path(instance, filename):
+    return student_certificate_path(instance, filename, 'tuition_fee_challan')
+
+
+def hostel_fee_challan_path(instance, filename):
+    return student_certificate_path(instance, filename, 'hostel_fee_challan')
+
+
 def student_leave_document_path(instance, filename):
     """Upload path for student leave documents."""
     ext = filename.split('.')[-1]
@@ -176,4 +184,30 @@ def staff_designation_document_path(instance, filename):
     ext = filename.split('.')[-1]
     designation_slug = instance.designation[:30].replace(' ', '_').lower()
     return f'staff/{instance.staff.staff_id}/designation_{designation_slug}.{ext}'
+
+
+# ==========================================
+# SCHOLAR FILE UPLOAD PATHS
+# ==========================================
+
+def scholar_admission_doc_path(instance, filename):
+    """Upload path for PhD Scholar Admission Order Document."""
+    ext = filename.split('.')[-1]
+    return f'students/{instance.student.roll_number}/scholar/admission_doc.{ext}'
+
+def scholar_zeroth_review_exam1_path(instance, filename):
+    """Upload path for Exam 1 Marksheet."""
+    ext = filename.split('.')[-1]
+    return f'students/{instance.scholar.roll_number}/scholar/zeroth_review_exam1.{ext}'
+
+def scholar_zeroth_review_exam2_path(instance, filename):
+    """Upload path for Exam 2 Marksheet."""
+    ext = filename.split('.')[-1]
+    return f'students/{instance.scholar.roll_number}/scholar/zeroth_review_exam2.{ext}'
+
+def scholar_rcw_document_path(instance, filename):
+    """Upload path for RCW Review Document."""
+    ext = filename.split('.')[-1]
+    date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return f'students/{instance.scholar.roll_number}/scholar/rcw_review_{date_str}.{ext}'
 

@@ -40,6 +40,12 @@
                 <a href="{% url 'staffs:risk_students' %}" class="nav-item">
                     <span class="nav-icon">⚠️</span> Risk Students
                 </a>
+                <a href="{% url 'staffs:manage_scholar_attendance' %}" class="nav-item">
+                    <span class="nav-icon">🎓</span> Scholar Attendance
+                </a>
+                <a href="{% url 'staffs:manage_scholar_leave' %}" class="nav-item">
+                    <span class="nav-icon">📋</span> Scholar Leaves
+                </a>
                 <a href="{% url 'staffs:my_timetable' %}" class="nav-item">
                     <span class="nav-icon">🗓️</span> My Timetable
                 </a>
@@ -131,6 +137,8 @@
 
 
 
+
+
             <!-- Quick Actions -->
             <section class="actions-section">
                 <div class="section-header">
@@ -167,6 +175,8 @@
                     {% endfor %}
                 </div>
             </section>
+            <!-- Research Scholar Management Widget -->
+            {% include 'staff/includes/rs_widget.html' %}
         </main>
     </div>
     <script>

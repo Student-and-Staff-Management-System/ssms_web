@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholar Leave Requests | Staff Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <style>
+        :root {
+            --primary-bg: #f8f9fa;
+            --surface: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border: #dee2e6;
+            --accent: #1a4f76;
+            --accent-hover: #154162;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning-bg: #FEF3C7;
+            --warning-text: #92400E;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container { max-width: 1060px; margin: 0 auto; }
+
+        .page-header {
+            background: var(--surface);
+            padding: 18px 22px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+        .page-header h1 { margin: 0; font-size: 1.4em; color: var(--accent); }
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 7px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .back-btn:hover { background: var(--border); color: var(--text-primary); }
+
+        .card {
+            background: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 0 0 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f8fcfc; color: var(--text-secondary); font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+
+        .badge {
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-pending  { background: var(--warning-bg); color: var(--warning-text); }
+        .badge-approved { background: #D1FAE5; color: #065F46; }
+        .badge-rejected { background: #FEE2E2; color: #991B1B; }
+
+        .action-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .reason-input {
+            padding: 5px 9px;
+            border: 1px solid #CBD5E1;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Poppins', sans-serif;
+            width: 160px;
+        }
+        .btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.88; }
+        .btn-approve { background: var(--success); }
+        .btn-reject  { background: var(--danger); }
+
+        .empty { padding: 28px; text-align: center; color: var(--text-secondary); font-size: 13px; background: #FAFAFA; border-radius: 6px; }
+
+        .doc-link { color: var(--accent); font-size: 12px; font-weight: 500; text-decoration: none; }
+        .doc-link:hover { text-decoration: underline; }
+
+        /* Messages */
+        .messages { list-style: none; padding: 0; margin-bottom: 18px; }
+        .messages li { padding: 11px 14px; border-radius: 4px; font-size: 13px; margin-bottom: 6px; }
+        .messages .success { background: #D1FAE5; color: #065F46; }
+        .messages .warning { background: #FEF3C7; color: #92400E; }
+        .messages .error   { background: #FEE2E2; color: #991B1B; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <h1>📋 Scholar Leave Requests</h1>
+        <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">&larr; Dashboard</a>
+    </div>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for m in messages %}
+        <li class="{{ m.tags }}">{{ m }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- Pending -->
+    <div class="card">
+        <h2 class="card-title">⏳ Pending Approvals</h2>
+        {% if pending_leaves %}
+        <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Scholar</th>
+                    <th>Roll No.</th>
+                    <th>Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Reason</th>
+                    <th>Document</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for leave in pending_leaves %}
+            <tr>
+                <td style="font-weight:500;">{{ leave.student.student_name }}</td>
+                <td>{{ leave.student.roll_number }}</td>
+                <td>{{ leave.get_leave_type_display }}</td>
+                <td>{{ leave.start_date|date:"d M Y" }}</td>
+                <td>{{ leave.end_date|date:"d M Y" }}</td>
+                <td style="max-width:160px; color:#555; font-style:italic;">{{ leave.reason|truncatechars:60 }}</td>
+                <td>
+                    {% if leave.document %}
+                    <a href="{{ leave.document.url }}" target="_blank" class="doc-link">📎 View</a>
+                    {% else %}
+                    <span style="color:#9CA3AF;font-size:12px;">None</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'staffs:update_scholar_leave_status' leave.id %}" class="action-form">
+                        {% csrf_token %}
+                        <input type="text" name="rejection_reason" class="reason-input" placeholder="Reject reason…">
+                        <button type="submit" name="action" value="approve" class="btn btn-approve">✓ Approve</button>
+                        <button type="submit" name="action" value="reject"  class="btn btn-reject">✗ Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="empty">No pending leave requests from your scholars.</div>
+        {% endif %}
+    </div>
+
+    <!-- History -->
+    <div class="card">
+        <h2 class="card-title">📂 Recent History (last 50)</h2>
+        {% if history_leaves %}
+        <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Scholar</th>
+                    <th>Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Status</th>
+                    <th>Rejection Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for leave in history_leaves %}
+            <tr>
+                <td>{{ leave.student.student_name }} ({{ leave.student.roll_number }})</td>
+                <td>{{ leave.get_leave_type_display }}</td>
+                <td>{{ leave.start_date|date:"d M Y" }}</td>
+                <td>{{ leave.end_date|date:"d M Y" }}</td>
+                <td>
+                    {% if leave.status == 'Approved' %}
+                    <span class="badge badge-approved">Approved</span>
+                    {% elif leave.status == 'Rejected' %}
+                    <span class="badge badge-rejected">Rejected</span>
+                    {% else %}
+                    <span class="badge badge-pending">{{ leave.status }}</span>
+                    {% endif %}
+                </td>
+                <td style="color:#6B7280; font-size:12px;">
+                    {% if leave.rejection_reason %}{{ leave.rejection_reason }}{% else %}-{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="empty">No history yet.</div>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

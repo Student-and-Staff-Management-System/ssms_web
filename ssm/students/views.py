@@ -738,6 +738,7 @@ def student_editprofile(request):
         personal_info.parent_email = request.POST.get('parent_email')
         personal_info.present_address = request.POST.get('present_address')
         personal_info.permanent_address = request.POST.get('permanent_address')
+        personal_info.is_hosteler = (request.POST.get('is_hosteler') == 'yes')
         personal_info.save()
         
         # Update bank details
@@ -750,6 +751,7 @@ def student_editprofile(request):
 
         # Update Scholarship Info
         scholarship_info.is_first_graduate = (request.POST.get('is_first_graduate') == 'yes')
+        scholarship_info.is_7_5_reservation = (request.POST.get('is_7_5_reservation') == 'yes')
         scholarship_info.save()
         
         # Update document uploads
@@ -773,6 +775,10 @@ def student_editprofile(request):
             student_docs.driving_license = request.FILES['driving_license']
         if 'first_graduate_certificate' in request.FILES:
             student_docs.first_graduate_certificate = request.FILES['first_graduate_certificate']
+        if 'tuition_fee_challan' in request.FILES:
+            student_docs.tuition_fee_challan = request.FILES['tuition_fee_challan']
+        if 'hostel_fee_challan' in request.FILES:
+            student_docs.hostel_fee_challan = request.FILES['hostel_fee_challan']
         
         student_docs.save()
         
@@ -2100,3 +2106,49 @@ def send_test_notification(request):
         except Exception as e:
              return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+
+@login_required
+def upload_fee_challan(request):
+    if request.method == 'POST':
+        roll_number = request.session.get('student_roll_number')
+        if not roll_number:
+            return redirect('student_login')
+        student = Student.objects.get(roll_number=roll_number)
+        scholarship_info, _ = ScholarshipInfo.objects.get_or_create(student=student)
+        
+        is_7_5 = (request.POST.get('is_7_5_reservation') == 'yes')
+        scholarship_info.is_7_5_reservation = is_7_5
+        scholarship_info.save()
+        
+        if not is_7_5:
+            from students.models import FeeChallanRecord
+            academic_year = request.POST.get('academic_year')
+            if academic_year:
+                academic_year = int(academic_year)
+                is_hosteler = (request.POST.get('is_hosteler') == 'yes')
+                
+                record, created = FeeChallanRecord.objects.get_or_create(
+                    student=student, 
+                    academic_year=academic_year,
+                    defaults={'is_hosteler': is_hosteler}
+                )
+                
+                record.is_hosteler = is_hosteler
+                if 'tuition_fee_challan' in request.FILES:
+                    record.tuition_fee_challan = request.FILES['tuition_fee_challan']
+                if 'hostel_fee_challan' in request.FILES:
+                    record.hostel_fee_challan = request.FILES['hostel_fee_challan']
+                
+                record.save()
+                messages.success(request, f'Fee challans for Year {academic_year} uploaded successfully!')
+            else:
+                messages.error(request, 'Please select an academic year.')
+        else:
+            messages.success(request, '7.5% Category marked successfully. No challans needed.')
+        
+        if student.program_level == 'PHD':
+            return redirect('scholar_dashboard')
+        return redirect('student_dashboard')
+
+    return redirect('student_dashboard')

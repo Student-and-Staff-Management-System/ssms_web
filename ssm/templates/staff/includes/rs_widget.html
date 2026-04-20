@@ -1,0 +1,91 @@
+{% if rs_count > 0 %}
+<section class="actions-section rs-management-widget" style="margin-top: 30px;">
+    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.5rem;">🎓</span>
+            <div>
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--primary-dark);">Research Scholar Management</h3>
+                <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">
+                    {% if staff.role == 'HOD' %}Department-wide overview{% else %}Your assigned scholars{% endif %}
+                </p>
+            </div>
+        </div>
+        <span class="badge" style="background: var(--primary-light); color: var(--primary-dark); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+            {{ rs_count }} Scholar{{ rs_count|pluralize }}
+        </span>
+    </div>
+
+    <!-- Quick Stats for RS -->
+    <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <a href="{% url 'staffs:manage_scholar_attendance' %}" class="stat-card" style="text-decoration: none; color: inherit; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; display: flex; align-items: center; gap: 15px; transition: all 0.2s;">
+            <div class="stat-icon" style="background: #ecfdf5; color: #059669; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 1.2rem;">📅</div>
+            <div class="stat-info">
+                <h3 style="margin: 0; font-size: 1.2rem;">{{ rs_pending_attendance }}</h3>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Pending Attendance</span>
+            </div>
+            {% if rs_pending_attendance > 0 %}
+                <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: auto;"></div>
+            {% endif %}
+        </a>
+
+        <a href="{% url 'staffs:manage_scholar_leave' %}" class="stat-card" style="text-decoration: none; color: inherit; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; display: flex; align-items: center; gap: 15px; transition: all 0.2s;">
+            <div class="stat-icon" style="background: #fff7ed; color: #ea580c; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 1.2rem;">📋</div>
+            <div class="stat-info">
+                <h3 style="margin: 0; font-size: 1.2rem;">{{ rs_pending_leaves }}</h3>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Pending Leaves</span>
+            </div>
+            {% if rs_pending_leaves > 0 %}
+                <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: auto;"></div>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- Scholar List (Mini Grid) -->
+    <div class="actions-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+        {% for student in rs_scholars|slice:":6" %}
+        <div class="action-tile" style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #f3f4f6; background: #fafafa; border-radius: 10px; transition: all 0.2s;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                {% if student.student_photo %}
+                    <img src="{{ student.student_photo.url }}" alt="{{ student.student_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ student.student_name }}&background=random" alt="{{ student.student_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% endif %}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <h4 style="margin: 0; font-size: 0.85rem; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ student.student_name }}</h4>
+                <p style="margin: 0; font-size: 0.7rem; color: var(--text-muted);">{{ student.roll_number }}</p>
+            </div>
+            <div style="text-align: right;">
+                <span style="display: block; font-size: 0.65rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Guide</span>
+                <span style="display: block; font-size: 0.7rem; color: var(--primary-dark); font-weight: 500;">
+                    {% if student.scholar_profile.supervisor %}
+                        {{ student.scholar_profile.supervisor.name|truncatechars:12 }}
+                    {% else %}
+                        Not Assigned
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if rs_count > 6 %}
+    <div style="text-align: center; margin-top: 15px;">
+        <p style="font-size: 0.8rem; color: var(--text-muted);">... and {{ rs_count|add:"-6" }} more scholars</p>
+    </div>
+    {% endif %}
+</section>
+
+<style>
+    .rs-management-widget .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-light) !important;
+    }
+    .rs-management-widget .action-tile:hover {
+        background: #fff !important;
+        border-color: var(--primary-light) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endif %}

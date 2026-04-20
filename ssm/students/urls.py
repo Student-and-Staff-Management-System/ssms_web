@@ -1,6 +1,6 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
-from . import views
+from . import views, scholars_views
 
 
 urlpatterns = [
@@ -44,6 +44,7 @@ urlpatterns = [
     path('exam-timetable/', views.exam_timetable, name='exam_timetable'),
     path('class-timetable/', views.class_timetable, name='class_timetable'),
     path('edit_profile/', views.student_editprofile, name='student_editprofile'),
+    path('upload-fee-challan/', views.upload_fee_challan, name='upload_fee_challan'),
     #path('api/get-castes/', views.get_castes, name='get_castes'),
     path('api/get-castes/', views.get_caste_data_api, name='api_get_castes'),
    # path('reset-password-request/', views.password_reset_request, name='password_reset_request'),
@@ -89,4 +90,18 @@ urlpatterns = [
     path('request/bonafide/', views.request_bonafide, name='request_bonafide'),
     path('bonafide/history/', views.bonafide_list, name='bonafide_list'),
     path('bonafide/download/<int:request_id>/', views.download_bonafide, name='download_bonafide'),
+    
+    # Scholar URLs
+    path('scholar/login/', scholars_views.scholar_login, name='scholar_login'),
+    path('scholar/register/step1/', scholars_views.scholar_register_step1, name='scholar_register_step1'),
+    path('scholar/register/step2/', scholars_views.scholar_register_step2, name='scholar_register_step2'),
+    path('scholar/dashboard/', scholars_views.scholar_dashboard, name='scholar_dashboard'),
+    path('scholar/profile/', scholars_views.scholar_profile, name='scholar_profile'),
+    path('scholar/profile/edit/', scholars_views.scholar_edit_profile, name='scholar_edit_profile'),
+    path('scholar/rac/add/', scholars_views.scholar_add_rac, name='scholar_add_rac'),
+    path('scholar/zeroth/update/', scholars_views.scholar_update_zeroth, name='scholar_update_zeroth'),
+    path('scholar/rcw/add/', scholars_views.scholar_add_rcw, name='scholar_add_rcw'),
+    path('scholar/attendance/submit/', scholars_views.scholar_attendance_submit, name='scholar_attendance_submit'),
+    path('scholar/leave/apply/', scholars_views.scholar_apply_leave, name='scholar_apply_leave'),
+    path('scholar/leave/history/', scholars_views.scholar_leave_history, name='scholar_leave_history'),
 ]

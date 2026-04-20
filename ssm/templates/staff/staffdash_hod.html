@@ -62,6 +62,12 @@
                 <a href="{% url 'staffs:student_list' %}" class="nav-item">
                     <span class="nav-icon">👨‍🎓</span> Students
                 </a>
+                <a href="{% url 'staffs:manage_scholar_attendance' %}" class="nav-item">
+                    <span class="nav-icon">🎓</span> Scholar Attendance
+                </a>
+                <a href="{% url 'staffs:manage_scholar_leave' %}" class="nav-item">
+                    <span class="nav-icon">📋</span> Scholar Leaves
+                </a>
                 <a href="{% url 'staffs:staff_list' %}" class="nav-item">
                     <span class="nav-icon">👨‍🏫</span> Faculty
                 </a>
@@ -207,6 +213,8 @@
 
 
 
+
+
             <!-- Quick Actions Grid -->
             <section class="actions-section">
                 <div class="section-header">
@@ -263,6 +271,8 @@
                 </div>
             </section>
             {% endif %}
+            <!-- Research Scholar Management Widget -->
+            {% include 'staff/includes/rs_widget.html' %}
             {% endblock %}
 
         </main>

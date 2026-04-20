@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Scholar Profile - {{ student.student_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <aside class="profile-sidebar no-print">
+            {% if student.studentdocuments.student_photo %}
+            <img src="{{ student.studentdocuments.student_photo.url }}" alt="Student Photo" class="profile-photo">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ student.student_name|urlencode }}&background=5a7d7c&color=fff&size=200" alt="Profile Photo" class="profile-photo">
+            {% endif %}
+
+            <div class="profile-name">{{ student.student_name }}</div>
+            <div class="profile-meta">{{ student.roll_number }}</div>
+
+            <div style="margin-top: 20px;">
+                <a href="{% url 'scholar_profile' %}" class="action-btn btn-outline" style="width: 100%; display: block; text-align: center; box-sizing: border-box; background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color);">
+                    ← Back to Profile
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header no-print">
+                <div class="title-group">
+                    <h1>Edit Profile & Data</h1>
+                </div>
+                <div class="header-actions">
+                    <button type="submit" form="editProfileForm" class="action-btn btn-primary">💾 Save Changes</button>
+                </div>
+            </header>
+
+            <form id="editProfileForm" method="POST" enctype="multipart/form-data" action="{% url 'scholar_edit_profile' %}">
+                {% csrf_token %}
+                <div class="content-grid">
+                    
+                    <!-- Basic & Contact -->
+                    <div class="card">
+                        <h2 class="card-title">👤 Basic & Contact</h2>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Email Address</label>
+                                <input type="email" name="student_email" value="{{ student.student_email|default:'' }}" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Mobile Number</label>
+                                <input type="text" name="student_mobile" value="{{ personalinfo.student_mobile|default:'' }}" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Date of Birth</label>
+                                <input type="date" name="date_of_birth" value="{{ personalinfo.date_of_birth|date:'Y-m-d'|default:'' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Present Address</label>
+                                <input type="text" name="present_address" value="{{ personalinfo.present_address|default:'' }}">
+                            </div>
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label>Permanent Address</label>
+                                <textarea name="permanent_address" rows="2">{{ personalinfo.permanent_address|default:'' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parents Info -->
+                    <div class="card">
+                        <h2 class="card-title">👨‍👩‍👦 Parents Information</h2>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Father's Name</label>
+                                <input type="text" name="father_name" value="{{ personalinfo.father_name|default:'' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Father's Mobile</label>
+                                <input type="text" name="father_mobile" value="{{ personalinfo.father_mobile|default:'' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Mother's Name</label>
+                                <input type="text" name="mother_name" value="{{ personalinfo.mother_name|default:'' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>Mother's Mobile</label>
+                                <input type="text" name="mother_mobile" value="{{ personalinfo.mother_mobile|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UG & PG Details -->
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <h2 class="card-title">🎓 UG & PG Finalization</h2>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>UG Course Name</label>
+                                <input type="text" name="ug_course" value="{{ ug.ug_course|default:'' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>UG University</label>
+                                <input type="text" name="ug_university" value="{{ ug.ug_university|default:'' }}">
+                            </div>
+                            <div class="input-group">
+                                <label>UG Year of Passing</label>
+                                <input type="number" name="ug_year_of_passing" value="{{ ug.ug_year_of_passing|default:'' }}">
+                            </div>
+                            
+                            <div class="input-group" style="margin-top: 15px;">
+                                <label>PG Course Name</label>
+                                <input type="text" name="pg_course" value="{{ pg.pg_course|default:'' }}">
+                            </div>
+                            <div class="input-group" style="margin-top: 15px;">
+                                <label>PG University</label>
+                                <input type="text" name="pg_university" value="{{ pg.pg_university|default:'' }}">
+                            </div>
+                            <div class="input-group" style="margin-top: 15px;">
+                                <label>PG Year of Passing</label>
+                                <input type="number" name="pg_year_of_passing" value="{{ pg.pg_year_of_passing|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Documents -->
+                    <div class="card">
+                        <h2 class="card-title">📂 Document Uploads</h2>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Profile Photo</label>
+                                <input type="file" name="student_photo" accept="image/*">
+                                {% if studentdocuments.student_photo %}
+                                <small>Current: <a href="{{ studentdocuments.student_photo.url }}" target="_blank">View File</a></small>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>UG/PG Consolidate Marksheet</label>
+                                <input type="file" name="sslc_marksheet" accept=".pdf,image/*">
+                            </div>
+                            <div class="input-group">
+                                <label>Community / Category Cert</label>
+                                <input type="file" name="community_certificate" accept=".pdf,image/*">
+                            </div>
+                            <div class="input-group">
+                                <label>ID Proof (Aadhaar/License)</label>
+                                <input type="file" name="aadhaar_card" accept=".pdf,image/*">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </main>
+    </div>
+</body>
+</html>
