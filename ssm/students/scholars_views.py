@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 from students.models import (
     Student, ResearchScholarProfile, RACMember, ZerothReview, RCWReview,
     PersonalInfo, UGDetails, PGDetails, StudentDocuments, OtherDetails,
-    ScholarshipInfo, ScholarAttendance, LeaveRequest
+    ScholarshipInfo, ScholarAttendance, LeaveRequest, AcademicHistory
 )
 from students.forms import LeaveRequestForm
 from staffs.models import Staff
@@ -78,31 +78,92 @@ def scholar_register_step2(request):
     student = get_object_or_404(Student, roll_number=roll_number)
 
     if request.method == 'POST':
-        # Part 2 Registration -> Personal, UG, PG details
-        # Similar logic to regular student
-        PersonalInfo.objects.create(
+        # Part 2 Registration -> Personal, Parents, UG, PG, Schooling details
+        
+        # 1. Personal & Parent Info
+        PersonalInfo.objects.update_or_create(
             student=student,
-            gender=request.POST.get('gender', ''),
-            date_of_birth=request.POST.get('date_of_birth') or None,
-            student_mobile=request.POST.get('student_mobile', ''),
-            permanent_address=request.POST.get('permanent_address', '')
+            defaults={
+                'gender': request.POST.get('gender', ''),
+                'date_of_birth': request.POST.get('date_of_birth') or None,
+                'student_mobile': request.POST.get('student_mobile', ''),
+                'blood_group': request.POST.get('blood_group', ''),
+                'aadhaar_number': request.POST.get('aadhaar_number', ''),
+                'community': request.POST.get('community', ''),
+                'caste_other': request.POST.get('caste_other', ''),
+                'present_address': request.POST.get('present_address', ''),
+                'permanent_address': request.POST.get('permanent_address', ''),
+                'is_hosteler': request.POST.get('is_hosteler') == 'yes',
+                'father_name': request.POST.get('father_name', ''),
+                'father_mobile': request.POST.get('father_mobile', ''),
+                'father_occupation': request.POST.get('father_occupation', ''),
+                'mother_name': request.POST.get('mother_name', ''),
+                'mother_mobile': request.POST.get('mother_mobile', ''),
+                'mother_occupation': request.POST.get('mother_occupation', ''),
+                'parent_annual_income': request.POST.get('parent_annual_income') or None,
+            }
         )
-        UGDetails.objects.create(
+
+        # Update PersonalInfo with Caste ForeignKey Logic (Synchronized with UG logic)
+        p_info = PersonalInfo.objects.get(student=student)
+        caste_name = request.POST.get('caste')
+        if caste_name and caste_name not in ['Not Applicable', '']:
+            from students.models import Caste
+            caste_obj, _ = Caste.objects.get_or_create(name=caste_name)
+            p_info.caste = caste_obj
+            p_info.save()
+
+        # 2. Academic History (SSLC/HSC)
+        AcademicHistory.objects.update_or_create(
             student=student,
-            ug_course=request.POST.get('ug_course', ''),
-            ug_university=request.POST.get('ug_university', ''),
-            ug_year_of_passing=request.POST.get('ug_year_of_passing', '')
+            defaults={
+                'sslc_school_name': request.POST.get('sslc_school_name', ''),
+                'sslc_percentage': request.POST.get('sslc_percentage') or None,
+                'sslc_year_of_passing': request.POST.get('sslc_year_of_passing', ''),
+                'hsc_school_name': request.POST.get('hsc_school_name', ''),
+                'hsc_percentage': request.POST.get('hsc_percentage') or None,
+                'hsc_year_of_passing': request.POST.get('hsc_year_of_passing', ''),
+            }
         )
-        PGDetails.objects.create(
+
+        # 3. UG & PG Details
+        UGDetails.objects.update_or_create(
             student=student,
-            pg_course=request.POST.get('pg_course', ''),
-            pg_university=request.POST.get('pg_university', ''),
-            pg_year_of_passing=request.POST.get('pg_year_of_passing', '')
+            defaults={
+                'ug_course': request.POST.get('ug_course', ''),
+                'ug_university': request.POST.get('ug_university', ''),
+                'ug_year_of_passing': request.POST.get('ug_year_of_passing', ''),
+            }
         )
+        PGDetails.objects.update_or_create(
+            student=student,
+            defaults={
+                'pg_course': request.POST.get('pg_course', ''),
+                'pg_university': request.POST.get('pg_university', ''),
+                'pg_year_of_passing': request.POST.get('pg_year_of_passing', ''),
+            }
+        )
+
+        # 4. Student Documents
+        docs, _ = StudentDocuments.objects.get_or_create(student=student)
+        if request.FILES.get('student_photo'): docs.student_photo = request.FILES.get('student_photo')
+        if request.FILES.get('aadhaar_card'): docs.aadhaar_card = request.FILES.get('aadhaar_card')
+        if request.FILES.get('community_certificate'): docs.community_certificate = request.FILES.get('community_certificate')
+        if request.FILES.get('sslc_marksheet'): docs.sslc_marksheet = request.FILES.get('sslc_marksheet')
+        if request.FILES.get('hsc_marksheet'): docs.hsc_marksheet = request.FILES.get('hsc_marksheet')
+        if request.FILES.get('income_certificate'): docs.income_certificate = request.FILES.get('income_certificate')
+        if request.FILES.get('bank_passbook'): docs.bank_passbook = request.FILES.get('bank_passbook')
+        if request.FILES.get('driving_license'): docs.driving_license = request.FILES.get('driving_license')
+        docs.save()
 
         student.is_profile_complete = True
         student.save()
-        messages.success(request, 'Registration complete. Please login.')
+        
+        # Clear session
+        if 'register_roll_number' in request.session:
+            del request.session['register_roll_number']
+            
+        messages.success(request, 'Registration complete. Your profile is now 100% complete. Please login.')
         return redirect('scholar_login')
 
     return render(request, 'scholars/scholar_register_step2.html', {'student': student})
@@ -144,6 +205,10 @@ def scholar_dashboard(request):
     timeline_rejected = [1 if a.status == 'Rejected' else 0 for a in reversed(attendance_history)]
     timeline_pending  = [1 if a.status == 'Pending'  else 0 for a in reversed(attendance_history)]
 
+    # Sync with student_profile.html logic (profile completion)
+    from .views import get_profile_completion_data
+    completion_info = get_profile_completion_data(student)
+
     context = {
         'student': student,
         'profile': profile,
@@ -164,6 +229,9 @@ def scholar_dashboard(request):
         'timeline_approved': json.dumps(timeline_approved),
         'timeline_rejected': json.dumps(timeline_rejected),
         'timeline_pending':  json.dumps(timeline_pending),
+        # Profile Completion
+        'profile_completion_percentage': completion_info['percentage'],
+        'profile_missing_fields': completion_info['missing_fields'],
     }
     return render(request, 'scholars/scholar_dashboard.html', context)
 
@@ -251,19 +319,36 @@ def scholar_profile(request):
         return redirect('scholar_login')
     
     student = get_object_or_404(Student, roll_number=roll_number, program_level='PHD')
-    
+
+    from django.db.models import Sum
+    from students.models import (
+        AcademicHistory, StudentDocuments, StudentSkill, StudentProject, 
+        ResearchScholarProfile, PersonalInfo, UGDetails, PGDetails
+    )
+
     def get_related_or_none(model_class, student_obj):
         try:
             return model_class.objects.get(student=student_obj)
         except model_class.DoesNotExist:
             return None
 
+    # Sync with student_profile.html logic (profile completion)
+    from .views import get_profile_completion_data
+
+    completion_info = get_profile_completion_data(student)
+
     context = {
         'student': student,
         'profile': get_related_or_none(ResearchScholarProfile, student),
         'personalinfo': get_related_or_none(PersonalInfo, student),
+        'academichistory': get_related_or_none(AcademicHistory, student),
+        'studentdocuments': get_related_or_none(StudentDocuments, student),
         'ug': get_related_or_none(UGDetails, student),
         'pg': get_related_or_none(PGDetails, student),
+        'skills': student.skills.all(),
+        'projects': student.projects.all(),
+        'profile_completion_percentage': completion_info['percentage'],
+        'profile_missing_fields': completion_info['missing_fields'],
     }
     return render(request, 'scholars/scholar_profile.html', context)
 
@@ -275,28 +360,63 @@ def scholar_edit_profile(request):
 
     student = get_object_or_404(Student, roll_number=roll_number, program_level='PHD')
     
+    # Sync all student-related models
     personal_info, _ = PersonalInfo.objects.get_or_create(student=student)
     student_docs, _ = StudentDocuments.objects.get_or_create(student=student)
+    academic_history, _ = AcademicHistory.objects.get_or_create(student=student)
     ug_details, _ = UGDetails.objects.get_or_create(student=student)
     pg_details, _ = PGDetails.objects.get_or_create(student=student)
 
     if request.method == 'POST':
-        # Update student details
+        # 1. Update basic student details
         student.student_email = request.POST.get('student_email')
         student.save()
         
-        # Update personal info
+        # 2. Update personal info (Synchronized with studedit.html)
         personal_info.student_mobile = request.POST.get('student_mobile')
-        personal_info.father_name = request.POST.get('father_name')
-        personal_info.father_mobile = request.POST.get('father_mobile')
-        personal_info.mother_name = request.POST.get('mother_name')
-        personal_info.mother_mobile = request.POST.get('mother_mobile')
+        personal_info.gender = request.POST.get('gender')
+        personal_info.date_of_birth = request.POST.get('date_of_birth') or None
+        personal_info.blood_group = request.POST.get('blood_group')
+        personal_info.community = request.POST.get('community')
+        
+        # Handle Caste ForeignKey (Synchronized with UG logic)
+        caste_name = request.POST.get('caste')
+        if caste_name and caste_name not in ['Not Applicable', '']:
+            from students.models import Caste
+            caste_obj, _ = Caste.objects.get_or_create(name=caste_name)
+            personal_info.caste = caste_obj
+            
+        personal_info.caste_other = request.POST.get('caste_other')
+        
+        personal_info.aadhaar_number = request.POST.get('aadhaar_number')
         personal_info.present_address = request.POST.get('present_address')
         personal_info.permanent_address = request.POST.get('permanent_address')
-        personal_info.date_of_birth = request.POST.get('date_of_birth') or None
+        personal_info.is_hosteler = (request.POST.get('is_hosteler') == 'yes')
+        
+        # Parent Details
+        personal_info.father_name = request.POST.get('father_name')
+        personal_info.father_mobile = request.POST.get('father_mobile')
+        personal_info.father_occupation = request.POST.get('father_occupation')
+        personal_info.mother_name = request.POST.get('mother_name')
+        personal_info.mother_mobile = request.POST.get('mother_mobile')
+        personal_info.mother_occupation = request.POST.get('mother_occupation')
+        
+        income = request.POST.get('parent_annual_income')
+        personal_info.parent_annual_income = int(income) if income and income.isdigit() else None
+        
         personal_info.save()
 
-        # Update UG & PG
+        # 3. Update Academic History (SSLC/HSC)
+        academic_history.sslc_school_name = request.POST.get('sslc_school_name')
+        academic_history.sslc_percentage = request.POST.get('sslc_percentage') or None
+        academic_history.sslc_year_of_passing = request.POST.get('sslc_year_of_passing')
+        
+        academic_history.hsc_school_name = request.POST.get('hsc_school_name')
+        academic_history.hsc_percentage = request.POST.get('hsc_percentage') or None
+        academic_history.hsc_year_of_passing = request.POST.get('hsc_year_of_passing')
+        academic_history.save()
+
+        # 4. Update UG & PG (RS Specific)
         ug_details.ug_course = request.POST.get('ug_course', '')
         ug_details.ug_university = request.POST.get('ug_university', '')
         ug_details.ug_year_of_passing = request.POST.get('ug_year_of_passing', '')
@@ -307,31 +427,33 @@ def scholar_edit_profile(request):
         pg_details.pg_year_of_passing = request.POST.get('pg_year_of_passing', '')
         pg_details.save()
 
-        # Update document uploads
-        if 'student_photo' in request.FILES:
-            student_docs.student_photo = request.FILES['student_photo']
-        if 'student_id_card' in request.FILES:
-            student_docs.student_id_card = request.FILES['student_id_card']
-        if 'aadhaar_card' in request.FILES:
-            student_docs.aadhaar_card = request.FILES['aadhaar_card']
-        if 'community_certificate' in request.FILES:
-            student_docs.community_certificate = request.FILES['community_certificate']
-        if 'sslc_marksheet' in request.FILES:
-            student_docs.sslc_marksheet = request.FILES['sslc_marksheet']
-        if 'hsc_marksheet' in request.FILES:
-            student_docs.hsc_marksheet = request.FILES['hsc_marksheet']
+        # 5. Update document uploads
+        from ssm.upload_paths import student_photo_path # ensure paths are available if needed, but FielField handles it
+        files = request.FILES
+        if 'student_photo' in files: student_docs.student_photo = files['student_photo']
+        if 'student_id_card' in files: student_docs.student_id_card = files['student_id_card']
+        if 'aadhaar_card' in files: student_docs.aadhaar_card = files['aadhaar_card']
+        if 'community_certificate' in files: student_docs.community_certificate = files['community_certificate']
+        if 'sslc_marksheet' in files: student_docs.sslc_marksheet = files['sslc_marksheet']
+        if 'hsc_marksheet' in files: student_docs.hsc_marksheet = files['hsc_marksheet']
+        if 'income_certificate' in files: student_docs.income_certificate = files['income_certificate']
+        if 'bank_passbook' in files: student_docs.bank_passbook = files['bank_passbook']
+        if 'driving_license' in files: student_docs.driving_license = files['driving_license']
             
         student_docs.save()
 
-        messages.success(request, 'Your Scholar Profile has been updated successfully!')
+        messages.success(request, 'Your research scholar profile has been updated successfully!')
         return redirect('scholar_profile')
 
     context = {
         'student': student,
         'personalinfo': personal_info,
+        'academichistory': academic_history,
         'ug': ug_details,
         'pg': pg_details,
         'studentdocuments': student_docs,
+        'skills': student.skills.all(),
+        'projects': student.projects.all(),
     }
     return render(request, 'scholars/scholar_edit_profile.html', context)
 

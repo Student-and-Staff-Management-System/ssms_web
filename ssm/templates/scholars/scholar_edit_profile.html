@@ -8,154 +8,406 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
     <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+    <style>
+        :root {
+            --input-margin: 14px;
+        }
+        .main-content { gap: 15px; }
+        .card { padding: 20px; margin-bottom: 15px; }
+        .card-title { font-size: 1.05em; border-bottom-width: 1px; margin-bottom: 15px; padding-bottom: 8px; }
+        
+        /* Compact Grids */
+        .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        
+        .input-group { margin-bottom: var(--input-margin); }
+        .input-group label { font-size: 0.85em; margin-bottom: 4px; }
+        .input-group input, .input-group select, .input-group textarea { padding: 8px 12px; font-size: 0.95em; }
+        
+        .form-grid-full { width: 100%; display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .input-group textarea { min-height: 80px; }
+        
+        .profile-sidebar { width: 260px; }
+        
+        @media (max-width: 1200px) {
+            .form-grid-4 { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 992px) {
+            .form-grid-3, .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .form-grid-2, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; }
+        }
+
+        .current-file { font-size: 0.8em; margin-top: 5px; }
+        .button-group { margin-top: 20px; }
+        
+        .skill-tag { font-size: 0.9em; padding: 4px 10px; }
+        .project-item { padding: 12px; }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
         
         <aside class="profile-sidebar no-print">
             {% if student.studentdocuments.student_photo %}
-            <img src="{{ student.studentdocuments.student_photo.url }}" alt="Student Photo" class="profile-photo">
+            <img src="{{ student.studentdocuments.student_photo.url }}" alt="Student Photo" class="profile-photo" style="width: 100px; height: 100px;">
             {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ student.student_name|urlencode }}&background=5a7d7c&color=fff&size=200" alt="Profile Photo" class="profile-photo">
+            <img src="https://ui-avatars.com/api/?name={{ student.student_name|urlencode }}&background=5a7d7c&color=fff&size=200" alt="Profile Photo" class="profile-photo" style="width: 100px; height: 100px;">
             {% endif %}
 
-            <div class="profile-name">{{ student.student_name }}</div>
+            <div class="profile-name" style="font-size: 1.2em;">{{ student.student_name }}</div>
             <div class="profile-meta">{{ student.roll_number }}</div>
 
-            <div style="margin-top: 20px;">
-                <a href="{% url 'scholar_profile' %}" class="action-btn btn-outline" style="width: 100%; display: block; text-align: center; box-sizing: border-box; background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color);">
+            <div style="margin-top: 15px;">
+                <a href="{% url 'scholar_profile' %}" class="action-btn" style="width: 100%; padding: 8px; font-size: 0.9em; display: block; text-align: center; box-sizing: border-box; background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color);">
                     ← Back to Profile
                 </a>
             </div>
         </aside>
 
         <main class="main-content">
-            <header class="page-header no-print">
+            <header class="page-header no-print" style="padding: 12px 20px;">
                 <div class="title-group">
-                    <h1>Edit Profile & Data</h1>
+                    <h1 style="font-size: 1.3em;">Edit Profile</h1>
                 </div>
                 <div class="header-actions">
-                    <button type="submit" form="editProfileForm" class="action-btn btn-primary">💾 Save Changes</button>
+                    <button type="submit" form="editProfileForm" class="action-btn btn-primary" style="padding: 8px 20px;">💾 Save</button>
                 </div>
             </header>
 
-            <form id="editProfileForm" method="POST" enctype="multipart/form-data" action="{% url 'scholar_edit_profile' %}">
+            <form id="editProfileForm" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="content-grid">
+                
+                <div class="main-content">
                     
-                    <!-- Basic & Contact -->
+                    <!-- Basic & Personal -->
                     <div class="card">
-                        <h2 class="card-title">👤 Basic & Contact</h2>
-                        <div class="form-grid">
+                        <h2 class="card-title">👤 Basic & Personal</h2>
+                        <div class="form-grid-3">
                             <div class="input-group">
-                                <label>Email Address</label>
-                                <input type="email" name="student_email" value="{{ student.student_email|default:'' }}" required>
+                                <label for="student_email">Email Address *</label>
+                                <input type="email" id="student_email" name="student_email" value="{{ student.student_email|default:'' }}" required>
                             </div>
                             <div class="input-group">
-                                <label>Mobile Number</label>
-                                <input type="text" name="student_mobile" value="{{ personalinfo.student_mobile|default:'' }}" required>
+                                <label for="student_mobile">Mobile Number</label>
+                                <input type="tel" id="student_mobile" name="student_mobile" value="{{ personalinfo.student_mobile|default:'' }}" maxlength="10">
                             </div>
                             <div class="input-group">
-                                <label>Date of Birth</label>
-                                <input type="date" name="date_of_birth" value="{{ personalinfo.date_of_birth|date:'Y-m-d'|default:'' }}">
+                                <label for="date_of_birth">Date of Birth</label>
+                                <input type="date" id="date_of_birth" name="date_of_birth" value="{{ personalinfo.date_of_birth|date:'Y-m-d' }}">
+                            </div>
+                        </div>
+
+                        <div class="form-grid-4" style="margin-top: 5px;">
+                            <div class="input-group">
+                                <label for="gender">Gender</label>
+                                <select name="gender" id="gender">
+                                    <option value="">Select</option>
+                                    <option value="Male" {% if personalinfo.gender == 'Male' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if personalinfo.gender == 'Female' %}selected{% endif %}>Female</option>
+                                    <option value="Other" {% if personalinfo.gender == 'Other' %}selected{% endif %}>Other</option>
+                                </select>
                             </div>
                             <div class="input-group">
-                                <label>Present Address</label>
-                                <input type="text" name="present_address" value="{{ personalinfo.present_address|default:'' }}">
+                                <label for="blood_group">Blood Group</label>
+                                <input type="text" name="blood_group" id="blood_group" value="{{ personalinfo.blood_group|default:'' }}">
                             </div>
-                            <div class="input-group" style="grid-column: 1 / -1;">
-                                <label>Permanent Address</label>
-                                <textarea name="permanent_address" rows="2">{{ personalinfo.permanent_address|default:'' }}</textarea>
+                            <div class="input-group">
+                                <label for="community">Community</label>
+                                <select name="community" id="community" class="form-control" required>
+                                    <option value="">-- Select Community --</option>
+                                    <option value="OC" {% if personalinfo.community == "OC" %}selected{% endif %}>OC</option>
+                                    <option value="BC" {% if personalinfo.community == "BC" %}selected{% endif %}>BC</option>
+                                    <option value="MBC" {% if personalinfo.community == "MBC" %}selected{% endif %}>MBC</option>
+                                    <option value="SC" {% if personalinfo.community == "SC" %}selected{% endif %}>SC</option>
+                                    <option value="ST" {% if personalinfo.community == "ST" %}selected{% endif %}>ST</option>
+                                    <option value="BC MUSLIM" {% if personalinfo.community == "BC MUSLIM" %}selected{% endif %}>BC-Muslim</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="caste">Caste</label>
+                                <select name="caste" id="caste" class="form-control" required 
+                                        data-current="{{ personalinfo.caste.name|default:'' }}"></select>
+                            </div>
+                        </div>
+
+                        <div class="form-grid" style="margin-top: 5px;">
+                             <div class="input-group">
+                                <label for="aadhaar_number">Aadhaar Number</label>
+                                <input type="text" id="aadhaar_number" name="aadhaar_number" value="{{ personalinfo.aadhaar_number|default:'' }}" maxlength="12">
+                            </div>
+                            <div class="input-group" style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                <label style="font-weight: 600; color: var(--accent-color); margin-bottom: 5px; font-size: 0.8em;">Hostel Status</label>
+                                <div style="display: flex; gap: 20px; align-items: center;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em;">
+                                        <input type="radio" name="is_hosteler" value="yes" {% if personalinfo.is_hosteler %}checked{% endif %}> Hosteler
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em;">
+                                        <input type="radio" name="is_hosteler" value="no" {% if not personalinfo.is_hosteler %}checked{% endif %}> Day Scholar
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2" style="margin-top: 5px;">
+                            <div class="input-group">
+                                <label for="present_address">Present Address</label>
+                                <textarea id="present_address" name="present_address">{{ personalinfo.present_address|default:'' }}</textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="permanent_address">Permanent Address</label>
+                                <textarea id="permanent_address" name="permanent_address">{{ personalinfo.permanent_address|default:'' }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Parents Info -->
-                    <div class="card">
-                        <h2 class="card-title">👨‍👩‍👦 Parents Information</h2>
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label>Father's Name</label>
-                                <input type="text" name="father_name" value="{{ personalinfo.father_name|default:'' }}">
+                    <!-- Parent & Academic -->
+                    <div class="form-grid-2">
+                        <div class="card">
+                            <h2 class="card-title">👨‍👩 Parent Info</h2>
+                            <div class="form-grid-2">
+                                <div class="input-group"><label>Father's Name</label><input type="text" name="father_name" value="{{ personalinfo.father_name|default:'' }}"></div>
+                                <div class="input-group"><label>Father's Mobile</label><input type="tel" name="father_mobile" value="{{ personalinfo.father_mobile|default:'' }}"></div>
                             </div>
-                            <div class="input-group">
-                                <label>Father's Mobile</label>
-                                <input type="text" name="father_mobile" value="{{ personalinfo.father_mobile|default:'' }}">
+                            <div class="form-grid-2">
+                                <div class="input-group"><label>Mother's Name</label><input type="text" name="mother_name" value="{{ personalinfo.mother_name|default:'' }}"></div>
+                                <div class="input-group"><label>Mother's Mobile</label><input type="tel" name="mother_mobile" value="{{ personalinfo.mother_mobile|default:'' }}"></div>
                             </div>
-                            <div class="input-group">
-                                <label>Mother's Name</label>
-                                <input type="text" name="mother_name" value="{{ personalinfo.mother_name|default:'' }}">
+                            <div class="input-group"><label>Annual Income (Rs)</label><input type="number" name="parent_annual_income" value="{{ personalinfo.parent_annual_income|default:'' }}"></div>
+                        </div>
+
+                        <div class="card">
+                            <h2 class="card-title">🎓 Academic History</h2>
+                            <div style="margin-bottom: 10px;">
+                                <div class="form-grid-3">
+                                    <div class="input-group"><label>SSLC %</label><input type="number" step="0.01" name="sslc_percentage" value="{{ academichistory.sslc_percentage|default:'' }}"></div>
+                                    <div class="input-group" style="grid-column: span 2;"><label>SSLC School</label><input type="text" name="sslc_school_name" value="{{ academichistory.sslc_school_name|default:'' }}"></div>
+                                </div>
                             </div>
-                            <div class="input-group">
-                                <label>Mother's Mobile</label>
-                                <input type="text" name="mother_mobile" value="{{ personalinfo.mother_mobile|default:'' }}">
+                            <div style="margin-bottom: 10px;">
+                                <div class="form-grid-3">
+                                    <div class="input-group"><label>HSC %</label><input type="number" step="0.01" name="hsc_percentage" value="{{ academichistory.hsc_percentage|default:'' }}"></div>
+                                    <div class="input-group" style="grid-column: span 2;"><label>HSC School</label><input type="text" name="hsc_school_name" value="{{ academichistory.hsc_school_name|default:'' }}"></div>
+                                </div>
+                            </div>
+                            <div class="form-grid-2">
+                                <div class="input-group"><label>UG Course</label><input type="text" name="ug_course" value="{{ ug.ug_course|default:'' }}"></div>
+                                <div class="input-group"><label>PG Course</label><input type="text" name="pg_course" value="{{ pg.pg_course|default:'' }}"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- UG & PG Details -->
-                    <div class="card" style="grid-column: 1 / -1;">
-                        <h2 class="card-title">🎓 UG & PG Finalization</h2>
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label>UG Course Name</label>
-                                <input type="text" name="ug_course" value="{{ ug.ug_course|default:'' }}">
-                            </div>
-                            <div class="input-group">
-                                <label>UG University</label>
-                                <input type="text" name="ug_university" value="{{ ug.ug_university|default:'' }}">
-                            </div>
-                            <div class="input-group">
-                                <label>UG Year of Passing</label>
-                                <input type="number" name="ug_year_of_passing" value="{{ ug.ug_year_of_passing|default:'' }}">
+                    <!-- Skills, Projects & Docs -->
+                    <div class="card" id="skills">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h2 class="card-title" style="margin: 0; border: none; padding: 0;">💡 Skills & Projects</h2>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 15px; font-size: 0.85em;" onclick="toggleProjectForm()">+ Add Project</button>
+                        </div>
+                        
+                        <div class="form-grid-2">
+                            <div>
+                                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                                    <input type="text" id="newSkillInput" placeholder="Skill" style="padding: 8px; flex: 1;">
+                                    <select id="newSkillProficiency" style="width: 120px; padding: 8px;">
+                                        <option value="Beginner">Beg</option>
+                                        <option value="Intermediate" selected>Int</option>
+                                        <option value="Advanced">Adv</option>
+                                        <option value="Expert">Exp</option>
+                                    </select>
+                                    <button type="button" class="btn btn-primary" style="padding: 8px 15px;" onclick="addSkill()">Add</button>
+                                </div>
+                                <div id="skillsList" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    {% for skill in skills %}
+                                    <div class="skill-tag" id="skill-{{ skill.id }}" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 20px; display: flex; align-items: center; gap: 6px;">
+                                        <span>{{ skill.skill_name }}</span>
+                                        <span onclick="deleteSkill({{ skill.id }})" style="cursor: pointer; color: #ef4444;">&times;</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                             
-                            <div class="input-group" style="margin-top: 15px;">
-                                <label>PG Course Name</label>
-                                <input type="text" name="pg_course" value="{{ pg.pg_course|default:'' }}">
-                            </div>
-                            <div class="input-group" style="margin-top: 15px;">
-                                <label>PG University</label>
-                                <input type="text" name="pg_university" value="{{ pg.pg_university|default:'' }}">
-                            </div>
-                            <div class="input-group" style="margin-top: 15px;">
-                                <label>PG Year of Passing</label>
-                                <input type="number" name="pg_year_of_passing" value="{{ pg.pg_year_of_passing|default:'' }}">
+                            <div id="projectsList" style="display: flex; flex-direction: column; gap: 10px;">
+                                <div id="projectForm" style="display: none; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <div class="form-grid-2">
+                                        <div class="input-group"><label>Title *</label><input type="text" id="projTitle"></div>
+                                        <div class="input-group"><label>Role</label><input type="text" id="projRole"></div>
+                                    </div>
+                                    <div class="input-group"><label>Desc *</label><textarea id="projDesc" style="min-height: 60px;"></textarea></div>
+                                    <div style="text-align: right;">
+                                        <button type="button" class="cancel-btn" style="padding: 5px 15px; font-size: 0.85em;" onclick="toggleProjectForm()">Cancel</button>
+                                        <button type="button" class="btn btn-primary" style="padding: 5px 15px; font-size: 0.85em;" onclick="addProject()">Save</button>
+                                    </div>
+                                </div>
+                                {% for project in projects %}
+                                <div class="project-item" id="project-{{ project.id }}" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <strong>{{ project.title }}</strong>
+                                        <button type="button" onclick="deleteProject({{ project.id }})" style="color: #ef4444; border: none; background: none; cursor: pointer;">🗑️</button>
+                                    </div>
+                                    <p style="font-size: 0.85em; margin-top: 5px; color: var(--text-secondary);">{{ project.description|truncatechars:100 }}</p>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
 
-
-
-                    <!-- Documents -->
                     <div class="card">
-                        <h2 class="card-title">📂 Document Uploads</h2>
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label>Profile Photo</label>
-                                <input type="file" name="student_photo" accept="image/*">
-                                {% if studentdocuments.student_photo %}
-                                <small>Current: <a href="{{ studentdocuments.student_photo.url }}" target="_blank">View File</a></small>
-                                {% endif %}
-                            </div>
-                            <div class="input-group">
-                                <label>UG/PG Consolidate Marksheet</label>
-                                <input type="file" name="sslc_marksheet" accept=".pdf,image/*">
-                            </div>
-                            <div class="input-group">
-                                <label>Community / Category Cert</label>
-                                <input type="file" name="community_certificate" accept=".pdf,image/*">
-                            </div>
-                            <div class="input-group">
-                                <label>ID Proof (Aadhaar/License)</label>
-                                <input type="file" name="aadhaar_card" accept=".pdf,image/*">
-                            </div>
+                        <h2 class="card-title">📂 Documents</h2>
+                        <div class="form-grid-3">
+                            <div class="input-group"><label>Photo</label><input type="file" name="student_photo">{% if studentdocuments.student_photo %}<div class="current-file"><a href="{{ studentdocuments.student_photo.url }}" target="_blank">View</a></div>{% endif %}</div>
+                            <div class="input-group"><label>Aadhaar</label><input type="file" name="aadhaar_card">{% if studentdocuments.aadhaar_card %}<div class="current-file"><a href="{{ studentdocuments.aadhaar_card.url }}" target="_blank">View</a></div>{% endif %}</div>
+                            <div class="input-group"><label>Community</label><input type="file" name="community_certificate">{% if studentdocuments.community_certificate %}<div class="current-file"><a href="{{ studentdocuments.community_certificate.url }}" target="_blank">View</a></div>{% endif %}</div>
+                            <div class="input-group"><label>SSLC</label><input type="file" name="sslc_marksheet">{% if studentdocuments.sslc_marksheet %}<div class="current-file"><a href="{{ studentdocuments.sslc_marksheet.url }}" target="_blank">View</a></div>{% endif %}</div>
+                            <div class="input-group"><label>HSC</label><input type="file" name="hsc_marksheet">{% if studentdocuments.hsc_marksheet %}<div class="current-file"><a href="{{ studentdocuments.hsc_marksheet.url }}" target="_blank">View</a></div>{% endif %}</div>
+                            <div class="input-group"><label>Income</label><input type="file" name="income_certificate">{% if studentdocuments.income_certificate %}<div class="current-file"><a href="{{ studentdocuments.income_certificate.url }}" target="_blank">View</a></div>{% endif %}</div>
                         </div>
                     </div>
 
+                </div>
+
+                <div class="button-group" style="text-align: right; padding-bottom: 20px;">
+                    <a href="{% url 'scholar_profile' %}" class="cancel-btn">Cancel</a>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 30px;">Save All Changes</button>
                 </div>
             </form>
         </main>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        // Dynamic Caste Logic
+        let subCasteData = {};
+        const communitySelect = document.getElementById('community');
+        const casteSelect = document.getElementById('caste');
+
+        function updateCasteOptions(selectedCasteName = null) {
+            const selectedCommunity = communitySelect.value;
+            const castes = subCasteData[selectedCommunity] || [];
+
+            casteSelect.innerHTML = '<option value="">-- Select Caste --</option>';
+            castes.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c;
+                option.textContent = c;
+                if (selectedCasteName && c === selectedCasteName) {
+                    option.selected = true;
+                }
+                casteSelect.appendChild(option);
+            });
+
+            $(casteSelect).select2({
+                placeholder: "-- Search and Select Caste --",
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        fetch("{% url 'api_get_castes' %}")
+            .then(res => res.json())
+            .then(data => {
+                subCasteData = data;
+                const currentCaste = casteSelect.getAttribute('data-current');
+                updateCasteOptions(currentCaste);
+            });
+
+        communitySelect.addEventListener('change', () => updateCasteOptions());
+
+        // Skills & Projects Logic
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        async function addSkill() {
+            const nameInput = document.getElementById('newSkillInput');
+            const profInput = document.getElementById('newSkillProficiency');
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            const response = await fetch("{% url 'add_skill_api' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ skill_name: name, proficiency: profInput.value })
+            });
+            const data = await response.json();
+            if (data.success) {
+                const list = document.getElementById('skillsList');
+                const newItem = document.createElement('div');
+                newItem.className = 'skill-tag';
+                newItem.id = `skill-${data.id}`;
+                newItem.style = "background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 20px; padding: 4px 10px; font-size: 0.9em; display: flex; align-items: center; gap: 8px;";
+                newItem.innerHTML = `<span>${name}</span><span onclick="deleteSkill(${data.id})" style="cursor: pointer; color: #ef4444;">&times;</span>`;
+                list.appendChild(newItem);
+                nameInput.value = '';
+            }
+        }
+
+        async function deleteSkill(id) {
+            if (!confirm('Delete this skill?')) return;
+            const response = await fetch("{% url 'delete_skill_api' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ skill_id: id })
+            });
+            const data = await response.json();
+            if (data.success) document.getElementById(`skill-${id}`).remove();
+        }
+
+        function toggleProjectForm() {
+            const form = document.getElementById('projectForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function addProject() {
+            const title = document.getElementById('projTitle').value.trim();
+            const desc = document.getElementById('projDesc').value.trim();
+            const role = document.getElementById('projRole').value.trim();
+            if (!title || !desc) { alert('Title and Description are required.'); return; }
+
+            const response = await fetch("{% url 'add_project_api' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ title: title, description: desc, role: role })
+            });
+            const data = await response.json();
+            if (data.success) {
+                const list = document.getElementById('projectsList');
+                const newItem = document.createElement('div');
+                newItem.id = `project-${data.id}`;
+                newItem.className = 'project-item';
+                newItem.style = "padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;";
+                newItem.innerHTML = `<div style="display: flex; justify-content: space-between;"><strong>${title}</strong><button type="button" onclick="deleteProject(${data.id})" style="color: #ef4444; border: none; background: none; cursor: pointer;">🗑️</button></div><p style="font-size:0.85em; margin-top:5px; color:var(--text-secondary);">${desc}</p>`;
+                list.appendChild(newItem);
+                toggleProjectForm();
+            }
+        }
+
+        async function deleteProject(id) {
+            if (!confirm('Delete this project?')) return;
+            const response = await fetch("{% url 'delete_project_api' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ project_id: id })
+            });
+            const data = await response.json();
+            if (data.success) document.getElementById(`project-${id}`).remove();
+        }
+    </script>
 </body>
 </html>

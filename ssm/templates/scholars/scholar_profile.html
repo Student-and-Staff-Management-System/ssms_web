@@ -47,6 +47,29 @@
             </div>
             {% endif %}
 
+{% if profile_completion_percentage is not None %}
+            <div class="card no-print" style="margin-bottom: 20px; border-left: 4px solid {% if profile_completion_percentage == 100 %}#22c55e{% elif profile_completion_percentage >= 70 %}#f59e0b{% else %}#ef4444{% endif %}; padding: 18px 22px;">
+                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 180px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text-primary);">📋 Profile Completion</span>
+                            <span style="font-weight: 700; font-size: 1rem; color: {% if profile_completion_percentage == 100 %}#16a34a{% elif profile_completion_percentage >= 70 %}#d97706{% else %}#dc2626{% endif %};">
+                                {{ profile_completion_percentage }}%
+                            </span>
+                        </div>
+                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; border-radius: 4px; background: {% if profile_completion_percentage == 100 %}#22c55e{% elif profile_completion_percentage >= 70 %}#f59e0b{% else %}#ef4444{% endif %}; width: {{ profile_completion_percentage|default:0 }}%; transition: width 0.5s ease;"></div>
+                        </div>
+                        {% if profile_completion_percentage == 100 %}
+                        <p style="margin: 6px 0 0 0; font-size: 0.82rem; color: #16a34a;">✅ Your profile is complete!</p>
+                        {% else %}
+                        <p style="margin: 6px 0 0 0; font-size: 0.82rem; color: #64748b;">Fill in missing details below to complete your profile.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="content-grid">
                 <!-- Personal Info -->
                 <div class="card">
@@ -56,8 +79,13 @@
                         <div class="detail-item"><strong>Mobile</strong><span>{{personalinfo.student_mobile|default:"-" }}</span></div>
                         <div class="detail-item"><strong>DOB</strong><span>{{personalinfo.date_of_birth|date:"d M Y"|default:"-" }}</span></div>
                         <div class="detail-item"><strong>Gender</strong><span>{{personalinfo.get_gender_display|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Community</strong><span>{{personalinfo.community|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Caste</strong> <span>{% if personalinfo.caste%}{{personalinfo.caste.name }}{% elif personalinfo.caste_other %}{{personalinfo.caste_other }}{% else %}-{% endif %}</span></div>
+                        <div class="detail-item"><strong>Blood Group</strong><span>{{personalinfo.blood_group|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Aadhaar</strong><span>{{personalinfo.aadhaar_number|default:"-" }}</span></div>
                         <div class="detail-item" style="grid-column: 1 / -1;"><strong>Present Address</strong><span>{{personalinfo.present_address|default:"-" }}</span></div>
                         <div class="detail-item" style="grid-column: 1 / -1;"><strong>Permanent Address</strong><span>{{personalinfo.permanent_address|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Hostel Status</strong><span>{% if personalinfo.is_hosteler %}Hosteler{% else %}Day Scholar{% endif %}</span></div>
                     </div>
                 </div>
 
@@ -91,6 +119,28 @@
                         </div>
                     </div>
                     {% endif %}
+
+                    {% if academichistory.sslc_school_name %}
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">SSLC (10th) Details</h4>
+                        <div class="details-grid">
+                            <div class="detail-item"><strong>School</strong><span>{{ academichistory.sslc_school_name|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Percentage</strong><span>{{ academichistory.sslc_percentage|default:"-" }}%</span></div>
+                            <div class="detail-item"><strong>Year</strong><span>{{ academichistory.sslc_year_of_passing|default:"-" }}</span></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if academichistory.hsc_school_name %}
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">HSC (12th) Details</h4>
+                        <div class="details-grid">
+                            <div class="detail-item"><strong>School</strong><span>{{ academichistory.hsc_school_name|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Percentage</strong><span>{{ academichistory.hsc_percentage|default:"-" }}%</span></div>
+                            <div class="detail-item"><strong>Year</strong><span>{{ academichistory.hsc_year_of_passing|default:"-" }}</span></div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Parent Info -->
@@ -98,12 +148,91 @@
                     <h2 class="card-title">👨‍👩‍👦 Parent Details</h2>
                     <div class="details-grid">
                         <div class="detail-item"><strong>Father</strong><span>{{personalinfo.father_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>F. Occupation</strong><span>{{personalinfo.father_occupation|default:"-" }}</span></div>
                         <div class="detail-item"><strong>F. Mobile</strong><span>{{personalinfo.father_mobile|default:"-" }}</span></div>
                         <div class="detail-item"><strong>Mother</strong><span>{{personalinfo.mother_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>M. Occupation</strong><span>{{personalinfo.mother_occupation|default:"-" }}</span></div>
                         <div class="detail-item"><strong>M. Mobile</strong><span>{{personalinfo.mother_mobile|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Annual Income</strong><span>{% if personalinfo.parent_annual_income %}Rs. {{ personalinfo.parent_annual_income }}{% else %}-{% endif %}</span></div>
                     </div>
                 </div>
 
+                <!-- Uploaded Documents -->
+                <div class="card no-print">
+                    <h2 class="card-title">📂 Uploaded Documents</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                        {% if studentdocuments.student_photo %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">Profile Photo</span>
+                            <a href="{{ studentdocuments.student_photo.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                        {% if studentdocuments.aadhaar_card %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">Aadhaar Card</span>
+                            <a href="{{ studentdocuments.aadhaar_card.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                        {% if studentdocuments.community_certificate %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">Community Cert</span>
+                            <a href="{{ studentdocuments.community_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                        {% if studentdocuments.sslc_marksheet %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">SSLC Marksheet</span>
+                            <a href="{{ studentdocuments.sslc_marksheet.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                        {% if studentdocuments.hsc_marksheet %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">HSC Marksheet</span>
+                            <a href="{{ studentdocuments.hsc_marksheet.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                        {% if studentdocuments.income_certificate %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">Income Cert</span>
+                            <a href="{{ studentdocuments.income_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Skills & Projects -->
+                {% if skills or projects %}
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2 class="card-title">💡 Skills & Recent Projects</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div>
+                            <h4 style="margin: 0 0 12px 0; color: #64748b; font-size: 0.85em; text-transform: uppercase;">Technical Skills</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                {% for skill in skills %}
+                                <span style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 500;">
+                                    {{ skill.skill_name }} <small style="opacity: 0.7;">({{ skill.proficiency }})</small>
+                                </span>
+                                {% empty %}
+                                <span style="color: #94a3b8; font-style: italic; font-size: 0.9em;">No skills added yet.</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 12px 0; color: #64748b; font-size: 0.85em; text-transform: uppercase;">Key Projects</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                {% for project in projects %}
+                                <div style="border-left: 3px solid var(--accent-color); padding-left: 12px;">
+                                    <div style="font-weight: 600; font-size: 0.95em;">{{ project.title }}</div>
+                                    <div style="font-size: 0.85em; color: #64748b;">{{ project.role }}</div>
+                                </div>
+                                {% empty %}
+                                <div style="color: #94a3b8; font-style: italic; font-size: 0.9em;">No projects listed.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
             </div>
         </main>

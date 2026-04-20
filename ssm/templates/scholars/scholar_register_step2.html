@@ -3,111 +3,350 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Scholar Registration - Dept of IT</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <title>Complete Research Profile - Annamalai University</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
-  <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+  <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
   <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
   <style>
-    .form-container { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .form-title { text-align: center; font-size: 24px; color: #333; margin-bottom: 25px; font-weight: 600; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; font-size: 14px;}
-    .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; transition: border-color 0.3s; }
-    .form-input:focus { border-color: #28a745; box-shadow: 0 0 5px rgba(40,167,69,0.2); }
-    .btn-submit { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: background 0.3s; margin-top: 10px;}
-    .btn-submit:hover { background: #218838; }
-    .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #28a745; padding-bottom: 5px; color:#333; margin-top: 30px;}
+    .reg-container { max-width: 1000px; margin: 40px auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    .reg-header { text-align: center; margin-bottom: 40px; }
+    .reg-title { font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+    .reg-subtitle { color: #64748b; font-size: 16px; }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    /* Progress Indicator */
+    .progress-box { background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
+    .progress-labels { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #475569; }
+    .progress-bar-bg { background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; }
+    .progress-bar-fill { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; width: 40%; transition: width 0.5s ease; }
+    .completion-hint { font-size: 13px; color: #059669; margin-top: 8px; display: block; font-weight: 500; }
+
+    .form-section { margin-bottom: 40px; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; }
+    .section-icon { background: #eef2ff; color: #4f46e5; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 18px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #1e293b; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .input-group { display: flex; flex-direction: column; gap: 8px; }
+    .input-group label { font-size: 14px; font-weight: 600; color: #475569; }
+    .form-control { padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 15px; transition: all 0.2s; background: #fff; }
+    .form-control:focus { border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); outline: none; }
     
-    @media (max-width: 768px) {
-        .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 0; }
+    .file-input-wrapper { border: 1.5px dashed #cbd5e1; padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; transition: background 0.2s; }
+    .file-input-wrapper:hover { background: #f8fafc; border-color: #4f46e5; }
+    .file-input-wrapper input { display: none; }
+    .file-label { font-size: 13px; color: #64748b; cursor: pointer; }
+    .file-label strong { color: #4f46e5; display: block; margin-bottom: 4px; }
+
+    .btn-complete { width: 100%; padding: 16px; background: #1e293b; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: transform 0.2s, background 0.2s; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .btn-complete:hover { background: #0f172a; transform: translateY(-2px); }
+    .btn-complete:active { transform: translateY(0); }
+
+    textarea.form-control { resize: vertical; min-height: 100px; }
+
+    @media (max-width: 640px) {
+      .reg-container { padding: 20px; margin: 10px; }
+      .form-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-<body style="background-color: #f4f6f9;">
+<body style="background-color: #f1f5f9;">
 
-  <header class="site-header">
+  <header class="site-header no-print">
     <div class="header-content">
-      <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        alt="University Logo" class="header-logo">
+      <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="University Logo" class="header-logo">
       <div class="header-titles">
         <span class="university-name">Annamalai University</span>
-        <span class="department-name">Department of Information Technology</span>
+        <span class="department-name">Research Portal - Step 2</span>
       </div>
     </div>
   </header>
 
-  <div class="form-container">
-    <h2 class="form-title">Registration - Part 2 ({{ student.student_name }})</h2>
-    
-    <form action="{% url 'scholar_register_step2' %}" method="post">
+  <div class="reg-container">
+    <div class="reg-header">
+      <h1 class="reg-title">Complete Your Bio-Data</h1>
+      <p class="reg-subtitle">Welcome, <strong>{{ student.student_name }}</strong>. Please provide the remaining details to finalize your registration.</p>
+    </div>
+
+    <!-- Completion Indicator -->
+    <div class="progress-box">
+      <div class="progress-labels">
+        <span>Registration Progress</span>
+        <span>Target: 100%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+      <span class="completion-hint">✨ Completing all fields ensures faster administrative approvals.</span>
+    </div>
+
+    <form action="{% url 'scholar_register_step2' %}" method="POST" enctype="multipart/form-data" id="completeRegForm">
       {% csrf_token %}
       
-      <div class="section-title" style="margin-top:0;">Personal Information</div>
-      <div class="grid-3">
-        <div class="form-group">
+      <!-- Section: Personal Info -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">👤</div>
+          <h2 class="section-title">Personal Details</h2>
+        </div>
+        <div class="form-grid">
+          <div class="input-group">
             <label>Gender</label>
-            <select name="gender" class="form-input" required>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+            <select name="gender" class="form-control" required onchange="updateProgress()">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
             </select>
-        </div>
-        <div class="form-group">
+          </div>
+          <div class="input-group">
             <label>Date of Birth</label>
-            <input type="date" name="date_of_birth" class="form-input" required>
-        </div>
-        <div class="form-group">
+            <input type="date" name="date_of_birth" class="form-control" required onchange="updateProgress()">
+          </div>
+          <div class="input-group">
             <label>Mobile Number</label>
-            <input type="text" name="student_mobile" class="form-input" required>
+            <input type="tel" name="student_mobile" class="form-control" placeholder="10-digit mobile" required maxlength="10" oninput="updateProgress()">
+          </div>
+          <div class="input-group">
+            <label>Blood Group</label>
+            <input type="text" name="blood_group" class="form-control" placeholder="e.g. O+ve" oninput="updateProgress()">
+          </div>
+          <div class="input-group">
+            <label>Aadhaar Number</label>
+            <input type="text" name="aadhaar_number" class="form-control" placeholder="12-digit Aadhaar" maxlength="12" oninput="updateProgress()">
+          </div>
+          <div class="input-group">
+              <label>Community</label>
+              <select name="community" id="community" class="form-control" required onchange="updateProgress()">
+                  <option value="">-- Select Community --</option>
+                  <option value="OC">OC</option>
+                  <option value="BC">BC</option>
+                  <option value="MBC">MBC</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                  <option value="BC MUSLIM">BC-Muslim</option>
+              </select>
+          </div>
+          <div class="input-group">
+              <label>Caste</label>
+              <select name="caste" id="caste" class="form-control" required></select>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top: 24px;">
+            <div class="input-group">
+                <label>Present Address</label>
+                <textarea name="present_address" class="form-control" placeholder="Current residential address" oninput="updateProgress()"></textarea>
+            </div>
+            <div class="input-group">
+                <label>Permanent Address</label>
+                <textarea name="permanent_address" class="form-control" placeholder="Permanent home address" required oninput="updateProgress()"></textarea>
+            </div>
+        </div>
+        <div class="input-group" style="margin-top: 20px; background: #f1f5f9; padding: 15px; border-radius: 10px;">
+            <label style="margin-bottom: 10px;">Hostel Requirement</label>
+            <div style="display: flex; gap: 30px;">
+                <label style="font-weight: 500; cursor: pointer;"><input type="radio" name="is_hosteler" value="yes" onchange="updateProgress()"> I am a Hosteler</label>
+                <label style="font-weight: 500; cursor: pointer;"><input type="radio" name="is_hosteler" value="no" checked onchange="updateProgress()"> I am a Day Scholar</label>
+            </div>
         </div>
       </div>
-      <div class="form-group">
-        <label>Permanent Address</label>
-        <textarea name="permanent_address" class="form-input" rows="3" required></textarea>
+
+      <!-- Section: Parents Info -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">👨‍👩‍👦</div>
+          <h2 class="section-title">Parent Information</h2>
+        </div>
+        <div class="form-grid">
+          <div class="input-group"><label>Father's Name</label><input type="text" name="father_name" class="form-control" oninput="updateProgress()"></div>
+          <div class="input-group"><label>Father's Mobile</label><input type="tel" name="father_mobile" class="form-control" oninput="updateProgress()"></div>
+          <div class="input-group"><label>Father's Occupation</label><input type="text" name="father_occupation" class="form-control" oninput="updateProgress()"></div>
+          <div class="input-group"><label>Mother's Name</label><input type="text" name="mother_name" class="form-control" oninput="updateProgress()"></div>
+          <div class="input-group"><label>Mother's Mobile</label><input type="tel" name="mother_mobile" class="form-control" oninput="updateProgress()"></div>
+          <div class="input-group"><label>Annual Family Income (Rs)</label><input type="number" name="parent_annual_income" class="form-control" placeholder="Total annual income" oninput="updateProgress()"></div>
+        </div>
       </div>
 
-      <div class="section-title">UG Details</div>
-      <div class="grid-3">
-          <div class="form-group">
-            <label>UG Degree & Course</label>
-            <input type="text" name="ug_course" class="form-input" placeholder="e.g. B.E. Computer Science" required>
-          </div>
-          <div class="form-group">
-            <label>UG University</label>
-            <input type="text" name="ug_university" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label>Year of Passing</label>
-            <input type="text" name="ug_year_of_passing" class="form-input" required>
-          </div>
+      <!-- Section: Schooling -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">🏫</div>
+          <h2 class="section-title">Schooling Details</h2>
+        </div>
+        <div class="form-grid">
+           <!-- SSLC -->
+           <div style="grid-column: 1 / -1; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; margin-bottom: 10px; color: #64748b; font-weight: 600; font-size: 14px;">10th (SSLC) Details</div>
+           <div class="input-group"><label>School Name</label><input type="text" name="sslc_school_name" class="form-control" oninput="updateProgress()"></div>
+           <div class="input-group"><label>Percentage / CGPA</label><input type="number" step="0.01" name="sslc_percentage" class="form-control" oninput="updateProgress()"></div>
+           <div class="input-group"><label>Year of Passing</label><input type="text" name="sslc_year_of_passing" class="form-control" maxlength="4" oninput="updateProgress()"></div>
+           
+           <!-- HSC -->
+           <div style="grid-column: 1 / -1; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; margin-bottom: 10px; margin-top: 15px; color: #64748b; font-weight: 600; font-size: 14px;">12th (HSC) Details</div>
+           <div class="input-group"><label>School Name</label><input type="text" name="hsc_school_name" class="form-control" oninput="updateProgress()"></div>
+           <div class="input-group"><label>Percentage / CGPA</label><input type="number" step="0.01" name="hsc_percentage" class="form-control" oninput="updateProgress()"></div>
+           <div class="input-group"><label>Year of Passing</label><input type="text" name="hsc_year_of_passing" class="form-control" maxlength="4" oninput="updateProgress()"></div>
+        </div>
       </div>
 
-      <div class="section-title">PG Details</div>
-      <div class="grid-3">
-          <div class="form-group">
-            <label>PG Degree & Course</label>
-            <input type="text" name="pg_course" class="form-input" placeholder="e.g. M.E. Information Tech" required>
-          </div>
-          <div class="form-group">
-            <label>PG University</label>
-            <input type="text" name="pg_university" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label>Year of Passing</label>
-            <input type="text" name="pg_year_of_passing" class="form-input" required>
-          </div>
+      <!-- Section: Academic (Existing) -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">🎓</div>
+          <h2 class="section-title">Academic Qualifications</h2>
+        </div>
+        <div class="form-grid">
+          <div class="input-group"><label>UG Degree & Course</label><input type="text" name="ug_course" class="form-control" placeholder="e.g. B.Tech IT" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>UG University</label><input type="text" name="ug_university" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>UG Year of Passing</label><input type="text" name="ug_year_of_passing" class="form-control" required oninput="updateProgress()"></div>
+          
+          <div class="input-group"><label>PG Degree & Course</label><input type="text" name="pg_course" class="form-control" placeholder="e.g. M.Tech CS" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>PG University</label><input type="text" name="pg_university" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>PG Year of Passing</label><input type="text" name="pg_year_of_passing" class="form-control" required oninput="updateProgress()"></div>
+        </div>
       </div>
 
-      <button type="submit" class="btn-submit">Complete Registration</button>
+      <!-- Section: Document Uploads -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">📁</div>
+          <h2 class="section-title">Required Documents</h2>
+        </div>
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Profile Photo (Formal)</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('photoInput').click()">
+              <span class="file-label" id="photoLabel"><strong>Click to select photo</strong> (JPG/PNG, Max 1MB)</span>
+              <input type="file" id="photoInput" name="student_photo" accept="image/*" onchange="handleFileChange(this, 'photoLabel')">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Aadhaar Card Copy</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('aadhaarInput').click()">
+              <span class="file-label" id="aadhaarLabel"><strong>Click to select file</strong> (PDF/Image)</span>
+              <input type="file" id="aadhaarInput" name="aadhaar_card" accept=".pdf,image/*" onchange="handleFileChange(this, 'aadhaarLabel')">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Community Certificate</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('communityInput').click()">
+              <span class="file-label" id="communityLabel"><strong>Click to select file</strong> (PDF/Image)</span>
+              <input type="file" id="communityInput" name="community_certificate" accept=".pdf,image/*" onchange="handleFileChange(this, 'communityLabel')">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>SSLC Marksheet</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('sslcInput').click()">
+              <span class="file-label" id="sslcLabel"><strong>Click to select file</strong> (PDF/Image)</span>
+              <input type="file" id="sslcInput" name="sslc_marksheet" accept=".pdf,image/*" onchange="handleFileChange(this, 'sslcLabel')">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>HSC Marksheet</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('hscInput').click()">
+              <span class="file-label" id="hscLabel"><strong>Click to select file</strong> (PDF/Image)</span>
+              <input type="file" id="hscInput" name="hsc_marksheet" accept=".pdf,image/*" onchange="handleFileChange(this, 'hscLabel')">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Income Certificate</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('incomeInput').click()">
+              <span class="file-label" id="incomeLabel"><strong>Click to select file</strong> (PDF/Image)</span>
+              <input type="file" id="incomeInput" name="income_certificate" accept=".pdf,image/*" onchange="handleFileChange(this, 'incomeLabel')">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p style="text-align: center; color: #64748b; font-size: 14px; margin-top: 10px;">By clicking complete, you verify that all provided data is true and accurate.</p>
+      <button type="submit" class="btn-complete">Finalize My Profile & Complete Registration</button>
     </form>
   </div>
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let subCasteData = {};
+        const communitySelect = document.getElementById('community');
+        const casteSelect = document.getElementById('caste');
+
+        // Fetch Caste Data
+        fetch("{% url 'api_get_castes' %}")
+            .then(response => response.json())
+            .then(data => {
+                subCasteData = data;
+                updateCasteOptions();
+            });
+
+        function updateCasteOptions() {
+            const selectedCommunity = communitySelect.value;
+            const castes = subCasteData[selectedCommunity] || [];
+
+            // Clear and populate
+            casteSelect.innerHTML = '<option value="">-- Select Caste --</option>';
+            castes.forEach(casteName => {
+                const option = document.createElement('option');
+                option.value = casteName;
+                option.textContent = casteName;
+                casteSelect.appendChild(option);
+            });
+
+            // Initialize Select2
+            $(casteSelect).select2({
+                placeholder: "-- Search and Select Caste --",
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        communitySelect.addEventListener('change', updateCasteOptions);
+
+        function updateProgress() {
+            const form = document.getElementById('completeRegForm');
+            const inputs = form.querySelectorAll('input:not([type="hidden"]), select, textarea');
+            let filled = 0;
+            let total = 0;
+
+            inputs.forEach(input => {
+                if (input.type === 'radio') {
+                    if (input.checked) filled++;
+                    return; 
+                }
+                total++;
+                if (input.tagName === 'SELECT') {
+                    if (input.value && input.value !== "") filled++;
+                } else {
+                    if (input.value.trim() !== '') filled++;
+                }
+            });
+
+            const base = 40;
+            const currentFilled = inputs.length > 0 ? (filled / inputs.length) * 60 : 0;
+            const totalProgress = Math.min(Math.round(base + currentFilled), 100);
+            
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) progressBar.style.width = totalProgress + '%';
+        }
+
+        // Hook up progress updates for Select2
+        $(casteSelect).on('change', updateProgress);
+
+        window.handleFileChange = function(input, labelId) {
+            const label = document.getElementById(labelId);
+            if (input.files && input.files[0]) {
+                label.innerHTML = `<span style="color: #10b981">Selected: ${input.files[0].name}</span>`;
+                label.parentNode.style.borderColor = '#10b981';
+                label.parentNode.style.background = '#f0fdf4';
+            }
+            updateProgress();
+        };
+
+        // Export updateProgress to window for inline calls
+        window.updateProgress = updateProgress;
+        updateProgress();
+    });
+    </script>
 </body>
 </html>

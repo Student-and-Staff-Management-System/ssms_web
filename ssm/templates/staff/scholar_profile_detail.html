@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scholar Details - {{ student.student_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+    <style>
+        .staff-header {
+            background: #fff;
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-link {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print staff-header">
+        <a href="{% url 'staffs:staff_dashboard' %}" class="back-link">
+            <span>← Back to Dashboard</span>
+        </a>
+        <div style="font-weight: 600; color: var(--text-secondary);">Research Scholar Data</div>
+        <button onclick="window.print()" class="action-btn btn-primary" style="padding: 6px 15px; font-size: 0.9rem;">🖨️ Print Bio Data</button>
+    </div>
+
+    <div class="dashboard-container" style="padding-top: 20px;">
+        
+        <aside class="profile-sidebar no-print">
+            {% if student.studentdocuments.student_photo %}
+            <img src="{{ student.studentdocuments.student_photo.url }}" alt="Student Photo" class="profile-photo">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ student.student_name|urlencode }}&background=5a7d7c&color=fff&size=200" alt="Profile Photo" class="profile-photo">
+            {% endif %}
+
+            <div class="profile-name">{{ student.student_name }}</div>
+            <div class="profile-meta">{{ student.roll_number }}</div>
+            <div class="profile-meta">Research Scholar ({{ profile.scholar_type }})</div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">Quick Info</div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 0.7rem; color: var(--text-muted);">Admission Date</label>
+                    <span style="font-size: 0.85rem; font-weight: 500;">{{ profile.admission_date|default:"-" }}</span>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.7rem; color: var(--text-muted);">Supervisor</label>
+                    <span style="font-size: 0.85rem; font-weight: 500;">{{ profile.supervisor.name|default:"Not Assigned" }}</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-grid">
+                <!-- Personal Info -->
+                <div class="card">
+                    <h2 class="card-title">👤 Personal Information</h2>
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>Email</strong><span>{{student.student_email|default:"-"}}</span></div>
+                        <div class="detail-item"><strong>Mobile</strong><span>{{personalinfo.student_mobile|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>DOB</strong><span>{{personalinfo.date_of_birth|date:"d M Y"|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Gender</strong><span>{{personalinfo.get_gender_display|default:"-" }}</span></div>
+                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Present Address</strong><span>{{personalinfo.present_address|default:"-" }}</span></div>
+                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Permanent Address</strong><span>{{personalinfo.permanent_address|default:"-" }}</span></div>
+                    </div>
+                </div>
+
+                <!-- Academic Info -->
+                <div class="card">
+                    <h2 class="card-title">🎓 Academic & Admission Details</h2>
+                    <div class="details-grid" style="margin-bottom: 16px;">
+                        <div class="detail-item"><strong>Scholar Type</strong><span>{{ profile.scholar_type|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Admission Date</strong><span>{{ profile.admission_date|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Supervisor</strong><span>{% if profile.supervisor %}{{ profile.supervisor.name }} ({{ profile.supervisor.department }}){% else %}-{% endif %}</span></div>
+                    </div>
+                    
+                    {% if ug %}
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">UG Details</h4>
+                        <div class="details-grid">
+                            <div class="detail-item"><strong>Course</strong><span>{{ ug.ug_course|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>University</strong><span>{{ ug.ug_university|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Year</strong><span>{{ ug.ug_year_of_passing|default:"-" }}</span></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if pg %}
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">PG Details</h4>
+                        <div class="details-grid">
+                            <div class="detail-item"><strong>Course</strong><span>{{ pg.pg_course|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>University</strong><span>{{ pg.pg_university|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Year</strong><span>{{ pg.pg_year_of_passing|default:"-" }}</span></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Parent Info -->
+                <div class="card">
+                    <h2 class="card-title">👨‍👩‍👦 Parent Details</h2>
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>Father</strong><span>{{personalinfo.father_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>F. Mobile</strong><span>{{personalinfo.father_mobile|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>Mother</strong><span>{{personalinfo.mother_name|default:"-" }}</span></div>
+                        <div class="detail-item"><strong>M. Mobile</strong><span>{{personalinfo.mother_mobile|default:"-" }}</span></div>
+                    </div>
+                </div>
+
+                <!-- RAC Members -->
+                <div class="card">
+                    <h2 class="card-title">🤝 RAC Members</h2>
+                    {% if rac_members %}
+                        <div class="details-grid">
+                        {% for member in rac_members %}
+                            <div class="detail-item" style="grid-column: 1 / -1; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px; margin-bottom: 8px;">
+                                <strong style="color: var(--primary-color);">{{ member.get_member_type_display }}</strong>
+                                <span>
+                                    {% if member.member_type == 'Internal' %}
+                                        {{ member.staff.name }} ({{ member.staff.department }})
+                                    {% else %}
+                                        {{ member.external_name }} - {{ member.external_designation }} ({{ member.external_department }})
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">No RAC members assigned yet.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Zeroth Review -->
+                <div class="card">
+                    <h2 class="card-title">📝 Zeroth Review</h2>
+                    {% if zeroth_review %}
+                        <div class="details-grid">
+                            <div class="detail-item" style="grid-column: 1 / -1;">
+                                <strong>Tentative Title</strong>
+                                <span style="font-style: italic;">"{{ zeroth_review.tentative_title|default:'Not set' }}"</span>
+                            </div>
+                            <div class="detail-item"><strong>RCW001</strong><span>{{ zeroth_review.rcw001_subject|default:'-' }}</span></div>
+                            <div class="detail-item"><strong>RCW002</strong><span>{{ zeroth_review.rcw002_subject|default:'-' }}</span></div>
+                            <div class="detail-item"><strong>RCW003</strong><span>{{ zeroth_review.rcw003_subject|default:'-' }}</span></div>
+                            <div class="detail-item"><strong>RCW004</strong><span>{{ zeroth_review.rcw004_subject|default:'-' }}</span></div>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            {% if zeroth_review.exam1_marksheet %}
+                                <a href="{{ zeroth_review.exam1_marksheet.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; font-size: 0.75rem;">📄 RCW 1/2 Marksheet</a>
+                            {% endif %}
+                            {% if zeroth_review.exam2_marksheet %}
+                                <a href="{{ zeroth_review.exam2_marksheet.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; font-size: 0.75rem;">📄 RCW 3/4 Marksheet</a>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Zeroth review details not available.</p>
+                    {% endif %}
+                </div>
+
+                <!-- RAC Reviews -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2 class="card-title">📈 RAC Progress Reviews</h2>
+                    {% if rcw_reviews %}
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+                                        <th style="padding: 10px;">Date & Time</th>
+                                        <th style="padding: 10px;">Progress Details</th>
+                                        <th style="padding: 10px;">Document</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for review in rcw_reviews %}
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <td style="padding: 10px; white-space: nowrap;">{{ review.date|date:"d M Y" }} <br><small style="color: var(--text-muted);">{{ review.time|time:"h:i A" }}</small></td>
+                                            <td style="padding: 10px;">{{ review.progress|linebreaks }}</td>
+                                            <td style="padding: 10px;">
+                                                {% if review.document %}
+                                                    <a href="{{ review.document.url }}" target="_blank" style="color: var(--primary-color); text-decoration: none;">📄 View</a>
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 10px;">No progress reviews recorded yet.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Documents View -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2 class="card-title">📂 Uploaded Documents</h2>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                        {% if student.scholar_profile.admission_order_doc %}
+                        <a href="{{ student.scholar_profile.admission_order_doc.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.8rem;">📄 Admission Order</a>
+                        {% endif %}
+                        {% if student.studentdocuments.student_id_card %}
+                        <a href="{{ student.studentdocuments.student_id_card.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.8rem;">🪪 ID Card</a>
+                        {% endif %}
+                        {% if student.studentdocuments.aadhaar_card %}
+                        <a href="{{ student.studentdocuments.aadhaar_card.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.8rem;">🆔 Aadhaar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

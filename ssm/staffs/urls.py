@@ -109,6 +109,9 @@ urlpatterns = [
     path('scholar-leave/', views.manage_scholar_leave, name='manage_scholar_leave'),
     path('scholar-leave/update/<int:leave_id>/', views.update_scholar_leave_status, name='update_scholar_leave_status'),
     
+    # Scholar Full Details View
+    path('scholar-profile/<str:roll_number>/', views.staff_view_scholar_profile, name='staff_view_scholar_profile'),
+    
     # Password Reset
     path('password-reset/', views.staff_password_reset_identify, name='password_reset_identify'),
     path('password-reset/verify/', views.staff_password_reset_verify, name='password_reset_verify'),

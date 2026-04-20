@@ -4163,3 +4163,45 @@ def update_scholar_leave_status(request, leave_id):
 
     return redirect('staffs:manage_scholar_leave')
 
+
+def staff_view_scholar_profile(request, roll_number):
+    """Displays complete details of a single research scholar for staff/HOD."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    student = get_object_or_404(Student, roll_number=roll_number, program_level='PHD')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    
+    # helper to get object or None
+    def get_or_none(model, **kwargs):
+        try:
+            return model.objects.get(**kwargs)
+        except model.DoesNotExist:
+            return None
+
+    from students.models import (
+        PersonalInfo, UGDetails, PGDetails, PhDDetails,
+        RACMember, ZerothReview, RCWReview
+    )
+
+    profile = get_or_none(ResearchScholarProfile, student=student)
+    
+    # Security: HOD sees all, others see only their assigned scholars
+    if staff.role != 'HOD' and (not profile or profile.supervisor != staff):
+        messages.error(request, "You are not authorised to view this scholar's profile.")
+        return redirect('staffs:staff_dashboard')
+
+    context = {
+        'student': student,
+        'profile': profile,
+        'personalinfo': get_or_none(PersonalInfo, student=student),
+        'ug': get_or_none(UGDetails, student=student),
+        'pg': get_or_none(PGDetails, student=student),
+        'phd': get_or_none(PhDDetails, student=student),
+        'rac_members': RACMember.objects.filter(scholar=student),
+        'zeroth_review': get_or_none(ZerothReview, scholar=student),
+        'rcw_reviews': RCWReview.objects.filter(scholar=student).order_by('-date', '-time'),
+    }
+
+    return render(request, 'staff/scholar_profile_detail.html', context)
+

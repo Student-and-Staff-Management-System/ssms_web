@@ -226,6 +226,24 @@
 
   <div class="container">
     
+    <!-- Profile Completion Alert -->
+    {% if profile_completion_percentage < 100 %}
+    <div class="card" style="border-left: 4px solid #ef4444; background: #fff; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; animation: fadeInDown 0.5s ease-out; margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="background: #fee2e2; color: #ef4444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+              <i class='bx bx-error-circle'></i>
+          </div>
+          <div>
+              <h4 style="color: #991b1b; font-size: 15px; margin-bottom: 2px;">Profile Incomplete ({{ profile_completion_percentage }}%)</h4>
+              <p style="color: #b91c1c; font-size: 13px; opacity: 0.9;">Missing: {{ profile_missing_fields|join:", " }}</p>
+          </div>
+      </div>
+      <a href="{% url 'scholar_edit_profile' %}" class="btn btn-primary" style="background: #ef4444; white-space: nowrap;">
+          Complete Now
+      </a>
+    </div>
+    {% endif %}
+
     <!-- Messages -->
     {% if messages %}
     <div class="messages-container">
@@ -653,10 +671,10 @@
           </div>
         </div>
 
-        <!-- RCW Reviews Timeline -->
+        <!-- RAC Reviews Timeline -->
         <div class="card delay-2">
           <div class="card-header">
-            <h3 class="card-title"><i class='bx bx-search-alt'></i> RCW Review Progress</h3>
+            <h3 class="card-title"><i class='bx bx-search-alt'></i> RAC Review Progress</h3>
             <button class="btn btn-primary" onclick="openModal('rcwModal')"><i class='bx bx-plus'></i> Log Review</button>
           </div>
           
@@ -783,7 +801,7 @@
   <div id="rcwModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h3>Log New RCW Review</h3>
+        <h3>Log New RAC Review</h3>
         <button class="close-btn" onclick="closeModal('rcwModal')"><i class='bx bx-x'></i></button>
       </div>
       <div class="modal-body">

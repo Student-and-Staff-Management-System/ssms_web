@@ -57,13 +57,17 @@
             </div>
             <div style="text-align: right;">
                 <span style="display: block; font-size: 0.65rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Guide</span>
-                <span style="display: block; font-size: 0.7rem; color: var(--primary-dark); font-weight: 500;">
+                <span style="display: block; font-size: 0.7rem; color: var(--primary-dark); font-weight: 500; margin-bottom: 5px;">
                     {% if student.scholar_profile.supervisor %}
                         {{ student.scholar_profile.supervisor.name|truncatechars:12 }}
                     {% else %}
                         Not Assigned
                     {% endif %}
                 </span>
+                <a href="{% url 'staffs:staff_view_scholar_profile' student.roll_number %}" 
+                   style="display: inline-block; font-size: 0.65rem; background: var(--primary); color: white; text-decoration: none; padding: 2px 8px; border-radius: 4px; font-weight: 500; transition: opacity 0.2s;">
+                    View Details
+                </a>
             </div>
         </div>
         {% endfor %}
