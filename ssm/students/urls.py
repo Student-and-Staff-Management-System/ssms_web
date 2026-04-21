@@ -104,4 +104,8 @@ urlpatterns = [
     path('scholar/attendance/submit/', scholars_views.scholar_attendance_submit, name='scholar_attendance_submit'),
     path('scholar/leave/apply/', scholars_views.scholar_apply_leave, name='scholar_apply_leave'),
     path('scholar/leave/history/', scholars_views.scholar_leave_history, name='scholar_leave_history'),
+    path('scholar/portfolio/', scholars_views.scholar_portfolio, name='scholar_portfolio'),
+    path('scholar/portfolio/add/<str:form_type>/', scholars_views.scholar_portfolio_add, name='scholar_portfolio_add'),
+    path('scholar/portfolio/edit/<str:form_type>/<int:pk>/', scholars_views.scholar_portfolio_edit, name='scholar_portfolio_edit'),
+    path('scholar/portfolio/delete/<str:form_type>/<int:pk>/', scholars_views.scholar_portfolio_delete, name='scholar_portfolio_delete'),
 ]

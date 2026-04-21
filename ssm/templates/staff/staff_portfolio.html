@@ -859,12 +859,21 @@
                             <td>
                                 <strong>{{ s.student_name }}</strong>
                                 {% if s.supporting_document %}<br><a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Doc</a>{% endif %}
+                                {% if s.is_dynamic %}<br><span style="font-size:0.78rem; color:var(--text-muted);">[Managed Scholar]</span>{% endif %}
                             </td>
                             <td>{{ s.degree_type }}</td>
-                            <td><span style="background:{% if s.status == 'Completed' %}#d1fae5; color:#065f46{% else %}#fef3c7; color:#92400e{% endif %}; padding:2px 9px; border-radius:100px; font-size:0.8rem; font-weight:600;">{{ s.status }}</span></td>
+                            <td>
+                                <span style="background:{% if s.status == 'Completed' %}#d1fae5; color:#065f46{% else %}#fef3c7; color:#92400e{% endif %}; padding:2px 9px; border-radius:100px; font-size:0.8rem; font-weight:600;">
+                                    {% if s.status == 'Ongoing' %}Not Completed{% else %}{{ s.status }}{% endif %}
+                                </span>
+                            </td>
                             <td>{{ s.year|default:"—" }}</td>
                             <td style="text-align:center;">
+                                {% if not s.is_dynamic %}
                                 <a href="{% url 'staffs:portfolio_delete_entry' 'student_guided' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                {% else %}
+                                <span style="font-size:0.8rem; color:var(--text-muted);">Auto-link</span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

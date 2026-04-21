@@ -2478,12 +2478,24 @@ def staff_portfolio(request):
     designations = staff.past_designations.all()
     memberships = staff.memberships.all()
 
+    # Dynamic Student Guidance (RS supervised)
+    supervised_scholars = staff.supervised_scholars.select_related('student').all()
+    combined_students_guided = list(students_guided)
+    for s in supervised_scholars:
+        combined_students_guided.append({
+            'student_name': s.student.student_name,
+            'degree_type': 'PhD',
+            'status': s.status,
+            'year': s.completion_year or '',
+            'is_dynamic': True
+        })
+
     return render(request, 'staff/staff_portfolio.html', {
         'staff': staff,
         'publications': publications,
         'awards': awards,
         'seminars': seminars,
-        'students_guided': students_guided,
+        'students_guided': combined_students_guided,
         'conferences': conferences,
         'journals': journals,
         'books': books,

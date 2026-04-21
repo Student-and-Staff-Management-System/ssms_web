@@ -279,6 +279,9 @@
           <a href="{% url 'scholar_profile' %}" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid rgba(255,255,255,0.25); transition: background 0.2s;">
             <i class='bx bx-user'></i> My Profile
           </a>
+          <a href="{% url 'scholar_portfolio' %}" style="display: inline-flex; align-items: center; gap: 6px; background: #f59e0b; color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35); transition: transform 0.2s;">
+            <i class='bx bx-news'></i> My Publications
+          </a>
         </div>
       </div>
     </div>
@@ -618,6 +621,42 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Publications & Portfolio Summary Card -->
+        <div class="card delay-2">
+            <div class="card-header">
+                <h3 class="card-title"><i class='bx bx-news'></i> Publications & Accomplishments</h3>
+                <a href="{% url 'scholar_portfolio' %}" class="btn btn-primary"><i class='bx bx-right-arrow-alt'></i> View All Portfolio</a>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; padding: 10px 0;">
+                <div style="background: #F0FDF4; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #DCFCE7;">
+                    <div style="font-size: 24px; font-weight: 700; color: #166534;">{{ journ_count }}</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #15803d; text-transform: uppercase; margin-top: 4px;">Journals</div>
+                </div>
+                <div style="background: #EFF6FF; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #DBEAFE;">
+                    <div style="font-size: 24px; font-weight: 700; color: #1e40af;">{{ conf_count }}</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #1d4ed8; text-transform: uppercase; margin-top: 4px;">Conferences</div>
+                </div>
+                <div style="background: #FFFBEB; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #FEF3C7;">
+                    <div style="font-size: 24px; font-weight: 700; color: #92400e;">{{ book_count }}</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #b45309; text-transform: uppercase; margin-top: 4px;">Books</div>
+                </div>
+                <div style="background: #F5F3FF; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #EDE9FE;">
+                    <div style="font-size: 24px; font-weight: 700; color: #5b21b6;">{{ award_count }}</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #6d28d9; text-transform: uppercase; margin-top: 4px;">Awards</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 10px; height: 10px; border-radius: 2px; background: #f59e0b;"></div>
+                    <span style="font-size: 13px; color: var(--text-light);">Total Records:</span>
+                    <strong style="color: var(--dark);">{{ portfolio_total }}</strong>
+                </div>
+                <a href="{% url 'scholar_portfolio_add' 'journal' %}" class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;"><i class='bx bx-plus-circle'></i> Add New</a>
+            </div>
         </div>
 
         <!-- RAC Members -->

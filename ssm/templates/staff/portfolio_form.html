@@ -54,11 +54,11 @@
             <div class="form-group">
                 <label>Type</label>
                 <select name="pub_type">
-                    <option value="Journal" {% if item and item.pub_type=='Journal' %}selected{% endif %}>Journal</option>
-                    <option value="Conference" {% if item and item.pub_type=='Conference' %}selected{% endif %}>Conference</option>
-                    <option value="Book" {% if item and item.pub_type=='Book' %}selected{% endif %}>Book</option>
-                    <option value="Book Chapter" {% if item and item.pub_type=='Book Chapter' %}selected{% endif %}>Book Chapter</option>
-                    <option value="Other" {% if item and item.pub_type=='Other' %}selected{% endif %}>Other</option>
+                    <option value="Journal" {% if item and item.pub_type == 'Journal' %}selected{% endif %}>Journal</option>
+                    <option value="Conference" {% if item and item.pub_type == 'Conference' %}selected{% endif %}>Conference</option>
+                    <option value="Book" {% if item and item.pub_type == 'Book' %}selected{% endif %}>Book</option>
+                    <option value="Book Chapter" {% if item and item.pub_type == 'Book Chapter' %}selected{% endif %}>Book Chapter</option>
+                    <option value="Other" {% if item and item.pub_type == 'Other' %}selected{% endif %}>Other</option>
                 </select>
             </div>
             <div class="form-group">
@@ -84,9 +84,9 @@
                 <div class="form-group">
                     <label>Category</label>
                     <select name="category">
-                        <option value="Award" {% if not item or item.category=='Award' %}selected{% endif %}>Award</option>
-                        <option value="Honour" {% if item and item.category=='Honour' %}selected{% endif %}>Honour</option>
-                        <option value="Membership" {% if item and item.category=='Membership' %}selected{% endif %}>Membership</option>
+                        <option value="Award" {% if not item or item.category == 'Award' %}selected{% endif %}>Award</option>
+                        <option value="Honour" {% if item and item.category == 'Honour' %}selected{% endif %}>Honour</option>
+                        <option value="Membership" {% if item and item.category == 'Membership' %}selected{% endif %}>Membership</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -116,9 +116,9 @@
                 <div class="form-group">
                     <label>Event Type</label>
                     <select name="event_type">
-                        <option value="Seminar" {% if not item or item.event_type=='Seminar' %}selected{% endif %}>Seminar</option>
-                        <option value="Workshop" {% if item and item.event_type=='Workshop' %}selected{% endif %}>Workshop</option>
-                        <option value="Conference" {% if item and item.event_type=='Conference' %}selected{% endif %}>Conference</option>
+                        <option value="Seminar" {% if not item or item.event_type == 'Seminar' %}selected{% endif %}>Seminar</option>
+                        <option value="Workshop" {% if item and item.event_type == 'Workshop' %}selected{% endif %}>Workshop</option>
+                        <option value="Conference" {% if item and item.event_type == 'Conference' %}selected{% endif %}>Conference</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -158,15 +158,15 @@
                 <div class="form-group">
                     <label>Degree Type</label>
                     <select name="degree_type">
-                        <option value="PG" {% if not item or item.degree_type=='PG' %}selected{% endif %}>PG (M.Tech, M.Sc)</option>
-                        <option value="PhD" {% if item and item.degree_type=='PhD' %}selected{% endif %}>PhD</option>
+                        <option value="PG" {% if not item or item.degree_type == 'PG' %}selected{% endif %}>PG (M.Tech, M.Sc)</option>
+                        <option value="PhD" {% if item and item.degree_type == 'PhD' %}selected{% endif %}>PhD</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Status</label>
                     <select name="status">
-                        <option value="Ongoing" {% if not item or item.status=='Ongoing' %}selected{% endif %}>Ongoing</option>
-                        <option value="Completed" {% if item and item.status=='Completed' %}selected{% endif %}>Completed</option>
+                        <option value="Ongoing" {% if not item or item.status == 'Ongoing' %}selected{% endif %}>Ongoing</option>
+                        <option value="Completed" {% if item and item.status == 'Completed' %}selected{% endif %}>Completed</option>
                     </select>
                 </div>
             </div>
@@ -185,15 +185,15 @@
             <div class="form-group">
                 <label>National / International</label>
                 <select name="national_international">
-                    <option value="National" {% if not item or item.national_international=='National' %}selected{% endif %}>National</option>
-                    <option value="International" {% if item and item.national_international=='International' %}selected{% endif %}>International</option>
+                    <option value="National" {% if not item or item.national_international == 'National' %}selected{% endif %}>National</option>
+                    <option value="International" {% if item and item.national_international == 'International' %}selected{% endif %}>International</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Participation Type</label>
                 <select name="participation_type">
-                    <option value="Presented" {% if not item or item.participation_type=='Presented' %}selected{% endif %}>Presented Paper</option>
-                    <option value="Attended" {% if item and item.participation_type=='Attended' %}selected{% endif %}>Attended Only</option>
+                    <option value="Presented" {% if not item or item.participation_type == 'Presented' %}selected{% endif %}>Presented Paper</option>
+                    <option value="Attended" {% if item and item.participation_type == 'Attended' %}selected{% endif %}>Attended Only</option>
                 </select>
             </div>
             <div class="form-group">
@@ -320,8 +320,8 @@
             <div class="form-group">
                 <label>Publication Type</label>
                 <select name="type">
-                    <option value="Book" {% if not item or item.type=='Book' %}selected{% endif %}>Book</option>
-                    <option value="Popular Article" {% if item and item.type=='Popular Article' %}selected{% endif %}>Popular Article</option>
+                    <option value="Book" {% if not item or item.type == 'Book' %}selected{% endif %}>Book</option>
+                    <option value="Popular Article" {% if item and item.type == 'Popular Article' %}selected{% endif %}>Popular Article</option>
                 </select>
             </div>
             <div class="form-group">
