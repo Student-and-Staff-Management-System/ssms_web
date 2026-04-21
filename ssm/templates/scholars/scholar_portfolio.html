@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio | Annamalai University</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --primary-light: #eef4f4;
+            --primary-glow: rgba(90, 125, 124, 0.15);
+            --accent: #f59e0b;
+            --bg-body: #f0f4f4;
+            --surface: #ffffff;
+            --text-main: #1a2e2e;
+            --text-muted: #6b7280;
+            --border: #e2eded;
+            --shadow-sm: 0 1px 3px 0 rgba(90,125,124,0.08);
+            --shadow-md: 0 4px 16px -4px rgba(90,125,124,0.18);
+            --shadow-modal: 0 24px 48px -12px rgba(0,0,0,0.18);
+            --radius: 16px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* ─── PAGE HEADER ─── */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            padding: 22px 40px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 250px; height: 250px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; left: 20%;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left h1 {
+            color: white;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 0 4px;
+        }
+        .header-left p {
+            color: rgba(255,255,255,0.72);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 9px 18px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .btn-back:hover {
+            background: rgba(255,255,255,0.28);
+        }
+
+        /* ─── MAIN CONTENT ─── */
+        .content-area {
+            max-width: 1200px;
+            margin: -32px auto 0;
+            padding: 0 20px 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── FLASH MESSAGES ─── */
+        .flash-messages { margin-bottom: 20px; }
+        .flash-msg {
+            padding: 13px 18px;
+            border-radius: var(--radius-sm);
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        /* ─── PILL TABS ─── */
+        .tab-scroll-wrapper {
+            position: relative;
+            margin-bottom: 28px;
+        }
+        .tab-scroll-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 40px;
+            background: linear-gradient(to right, transparent, var(--bg-body));
+            pointer-events: none;
+            border-radius: 0 100px 100px 0;
+        }
+        .tab-wrapper {
+            background: white;
+            border-radius: 100px;
+            padding: 5px;
+            display: flex;
+            gap: 2px;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tab-wrapper::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 11px 22px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 100px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .tab-btn:hover { color: var(--primary); background: var(--primary-light); }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(90,125,124,0.35);
+            font-weight: 600;
+        }
+
+        /* ─── TAB PANELS ─── */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ─── SECTION CARD ─── */
+        .section-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(90deg, var(--primary-light) 0%, white 100%);
+        }
+        .section-head h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 100px;
+            padding: 0 6px;
+        }
+
+        /* ─── ADD BUTTON ─── */
+        .btn-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(90,125,124,0.3);
+        }
+        .btn-add:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(90,125,124,0.4);
+        }
+
+        /* ─── DATA TABLE ─── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.93rem;
+        }
+        .data-table thead tr {
+            background: var(--bg-body);
+        }
+        .data-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            line-height: 1.55;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: var(--primary-light); }
+
+        /* ─── ACTION BUTTONS ─── */
+        .action-group { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+        .btn-edit {
+            padding: 5px 12px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: 1px solid rgba(90,125,124,0.2);
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-edit:hover { background: var(--primary); color: white; }
+        .btn-delete {
+            padding: 5px 12px;
+            background: #fff1f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .btn-delete:hover { background: #dc2626; color: white; }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state {
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        .empty-state p { margin: 0 0 6px; font-size: 0.95rem; }
+        .empty-state small { font-size: 0.85rem; }
+
+        /* ─── DYNAMIC MODAL ─── */
+        .d-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15,25,25,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .d-modal-overlay.open { display: flex; }
+        .d-modal-box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-modal);
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.92) translateY(20px);
+            opacity: 0;
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+        }
+        .d-modal-overlay.open .d-modal-box {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .d-modal-header {
+            padding: 20px 24px;
+            background: linear-gradient(90deg, var(--primary-light) 0%, white 100%);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .d-modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+        .d-modal-close {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            border: none;
+            color: var(--primary-dark);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s;
+            line-height: 1;
+        }
+        .d-modal-close:hover { background: var(--primary); color: white; }
+        .d-modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 0;
+        }
+
+        /* ─── INJECTED FORM STYLES ─── */
+        .d-modal-body .form-container {
+            padding: 24px;
+        }
+        .d-modal-body .form-group {
+            margin-bottom: 18px;
+        }
+        .d-modal-body .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+        .d-modal-body .form-group input,
+        .d-modal-body .form-group select,
+        .d-modal-body .form-group textarea {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: border-color 0.18s;
+            background: white;
+        }
+        .d-modal-body .form-group input:focus,
+        .d-modal-body .form-group select:focus,
+        .d-modal-body .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        .d-modal-body .form-group textarea { min-height: 80px; resize: vertical; }
+        .d-modal-body .form-help { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .d-modal-body .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 11px 28px;
+            border-radius: 9px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .d-modal-body .btn-save:hover { background: var(--primary-dark); }
+        .d-modal-body .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+        .d-modal-body .btn-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
+        }
+        .d-modal-body .btn-cancel {
+            background: none;
+            border: none;
+            padding: 11px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 9px;
+            transition: all 0.18s;
+        }
+        .d-modal-body .btn-cancel:hover { background: var(--primary-light); color: var(--primary-dark); }
+        .d-modal-body .errorlist {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0;
+            color: #dc2626;
+            font-size: 0.83rem;
+        }
+        .modal-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+        .modal-spinner .spinner {
+            width: 35px; height: 35px;
+            border: 3px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 768px) {
+            .page-header { padding: 20px 20px 50px; }
+            .header-left h1 { font-size: 1.35rem; }
+            .content-area { padding: 0 12px 40px; }
+            .section-head { flex-direction: column; gap: 12px; align-items: flex-start; }
+            .data-table thead { display: none; }
+            .data-table, .data-table tbody, .data-table tr, .data-table td {
+                display: block; width: 100%;
+            }
+            .data-table td { padding: 8px 16px; border-bottom: none; }
+            .data-table tr { border-bottom: 1px solid var(--border); padding: 8px 0; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <h1>📋 My Portfolio</h1>
+                <p>Manage your publications, qualifications, and academic achievements</p>
+            </div>
+            <a href="{% url 'scholar_dashboard' %}" class="btn-back">← Back to Profile</a>
+        </div>
+    </div>
+
+    <div class="content-area">
+
+        {% if messages %}
+        <div class="flash-messages">
+            {% for message in messages %}
+            <div class="flash-msg">✓ {{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Pill Tab Navigation -->
+        <div class="tab-scroll-wrapper">
+            <div class="tab-wrapper">
+                <button class="tab-btn active" onclick="switchTab(event, 'tab-conferences')">🎤 Conferences</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-journals')">📰 Journals</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-books')">📚 Books</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-memberships')">🏅 Memberships</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-awards')">🏆 Awards & More</button>
+            </div>
+        </div>
+
+        <!-- ═══ CONFERENCES TAB ═══ -->
+        <div id="tab-conferences" class="tab-panel active">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🎤 Conference Participation <span class="count-badge">{{ conferences|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url 'scholar_portfolio_add' 'conference' %}', 'Add Conference Participation')">+ Add Conference</button>
+                </div>
+                {% if conferences %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Citation</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for c in conferences %}
+                        <tr>
+                            <td>
+                                {% if c.participation_type == 'Presented' %}
+                                    <span style="font-weight:600;">{{ c.author_name }}.</span>
+                                    "{{ c.title_of_paper }}."
+                                    <em>{{ c.title_of_proceedings }}</em>{% if c.publisher_proceedings %}, {{ c.publisher_proceedings }}{% endif %}{% if c.year_of_publication %}, {{ c.year_of_publication }}{% endif %}{% if c.page_numbers_from and c.page_numbers_to %}, pp. {{ c.page_numbers_from }}-{{ c.page_numbers_to }}{% endif %}.
+                                    <span style="color:var(--text-muted); font-size:0.85em;">[{{ c.national_international }} · {{ c.location }}]</span>
+                                {% else %}
+                                    Attended <em>{{ c.title_of_proceedings }}</em> at {{ c.location }}{% if c.date_from %} ({{ c.date_from|date:"M Y" }}){% endif %}.
+                                {% endif %}
+                                {% if c.supporting_document %}
+                                <br><a href="{{ c.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Certificate/Paper</a>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url 'scholar_portfolio_edit' 'conference' c.pk %}', 'Edit Conference')">Edit</button>
+                                    <a href="{% url 'scholar_portfolio_delete' 'conference' c.pk %}" class="btn-delete" onclick="return confirm('Delete this conference entry?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🎤</div>
+                    <p>No conference entries yet</p>
+                    <small>Click "+ Add Conference" to record your participations</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ JOURNALS TAB ═══ -->
+        <div id="tab-journals" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📰 Journal Publications <span class="count-badge">{{ journals|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url 'scholar_portfolio_add' 'journal' %}', 'Add Journal Publication')">+ Add Journal</button>
+                </div>
+                {% if journals %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Citation</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for j in journals %}
+                        <tr>
+                            <td>
+                                <span style="font-weight:600;">{{ j.author_name }}.</span>
+                                "{{ j.title_of_paper }}."
+                                <em>{{ j.journal_name }}</em>{% if j.volume_number %} vol. {{ j.volume_number }}{% endif %}{% if j.issue_number %}, no. {{ j.issue_number }}{% endif %}{% if j.published_year %}, {{ j.published_year }}{% endif %}{% if j.page_numbers_from and j.page_numbers_to %}, pp. {{ j.page_numbers_from }}-{{ j.page_numbers_to }}{% endif %}.
+                                <span style="color:var(--text-muted); font-size:0.85em;">[{{ j.national_international }}]</span>
+                                {% if j.supporting_document %}<br><a href="{{ j.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Paper</a>{% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url 'scholar_portfolio_edit' 'journal' j.pk %}', 'Edit Journal')">Edit</button>
+                                    <a href="{% url 'scholar_portfolio_delete' 'journal' j.pk %}" class="btn-delete" onclick="return confirm('Delete this journal entry?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📰</div>
+                    <p>No journal publications yet</p>
+                    <small>Click "+ Add Journal" to record your research papers</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ BOOKS TAB ═══ -->
+        <div id="tab-books" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📚 Books & Articles <span class="count-badge">{{ books|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url 'scholar_portfolio_add' 'book' %}', 'Add Book / Popular Article')">+ Add Book</button>
+                </div>
+                {% if books %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Title</th>
+                            <th>Publisher</th>
+                            <th>Year</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for b in books %}
+                        <tr>
+                            <td>
+                                <strong>{{ b.title_of_book }}</strong>
+                                <br><small style="color:var(--text-muted);">{{ b.author_name }} · {{ b.type }}</small>
+                                {% if b.isbn_issn_number %}<br><small style="color:var(--text-muted);">ISBN: {{ b.isbn_issn_number }}</small>{% endif %}
+                                {% if b.supporting_document %}<br><a href="{{ b.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Cover</a>{% endif %}
+                            </td>
+                            <td><small>{{ b.publisher_name|default:"—" }}</small></td>
+                            <td><small>{{ b.year_of_publication|default:"—" }}</small></td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url 'scholar_portfolio_edit' 'book' b.pk %}', 'Edit Book')">Edit</button>
+                                    <a href="{% url 'scholar_portfolio_delete' 'book' b.pk %}" class="btn-delete" onclick="return confirm('Delete this book entry?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📚</div>
+                    <p>No books or popular articles yet</p>
+                    <small>Click "+ Add Book" to record publications</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+
+        <!-- ═══ MEMBERSHIPS TAB ═══ -->
+        <div id="tab-memberships" class="tab-panel">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🏅 Professional Memberships <span class="count-badge">{{ memberships|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_membership" %}', 'Add Membership')">+ Add Membership</button>
+                </div>
+                {% if memberships %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Institute / Body</th>
+                            <th>Membership No.</th>
+                            <th>Type</th>
+                            <th>Year</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for item in memberships %}
+                        <tr>
+                            <td><strong>{{ item.institute_name }}</strong></td>
+                            <td><code style="font-size:0.85rem;">{{ item.membership_no }}</code></td>
+                            <td><span style="background:var(--primary-light); color:var(--primary-dark); padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">{{ item.get_membership_type_display }}</span></td>
+                            <td>{{ item.year }}{% if item.get_month_display %} {{ item.get_month_display }}{% endif %}</td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_membership" pk=item.pk %}', 'Edit Membership')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' model_name='membership' pk=item.pk %}" class="btn-delete" onclick="return confirm('Delete this membership?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🏅</div>
+                    <p>No memberships recorded</p>
+                    <small>Add professional body memberships like IEEE, ACM, etc.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        </div>
+        <!-- ═══ AWARDS & MORE TAB ═══ -->
+        <div id="tab-awards" class="tab-panel">
+
+            <!-- Awards / Honours -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>🏆 Awards & Honours <span class="count-badge">{{ awards|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url 'scholar_portfolio_add' 'award' %}', 'Add Award / Honour')">+ Add Award</button>
+                </div>
+                {% if awards %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Title</th>
+                            <th>Awarded By</th>
+                            <th>Year</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for a in awards %}
+                        <tr>
+                            <td>
+                                <strong>{{ a.title }}</strong>
+                                <span style="background:var(--primary-light); color:var(--primary-dark); padding:2px 8px; border-radius:100px; font-size:0.78rem; font-weight:600; margin-left:6px;">{{ a.get_category_display }}</span>
+                                {% if a.supporting_document %}<br><a href="{{ a.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Certificate</a>{% endif %}
+                            </td>
+                            <td>{{ a.awarded_by|default:"—" }}</td>
+                            <td>{{ a.year|default:"—" }}</td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <a href="{% url 'scholar_portfolio_delete' 'award' a.pk %}" class="btn-delete" onclick="return confirm('Delete this award?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🏆</div>
+                    <p>No awards or honours recorded</p>
+                    <small>Recognitions, prizes, and honorary titles</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="display:none;">
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>👨‍🎓 Students Guided <span class="count-badge">{{ students_guided|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_student" %}', 'Add Student Guided')">+ Add Student</button>
+                </div>
+                {% if students_guided %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Student Name</th>
+                            <th>Degree</th>
+                            <th>Status</th>
+                            <th>Year</th>
+                            <th style="width:100px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for s in students_guided %}
+                        <tr>
+                            <td>
+                                <strong>{{ s.student_name }}</strong>
+                                {% if s.supporting_document %}<br><a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Doc</a>{% endif %}
+                            </td>
+                            <td>{{ s.degree_type }}</td>
+                            <td><span style="background:{% if s.status == 'Completed' %}#d1fae5; color:#065f46{% else %}#fef3c7; color:#92400e{% endif %}; padding:2px 9px; border-radius:100px; font-size:0.8rem; font-weight:600;">{{ s.status }}</span></td>
+                            <td>{{ s.year|default:"—" }}</td>
+                            <td style="text-align:center;">
+                                <a href="{% url 'staffs:portfolio_delete_entry' 'student_guided' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">👨‍🎓</div>
+                    <p>No students guided yet</p>
+                    <small>Record PG and PhD students you have supervised</small>
+                </div>
+                {% endif %}
+            </div>
+
+            </div>
+            <!-- Seminars (Legacy) -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h3>📋 Seminars / Workshops <span class="count-badge">{{ seminars|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url 'scholar_portfolio_add' 'seminar' %}', 'Add Seminar / Workshop')">+ Add Seminar</button>
+                </div>
+                {% if seminars %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Venue / Description</th>
+                            <th>Year</th>
+                            <th style="width:100px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for s in seminars %}
+                        <tr>
+                            <td><strong>{{ s.title }}</strong></td>
+                            <td>{{ s.get_event_type_display }}</td>
+                            <td>{{ s.venue_or_description }}</td>
+                            <td>{{ s.year }}</td>
+                            <td style="text-align:center;">
+                                <a href="{% url 'scholar_portfolio_delete' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <p>No seminars recorded</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div><!-- /content-area -->
+
+    <!-- ═══ UNIFIED DYNAMIC MODAL ═══ -->
+    <div id="dModal" class="d-modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="d-modal-box">
+            <div class="d-modal-header">
+                <h2 class="d-modal-title" id="dModalTitle">Loading…</h2>
+                <button class="d-modal-close" onclick="closeModal()" aria-label="Close">×</button>
+            </div>
+            <div class="d-modal-body" id="dModalBody">
+                <div class="modal-spinner">
+                    <div class="spinner"></div>
+                    <small>Loading form…</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ── Tab switching – persists via URL hash ── */
+        function switchTab(evt, panelId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+            // Store active tab in hash so it survives reload
+            history.replaceState(null, '', '#' + panelId);
+        }
+
+        /* Restore active tab from hash on page load */
+        document.addEventListener('DOMContentLoaded', function () {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && document.getElementById(hash)) {
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(hash).classList.add('active');
+                // Match the button
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(hash)) {
+                        b.classList.add('active');
+                    }
+                });
+            }
+        });
+
+        /* ── Dynamic Modal ── */
+        let currentUrl = null;
+
+        function getActiveTab() {
+            const active = document.querySelector('.tab-panel.active');
+            return active ? active.id : 'tab-conferences';
+        }
+
+        /* Present checkbox toggle for designation form */
+        function toggleToDate(checkbox) {
+            const lbl = document.querySelector('[for="id_to_date"]');
+            const toDateGroup = lbl ? lbl.closest('.form-group') : null;
+            if (!toDateGroup) return;
+            const toDateInput = document.getElementById('id_to_date');
+            if (checkbox.checked) {
+                toDateGroup.style.opacity = '0.4';
+                toDateGroup.style.pointerEvents = 'none';
+                if (toDateInput) toDateInput.value = '';
+            } else {
+                toDateGroup.style.opacity = '1';
+                toDateGroup.style.pointerEvents = 'auto';
+            }
+        }
+
+        async function openModal(url, title) {
+            currentUrl = url;
+            const overlay = document.getElementById('dModal');
+            const body = document.getElementById('dModalBody');
+            const titleEl = document.getElementById('dModalTitle');
+
+            titleEl.textContent = title || 'Form';
+            body.innerHTML = '<div class="modal-spinner"><div class="spinner"></div><small>Loading form…</small></div>';
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            try {
+                const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                // Try .form-container first, then fallback to body content
+                const container = doc.querySelector('.form-container') || doc.querySelector('body');
+                const form = container ? container.querySelector('form') : null;
+
+                if (form) {
+                    // Patch the cancel button to close modal
+                    const cancelLink = form.querySelector('a.btn-cancel, .btn-cancel');
+                    if (cancelLink) {
+                        cancelLink.outerHTML = '<button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>';
+                    }
+                    const wrappedContent = '<div class="form-container">' + form.outerHTML + '</div>';
+                    body.innerHTML = wrappedContent;
+
+                    // Re-query, attach action and submit handler
+                    const newForm = body.querySelector('form');
+                    newForm.action = url;
+                    attachSubmitHandler(newForm, url);
+                    // Init Present toggle if designation form
+                    const presentCb = document.getElementById('id_is_present');
+                    if (presentCb) toggleToDate(presentCb);
+                } else {
+                    body.innerHTML = '<div style="padding:24px; color:#dc2626;">Could not load form. <a href="' + url + '">Open directly</a>.</div>';
+                }
+            } catch (err) {
+                body.innerHTML = '<div style="padding:24px; color:#dc2626;">Network error. <a href="' + url + '">Open directly</a>.</div>';
+            }
+        }
+
+        function attachSubmitHandler(form, url) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const submitBtn = form.querySelector('[type="submit"]');
+                const origText = submitBtn ? submitBtn.textContent : '';
+                if (submitBtn) { submitBtn.textContent = 'Saving…'; submitBtn.disabled = true; }
+
+                // Capture active tab BEFORE the async call
+                const activeTab = getActiveTab();
+
+                try {
+                    const formData = new FormData(form);
+                    const postRes = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        redirect: 'follow',
+                    });
+
+                    // Django redirects on success → final URL will be staff_portfolio (no sub-path)
+                    const finalUrl = postRes.url;
+                    const isSuccess = finalUrl && finalUrl.includes('portfolio') &&
+                        !finalUrl.includes('/add/') && !finalUrl.includes('/edit/') &&
+                        !finalUrl.includes('/qualification/') && !finalUrl.includes('/designation/') &&
+                        !finalUrl.includes('/membership/') && !finalUrl.includes('/conference/') &&
+                        !finalUrl.includes('/journal/') && !finalUrl.includes('/book/') &&
+                        !finalUrl.includes('/seminar/') && !finalUrl.includes('/award/') &&
+                        !finalUrl.includes('/student/');
+
+                    if (isSuccess) {
+                        // Navigate to portfolio with the active tab in hash so it restores
+                        closeModal();
+                        window.location.href = '/scholar/portfolio/#' + activeTab;
+                        return;
+                    }
+
+                    // Validation errors — re-render form inside modal
+                    const errHtml = await postRes.text();
+                    const errDoc = new DOMParser().parseFromString(errHtml, 'text/html');
+                    const errContainer = errDoc.querySelector('.form-container') || errDoc.querySelector('body');
+                    const errForm = errContainer ? errContainer.querySelector('form') : null;
+                    if (errForm) {
+                        const cancelLink = errForm.querySelector('a.btn-cancel, .btn-cancel');
+                        if (cancelLink) cancelLink.outerHTML = '<button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>';
+                        document.getElementById('dModalBody').innerHTML = '<div class="form-container">' + errForm.outerHTML + '</div>';
+                        const reForm = document.getElementById('dModalBody').querySelector('form');
+                        reForm.action = url;
+                        attachSubmitHandler(reForm, url);
+                    } else {
+                        // Unknown response, navigate to active tab
+                        closeModal();
+                        window.location.href = '/scholar/portfolio/#' + activeTab;
+                    }
+                } catch (err) {
+                    if (submitBtn) { submitBtn.textContent = origText; submitBtn.disabled = false; }
+                    alert('Error saving. Please try again or refresh the page.');
+                }
+            });
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('dModal');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            currentUrl = null;
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('dModal')) closeModal();
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    </script>
+
+</body>
+</html>

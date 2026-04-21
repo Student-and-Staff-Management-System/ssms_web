@@ -180,7 +180,7 @@ def staff_dashboard(request):
     else:
         # Other staff see only their assigned scholars
         rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile')
-        rs_ids = rs_scholars.values_list('id', flat=True)
+        rs_ids = rs_scholars.values_list('pk', flat=True)
         rs_pending_leaves = LeaveRequest.objects.filter(student_id__in=rs_ids, status='Pending Guide').count() if rs_scholars.exists() else 0
         rs_pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').count() if rs_scholars.exists() else 0
 

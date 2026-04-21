@@ -201,7 +201,8 @@ class StaffMembership(models.Model):
 
 class StaffAwardHonour(models.Model):
     """Individual award, honour, or membership entry."""
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='award_list')
+    staff = models.ManyToManyField(Staff, related_name='award_list', blank=True)
+    student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_awards')
     title = models.CharField(max_length=300)
     description = models.TextField(blank=True)
     year = models.CharField(max_length=20, blank=True)
@@ -230,7 +231,8 @@ class StaffAwardHonour(models.Model):
 
 class StaffSeminar(models.Model):
     """Seminar, workshop, or conference entry."""
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='seminar_list')
+    staff = models.ManyToManyField(Staff, related_name='seminar_list', blank=True)
+    student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_seminars')
     title = models.CharField(max_length=400)
     EVENT_TYPE_CHOICES = [
         ('Seminar', 'Seminar'),
@@ -481,7 +483,8 @@ class AuditLog(models.Model):
 
 
 class ConferenceParticipation(models.Model):
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='conferences')
+    staff = models.ManyToManyField(Staff, related_name='conferences', blank=True)
+    student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_conferences')
     national_international = models.CharField(max_length=20, choices=[('National', 'National'), ('International', 'International')], default='National')
     participation_type = models.CharField(max_length=20, choices=[('Presented', 'Presented'), ('Attended', 'Attended')], default='Presented')
     author_name = models.CharField(max_length=255, blank=True)
@@ -508,7 +511,8 @@ class ConferenceParticipation(models.Model):
         return f"{self.title_of_paper} ({self.year_of_publication})"
 
 class JournalPublication(models.Model):
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='journals')
+    staff = models.ManyToManyField(Staff, related_name='journals', blank=True)
+    student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_journals')
     national_international = models.CharField(max_length=20, choices=[('National', 'National'), ('International', 'International')], default='National')
     published_month = models.CharField(max_length=20, blank=True)
     published_year = models.CharField(max_length=20, blank=True)
@@ -533,7 +537,8 @@ class JournalPublication(models.Model):
         return f"{self.title_of_paper} - {self.journal_name}"
 
 class BookPublication(models.Model):
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='books')
+    staff = models.ManyToManyField(Staff, related_name='books', blank=True)
+    student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_books')
     type = models.CharField(max_length=20, choices=[('Book', 'Book'), ('Popular Article', 'Popular Article')], default='Book')
     author_name = models.CharField(max_length=255)
     title_of_book = models.CharField(max_length=500)
