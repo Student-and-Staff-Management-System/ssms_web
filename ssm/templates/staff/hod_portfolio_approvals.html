@@ -1,0 +1,315 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Additional Post Approvals | HOD Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    
+    <style>
+        :root {
+            --primary-color: #5a7d7c;
+            --secondary-color: #4a6b69;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            max-width: 95%;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 10px;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-brand h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .action-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .sidebar {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+
+        .profile-img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--bg-color);
+            margin-bottom: 20px;
+        }
+
+        .profile-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .profile-role {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            background: #eef6f6;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .approval-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 6px;
+        }
+
+        .approval-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border-left: 5px solid #f59e0b;
+        }
+
+        .approval-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .staff-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .item-details {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .item-details p {
+            margin: 4px 0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-approve {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .btn-approve:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-reject {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .btn-reject:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-doc {
+            background: #eff6f6;
+            color: var(--primary-color);
+            border: 1px solid rgba(90,125,124,0.2);
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-doc:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .empty-state {
+            background: var(--card-bg);
+            padding: 40px;
+            text-align: center;
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            box-shadow: var(--shadow);
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-brand">
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="AU Logo" style="height: 45px;">
+                <h1>HOD Faculty Additional Post Approval Dashboard</h1>
+            </div>
+            <a href="{% url 'staffs:staff_dashboard' %}" class="action-btn">← Back to Dashboard</a>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            {% if staff.photo %}
+            <img src="{{ staff.photo.url }}" class="profile-img" alt="Profile">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ staff.name }}" class="profile-img" alt="Profile">
+            {% endif %}
+            <div class="profile-name">{{ staff.name }}</div>
+            <div class="profile-role">Head of Department</div>
+            <div class="profile-meta">Department of IT</div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            
+            {% if messages %}
+                {% for message in messages %}
+                <div style="background: #d1fae5; color: #065f46; padding: 12px 20px; border-radius: 8px; border-left: 4px solid #10b981; margin-bottom: 25px; font-weight: 500;">
+                    ✓ {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- additional post approvals -->
+            <section class="approval-section">
+                <h2 class="section-title">💼 Additional Post (Designation Fixation) Verification ({{ pending_desigs|length }})</h2>
+                
+                {% for desig in pending_desigs %}
+                <div class="approval-card">
+                    <div class="approval-header">
+                        <div class="staff-name">{{ desig.staff.name }}</div>
+                        <span style="background: #fffbeb; color: #b45309; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; text-transform: uppercase;">Pending Verification</span>
+                    </div>
+                    <div class="item-details">
+                        <p><strong>Designation/Additional Post:</strong> {{ desig.designation }}</p>
+                        <p><strong>Effective From:</strong> {{ desig.from_date|date:"d M Y" }}</p>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{% url 'staffs:approve_designation' desig.pk %}" class="btn-approve" onclick="return confirm('Approve this additional post?')">Approve</a>
+                        <a href="{% url 'staffs:reject_designation' desig.pk %}" class="btn-reject" onclick="return confirm('Reject this additional post?')">Reject</a>
+                        {% if desig.order_img %}
+                        <a href="{{ desig.order_img.url }}" class="btn-doc" target="_blank">📄 View Order Document</a>
+                        {% else %}
+                        <span style="color:var(--danger-color); font-size:0.9rem; display:inline-flex; align-items:center;">⚠️ No Order Document Uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p style="font-size: 1.1rem; margin: 0;">No pending additional post approvals to verify.</p>
+                </div>
+                {% endfor %}
+            </section>
+
+        </main>
+    </div>
+</body>
+</html>

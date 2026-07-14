@@ -1,504 +1,139 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Registration</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+  <meta charset="UTF-8">
+  <title>Staff Onboarding | Annamalai University</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-    <style>
-        :root {
-            --primary-bg: #f8f9fa;
-            --secondary-bg: #ffffff;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --border-color: #dee2e6;
-            --accent-color: #5a7d7c;
-            --accent-color-hover: #4a6b69;
-            --error-bg: #f8d7da;
-            --error-text: #842029;
-        }
+  <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+  <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+  <style>
+    .form-container { max-width: 850px; margin: 40px auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .form-title { text-align: center; font-size: 26px; color: #1a2e2e; margin-bottom: 30px; font-weight: 600; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #475569; font-size: 14px;}
+    .form-input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; outline: none; transition: all 0.2s; font-family: 'Poppins', sans-serif; font-size: 14px; }
+    .form-input:focus { border-color: var(--accent-color, #5a7d7c); box-shadow: 0 0 0 3px rgba(90,125,124,0.15); }
+    .btn-submit { width: 100%; padding: 14px; background: var(--accent-color, #5a7d7c); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: background 0.3s; margin-top: 20px;}
+    .btn-submit:hover { background: var(--accent-color-hover, #4a6b69); }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 40px 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .form-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .form-header img {
-            height: 60px;
-            margin-bottom: 20px;
-        }
-
-        .form-header h1 {
-            font-size: 2.5em;
-            margin: 0;
-        }
-
-        .form-header p {
-            color: var(--text-secondary);
-            font-size: 1.1em;
-        }
-
-        .messages {
-            list-style: none;
-            padding: 0;
-            margin-bottom: 20px;
-        }
-
-        .messages li.error {
-            padding: 12px 15px;
-            border-radius: 6px;
-            background-color: var(--error-bg);
-            color: var(--error-text);
-            border: 1px solid #f1aeb5;
-        }
-
-        .accordion-item {
-            background-color: var(--secondary-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            width: 100%;
-        }
-
-        .accordion-header {
-            padding: 15px 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-
-        .accordion-header h2 {
-            margin: 0;
-            font-size: 1.2em;
-            font-weight: 600;
-        }
-
-        .accordion-header::after {
-            content: '\25BC';
-            font-size: 1.2em;
-            font-weight: 600;
-            transition: transform 0.3s ease;
-        }
-
-        .accordion-item.active .accordion-header::after {
-            content: '\25B2';
-        }
-
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-            padding: 0 20px;
-            width: 100%;
-        }
-
-        .accordion-item.active .accordion-content {
-            padding: 20px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            width: 100%;
-        }
-
-        form {
-            width: 100%;
-        }
-
-        .form-section-title {
-            grid-column: 1 / -1;
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .input-group label {
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 0.95em;
-        }
-
-        .input-group input,
-        .input-group select,
-        .input-group textarea {
-            background-color: #fff;
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 12px;
-            border-radius: 6px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1em;
-            width: 100%;
-        }
-
-        .input-group input:focus,
-        .input-group select:focus,
-        .input-group textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .input-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .submit-btn,
-        .cancel-btn {
-            flex: 1;
-            border: none;
-            padding: 15px;
-            font-size: 1.1em;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            transition: background-color 0.3s ease;
-        }
-
-        .submit-btn {
-            background-color: var(--accent-color);
-            color: #ffffff;
-        }
-
-        .submit-btn:hover {
-            background-color: var(--accent-color-hover);
-        }
-
-        .cancel-btn {
-            background-color: var(--secondary-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .cancel-btn:hover {
-            background-color: var(--primary-bg);
-        }
-
-        /* Mobile Optimizations */
-        @media (max-width: 768px) {
-            body {
-                padding: 20px 10px;
-            }
-
-            .container {
-                width: 100%;
-                padding: 0 10px;
-            }
-
-            .form-header {
-                margin-bottom: 30px;
-            }
-
-            .form-header img {
-                height: 50px;
-                margin-bottom: 15px;
-            }
-
-            .form-header h1 {
-                font-size: 1.8em;
-            }
-
-            .form-header p {
-                font-size: 1em;
-            }
-
-            .accordion-header {
-                padding: 12px 15px;
-            }
-
-            .accordion-header h2 {
-                font-size: 1.1em;
-            }
-
-            .accordion-header::after {
-                font-size: 1em;
-            }
-
-            .accordion-content {
-                padding: 0 15px;
-            }
-
-            .accordion-item.active .accordion-content {
-                padding: 15px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .input-group label {
-                font-size: 0.9em;
-            }
-
-            .input-group input,
-            .input-group select,
-            .input-group textarea {
-                padding: 10px;
-                font-size: 0.95em;
-            }
-
-            .button-group {
-                flex-direction: column;
-                gap: 10px;
-                margin-top: 20px;
-            }
-
-            .submit-btn,
-            .cancel-btn {
-                width: 100%;
-                padding: 12px;
-                font-size: 1em;
-            }
-
-            .messages li.error {
-                padding: 10px 12px;
-                font-size: 0.9em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 15px 5px;
-            }
-
-            .form-header h1 {
-                font-size: 1.5em;
-            }
-
-            .form-header p {
-                font-size: 0.9em;
-            }
-
-            .accordion-item {
-                margin-bottom: 15px;
-            }
-
-            .input-group textarea {
-                min-height: 80px;
-            }
-        }
-    </style>
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .section-divider { margin: 30px 0 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; font-size: 16px; font-weight: 600; color: var(--accent-color, #5a7d7c); text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    @media (max-width: 768px) {
+        .grid-2 { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
 </head>
+<body style="background-color: #f8fafc;">
 
-<body>
-    <div class="container">
-        <div class="form-header">
-            <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo">
-            <h1>Staff Registration</h1>
-            <p>{% if onboarding_staff %}Complete your profile to continue.{% else %}Enter the details for the new staff member.{% endif %}</p>
-        </div>
+  <header class="site-header">
+    <div class="header-content">
+      <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
+        alt="University Logo" class="header-logo">
+      <div class="header-titles">
+        <span class="university-name">Annamalai University</span>
+        <span class="department-name">Department of Information Technology</span>
+      </div>
+    </div>
+  </header>
 
-        <!-- Django template syntax for messages -->
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-
-        <form id="staff-reg-form" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2>Login & Basic Information</h2>
-                </div>
-                <div class="accordion-content">
-                    <div class="form-grid">
-                        <div class="input-group">
-                            <label for="staff_id">Staff ID</label>
-                            <input type="text" id="staff_id" name="staff_id" required value="{{ onboarding_staff.staff_id|default:'' }}" {% if onboarding_staff %}readonly{% endif %}>
-                        </div>
-                        <div class="input-group">
-                            <label for="name">Full Name</label>
-                            <input type="text" id="name" name="name" required value="{{ onboarding_staff.name|default:'' }}" {% if onboarding_staff %}readonly{% endif %}>
-                        </div>
-                        <div class="input-group">
-                            <label for="initial">Initial</label>
-                            <input type="text" id="initial" name="initial">
-                        </div>
-                        <div class="input-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" required value="{{ onboarding_staff.email|default:'' }}">
-                        </div>
-                        <div class="input-group">
-                            <label for="password">Password</label>
-                            <input type="password" id="password" name="password" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="photo">Staff Photo</label>
-                            <input type="file" id="photo" name="photo" accept="image/*">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header">
-                    <h2>Personal & Joining Details</h2>
-                </div>
-                <div class="accordion-content">
-                    <div class="form-grid">
-                        <div class="input-group">
-                            <label for="salutation">Salutation</label>
-                            <select id="salutation" name="salutation">
-                                <option value="Dr.">Dr.</option>
-                                <option value="Prof.">Prof.</option>
-                                <option value="Mr.">Mr.</option>
-                                <option value="Ms.">Ms.</option>
-                            </select>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="date_of_birth">Date of Birth</label>
-                            <input type="date" id="date_of_birth" name="date_of_birth" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="date_of_joining">Date of Joining</label>
-                            <input type="date" id="date_of_joining" name="date_of_joining" required>
-                        </div>
-                        
-                        <div class="input-group">
-                            <label for="mobile_number">Mobile Number</label>
-                            <input type="tel" id="mobile_number" name="mobile_number" placeholder="10-digit number" required>
-                        </div>
-                        <div class="input-group" style="grid-column: 1 / -1;">
-                            <label for="address">Address for Communication</label>
-                            <textarea id="address" name="address" required></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <a href="{% url 'staffs:stafflogin' %}" class="cancel-btn">Cancel</a>
-                <button type="submit" class="submit-btn">{% if onboarding_staff %}Complete Profile{% else %}Register Staff{% endif %}</button>
-            </div>
-        </form>
+  <div class="form-container">
+    <h2 class="form-title">Staff Onboarding & Profile Completion</h2>
+    
+    <div style="background: #eff6f6; padding: 16px 20px; border-radius: 8px; margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px; color: #334155; border-left: 4px solid var(--accent-color, #5a7d7c);">
+      <div><strong>Staff ID:</strong> {{ staff.staff_id }}</div>
+      <div><strong>Full Name:</strong> {{ staff.name }}</div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // --- Accordion Logic ---
-            const accordionItems = document.querySelectorAll('.accordion-item');
+    {% if messages %}
+        {% for message in messages %}
+        <div style="background-color: #f8d7da; color: #721c24; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: 500;">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
 
-            if (accordionItems.length > 0) {
-                accordionItems[0].classList.add('active');
-                const firstContent = accordionItems[0].querySelector('.accordion-content');
-                if (firstContent) firstContent.style.maxHeight = firstContent.scrollHeight + "px";
-            }
+    <form action="{% url 'staffs:staff_register' %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <div class="section-divider">Part 1: Basic & Account Information</div>
+      
+      <div class="grid-2">
+          <div class="form-group">
+            <label>Salutation</label>
+            <select name="salutation" class="form-input" required>
+                <option value="Dr." {% if staff.salutation == 'Dr.' %}selected{% endif %}>Dr.</option>
+                <option value="Prof." {% if staff.salutation == 'Prof.' %}selected{% endif %}>Prof.</option>
+                <option value="Mr." {% if staff.salutation == 'Mr.' %}selected{% endif %}>Mr.</option>
+                <option value="Ms." {% if staff.salutation == 'Ms.' %}selected{% endif %}>Ms.</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Initial</label>
+            <input type="text" name="initial" class="form-input" value="{{ staff.initial|default:'' }}">
+          </div>
+      </div>
 
-            accordionItems.forEach(item => {
-                const header = item.querySelector('.accordion-header');
+      <div class="grid-2">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" class="form-input" required value="{{ staff.email|default:'' }}">
+          </div>
 
-                header.addEventListener('click', () => {
-                    const content = item.querySelector('.accordion-content');
-                    const isActive = item.classList.contains('active');
+          <div class="form-group">
+            <label>Password (Leave blank to keep current password)</label>
+            <input type="password" name="password" class="form-input" placeholder="Min 6 characters">
+          </div>
+      </div>
 
-                    document.querySelectorAll('.accordion-item.active').forEach(openItem => {
-                        openItem.classList.remove('active');
-                        openItem.querySelector('.accordion-content').style.maxHeight = '0px';
-                    });
+      <div class="form-group">
+        <label>Staff Photo</label>
+        <input type="file" name="photo" class="form-input" accept="image/*">
+        {% if staff.photo %}
+          <div style="margin-top: 8px; font-size: 12px; color: #64748b;">Current Photo: <a href="{{ staff.photo.url }}" target="_blank">View</a></div>
+        {% endif %}
+      </div>
 
-                    if (!isActive) {
-                        item.classList.add('active');
-                        content.style.maxHeight = content.scrollHeight + "px";
-                    }
-                });
-            });
+      <div class="section-divider">Part 2: Personal & Joining Information</div>
 
-            // --- Form Validation Logic ---
-            const form = document.getElementById('staff-reg-form');
+      <div class="grid-2">
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" name="date_of_birth" class="form-input" required value="{{ staff.date_of_birth|date:'Y-m-d' }}">
+          </div>
+          
+          <div class="form-group">
+            <label>Date of Joining</label>
+            <input type="date" name="date_of_joining" class="form-input" required value="{{ staff.date_of_joining|date:'Y-m-d' }}">
+          </div>
+      </div>
 
-            if (form) {
-                form.addEventListener('submit', function (event) {
-                    let errors = [];
+      <div class="form-group">
+        <label>Mobile Number (10 Digits)</label>
+        <input type="tel" name="mobile_number" class="form-input" placeholder="e.g. 9876543210" required value="{{ staff.mobile_number|default:'' }}">
+      </div>
 
-                    // 1. Password Strength
-                    const password = document.getElementById('password').value;
+      <div class="form-group">
+        <label>Address for Communication</label>
+        <textarea name="address" class="form-input" rows="3" required>{{ staff.address|default:'' }}</textarea>
+      </div>
 
-                    if (password.length < 6) {
-                        errors.push("Password must be at least 6 characters long.");
-                    }
+      <button type="submit" class="btn-submit">Complete Onboarding & Go to Dashboard</button>
+    </form>
+  </div>
 
-                    // 2. Email Validation
-                    const email = document.getElementById('email').value;
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-                    if (!emailRegex.test(email)) {
-                        errors.push("Please enter a valid email address.");
-                    }
-
-                    // 3. Staff ID Validation
-                    const staffId = document.getElementById('staff_id').value;
-
-                    if (!staffId.trim()) {
-                        errors.push("Staff ID is required.");
-                    }
-
-                    // 4. Mobile Number Validation (10 digits)
-                    const mobileNumber = document.getElementById('mobile_number').value;
-                    const mobileRegex = /^\d{10}$/;
-
-                    if (!mobileRegex.test(mobileNumber)) {
-                        errors.push("Mobile number must be exactly 10 digits.");
-                    }
-
-                    // If errors exist, prevent submission
-                    if (errors.length > 0) {
-                        event.preventDefault();
-                        alert("Validation Errors:\n" + errors.join("\n"));
-                    }
-                });
-            }
-        });
-    </script>
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="https://annamalaiuniversity.ac.in" target="_blank">Annamalai University Website</a> | 
+      <a href="https://annamalaiuniversity.ac.in/studport/index.php" target="_blank">Student Portal Support</a>
+    </div>
+    <div style="margin-top: 10px; font-size: 13px; opacity: 0.8;">
+      &copy; 2026 Annamalai University. All rights reserved.
+    </div>
+  </footer>
 </body>
-
 </html>

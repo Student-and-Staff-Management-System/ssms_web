@@ -1,22 +1,28 @@
 /**
  * File Upload Size Validation
- * Validates file size before upload (100KB limit)
+ * Validates file size before upload (10MB limit for compressible files, 100KB for others)
  */
 
 (function () {
     'use strict';
 
-    const MAX_FILE_SIZE = 100 * 1024; // 100KB in bytes
+    const MAX_FILE_SIZE = 100 * 1024; // 100KB in bytes for other files
+    const COMPRESSIBLE_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes for compressible files
     const MAX_FILE_SIZE_KB = 100;
 
     /**
      * Validate file size
      */
     function validateFileSize(file) {
-        if (file.size > MAX_FILE_SIZE) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const isCompressible = ['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext);
+        const limit = isCompressible ? COMPRESSIBLE_MAX_FILE_SIZE : MAX_FILE_SIZE;
+        const limitText = isCompressible ? '10MB' : `${MAX_FILE_SIZE_KB}KB`;
+
+        if (file.size > limit) {
             return {
                 valid: false,
-                message: `File size must not exceed ${MAX_FILE_SIZE_KB}KB. Current file size: ${(file.size / 1024).toFixed(1)}KB`
+                message: `File size must not exceed ${limitText}. Current file size: ${(file.size / 1024).toFixed(1)}KB`
             };
         }
         return { valid: true };
@@ -63,7 +69,7 @@
                 hint.style.display = 'block';
                 hint.style.color = '#666';
                 hint.style.marginTop = '4px';
-                hint.textContent = `Maximum file size: ${MAX_FILE_SIZE_KB}KB`;
+                hint.textContent = `PDF/Images up to 10MB will be auto-compressed under 100KB.`;
 
                 // Insert after the input
                 input.parentNode.insertBefore(hint, input.nextSibling);

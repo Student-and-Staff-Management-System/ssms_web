@@ -176,6 +176,267 @@
                     {% endif %}
                 </div>
 
+                <!-- PhD Progress Stage Tracker -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h2 class="card-title" style="margin: 0; padding-bottom: 0; border: none;">🎓 PhD Completion Progress</h2>
+                        <span style="background: #eff6f6; color: var(--primary-color); padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; border: 1px solid #cbd5e1;">
+                            Current Stage: {{ phd_progress.get_current_stage_display }}
+                        </span>
+                    </div>
+
+                    <!-- Progress Bars -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div style="background: #fafafa; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;">
+                                <span>Overall Completion</span>
+                                <span>{{ phd_stats.overall_percent }}%</span>
+                            </div>
+                            <div style="width:100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow:hidden;">
+                                <div style="width: {{ phd_stats.overall_percent }}%; height: 100%; background: var(--primary-color); border-radius: 4px;"></div>
+                            </div>
+                        </div>
+
+                        {% if phd_progress.current_stage != 'COMPLETED' %}
+                        <div style="background: #fafafa; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;">
+                                <span>Current Stage Completeness</span>
+                                <span>{{ phd_stats.stage_percent }}%</span>
+                            </div>
+                            <div style="width:100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow:hidden;">
+                                <div style="width: {{ phd_stats.stage_percent }}%; height: 100%; background: #c5a059; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Deadline/Countdown Warning -->
+                    {% if phd_deadline_info.has_deadline %}
+                    <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; font-size: 0.85rem;
+                        background: {% if phd_deadline_info.status_class == 'danger' %}#fef2f2{% elif phd_deadline_info.status_class == 'warning' %}#fffbeb{% else %}#ecfdf5{% endif %};
+                        color: {% if phd_deadline_info.status_class == 'danger' %}#991b1b{% elif phd_deadline_info.status_class == 'warning' %}#92400e{% else %}#065f46{% endif %};
+                        border-left: 4px solid {% if phd_deadline_info.status_class == 'danger' %}#ef4444{% elif phd_deadline_info.status_class == 'warning' %}#f59e0b{% else %}#10b981{% endif %};">
+                        {% if phd_deadline_info.is_expired %}
+                            ⚠️ Deadline Expired by {{ phd_deadline_info.days_remaining }} days! Target completion date: {{ phd_deadline_info.deadline_date|date:"d M Y" }}
+                        {% else %}
+                            ⏰ {{ phd_deadline_info.days_remaining }} days remaining to complete this stage. Target: {{ phd_deadline_info.deadline_date|date:"d M Y" }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Stages List Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                        
+                        <!-- 1. RAC_REVIEW -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.RAC_REVIEW %}#f0fdf4{% elif phd_progress.current_stage == 'RAC_REVIEW' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.RAC_REVIEW %}#a7f3d0{% elif phd_progress.current_stage == 'RAC_REVIEW' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'RAC_REVIEW' or phd_stats.completion_dates.RAC_REVIEW %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">1. RAC Review</div>
+                            {% if phd_stats.completion_dates.RAC_REVIEW %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.RAC_REVIEW }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 2. PRE_SUBMISSION -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.PRE_SUBMISSION %}#f0fdf4{% elif phd_progress.current_stage == 'PRE_SUBMISSION' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.PRE_SUBMISSION %}#a7f3d0{% elif phd_progress.current_stage == 'PRE_SUBMISSION' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'PRE_SUBMISSION' or phd_stats.completion_dates.PRE_SUBMISSION %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">2. Pre-Submission</div>
+                            {% if phd_stats.completion_dates.PRE_SUBMISSION %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.PRE_SUBMISSION }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 3. SYNOPSIS -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.SYNOPSIS %}#f0fdf4{% elif phd_progress.current_stage == 'SYNOPSIS' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.SYNOPSIS %}#a7f3d0{% elif phd_progress.current_stage == 'SYNOPSIS' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'SYNOPSIS' or phd_stats.completion_dates.SYNOPSIS %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">3. Synopsis</div>
+                            {% if phd_stats.completion_dates.SYNOPSIS %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.SYNOPSIS }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 4. THESIS_SUBMISSION -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.THESIS_SUBMISSION %}#f0fdf4{% elif phd_progress.current_stage == 'THESIS_SUBMISSION' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.THESIS_SUBMISSION %}#a7f3d0{% elif phd_progress.current_stage == 'THESIS_SUBMISSION' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'THESIS_SUBMISSION' or phd_stats.completion_dates.THESIS_SUBMISSION %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">4. Thesis Sub</div>
+                            {% if phd_stats.completion_dates.THESIS_SUBMISSION %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.THESIS_SUBMISSION }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 5. THESIS_HARDBOUND -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.THESIS_HARDBOUND %}#f0fdf4{% elif phd_progress.current_stage == 'THESIS_HARDBOUND' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.THESIS_HARDBOUND %}#a7f3d0{% elif phd_progress.current_stage == 'THESIS_HARDBOUND' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'THESIS_HARDBOUND' or phd_stats.completion_dates.THESIS_HARDBOUND %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">5. Thesis Hardbound</div>
+                            {% if phd_stats.completion_dates.THESIS_HARDBOUND %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.THESIS_HARDBOUND }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 6. VIVA_VOCE -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.VIVA_VOCE %}#f0fdf4{% elif phd_progress.current_stage == 'VIVA_VOCE' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.VIVA_VOCE %}#a7f3d0{% elif phd_progress.current_stage == 'VIVA_VOCE' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'VIVA_VOCE' or phd_stats.completion_dates.VIVA_VOCE %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">6. Viva Voce</div>
+                            {% if phd_stats.completion_dates.VIVA_VOCE %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.VIVA_VOCE }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 7. MEMO -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.MEMO %}#f0fdf4{% elif phd_progress.current_stage == 'MEMO' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.MEMO %}#a7f3d0{% elif phd_progress.current_stage == 'MEMO' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'MEMO' or phd_stats.completion_dates.MEMO %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">7. Memo</div>
+                            {% if phd_stats.completion_dates.MEMO %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.MEMO }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 8. PROVISIONAL -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.PROVISIONAL %}#f0fdf4{% elif phd_progress.current_stage == 'PROVISIONAL' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.PROVISIONAL %}#a7f3d0{% elif phd_progress.current_stage == 'PROVISIONAL' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'PROVISIONAL' or phd_stats.completion_dates.PROVISIONAL %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">8. Provisional</div>
+                            {% if phd_stats.completion_dates.PROVISIONAL %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.PROVISIONAL }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 9. DEGREE -->
+                        <div style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center;
+                            background: {% if phd_stats.completion_dates.DEGREE %}#f0fdf4{% elif phd_progress.current_stage == 'DEGREE' %}#eff6f6{% else %}#f1f5f9{% endif %};
+                            border-color: {% if phd_stats.completion_dates.DEGREE %}#a7f3d0{% elif phd_progress.current_stage == 'DEGREE' %}var(--primary-color){% else %}#cbd5e1{% endif %};
+                            opacity: {% if phd_progress.current_stage == 'DEGREE' or phd_stats.completion_dates.DEGREE %}1{% else %}0.5{% endif %};">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--primary-color);">9. Degree</div>
+                            {% if phd_stats.completion_dates.DEGREE %}
+                            <div style="font-size: 9px; color: #047857; margin-top: 4px; font-weight: 600;">{{ phd_stats.completion_dates.DEGREE }}</div>
+                            {% else %}
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">Pending</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Stage Documents List -->
+                    <div>
+                        <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; color: var(--primary-color);">📁 Uploaded Stage Files</h4>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <!-- Pre-submission -->
+                            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_letter %}
+                                <a href="{{ phd_progress.pre_sub_letter.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Pre-Sub Letter</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_attendance %}
+                                <a href="{{ phd_progress.pre_sub_attendance.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Pre-Sub Attendance</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_circular %}
+                                <a href="{{ phd_progress.pre_sub_circular.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Pre-Sub Circular</a>
+                            {% endif %}
+                            
+                            <!-- Synopsis -->
+                            {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_letter_copies %}
+                                <a href="{{ phd_progress.synopsis_letter_copies.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Synopsis Letters</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_copy %}
+                                <a href="{{ phd_progress.synopsis_copy.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Synopsis Copy</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_panel_of_examiner %}
+                                <a href="{{ phd_progress.synopsis_panel_of_examiner.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Examiner Panel</a>
+                            {% endif %}
+
+                            <!-- Thesis -->
+                            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_letter_docs %}
+                                <a href="{{ phd_progress.thesis_letter_docs.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Thesis Letters</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_copy_file %}
+                                <a href="{{ phd_progress.thesis_copy_file.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Thesis Copy</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_plagiarism_docs %}
+                                <a href="{{ phd_progress.thesis_plagiarism_docs.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Plagiarism Doc</a>
+                            {% endif %}
+
+                            <!-- Hardbound -->
+                            {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_letters_with_corrections %}
+                                <a href="{{ phd_progress.hardbound_letters_with_corrections.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Hardbound Corrections</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_final_thesis %}
+                                <a href="{{ phd_progress.hardbound_final_thesis.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Final Thesis</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_examiner_report %}
+                                <a href="{{ phd_progress.hardbound_examiner_report.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Examiner Report</a>
+                            {% endif %}
+
+                            <!-- Viva -->
+                            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_fixation %}
+                                <a href="{{ phd_progress.viva_fixation.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Viva Fixation</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_student_order %}
+                                <a href="{{ phd_progress.viva_student_order.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Student Order</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_internal_order %}
+                                <a href="{{ phd_progress.viva_internal_order.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Internal Order</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_external_order %}
+                                <a href="{{ phd_progress.viva_external_order.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 External Order</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_circular %}
+                                <a href="{{ phd_progress.viva_circular.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Viva Circular</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_letter_attendance %}
+                                <a href="{{ phd_progress.viva_letter_attendance.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Viva Attendance</a>
+                            {% endif %}
+
+                            <!-- Memo -->
+                            {% if phd_stats.unlocked_stages.MEMO and phd_progress.memo_copy %}
+                                <a href="{{ phd_progress.memo_copy.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Memo Copy</a>
+                            {% endif %}
+
+                            <!-- Provisional -->
+                            {% if phd_stats.unlocked_stages.PROVISIONAL and phd_progress.provisional_challan %}
+                                <a href="{{ phd_progress.provisional_challan.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Prov. Challan</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.PROVISIONAL and phd_progress.provisional_doc %}
+                                <a href="{{ phd_progress.provisional_doc.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Provisional Doc</a>
+                            {% endif %}
+
+                            <!-- Degree -->
+                            {% if phd_stats.unlocked_stages.DEGREE and phd_progress.degree_challan %}
+                                <a href="{{ phd_progress.degree_challan.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Degree Challan</a>
+                            {% endif %}
+                            {% if phd_stats.unlocked_stages.DEGREE and phd_progress.degree_doc %}
+                                <a href="{{ phd_progress.degree_doc.url }}" target="_blank" class="action-btn" style="text-decoration: none; font-size: 0.75rem; background: #fafafa; border: 1px solid var(--border-color); color: var(--text-secondary);">📄 Degree Doc</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- RAC Reviews -->
                 <div class="card" style="grid-column: 1 / -1;">
                     <h2 class="card-title">📈 RAC Progress Reviews</h2>

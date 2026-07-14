@@ -707,6 +707,14 @@
                         <span class="info-value">{% if academic_history.sslc_school_name %}{{ academic_history.sslc_school_name }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
+                        <span class="info-label">Board</span>
+                        <span class="info-value">{% if academic_history.sslc_board %}{{ academic_history.sslc_board }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">School Address</span>
+                        <span class="info-value">{% if academic_history.sslc_school_address %}{{ academic_history.sslc_school_address }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
                         <span class="info-label">Percentage</span>
                         <span class="info-value">{% if academic_history.sslc_percentage %}{{ academic_history.sslc_percentage }}%{% else %}-{% endif %}</span>
                     </div>
@@ -723,6 +731,14 @@
                     <div class="info-item">
                         <span class="info-label">School</span>
                         <span class="info-value">{% if academic_history.hsc_school_name %}{{ academic_history.hsc_school_name }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Board</span>
+                        <span class="info-value">{% if academic_history.hsc_board %}{{ academic_history.hsc_board }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">School Address</span>
+                        <span class="info-value">{% if academic_history.hsc_school_address %}{{ academic_history.hsc_school_address }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Percentage</span>
@@ -765,6 +781,14 @@
                 <h4 class="subsection-title">Undergraduate</h4>
                 <div class="info-grid">
                     <div class="info-item">
+                        <span class="info-label">College</span>
+                        <span class="info-value">{% if ug_details.ug_college_name %}{{ ug_details.ug_college_name }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">College Address</span>
+                        <span class="info-value">{% if ug_details.ug_college_address %}{{ ug_details.ug_college_address }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
                         <span class="info-label">Course</span>
                         <span class="info-value">{% if ug_details.ug_course %}{{ ug_details.ug_course }}{% else %}-{% endif %}</span>
                     </div>
@@ -773,7 +797,7 @@
                         <span class="info-value">{% if ug_details.ug_university %}{{ ug_details.ug_university }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">OGPA</span>
+                        <span class="info-label">Percentage / OGPA</span>
                         <span class="info-value">{% if ug_details.ug_ogpa %}{{ ug_details.ug_ogpa }}{% else %}-{% endif %}</span>
                     </div>
                     <div class="info-item">
@@ -784,7 +808,39 @@
             </div>
             {% endif %}
 
-            {% if not academic_history and not diploma_details and not ug_details %}
+            {% if pg_details %}
+            <div class="subsection">
+                <h4 class="subsection-title">Postgraduate</h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">College</span>
+                        <span class="info-value">{% if pg_details.pg_college_name %}{{ pg_details.pg_college_name }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">College Address</span>
+                        <span class="info-value">{% if pg_details.pg_college_address %}{{ pg_details.pg_college_address }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Course</span>
+                        <span class="info-value">{% if pg_details.pg_course %}{{ pg_details.pg_course }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">University</span>
+                        <span class="info-value">{% if pg_details.pg_university %}{{ pg_details.pg_university }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Percentage / OGPA</span>
+                        <span class="info-value">{% if pg_details.pg_ogpa %}{{ pg_details.pg_ogpa }}{% else %}-{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Year</span>
+                        <span class="info-value">{% if pg_details.pg_year_of_passing %}{{ pg_details.pg_year_of_passing }}{% else %}-{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not academic_history and not diploma_details and not ug_details and not pg_details %}
             <p style="color: var(--text-secondary);">No academic history available.</p>
             {% endif %}
         </section>
@@ -869,6 +925,22 @@
                 <div class="info-item">
                     <span class="info-label">HSC Marksheet</span>
                     <a href="{{ docs.hsc_marksheet.url }}" class="file-link" target="_blank"
+                        rel="noopener noreferrer">View File</a>
+                </div>
+                {% endif %}
+
+                {% if docs.ug_marksheet %}
+                <div class="info-item">
+                    <span class="info-label">UG Marksheet</span>
+                    <a href="{{ docs.ug_marksheet.url }}" class="file-link" target="_blank"
+                        rel="noopener noreferrer">View File</a>
+                </div>
+                {% endif %}
+
+                {% if docs.pg_marksheet %}
+                <div class="info-item">
+                    <span class="info-label">PG Marksheet</span>
+                    <a href="{{ docs.pg_marksheet.url }}" class="file-link" target="_blank"
                         rel="noopener noreferrer">View File</a>
                 </div>
                 {% endif %}

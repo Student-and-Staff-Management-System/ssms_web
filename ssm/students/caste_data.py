@@ -12,7 +12,7 @@ CASTE_DATA = {
         "Uraly"
     ],
     'SC': [
-        "Adi Dravida", "Adi Karnataka", "Ajila", "Ayyanavar (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)",
+        "Arunthathiyar(SC-A)", "Adi Dravida", "Adi Karnataka", "Ajila", "Ayyanavar (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)",
         "Baira", "Bakuda", "Bandi", "Bellara",
         "Bharatar (in Kanyakumari District and Shenkottah Taluk of Tirunelveli District)",
         "Chalavadi", "Chamar, Muchi", "Chandala", "Cheruman",

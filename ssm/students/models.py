@@ -10,7 +10,8 @@ from ssm.upload_paths import (
     driving_license_path, student_leave_document_path, result_screenshot_path,
     scholar_admission_doc_path, scholar_zeroth_review_exam1_path,
     scholar_zeroth_review_exam2_path, scholar_rcw_document_path,
-    tuition_fee_challan_path, hostel_fee_challan_path
+    tuition_fee_challan_path, hostel_fee_challan_path,
+    ug_marksheet_path, pg_marksheet_path
 )
 
 
@@ -79,7 +80,25 @@ def get_year_choices():
 PROGRAM_LEVEL_CHOICES = [('UG', 'Undergraduate'), ('PG', 'Postgraduate'), ('PHD', 'PhD')]
 UG_ENTRY_CHOICES = [('Regular', 'Regular (HSC)'), ('Lateral', 'Lateral (Diploma)'),]
 GENDER_CHOICES = [('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')]
-BLOOD_GROUP_CHOICES = [('O+', 'O+'), ('O-', 'O-'), ('A+', 'A+'), ('A-', 'A-'), ('B+', 'B+'), ('B-', 'B-'), ('AB+', 'AB+'), ('AB-', 'AB-')]
+BLOOD_GROUP_CHOICES = [
+    ('O+', 'O+'),
+    ('O-', 'O-'),
+    ('A+', 'A+'),
+    ('A-', 'A-'),
+    ('B+', 'B+'),
+    ('B-', 'B-'),
+    ('AB+', 'AB+'),
+    ('AB-', 'AB-'),
+    ('A1+', 'A1+'),
+    ('A1-', 'A1-'),
+    ('A2+', 'A2+'),
+    ('A2-', 'A2-'),
+    ('A1B+', 'A1B+'),
+    ('A1B-', 'A1B-'),
+    ('A2B+', 'A2B+'),
+    ('A2B-', 'A2B-'),
+]
+
 RELIGION_CHOICES = [('Hindu', 'Hindu'), ('Christian', 'Christian'), ('Muslim', 'Muslim')]
 COMMUNITY_CHOICES = [('OC', 'OC'), ('BC', 'BC'), ('MBC', 'MBC'), ('SC', 'SC'), ('ST', 'ST'),('BC MUSLIM','BC MUSLIM')]
 
@@ -176,10 +195,12 @@ class AcademicHistory(models.Model):
     sslc_year_of_passing = models.CharField(max_length=4, choices=get_year_choices(), blank=True)
     sslc_school_name = models.CharField(max_length=255, blank=True)
     sslc_school_address = models.TextField(blank=True)
+    sslc_board = models.CharField(max_length=150, blank=True)
     hsc_register_number = models.CharField(max_length=50, blank=True)
     hsc_percentage = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(100)])
     hsc_year_of_passing = models.CharField(max_length=4, choices=get_year_choices(), blank=True)
     hsc_school_name = models.CharField(max_length=255, blank=True)
+    hsc_board = models.CharField(max_length=150, blank=True)
     hsc_school_address = models.TextField(blank=True)
 
 class DiplomaDetails(models.Model):
@@ -193,6 +214,8 @@ class DiplomaDetails(models.Model):
 class UGDetails(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
     ug_course = models.CharField(max_length=100, blank=True)
+    ug_college_name = models.CharField(max_length=255, blank=True)
+    ug_college_address = models.TextField(blank=True)
     ug_university = models.CharField(max_length=255, blank=True)
     ug_ogpa = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(100)])
     ug_year_of_passing = models.CharField(max_length=4, choices=get_year_choices(), blank=True)
@@ -200,6 +223,8 @@ class UGDetails(models.Model):
 class PGDetails(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
     pg_course = models.CharField(max_length=100, blank=True)
+    pg_college_name = models.CharField(max_length=255, blank=True)
+    pg_college_address = models.TextField(blank=True)
     pg_university = models.CharField(max_length=255, blank=True)
     pg_ogpa = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(100)])
     pg_year_of_passing = models.CharField(max_length=4, choices=get_year_choices(), blank=True)
@@ -263,6 +288,18 @@ class StudentDocuments(models.Model):
     )
     hsc_marksheet = models.FileField(
         upload_to=hsc_marksheet_path,
+        blank=True,
+        null=True,
+        validators=[validate_file_size]
+    )
+    ug_marksheet = models.FileField(
+        upload_to=ug_marksheet_path,
+        blank=True,
+        null=True,
+        validators=[validate_file_size]
+    )
+    pg_marksheet = models.FileField(
+        upload_to=pg_marksheet_path,
         blank=True,
         null=True,
         validators=[validate_file_size]
@@ -576,6 +613,7 @@ class RCWReview(models.Model):
         null=True,
         validators=[validate_file_size]
     )
+    is_final = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -583,3 +621,323 @@ class RCWReview(models.Model):
 
     def __str__(self):
         return f"RCW Review - {self.scholar.student_name} on {self.date}"
+
+
+def phd_progress_doc_path(instance, filename):
+    ext = filename.split('.')[-1]
+    import uuid
+    unique_id = uuid.uuid4().hex[:8]
+    return f'students/{instance.scholar.roll_number}/phd_stages/{unique_id}_{filename}'
+
+
+class PhDProgress(models.Model):
+    CURRENT_STAGE_CHOICES = [
+        ('RAC_REVIEW', 'RAC Review'),
+        ('PRE_SUBMISSION', 'Pre-Submission'),
+        ('SYNOPSIS', 'Synopsis'),
+        ('THESIS_SUBMISSION', 'Thesis Submission'),
+        ('THESIS_HARDBOUND', 'Thesis Hardbound'),
+        ('VIVA_VOCE', 'Viva Voce'),
+        ('MEMO', 'Memo'),
+        ('PROVISIONAL', 'Provisional'),
+        ('DEGREE', 'Degree'),
+        ('COMPLETED', 'Completed'),
+    ]
+
+    scholar = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='phd_progress')
+    current_stage = models.CharField(max_length=50, choices=CURRENT_STAGE_CHOICES, default='RAC_REVIEW')
+    
+    # Stage Completion timestamps (acts as start date of next stage too)
+    rac_completed_at = models.DateTimeField(null=True, blank=True)
+    pre_submission_started_at = models.DateTimeField(null=True, blank=True)
+    pre_submission_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    synopsis_started_at = models.DateTimeField(null=True, blank=True)
+    synopsis_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    thesis_started_at = models.DateTimeField(null=True, blank=True)
+    thesis_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    thesis_hardbound_started_at = models.DateTimeField(null=True, blank=True)
+    thesis_hardbound_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    viva_voce_started_at = models.DateTimeField(null=True, blank=True)
+    viva_voce_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    memo_started_at = models.DateTimeField(null=True, blank=True)
+    memo_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    provisional_started_at = models.DateTimeField(null=True, blank=True)
+    provisional_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    degree_started_at = models.DateTimeField(null=True, blank=True)
+    degree_completed_at = models.DateTimeField(null=True, blank=True)
+
+    # --- STAGE 2: PRE-SUBMISSION DOCUMENTS
+    pre_sub_letter = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    pre_sub_attendance = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    pre_sub_circular = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    
+    # --- STAGE 3: SYNOPSIS
+    synopsis_letter_copies = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    synopsis_copy = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    # Staff upload reference only
+    synopsis_panel_of_examiner = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    synopsis_foreign_examiner = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    synopsis_indian_examiner = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    
+    # --- STAGE 4: THESIS SUBMISSION
+    thesis_letter_docs = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    thesis_copy_file = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    thesis_plagiarism_docs = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    
+    # --- STAGE 5: THESIS HARDBOUND
+    hardbound_letters_with_corrections = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    hardbound_final_thesis = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    # Staff upload, visible to student
+    hardbound_examiner_report = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    
+    # --- STAGE 6: VIVA VOCE
+    viva_date = models.DateField(null=True, blank=True)
+    viva_time = models.TimeField(null=True, blank=True)
+    # Staff uploads
+    viva_fixation = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    viva_student_order = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size]) # visible to student
+    viva_internal_order = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size]) # hidden from student
+    viva_external_order = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size]) # hidden from student
+    # Student uploads
+    viva_circular = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    viva_letter_attendance = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    
+    # --- STAGE 7: MEMO
+    memo_copy = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    
+    # --- STAGE 8: PROVISIONAL
+    provisional_challan = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    provisional_doc = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    
+    # --- STAGE 9: DEGREE
+    degree_challan = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+    degree_doc = models.FileField(upload_to=phd_progress_doc_path, null=True, blank=True, validators=[validate_file_size])
+
+    def __str__(self):
+        return f"PhD Progress - {self.scholar.student_name} ({self.current_stage})"
+
+    def check_and_advance_stage(self):
+        """Automatically transitions to the next stage when all requirements of the current stage are met."""
+        from django.utils import timezone
+        now = timezone.now()
+        updated = False
+
+        if self.current_stage == 'RAC_REVIEW':
+            if self.scholar.rcw_reviews.filter(is_final=True).exists():
+                self.current_stage = 'PRE_SUBMISSION'
+                self.rac_completed_at = now
+                self.pre_submission_started_at = now
+                updated = True
+        elif self.current_stage == 'PRE_SUBMISSION':
+            if self.pre_sub_letter and self.pre_sub_attendance and self.pre_sub_circular:
+                self.current_stage = 'SYNOPSIS'
+                self.pre_submission_completed_at = now
+                self.synopsis_started_at = now
+                updated = True
+        elif self.current_stage == 'SYNOPSIS':
+            if (self.synopsis_letter_copies and self.synopsis_copy and 
+                self.synopsis_panel_of_examiner and self.synopsis_foreign_examiner and self.synopsis_indian_examiner):
+                self.current_stage = 'THESIS_SUBMISSION'
+                self.synopsis_completed_at = now
+                self.thesis_started_at = now
+                updated = True
+        elif self.current_stage == 'THESIS_SUBMISSION':
+            if self.thesis_letter_docs and self.thesis_copy_file and self.thesis_plagiarism_docs:
+                self.current_stage = 'THESIS_HARDBOUND'
+                self.thesis_completed_at = now
+                self.thesis_hardbound_started_at = now
+                updated = True
+        elif self.current_stage == 'THESIS_HARDBOUND':
+            if self.hardbound_letters_with_corrections and self.hardbound_final_thesis and self.hardbound_examiner_report:
+                self.current_stage = 'VIVA_VOCE'
+                self.thesis_hardbound_completed_at = now
+                self.viva_voce_started_at = now
+                updated = True
+        elif self.current_stage == 'VIVA_VOCE':
+            if (self.viva_date and self.viva_time and self.viva_fixation and 
+                self.viva_student_order and self.viva_internal_order and self.viva_external_order and 
+                self.viva_circular and self.viva_letter_attendance):
+                self.current_stage = 'MEMO'
+                self.viva_voce_completed_at = now
+                self.memo_started_at = now
+                updated = True
+        elif self.current_stage == 'MEMO':
+            if self.memo_copy:
+                self.current_stage = 'PROVISIONAL'
+                self.memo_completed_at = now
+                self.provisional_started_at = now
+                updated = True
+        elif self.current_stage == 'PROVISIONAL':
+            if self.provisional_challan and self.provisional_doc:
+                self.current_stage = 'DEGREE'
+                self.provisional_completed_at = now
+                self.degree_started_at = now
+                updated = True
+        elif self.current_stage == 'DEGREE':
+            if self.degree_challan and self.degree_doc:
+                self.current_stage = 'COMPLETED'
+                self.degree_completed_at = now
+                updated = True
+                
+                # Update status in ResearchScholarProfile
+                profile = getattr(self.scholar, 'scholar_profile', None)
+                if profile:
+                    profile.status = 'Completed'
+                    profile.completion_year = str(now.year)
+                    profile.save()
+
+        if updated:
+            self.save()
+            # Recursive check in case multiple stages unlock instantly (e.g. if files were pre-set in db)
+            self.check_and_advance_stage()
+
+    @property
+    def current_deadline_info(self):
+        """Calculates days remaining, expiration status, and warning class for deadlines."""
+        import datetime
+        today = datetime.date.today()
+
+        if self.current_stage == 'SYNOPSIS' and self.pre_submission_completed_at:
+            start_date = self.pre_submission_completed_at.date()
+            deadline = start_date + datetime.timedelta(days=160)
+            days_remaining = (deadline - today).days
+            is_expired = days_remaining < 0
+            status_class = 'danger' if is_expired else ('warning' if days_remaining <= 10 else 'success')
+            return {
+                'has_deadline': True,
+                'days_remaining': abs(days_remaining),
+                'is_expired': is_expired,
+                'status_class': status_class,
+                'deadline_date': deadline,
+            }
+        elif self.current_stage == 'THESIS_SUBMISSION' and self.synopsis_completed_at:
+            start_date = self.synopsis_completed_at.date()
+            deadline = start_date + datetime.timedelta(days=120)  # 4 months = 120 days
+            days_remaining = (deadline - today).days
+            is_expired = days_remaining < 0
+            status_class = 'danger' if is_expired else ('warning' if days_remaining <= 10 else 'success')
+            return {
+                'has_deadline': True,
+                'days_remaining': abs(days_remaining),
+                'is_expired': is_expired,
+                'status_class': status_class,
+                'deadline_date': deadline,
+            }
+        elif self.current_stage == 'THESIS_HARDBOUND' and self.thesis_completed_at:
+            start_date = self.thesis_completed_at.date()
+            deadline = start_date + datetime.timedelta(days=15)
+            days_remaining = (deadline - today).days
+            is_expired = days_remaining < 0
+            status_class = 'danger' if is_expired else ('warning' if days_remaining <= 3 else 'success')
+            return {
+                'has_deadline': True,
+                'days_remaining': abs(days_remaining),
+                'is_expired': is_expired,
+                'status_class': status_class,
+                'deadline_date': deadline,
+            }
+
+        return {
+            'has_deadline': False,
+            'days_remaining': 0,
+            'is_expired': False,
+            'status_class': 'success',
+            'deadline_date': None,
+        }
+
+    @property
+    def progress_stats(self):
+        """Computes stage-wise completion rates and completion dates."""
+        stages_ordered = [
+            ('RAC_REVIEW', 'rac_completed_at'),
+            ('PRE_SUBMISSION', 'pre_submission_completed_at'),
+            ('SYNOPSIS', 'synopsis_completed_at'),
+            ('THESIS_SUBMISSION', 'thesis_completed_at'),
+            ('THESIS_HARDBOUND', 'thesis_hardbound_completed_at'),
+            ('VIVA_VOCE', 'viva_voce_completed_at'),
+            ('MEMO', 'memo_completed_at'),
+            ('PROVISIONAL', 'provisional_completed_at'),
+            ('DEGREE', 'degree_completed_at'),
+        ]
+        
+        # Calculate overall progress
+        completed_count = 0
+        if self.current_stage == 'COMPLETED':
+            completed_count = len(stages_ordered)
+        else:
+            for s_name, _ in stages_ordered:
+                if self.current_stage == s_name:
+                    break
+                completed_count += 1
+
+        overall_percent = int((completed_count / len(stages_ordered)) * 100)
+
+        # Calculate stage-wise progress
+        stage_uploaded = 0
+        stage_total = 1
+
+        if self.current_stage == 'RAC_REVIEW':
+            stage_uploaded = 1 if self.rac_completed_at else 0
+            stage_total = 1
+        elif self.current_stage == 'PRE_SUBMISSION':
+            stage_uploaded = sum(1 for f in [self.pre_sub_letter, self.pre_sub_attendance, self.pre_sub_circular] if f)
+            stage_total = 3
+        elif self.current_stage == 'SYNOPSIS':
+            stage_uploaded = sum(1 for f in [self.synopsis_letter_copies, self.synopsis_copy, self.synopsis_panel_of_examiner, self.synopsis_foreign_examiner, self.synopsis_indian_examiner] if f)
+            stage_total = 5
+        elif self.current_stage == 'THESIS_SUBMISSION':
+            stage_uploaded = sum(1 for f in [self.thesis_letter_docs, self.thesis_copy_file, self.thesis_plagiarism_docs] if f)
+            stage_total = 3
+        elif self.current_stage == 'THESIS_HARDBOUND':
+            stage_uploaded = sum(1 for f in [self.hardbound_letters_with_corrections, self.hardbound_final_thesis, self.hardbound_examiner_report] if f)
+            stage_total = 3
+        elif self.current_stage == 'VIVA_VOCE':
+            stage_uploaded = sum(1 for f in [self.viva_date, self.viva_time, self.viva_fixation, self.viva_student_order, self.viva_internal_order, self.viva_external_order, self.viva_circular, self.viva_letter_attendance] if f)
+            stage_total = 8
+        elif self.current_stage == 'MEMO':
+            stage_uploaded = 1 if self.memo_copy else 0
+            stage_total = 1
+        elif self.current_stage == 'PROVISIONAL':
+            stage_uploaded = sum(1 for f in [self.provisional_challan, self.provisional_doc] if f)
+            stage_total = 2
+        elif self.current_stage == 'DEGREE':
+            stage_uploaded = sum(1 for f in [self.degree_challan, self.degree_doc] if f)
+            stage_total = 2
+        elif self.current_stage == 'COMPLETED':
+            stage_uploaded = 1
+            stage_total = 1
+
+        stage_percent = int((stage_uploaded / stage_total) * 100)
+
+        # Stage dates mapping
+        completion_dates = {}
+        for s_name, date_field in stages_ordered:
+            val = getattr(self, date_field, None)
+            if val:
+                # Store string representation of the date
+                completion_dates[s_name] = val.strftime('%d-%m-%Y')
+
+        # Determine unlocked/reached stages
+        stage_names_only = [s[0] for s in stages_ordered] + ['COMPLETED']
+        try:
+            curr_idx = stage_names_only.index(self.current_stage)
+        except ValueError:
+            curr_idx = 0
+        unlocked_stages = {s: (stage_names_only.index(s) <= curr_idx) for s in stage_names_only}
+
+        return {
+            'overall_percent': overall_percent,
+            'stage_percent': stage_percent,
+            'completed_count': completed_count,
+            'total_stages': len(stages_ordered),
+            'completion_dates': completion_dates,
+            'unlocked_stages': unlocked_stages,
+        }
+

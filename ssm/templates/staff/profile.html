@@ -431,6 +431,11 @@
                     {% if staff.department %}
                     <span>&nbsp;•&nbsp; {{ staff.department }}</span>
                     {% endif %}
+                    {% if staff.additional_designation %}
+                    <span style="display: block; font-size: 0.85em; font-weight: 500; color: #ffe0b2; margin-top: 4px;">
+                        Additional Post: {{ staff.additional_designation }}
+                    </span>
+                    {% endif %}
                 </div>
 
                 <div class="hero-badges">

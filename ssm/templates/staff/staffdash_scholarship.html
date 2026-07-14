@@ -156,7 +156,12 @@
                         style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
                         {{ staff.name }}
                     </div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Scholarship Officer</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                        Scholarship Officer
+                        {% if staff.additional_designation %}
+                        <div style="color: var(--primary); font-weight: 600; margin-top: 2px;">{{ staff.additional_designation }}</div>
+                        {% endif %}
+                    </div>
                 </div>
                 <a href="{% url 'staffs:staff_logout' %}" title="Logout"
                     style="color: #ef4444; font-size: 0.9rem; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px;">
@@ -167,6 +172,23 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            {% if profile_missing_fields %}
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-family: 'Outfit', sans-serif;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="background: #fef3c7; color: #d97706; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">⚠️</div>
+                    <div>
+                        <h4 style="margin: 0; color: #b45309; font-size: 15px; font-weight: 600;">Please complete your professional profile</h4>
+                        <p style="margin: 3px 0 0 0; color: #92400e; font-size: 13px; font-weight: 500;">
+                            Missing: {% for item in profile_missing_fields %}{{ item }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            (Qualifications and Designations require HOD/Admin approval with appropriate documents).
+                        </p>
+                    </div>
+                </div>
+                <a href="{% url 'staffs:staff_portfolio' %}#tab-qualifications" style="background: #f59e0b; color: white; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; white-space: nowrap; transition: background 0.2s;">
+                    Complete Profile Now
+                </a>
+            </div>
+            {% endif %}
             <div class="top-bar">
                 <div class="greeting" style="display: flex; align-items: center;">
                     <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>

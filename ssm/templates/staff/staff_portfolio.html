@@ -588,7 +588,20 @@
                                 "{{ j.title_of_paper }}."
                                 <em>{{ j.journal_name }}</em>{% if j.volume_number %} vol. {{ j.volume_number }}{% endif %}{% if j.issue_number %}, no. {{ j.issue_number }}{% endif %}{% if j.published_year %}, {{ j.published_year }}{% endif %}{% if j.page_numbers_from and j.page_numbers_to %}, pp. {{ j.page_numbers_from }}-{{ j.page_numbers_to }}{% endif %}.
                                 <span style="color:var(--text-muted); font-size:0.85em;">[{{ j.national_international }}]</span>
-                                {% if j.supporting_document %}<br><a href="{{ j.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Paper</a>{% endif %}
+                                
+                                {% with jtypes=j.get_journal_types %}
+                                    {% if jtypes %}
+                                        <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap;">
+                                            {% for t in jtypes %}
+                                                <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
+                                                    {{ t }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                                
+                                {% if j.supporting_document %}<br><a href="{{ j.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); display: inline-block; margin-top: 4px;">📄 View Paper</a>{% endif %}
                             </td>
                             <td style="text-align:center;">
                                 <div class="action-group" style="justify-content:center;">
@@ -673,14 +686,29 @@
                             <th>Degree</th>
                             <th>University / Institution</th>
                             <th>Year</th>
+                            <th>Status</th>
                             <th style="width:130px; text-align:center;">Actions</th>
                         </tr></thead>
                         <tbody>
                         {% for item in qualifications %}
                         <tr>
-                            <td><strong>{{ item.degree }}</strong></td>
+                            <td>
+                                <strong>{{ item.degree }}</strong>
+                                {% if item.certificate %}
+                                <br><a href="{{ item.certificate.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none;">📄 View Certificate</a>
+                                {% endif %}
+                            </td>
                             <td>{{ item.university }}</td>
                             <td>{{ item.year_completed }}</td>
+                            <td>
+                                {% if item.approval_status == 'Approved' %}
+                                    <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">✓ Approved</span>
+                                {% elif item.approval_status == 'Rejected' %}
+                                    <span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">✗ Rejected</span>
+                                {% else %}
+                                    <span style="background:#fffbeb; color:#d97706; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">⏳ Pending</span>
+                                {% endif %}
+                            </td>
                             <td style="text-align:center;">
                                 <div class="action-group" style="justify-content:center;">
                                     <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_qualification" pk=item.pk %}', 'Edit Qualification')">Edit</button>
@@ -706,8 +734,11 @@
         <div id="tab-designations" class="tab-panel">
             <div class="section-card">
                 <div class="section-head">
-                    <h3>💼 Past Designations <span class="count-badge">{{ designations|length }}</span></h3>
-                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}', 'Add Designation')">+ Add Designation</button>
+                    <h3>💼 Designations & Additional Posts <span class="count-badge">{{ designations|length }}</span></h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}', 'Add Past Designation')">+ Add Past Designation</button>
+                        <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}?type=additional', 'Add Additional Post')" style="background-color: #2e7d32; border-color: #2e7d32;">+ Add Additional Post</button>
+                    </div>
                 </div>
                 {% if designations %}
                 <div style="overflow-x:auto;">
@@ -716,14 +747,29 @@
                             <th>Designation</th>
                             <th>From</th>
                             <th>To</th>
+                            <th>Status</th>
                             <th style="width:130px; text-align:center;">Actions</th>
                         </tr></thead>
                         <tbody>
                         {% for item in designations %}
                         <tr>
-                            <td><strong>{{ item.designation }}</strong></td>
+                            <td>
+                                <strong>{{ item.designation }}</strong>
+                                {% if item.order_img %}
+                                <br><a href="{{ item.order_img.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none;">📄 View Order Document</a>
+                                {% endif %}
+                            </td>
                             <td>{{ item.from_date|date:"d M Y"|default:"—" }}</td>
                             <td>{% if item.to_date %}{{ item.to_date|date:"d M Y" }}{% else %}<span style="color:var(--primary);font-weight:600;">Present</span>{% endif %}</td>
+                            <td>
+                                {% if item.approval_status == 'Approved' %}
+                                    <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">✓ Approved</span>
+                                {% elif item.approval_status == 'Rejected' %}
+                                    <span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">✗ Rejected</span>
+                                {% else %}
+                                    <span style="background:#fffbeb; color:#d97706; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">⏳ Pending</span>
+                                {% endif %}
+                            </td>
                             <td style="text-align:center;">
                                 <div class="action-group" style="justify-content:center;">
                                     <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_designation" pk=item.pk %}', 'Edit Designation')">Edit</button>
@@ -837,10 +883,114 @@
                 {% endif %}
             </div>
 
-            <!-- Students Guided -->
+            <!-- ═══ PhD SCHOLARS (Auto-Mapped from System) ═══ -->
+            <div class="section-card" id="phd-scholars-section">
+                <div class="section-head">
+                    <h3>🎓 Research Scholars (PhD) <span class="count-badge">{{ phd_scholars|length }}</span></h3>
+                    <a href="{% url 'staffs:manage_phd_stages' %}" style="display:inline-flex; align-items:center; gap:6px; background:var(--primary); color:white; padding:8px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; text-decoration:none; transition:background 0.2s;">
+                        🔬 Manage PhD Stages →
+                    </a>
+                </div>
+
+                {% if phd_scholars %}
+                <!-- Stage Legend -->
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; padding:12px; background:#f8fafc; border-radius:10px; border:1px solid var(--border);">
+                    <span style="font-size:0.78rem; font-weight:700; color:var(--text-muted); align-self:center; margin-right:4px;">STAGES:</span>
+                    {% for sc in phd_scholars %}{% if not sc.is_completed %}
+                    <span style="font-size:0.75rem; padding:2px 8px; border-radius:6px; background:#e0f2fe; color:#0369a1; font-weight:600;">{{ sc.current_stage_label }}</span>
+                    {% endif %}{% endfor %}
+                    <span style="font-size:0.75rem; padding:2px 8px; border-radius:6px; background:#d1fae5; color:#065f46; font-weight:600;">Completed</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px;">
+                {% for sc in phd_scholars %}
+                <div style="background:{% if sc.is_completed %}linear-gradient(135deg,#f0fdf4,#dcfce7){% else %}linear-gradient(135deg,#f8fafc,#f0f4f4){% endif %}; border:1.5px solid {% if sc.is_completed %}#86efac{% else %}var(--border){% endif %}; border-radius:14px; padding:18px; position:relative; transition:box-shadow 0.2s; overflow:hidden;"
+                     onmouseenter="this.style.boxShadow='0 4px 20px rgba(90,125,124,0.15)'"
+                     onmouseleave="this.style.boxShadow='none'">
+
+                    <!-- Status ribbon -->
+                    <div style="position:absolute; top:14px; right:14px;">
+                        {% if sc.is_completed %}
+                        <span style="background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:100px; font-size:0.75rem; font-weight:700;">✅ Completed</span>
+                        {% else %}
+                        <span style="background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:100px; font-size:0.75rem; font-weight:700;">🔄 Ongoing</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Scholar Info -->
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; padding-right:90px;">
+                        <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, var(--primary), #7ba8a7); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:white; flex-shrink:0;">
+                            {{ sc.name|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <div style="font-weight:700; font-size:1rem; color:var(--text-main); line-height:1.2;">{{ sc.name }}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px; font-family:monospace;">{{ sc.roll_number }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
+                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Scholar Type</div>
+                            <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">{{ sc.scholar_type }}</div>
+                        </div>
+                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
+                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Admitted</div>
+                            <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">{{ sc.admission_date|date:"d M Y" }}</div>
+                        </div>
+                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
+                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Current Stage</div>
+                            <div style="font-size:0.85rem; font-weight:600; color:{% if sc.is_completed %}#065f46{% else %}var(--primary-dark){% endif %};">
+                                {% if sc.is_completed %}🏆 Completed{% else %}📍 {{ sc.current_stage_label }}{% endif %}
+                            </div>
+                        </div>
+                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
+                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">
+                                {% if sc.is_completed %}Completion Year{% else %}Stages Done{% endif %}
+                            </div>
+                            <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">
+                                {% if sc.is_completed %}{{ sc.completion_year }}{% else %}{{ sc.stats.completed_stages|default:"0" }} / {{ sc.stats.total_stages|default:"9" }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if not sc.is_completed and sc.stats.total_stages %}
+                    <!-- Progress Bar -->
+                    <div style="margin-bottom:14px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">
+                            <span>PhD Progress</span>
+                            <span>{{ sc.stats.percentage|default:"0" }}%</span>
+                        </div>
+                        <div style="background:#e2e8f0; border-radius:100px; height:7px; overflow:hidden;">
+                            <div style="height:100%; width:{{ sc.stats.percentage|default:0 }}%; background:linear-gradient(90deg, var(--primary), #7ba8a7); border-radius:100px; transition:width 0.4s;"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <a href="{% url 'staffs:manage_phd_stages' %}?student_roll={{ sc.roll_number }}"
+                       style="display:flex; align-items:center; justify-content:center; gap:6px; background:var(--primary); color:white; padding:9px 14px; border-radius:8px; font-size:0.85rem; font-weight:600; text-decoration:none; transition:background 0.2s; width:100%; box-sizing:border-box;"
+                       onmouseenter="this.style.background='var(--primary-dark)'"
+                       onmouseleave="this.style.background='var(--primary)'">
+                        🔬 View & Manage Stage
+                    </a>
+                </div>
+                {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🎓</div>
+                    <p>No PhD scholars assigned</p>
+                    <small>PhD scholars are auto-mapped when assigned to you as supervisor via the admin panel</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Other Students Guided (Manual) -->
             <div class="section-card">
                 <div class="section-head">
-                    <h3>👨‍🎓 Students Guided <span class="count-badge">{{ students_guided|length }}</span></h3>
+                    <h3>👨‍🎓 Other Students Guided <span class="count-badge">{{ students_guided|length }}</span></h3>
                     <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_student" %}', 'Add Student Guided')">+ Add Student</button>
                 </div>
                 {% if students_guided %}
@@ -859,7 +1009,6 @@
                             <td>
                                 <strong>{{ s.student_name }}</strong>
                                 {% if s.supporting_document %}<br><a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary);">📄 View Doc</a>{% endif %}
-                                {% if s.is_dynamic %}<br><span style="font-size:0.78rem; color:var(--text-muted);">[Managed Scholar]</span>{% endif %}
                             </td>
                             <td>{{ s.degree_type }}</td>
                             <td>
@@ -869,11 +1018,7 @@
                             </td>
                             <td>{{ s.year|default:"—" }}</td>
                             <td style="text-align:center;">
-                                {% if not s.is_dynamic %}
                                 <a href="{% url 'staffs:portfolio_delete_entry' 'student_guided' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
-                                {% else %}
-                                <span style="font-size:0.8rem; color:var(--text-muted);">Auto-link</span>
-                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -883,8 +1028,8 @@
                 {% else %}
                 <div class="empty-state">
                     <div class="empty-icon">👨‍🎓</div>
-                    <p>No students guided yet</p>
-                    <small>Record PG and PhD students you have supervised</small>
+                    <p>No manually added students</p>
+                    <small>Add PG/other students you have guided using the button above</small>
                 </div>
                 {% endif %}
             </div>
@@ -899,21 +1044,57 @@
                 <div style="overflow-x:auto;">
                     <table class="data-table">
                         <thead><tr>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Venue / Description</th>
-                            <th>Year</th>
-                            <th style="width:100px; text-align:center;">Actions</th>
+                            <th>Title & Role</th>
+                            <th>Type & Mode</th>
+                            <th>Organized By & Venue</th>
+                            <th>Date / Duration</th>
+                            <th>Documents</th>
+                            <th style="width:140px; text-align:center;">Actions</th>
                         </tr></thead>
                         <tbody>
                         {% for s in seminars %}
                         <tr>
-                            <td><strong>{{ s.title }}</strong></td>
-                            <td>{{ s.get_event_type_display }}</td>
-                            <td>{{ s.venue_or_description }}</td>
-                            <td>{{ s.year }}</td>
+                            <td>
+                                <strong>{{ s.title }}</strong>
+                                <br>
+                                <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; 
+                                    {% if s.participation_role == 'Conducted' %}background-color:#e0f2fe; color:#0369a1;{% else %}background-color:#f0fdf4; color:#15803d;{% endif %}">
+                                    {{ s.participation_role }}
+                                </span>
+                            </td>
+                            <td>
+                                <div>{{ s.get_event_type_display }}</div>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">({{ s.mode }})</span>
+                            </td>
+                            <td>
+                                <div>{{ s.organized_by|default:"-" }}</div>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">Venue: {{ s.venue_or_description|default:"-" }}</span>
+                            </td>
+                            <td>
+                                {% if s.date_from %}
+                                    <div>{{ s.date_from|date:"d M Y" }}{% if s.date_to %} - {{ s.date_to|date:"d M Y" }}{% endif %}</div>
+                                    {% if s.total_days %}
+                                        <span style="font-size:0.8rem; font-weight:500; color:var(--primary-color);">{{ s.total_days }} day{{ s.total_days|pluralize }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    {{ s.year|default:"-" }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    {% if s.supporting_document %}
+                                        <a href="{{ s.supporting_document.url }}" class="btn-doc" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none; display:inline-block; text-align:center;">📄 Certificate</a>
+                                    {% endif %}
+                                    {% if s.order_certificate %}
+                                        <a href="{{ s.order_certificate.url }}" class="btn-doc" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none; display:inline-block; text-align:center; background: #e2e8f0; color: #475569;">📄 Order Copy</a>
+                                    {% endif %}
+                                </div>
+                            </td>
                             <td style="text-align:center;">
-                                <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                <div style="display:flex; gap:6px; justify-content:center; align-items:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_seminar" s.pk %}', 'Edit Seminar / Workshop / Conference')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -998,6 +1179,32 @@
             }
         }
 
+        /* Calculate total days for seminar form */
+        function calculateTotalDays() {
+            const fromDateInput = document.getElementById('id_date_from');
+            const toDateInput = document.getElementById('id_date_to');
+            const totalDaysInput = document.getElementById('id_total_days');
+            
+            if (fromDateInput && toDateInput && totalDaysInput) {
+                const fromDateVal = fromDateInput.value;
+                const toDateVal = toDateInput.value;
+                
+                if (fromDateVal && toDateVal) {
+                    const fromDate = new Date(fromDateVal);
+                    const toDate = new Date(toDateVal);
+                    const diffTime = toDate - fromDate;
+                    if (diffTime >= 0) {
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        totalDaysInput.value = diffDays;
+                    } else {
+                        totalDaysInput.value = 0;
+                    }
+                } else {
+                    totalDaysInput.value = '';
+                }
+            }
+        }
+
         async function openModal(url, title) {
             currentUrl = url;
             const overlay = document.getElementById('dModal');
@@ -1034,6 +1241,8 @@
                     // Init Present toggle if designation form
                     const presentCb = document.getElementById('id_is_present');
                     if (presentCb) toggleToDate(presentCb);
+                    // Init Total Days calculation if seminar form
+                    calculateTotalDays();
                 } else {
                     body.innerHTML = '<div style="padding:24px; color:#dc2626;">Could not load form. <a href="' + url + '">Open directly</a>.</div>';
                 }

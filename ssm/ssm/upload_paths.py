@@ -58,6 +58,14 @@ def student_id_card_path(instance, filename):
     return student_certificate_path(instance, filename, 'student_id_card')
 
 
+def ug_marksheet_path(instance, filename):
+    return student_certificate_path(instance, filename, 'ug_marksheet')
+
+
+def pg_marksheet_path(instance, filename):
+    return student_certificate_path(instance, filename, 'pg_marksheet')
+
+
 def tuition_fee_challan_path(instance, filename):
     return student_certificate_path(instance, filename, 'tuition_fee_challan')
 
@@ -118,17 +126,43 @@ def staff_photo_path(instance, filename):
 def staff_award_document_path(instance, filename):
     """Upload path for staff award/honour documents."""
     ext = filename.split('.')[-1]
-    title_slug = instance.title[:30].replace(' ', '_').lower()
+    title_slug = instance.title[:30].replace(' ', '_').lower() if instance.title else 'award'
     year = instance.year or 'undated'
-    return f'staff/{instance.staff.staff_id}/award_{title_slug}_{year}.{ext}'
+    
+    staff_id = getattr(instance, '_temp_staff_id', None)
+    if not staff_id:
+        try:
+            first_staff = instance.staff.first()
+            if first_staff:
+                staff_id = first_staff.staff_id
+        except Exception:
+            pass
+            
+    if not staff_id:
+        staff_id = 'unknown'
+        
+    return f'staff/{staff_id}/award_{title_slug}_{year}.{ext}'
 
 
 def staff_seminar_document_path(instance, filename):
     """Upload path for staff seminar/workshop documents."""
     ext = filename.split('.')[-1]
-    title_slug = instance.title[:30].replace(' ', '_').lower()
+    title_slug = instance.title[:30].replace(' ', '_').lower() if instance.title else 'seminar'
     year = instance.year or 'undated'
-    return f'staff/{instance.staff.staff_id}/seminar_{title_slug}_{year}.{ext}'
+    
+    staff_id = getattr(instance, '_temp_staff_id', None)
+    if not staff_id:
+        try:
+            first_staff = instance.staff.first()
+            if first_staff:
+                staff_id = first_staff.staff_id
+        except Exception:
+            pass
+            
+    if not staff_id:
+        staff_id = 'unknown'
+        
+    return f'staff/{staff_id}/seminar_{title_slug}_{year}.{ext}'
 
 
 def staff_student_guided_document_path(instance, filename):
@@ -152,23 +186,62 @@ def staff_conference_document_path(instance, filename):
     ext = filename.split('.')[-1]
     title_slug = instance.title_of_paper[:30].replace(' ', '_').lower() if instance.title_of_paper else 'conference'
     year = instance.year_of_publication or 'undated'
-    return f'staff/{instance.staff.staff_id}/conference_{title_slug}_{year}.{ext}'
+    
+    staff_id = getattr(instance, '_temp_staff_id', None)
+    if not staff_id:
+        try:
+            first_staff = instance.staff.first()
+            if first_staff:
+                staff_id = first_staff.staff_id
+        except Exception:
+            pass
+            
+    if not staff_id:
+        staff_id = 'unknown'
+        
+    return f'staff/{staff_id}/conference_{title_slug}_{year}.{ext}'
 
 
 def staff_journal_document_path(instance, filename):
     """Upload path for staff journal documents."""
     ext = filename.split('.')[-1]
-    title_slug = instance.title_of_paper[:30].replace(' ', '_').lower()
+    title_slug = instance.title_of_paper[:30].replace(' ', '_').lower() if instance.title_of_paper else 'journal'
     year = instance.published_year or 'undated'
-    return f'staff/{instance.staff.staff_id}/journal_{title_slug}_{year}.{ext}'
+    
+    staff_id = getattr(instance, '_temp_staff_id', None)
+    if not staff_id:
+        try:
+            first_staff = instance.staff.first()
+            if first_staff:
+                staff_id = first_staff.staff_id
+        except Exception:
+            pass
+            
+    if not staff_id:
+        staff_id = 'unknown'
+        
+    return f'staff/{staff_id}/journal_{title_slug}_{year}.{ext}'
 
 
 def staff_book_document_path(instance, filename):
     """Upload path for staff book documents."""
     ext = filename.split('.')[-1]
-    title_slug = instance.title_of_book[:30].replace(' ', '_').lower()
+    title_slug = instance.title_of_book[:30].replace(' ', '_').lower() if instance.title_of_book else 'book'
     year = instance.year_of_publication or 'undated'
-    return f'staff/{instance.staff.staff_id}/book_{title_slug}_{year}.{ext}'
+    
+    staff_id = getattr(instance, '_temp_staff_id', None)
+    if not staff_id:
+        try:
+            first_staff = instance.staff.first()
+            if first_staff:
+                staff_id = first_staff.staff_id
+        except Exception:
+            pass
+            
+    if not staff_id:
+        staff_id = 'unknown'
+        
+    return f'staff/{staff_id}/book_{title_slug}_{year}.{ext}'
 
 
 def staff_qualification_document_path(instance, filename):
@@ -210,4 +283,29 @@ def scholar_rcw_document_path(instance, filename):
     ext = filename.split('.')[-1]
     date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     return f'students/{instance.scholar.roll_number}/scholar/rcw_review_{date_str}.{ext}'
+
+
+def staff_seminar_order_path(instance, filename):
+    """Upload path for staff seminar deputation order documents."""
+    ext = filename.split('.')[-1]
+    title_slug = instance.title[:30].replace(' ', '_').lower() if instance.title else 'seminar'
+    year = instance.year or 'undated'
+    
+    staff_id = getattr(instance, '_temp_staff_id', None)
+    if not staff_id:
+        try:
+            first_staff = instance.staff.first()
+            if first_staff:
+                staff_id = first_staff.staff_id
+        except Exception:
+            pass
+            
+    if staff_id:
+        return f'staff/{staff_id}/seminar_order_{title_slug}_{year}.{ext}'
+        
+    if instance.student:
+        return f'students/{instance.student.roll_number}/seminar_order_{title_slug}_{year}.{ext}'
+        
+    return f'staff/unknown/seminar_order_{title_slug}_{year}.{ext}'
+
 

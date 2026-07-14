@@ -119,6 +119,9 @@
                         <option value="Seminar" {% if not item or item.event_type == 'Seminar' %}selected{% endif %}>Seminar</option>
                         <option value="Workshop" {% if item and item.event_type == 'Workshop' %}selected{% endif %}>Workshop</option>
                         <option value="Conference" {% if item and item.event_type == 'Conference' %}selected{% endif %}>Conference</option>
+                        <option value="FDP" {% if item and item.event_type == 'FDP' %}selected{% endif %}>FDP</option>
+                        <option value="Summer/Winter Orientation" {% if item and item.event_type == 'Summer/Winter Orientation' %}selected{% endif %}>Summer/Winter Orientation</option>
+                        <option value="STTP" {% if item and item.event_type == 'STTP' %}selected{% endif %}>STTP</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -127,25 +130,56 @@
                 </div>
             </div>
             <div class="form-group">
+                <label>Organized By</label>
+                <input type="text" name="organized_by" value="{% if item %}{{ item.organized_by }}{% endif %}" placeholder="e.g. Dept of IT, Annamalai University">
+            </div>
+            <div class="form-group">
                 <label>Venue / Description</label>
                 <input type="text" name="venue_or_description" value="{% if item %}{{ item.venue_or_description }}{% endif %}" placeholder="e.g. IIT Madras, Virtual">
             </div>
             <div class="form-grid-2">
                 <div class="form-group">
                     <label>From Date</label>
-                    <input type="date" name="date_from" value="{{ item.date_from|date:'Y-m-d' }}">
+                    <input type="date" name="date_from" id="id_date_from" value="{{ item.date_from|date:'Y-m-d' }}" onchange="if(typeof calculateTotalDays==='function')calculateTotalDays()">
                 </div>
                 <div class="form-group">
                     <label>To Date</label>
-                    <input type="date" name="date_to" value="{{ item.date_to|date:'Y-m-d' }}">
+                    <input type="date" name="date_to" id="id_date_to" value="{{ item.date_to|date:'Y-m-d' }}" onchange="if(typeof calculateTotalDays==='function')calculateTotalDays()">
                 </div>
             </div>
             <div class="form-group">
-                <label>Certificate <small style="color:var(--text-muted);">(Max: 100KB)</small></label>
+                <label>Total Days</label>
+                <input type="number" name="total_days" id="id_total_days" value="{% if item %}{{ item.total_days }}{% endif %}" readonly placeholder="Auto-calculated from dates" style="background-color: #f1f5f9; cursor: not-allowed;">
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label>Mode</label>
+                    <select name="mode">
+                        <option value="Online" {% if item and item.mode == 'Online' %}selected{% endif %}>Online</option>
+                        <option value="Offline" {% if not item or item.mode == 'Offline' %}selected{% endif %}>Offline</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Participation Type</label>
+                    <select name="participation_role">
+                        <option value="Attended" {% if not item or item.participation_role == 'Attended' %}selected{% endif %}>Attended</option>
+                        <option value="Conducted" {% if item and item.participation_role == 'Conducted' %}selected{% endif %}>Conducted</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Completion Certificate * <small style="color:var(--text-muted);">(Max: 100KB)</small></label>
                 {% if item.supporting_document %}
                 <div class="form-help">Currently: <a href="{{ item.supporting_document.url }}" target="_blank">View File</a></div>
                 {% endif %}
-                <input type="file" name="supporting_document">
+                <input type="file" name="supporting_document" {% if not item %}required{% endif %}>
+            </div>
+            <div class="form-group">
+                <label>Deputation / Permission Order Copy <small style="color:var(--text-muted);">(Optional, Max: 100KB)</small></label>
+                {% if item.order_certificate %}
+                <div class="form-help">Currently: <a href="{{ item.order_certificate.url }}" target="_blank">View File</a></div>
+                {% endif %}
+                <input type="file" name="order_certificate">
             </div>
             {% endif %}
 
@@ -307,6 +341,26 @@
                 <div class="form-group">
                     <label>Page To</label>
                     <input type="text" name="page_numbers_to" value="{% if item %}{{ item.page_numbers_to }}{% endif %}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Journal Indexing / Type (Select all that apply)</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="is_scopus" {% if item and item.is_scopus %}checked{% endif %} style="width: auto;"> SCOPUS
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="is_wos" {% if item and item.is_wos %}checked{% endif %} style="width: auto;"> WOS
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="is_sci" {% if item and item.is_sci %}checked{% endif %} style="width: auto;"> SCI
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="is_scie" {% if item and item.is_scie %}checked{% endif %} style="width: auto;"> SCIE
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="is_ugc" {% if item and item.is_ugc %}checked{% endif %} style="width: auto;"> UGC
+                    </label>
                 </div>
             </div>
             <div class="form-group">

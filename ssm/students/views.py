@@ -425,6 +425,9 @@ def student_dashboard(request):
         request.session.flush()
         return redirect('student_login')
     
+    if student.program_level == 'PHD':
+        return redirect('scholar_dashboard')
+    
     # helper to safely get related objects
     from staffs.models import News
     def get_related_or_none(model_class, student_obj):
@@ -676,6 +679,8 @@ def student_profile(request):
     """
     roll_number = request.session.get('student_roll_number')
     student = get_object_or_404(Student, roll_number=roll_number)
+    if student.program_level == 'PHD':
+        return redirect('scholar_profile')
     
     # Copy of the fetching logic from old dashboard
     from staffs.models import News
@@ -719,6 +724,8 @@ from django.contrib import messages
 def student_editprofile(request):
     roll_number = request.session.get('student_roll_number')
     student = Student.objects.get(roll_number=roll_number)
+    if student.program_level == 'PHD':
+        return redirect('scholar_edit_profile')
     
     personal_info, _ = PersonalInfo.objects.get_or_create(student=student)
     student_docs, _ = StudentDocuments.objects.get_or_create(student=student)

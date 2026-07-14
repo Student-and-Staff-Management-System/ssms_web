@@ -1,0 +1,811 @@
+{% load static %}
+{% load staff_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhD Stage Tracker | {{ student.student_name }}</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+  <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+
+  <style>
+    :root {
+      --primary: var(--accent-color, #5a7d7c);
+      --primary-light: var(--accent-color-light, #7FB4B2);
+      --primary-dark: var(--accent-color-hover, #4a6b69);
+      --secondary: var(--accent-gold, #c5a059);
+      --secondary-dark: #b39150;
+      --dark: var(--text-primary, #212529);
+      --light: var(--primary-bg, #f8f9fa);
+      --surface: var(--secondary-bg, #ffffff);
+      --text: var(--text-primary, #212529);
+      --text-light: var(--text-secondary, #6c757d);
+      --border: var(--border-color, #dee2e6);
+      --radius: 16px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      background-color: #f1f5f9; 
+      color: var(--text); 
+      line-height: 1.6; 
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .navbar {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      border-top: 4px solid var(--secondary);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-brand { display: flex; align-items: center; gap: 14px; }
+    .nav-brand img { height: 44px; }
+    .nav-brand div h1 { font-family: 'Outfit', sans-serif; font-size: 19px; font-weight: 700; color: var(--dark); line-height: 1.2; }
+    .nav-brand div p { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
+
+    .nav-user { display: flex; align-items: center; gap: 16px; }
+    .user-info { text-align: right; }
+    .user-name { font-weight: 600; color: var(--dark); font-size: 14px; }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; text-transform: uppercase; border: 2px solid white; box-shadow: var(--shadow-md); }
+    .logout-btn { color: #EF4444; background: rgba(239, 68, 68, 0.08); width: 36px; height: 36px; border-radius: 50%; text-decoration: none; font-size: 20px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;}
+    .logout-btn:hover { background: #EF4444; color: white; transform: scale(1.05); }
+
+    .container { max-width: 1440px; margin: 0 auto; padding: 32px 24px; }
+
+    /* Page Header */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary-dark);
+      background: white;
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .back-btn:hover {
+      background: var(--light);
+      color: var(--primary);
+      transform: translateX(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Grid Layout */
+    .tracker-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 992px) {
+      .tracker-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 0;
+    }
+
+    /* Step Timeline styles */
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 4px 0;
+    }
+    .step-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    /* Upload grid cards */
+    .uploaded-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .file-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .file-icon {
+      font-size: 24px;
+      color: var(--primary);
+    }
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .file-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    .file-name {
+      font-size: 11px;
+      color: var(--text-light);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .file-action-btn {
+      color: var(--primary);
+      background: white;
+      border: 1px solid var(--border);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .file-action-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      transform: scale(1.08);
+      box-shadow: var(--shadow-md);
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(0.85); opacity: 0.5; }
+      50% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(0.85); opacity: 0.5; }
+    }
+    
+    .active-pulse {
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+    
+    .form-control[type="file"] {
+      border: 1px dashed var(--border);
+      background: #f8fafc;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .form-control[type="file"]:hover {
+      border-color: var(--primary);
+      background: #eff6f6;
+    }
+    .form-control[type="file"]::file-selector-button {
+      background: var(--primary-light);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: background 0.2s;
+    }
+    .form-control[type="file"]::file-selector-button:hover {
+      background: var(--primary);
+    }
+    
+    .tracker-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      border: none;
+      padding: 13px 20px;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(90, 125, 124, 0.18);
+      transition: all 0.25s ease;
+    }
+    .tracker-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(90, 125, 124, 0.3);
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    }
+    .tracker-btn:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="{% static 'imgs/annamalai.png' %}" alt="Logo">
+      <div>
+        <h1>Annamalai University</h1>
+        <p>Research Portal</p>
+      </div>
+    </div>
+    <div class="nav-user">
+      <div class="user-info">
+        <div class="user-name">{{ student.student_name }}</div>
+        <div class="user-role">Roll: {{ student.roll_number }}</div>
+      </div>
+      <div class="avatar">{{ student.student_name|slice:":1" }}</div>
+      <a href="{% url 'student_logout' %}" class="logout-btn" title="Logout"><i class='bx bx-log-out'></i></a>
+    </div>
+  </nav>
+
+  <div class="container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <a href="{% url 'scholar_dashboard' %}" class="back-btn"><i class='bx bx-left-arrow-alt'></i> Back to Dashboard</a>
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 700; color: var(--dark); margin-top: 8px;">PhD Completion Stages Tracker</h2>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--text-light);">Overall Program Completion</span>
+        <div style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-dark);">{{ phd_stats.overall_percent }}%</div>
+      </div>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}" style="border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <i class='bx {% if message.tags == 'error' %}bx-error-circle{% else %}bx-check-circle{% endif %}' style="font-size: 18px;"></i>
+            <span style="font-size: 14px;">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="tracker-grid">
+      
+      <!-- Left Column: Timeline Steps -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Progress Summary -->
+        <div class="card" style="border-top: 4px solid var(--primary);">
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 12px; font-weight: 600; color: var(--text-light); text-transform: uppercase;">Overall Progress</span>
+              <span style="font-size: 13px; font-weight: 700; color: var(--primary-dark);">{{ phd_stats.overall_percent }}%</span>
+            </div>
+            <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+              <div style="width: {{ phd_stats.overall_percent }}%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 4px;"></div>
+            </div>
+          </div>
+          {% if phd_progress.current_stage != 'COMPLETED' %}
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 12px; font-weight: 600; color: var(--text-light); text-transform: uppercase;">Stage Completeness</span>
+              <span style="font-size: 12px; font-weight: 700; color: var(--secondary);">{{ phd_stats.stage_percent }}%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+              <div style="width: {{ phd_stats.stage_percent }}%; height: 100%; background: var(--secondary); border-radius: 3px;"></div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- 9-Stage Milestone checklist -->
+        <div class="card" style="position: relative;">
+          <h4 style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class='bx bx-git-commit' style="font-size: 18px; color: var(--primary);"></i> Milestone Checklist
+          </h4>
+          
+          <div style="position: relative; display: flex; flex-direction: column; gap: 20px; padding-left: 10px;">
+            <!-- Vertical Process Line -->
+            <div style="position: absolute; left: 22px; top: 12px; bottom: 12px; width: 2px; background: #e2e8f0; border-left: 2px dashed #cbd5e1; z-index: 1;"></div>
+            
+            {% for choice, label in phd_progress.CURRENT_STAGE_CHOICES %}
+            {% if choice != 'COMPLETED' %}
+            <div class="step-item" style="position: relative; z-index: 2; display: flex; align-items: flex-start; gap: 16px; opacity: {% if phd_progress.current_stage == choice or choice in phd_stats.completion_dates %}1{% else %}0.45{% endif %};">
+              
+              <!-- Icon/Dot representing status -->
+              <div class="step-circle" style="
+                width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;
+                background: {% if choice in phd_stats.completion_dates %}#d1fae5{% elif phd_progress.current_stage == choice %}#eff6f6{% else %}#f1f5f9{% endif %};
+                color: {% if choice in phd_stats.completion_dates %}#059669{% elif phd_progress.current_stage == choice %}var(--primary){% else %}#94a3b8{% endif %};
+                border: 2px solid {% if choice in phd_stats.completion_dates %}#10b981{% elif phd_progress.current_stage == choice %}var(--primary){% else %}#cbd5e1{% endif %};
+                box-shadow: {% if phd_progress.current_stage == choice %}0 0 0 4px rgba(90, 125, 124, 0.15){% else %}none{% endif %};">
+                {% if choice in phd_stats.completion_dates %}
+                  ✓
+                {% else %}
+                  {{ forloop.counter }}
+                {% endif %}
+              </div>
+              
+              <div style="flex: 1; padding-top: 3px;">
+                <div style="font-size: 13px; font-weight: {% if phd_progress.current_stage == choice %}700{% else %}500{% endif %}; color: {% if phd_progress.current_stage == choice %}var(--dark){% else %}var(--text){% endif %};">
+                  {{ label }}
+                </div>
+                {% if choice in phd_stats.completion_dates %}
+                  <div style="font-size: 10px; color: #059669; margin-top: 2px; font-weight: 500;">
+                    <i class='bx bx-check-circle'></i> Completed on {{ phd_stats.completion_dates|get_item:choice }}
+                  </div>
+                {% elif phd_progress.current_stage == choice %}
+                  <div style="font-size: 10px; color: var(--primary-dark); margin-top: 2px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                    <span class="active-pulse" style="width: 6px; height: 6px; background: var(--primary); border-radius: 50%; display: inline-block;"></span>
+                    Active Stage
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Active stage detail views -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- Active Stage Info Card -->
+        <div class="card" style="border-top: 4px solid var(--secondary);">
+          <div class="card-header">
+            <h3 class="card-title"><i class='bx bx-target-lock' style="color:var(--secondary)"></i> Current Stage: {{ phd_progress.get_current_stage_display }}</h3>
+            <span class="badge" style="background: #fef3c7; color: #d97706; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">Active</span>
+          </div>
+
+          <!-- Deadline Display -->
+          {% if phd_deadline_info.has_deadline %}
+          <div style="margin-bottom: 20px; padding: 12px 16px; border-radius: 8px; border-left: 4px solid {% if phd_deadline_info.status_class == 'danger' %}#ef4444{% elif phd_deadline_info.status_class == 'warning' %}#f59e0b{% else %}#10b981{% endif %}; background: {% if phd_deadline_info.status_class == 'danger' %}#fef2f2{% elif phd_deadline_info.status_class == 'warning' %}#fffbeb{% else %}#ecfdf5{% endif %};">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">
+                  {% if phd_deadline_info.status_class == 'danger' %}🚨{% elif phd_deadline_info.status_class == 'warning' %}⚠️{% else %}⏰{% endif %}
+                </span>
+                <div>
+                  <div style="font-weight: 600; font-size: 13px; color: {% if phd_deadline_info.status_class == 'danger' %}#991b1b{% elif phd_deadline_info.status_class == 'warning' %}#92400e{% else %}#065f46{% endif %};">
+                    {% if phd_deadline_info.is_expired %}
+                      Deadline Expired by {{ phd_deadline_info.days_remaining }} Days!
+                    {% else %}
+                      {{ phd_deadline_info.days_remaining }} Days Remaining
+                    {% endif %}
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">
+                    Target stage completion deadline: {{ phd_deadline_info.deadline_date|date:"d M Y" }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Stage-specific Upload forms -->
+          {% if phd_progress.current_stage != 'COMPLETED' %}
+          <div>
+            <h4 style="font-size: 12px; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 15px;">
+              <i class='bx bx-upload' style="font-size: 16px; color: var(--secondary);"></i> Upload Required Stage Documents
+            </h4>
+            
+            <form action="{% url 'scholar_upload_stage_docs' %}" method="post" enctype="multipart/form-data" style="margin: 0;">
+              {% csrf_token %}
+              
+              <!-- Pre-Submission -->
+              {% if phd_progress.current_stage == 'PRE_SUBMISSION' %}
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 12px;">Letter {% if phd_progress.pre_sub_letter %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="pre_sub_letter" class="form-control" style="padding: 6px;" {% if not phd_progress.pre_sub_letter %}required{% endif %}>
+              </div>
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 12px;">Attendance Doc {% if phd_progress.pre_sub_attendance %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="pre_sub_attendance" class="form-control" style="padding: 6px;" {% if not phd_progress.pre_sub_attendance %}required{% endif %}>
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label" style="font-size: 12px;">Circular {% if phd_progress.pre_sub_circular %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="pre_sub_circular" class="form-control" style="padding: 6px;" {% if not phd_progress.pre_sub_circular %}required{% endif %}>
+              </div>
+
+              <!-- Synopsis -->
+              {% elif phd_progress.current_stage == 'SYNOPSIS' %}
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 12px;">Letter Copies {% if phd_progress.synopsis_letter_copies %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="synopsis_letter_copies" class="form-control" style="padding: 6px;" {% if not phd_progress.synopsis_letter_copies %}required{% endif %}>
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label" style="font-size: 12px;">Synopsis Copy {% if phd_progress.synopsis_copy %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="synopsis_copy" class="form-control" style="padding: 6px;" {% if not phd_progress.synopsis_copy %}required{% endif %}>
+              </div>
+              <div style="font-size: 11px; color: #92400e; margin-bottom: 15px; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; border-left: 3px solid #f59e0b;">
+                <strong>Supervisor Uploads Needed:</strong> Examiner Panel, Foreign & Indian Examiner docs (Staff dashboard only). This stage completes when all student and supervisor docs are submitted.
+              </div>
+
+              <!-- Thesis Submission -->
+              {% elif phd_progress.current_stage == 'THESIS_SUBMISSION' %}
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 12px;">Letter Docs {% if phd_progress.thesis_letter_docs %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="thesis_letter_docs" class="form-control" style="padding: 6px;" {% if not phd_progress.thesis_letter_docs %}required{% endif %}>
+              </div>
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 12px;">Thesis Copy {% if phd_progress.thesis_copy_file %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="thesis_copy_file" class="form-control" style="padding: 6px;" {% if not phd_progress.thesis_copy_file %}required{% endif %}>
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label" style="font-size: 12px;">Plagiarism Docs {% if phd_progress.thesis_plagiarism_docs %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="thesis_plagiarism_docs" class="form-control" style="padding: 6px;" {% if not phd_progress.thesis_plagiarism_docs %}required{% endif %}>
+              </div>
+
+              <!-- Thesis Hardbound -->
+              {% elif phd_progress.current_stage == 'THESIS_HARDBOUND' %}
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 12px;">Letters with Corrections {% if phd_progress.hardbound_letters_with_corrections %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="hardbound_letters_with_corrections" class="form-control" style="padding: 6px;" {% if not phd_progress.hardbound_letters_with_corrections %}required{% endif %}>
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label" style="font-size: 12px;">Final Thesis (Hardbound Copy) {% if phd_progress.hardbound_final_thesis %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="hardbound_final_thesis" class="form-control" style="padding: 6px;" {% if not phd_progress.hardbound_final_thesis %}required{% endif %}>
+              </div>
+              {% if phd_progress.hardbound_examiner_report %}
+              <div style="margin-bottom: 15px; background: #f0fdf4; border: 1px solid #dcfce7; padding: 10px; border-radius: 6px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: #166534;">Examiner Report (Staff Uploaded)</label>
+                <div style="margin-top: 4px;"><a href="{{ phd_progress.hardbound_examiner_report.url }}" target="_blank" style="font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none;"><i class='bx bx-file-blank'></i> View Examiner Report</a></div>
+              </div>
+              {% endif %}
+
+              <!-- Viva Voce -->
+              {% elif phd_progress.current_stage == 'VIVA_VOCE' %}
+              {% if phd_progress.viva_date %}
+              <div style="background: #eff6f6; border: 1px solid var(--primary-light); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px;">
+                <strong>Viva Voce Scheduled:</strong> {{ phd_progress.viva_date }} at {{ phd_progress.viva_time }}
+              </div>
+              {% endif %}
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 12px;">Viva Circular {% if phd_progress.viva_circular %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="viva_circular" class="form-control" style="padding: 6px;" {% if not phd_progress.viva_circular %}required{% endif %}>
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label" style="font-size: 12px;">Letter with Attendance {% if phd_progress.viva_letter_attendance %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="viva_letter_attendance" class="form-control" style="padding: 6px;" {% if not phd_progress.viva_letter_attendance %}required{% endif %}>
+              </div>
+              {% if phd_progress.viva_student_order %}
+              <div style="margin-bottom: 15px; background: #f0fdf4; border: 1px solid #dcfce7; padding: 10px; border-radius: 6px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: #166534;">Viva Order (Staff Uploaded)</label>
+                <div style="margin-top: 4px;"><a href="{{ phd_progress.viva_student_order.url }}" target="_blank" style="font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none;"><i class='bx bx-file-blank'></i> View Viva Order</a></div>
+              </div>
+              {% endif %}
+
+              <!-- Memo -->
+              {% elif phd_progress.current_stage == 'MEMO' %}
+              <div style="background: #f8fafc; border: 1px solid var(--border); padding: 15px; border-radius: 8px; font-size: 13px; text-align: center; color: var(--text-light);">
+                <i class='bx bx-lock-alt' style="font-size: 24px; margin-bottom: 8px; color: var(--secondary);"></i>
+                <div>Awaiting HOD/Supervisor to upload <strong>Memo Copy</strong> to proceed to the next stage.</div>
+              </div>
+
+              <!-- Provisional -->
+              {% elif phd_progress.current_stage == 'PROVISIONAL' %}
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label" style="font-size: 12px;">Provisional Challan {% if phd_progress.provisional_challan %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="provisional_challan" class="form-control" style="padding: 6px;" {% if not phd_progress.provisional_challan %}required{% endif %}>
+              </div>
+              {% if phd_progress.provisional_doc %}
+              <div style="margin-bottom: 15px; background: #f0fdf4; border: 1px solid #dcfce7; padding: 10px; border-radius: 6px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: #166534;">Provisional Doc (Staff Uploaded)</label>
+                <div style="margin-top: 4px;"><a href="{{ phd_progress.provisional_doc.url }}" target="_blank" style="font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none;"><i class='bx bx-file-blank'></i> View Provisional Document</a></div>
+              </div>
+              {% endif %}
+
+              <!-- Degree -->
+              {% elif phd_progress.current_stage == 'DEGREE' %}
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label" style="font-size: 12px;">Degree Challan {% if phd_progress.degree_challan %}<span style="color: #10b981; font-weight:bold;">(Uploaded)</span>{% endif %}</label>
+                <input type="file" name="degree_challan" class="form-control" style="padding: 6px;" {% if not phd_progress.degree_challan %}required{% endif %}>
+              </div>
+              {% if phd_progress.degree_doc %}
+              <div style="margin-bottom: 15px; background: #f0fdf4; border: 1px solid #dcfce7; padding: 10px; border-radius: 6px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; color: #166534;">Degree Doc (Staff Uploaded)</label>
+                <div style="margin-top: 4px;"><a href="{{ phd_progress.degree_doc.url }}" target="_blank" style="font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none;"><i class='bx bx-file-blank'></i> View Degree Doc</a></div>
+              </div>
+              {% endif %}
+
+              {% endif %}
+              
+              {% if phd_progress.current_stage != 'MEMO' %}
+              <button type="submit" class="tracker-btn">
+                <i class='bx bx-upload'></i> Upload Document(s)
+              </button>
+              {% endif %}
+            </form>
+          </div>
+          {% else %}
+          <div style="text-align: center; padding: 30px; background: #ecfdf5; border-radius: 8px; border: 1px solid #a7f3d0;">
+            <i class='bx bxs-badge-check' style="font-size: 48px; color: #10b981; margin-bottom: 8px;"></i>
+            <h4 style="color: #065f46; font-size: 16px; margin-bottom: 4px;">Ph.D. Completed!</h4>
+            <p style="color: #047857; font-size: 12px; margin: 0;">Congratulations, you have completed all stages of your Ph.D. program.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- All Uploaded Documents History card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class='bx bx-library'></i> All Uploaded PhD Stage Documents (Student & Staff)</h3>
+          </div>
+          <div class="uploaded-grid">
+            
+            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_letter %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Pre-Sub Letter</div>
+                    <div class="file-name">pre_sub_letter</div>
+                </div>
+                <a href="{{ phd_progress.pre_sub_letter.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_attendance %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Pre-Sub Attendance</div>
+                    <div class="file-name">pre_sub_attendance</div>
+                </div>
+                <a href="{{ phd_progress.pre_sub_attendance.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_circular %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Pre-Sub Circular</div>
+                    <div class="file-name">pre_sub_circular</div>
+                </div>
+                <a href="{{ phd_progress.pre_sub_circular.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+            {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_letter_copies %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Synopsis Letter Copies</div>
+                    <div class="file-name">letter_copies</div>
+                </div>
+                <a href="{{ phd_progress.synopsis_letter_copies.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_copy %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Synopsis Document</div>
+                    <div class="file-name">synopsis_copy</div>
+                </div>
+                <a href="{{ phd_progress.synopsis_copy.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_letter_docs %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Thesis Letter Docs</div>
+                    <div class="file-name">thesis_letter_docs</div>
+                </div>
+                <a href="{{ phd_progress.thesis_letter_docs.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_copy_file %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Thesis Copy</div>
+                    <div class="file-name">thesis_copy_file</div>
+                </div>
+                <a href="{{ phd_progress.thesis_copy_file.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_plagiarism_docs %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Plagiarism Docs</div>
+                    <div class="file-name">plagiarism_docs</div>
+                </div>
+                <a href="{{ phd_progress.thesis_plagiarism_docs.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+            {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_letters_with_corrections %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Letters w/ Corrections</div>
+                    <div class="file-name">letters_with_corrections</div>
+                </div>
+                <a href="{{ phd_progress.hardbound_letters_with_corrections.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_final_thesis %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Final Thesis</div>
+                    <div class="file-name">final_thesis</div>
+                </div>
+                <a href="{{ phd_progress.hardbound_final_thesis.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_circular %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Viva Circular</div>
+                    <div class="file-name">viva_circular</div>
+                </div>
+                <a href="{{ phd_progress.viva_circular.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_letter_attendance %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Letter w/ Attendance</div>
+                    <div class="file-name">viva_attendance</div>
+                </div>
+                <a href="{{ phd_progress.viva_letter_attendance.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_student_order %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                <div class="file-info">
+                    <div class="file-label">Student Order (Staff)</div>
+                    <div class="file-name">student_order</div>
+                </div>
+                <a href="{{ phd_progress.viva_student_order.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+            {% if phd_stats.unlocked_stages.MEMO and phd_progress.memo_copy %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Memo Copy</div>
+                    <div class="file-name">memo_copy</div>
+                </div>
+                <a href="{{ phd_progress.memo_copy.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+            {% if phd_stats.unlocked_stages.PROVISIONAL and phd_progress.provisional_challan %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Provisional Challan</div>
+                    <div class="file-name">provisional_challan</div>
+                </div>
+                <a href="{{ phd_progress.provisional_challan.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.PROVISIONAL and phd_progress.provisional_doc %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                <div class="file-info">
+                    <div class="file-label">Provisional Doc (Staff)</div>
+                    <div class="file-name">provisional_doc</div>
+                </div>
+                <a href="{{ phd_progress.provisional_doc.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+            {% if phd_stats.unlocked_stages.DEGREE and phd_progress.degree_challan %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bx-file'></i></div>
+                <div class="file-info">
+                    <div class="file-label">Degree Challan</div>
+                    <div class="file-name">degree_challan</div>
+                </div>
+                <a href="{{ phd_progress.degree_challan.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+            
+            {% if phd_stats.unlocked_stages.DEGREE and phd_progress.degree_doc %}
+            <div class="file-card">
+                <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                <div class="file-info">
+                    <div class="file-label">Degree Doc (Staff)</div>
+                    <div class="file-name">degree_doc</div>
+                </div>
+                <a href="{{ phd_progress.degree_doc.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

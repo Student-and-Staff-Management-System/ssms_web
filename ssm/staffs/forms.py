@@ -150,6 +150,10 @@ class StaffQualificationForm(forms.ModelForm):
         model = StaffQualification
         fields = ['degree', 'university', 'year_completed', 'certificate']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['certificate'].required = True
+
 class StaffPastDesignationForm(forms.ModelForm):
     is_present = forms.BooleanField(
         required=False,
@@ -167,6 +171,7 @@ class StaffPastDesignationForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['order_img'].required = True
         # Pre-check 'is_present' if to_date is null on an existing instance
         if self.instance and self.instance.pk and not self.instance.to_date:
             self.initial['is_present'] = True

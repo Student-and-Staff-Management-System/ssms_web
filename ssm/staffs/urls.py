@@ -87,6 +87,14 @@ urlpatterns = [
     path('hod/leave-requests/', views.hod_leave_dashboard, name='hod_leave_dashboard'),
     path('hod/leave-update/<int:request_id>/', views.hod_update_leave_status, name='hod_update_leave_status'),
     
+    # Staff Portfolio Approvals (HOD)
+    path('hod/portfolio-approvals/', views.hod_portfolio_approvals, name='hod_portfolio_approvals'),
+    path('hod/portfolio-approvals/qualification/<int:pk>/approve/', views.approve_qualification, name='approve_qualification'),
+    path('hod/portfolio-approvals/qualification/<int:pk>/reject/', views.reject_qualification, name='reject_qualification'),
+    path('hod/portfolio-approvals/designation/<int:pk>/approve/', views.approve_designation, name='approve_designation'),
+    path('hod/portfolio-approvals/designation/<int:pk>/reject/', views.reject_designation, name='reject_designation'),
+    path('hod/assign-post/<str:staff_id>/', views.hod_assign_post, name='hod_assign_post'),
+    
     # NEW BONAFIDE SYSTEM (Replaces old views)
     path('hod/bonafide-fix/', bonafide_views.hod_bonafide_list, name='hod_manage_bonafide'),
     path('hod/bonafide/print/<int:request_id>/', bonafide_views.generate_bonafide_request_pdf, name='generate_bonafide_request_pdf'),
@@ -109,8 +117,9 @@ urlpatterns = [
     path('scholar-leave/', views.manage_scholar_leave, name='manage_scholar_leave'),
     path('scholar-leave/update/<int:leave_id>/', views.update_scholar_leave_status, name='update_scholar_leave_status'),
     
-    # Scholar Full Details View
     path('scholar-profile/<str:roll_number>/', views.staff_view_scholar_profile, name='staff_view_scholar_profile'),
+    path('phd-completion-manager/', views.manage_phd_stages, name='manage_phd_stages'),
+    path('phd-completion-manager/assign-guide/', views.assign_phd_guide, name='assign_phd_guide'),
     
     # Password Reset
     path('password-reset/', views.staff_password_reset_identify, name='password_reset_identify'),

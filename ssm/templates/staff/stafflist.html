@@ -249,6 +249,11 @@
                     {% if staff.role == 'Class Incharge' and staff.assigned_semester %}
                     <span style="font-size: 0.8em; margin-left: 5px;">(Sem {{ staff.assigned_semester }})</span>
                     {% endif %}
+                    {% if staff.additional_designation %}
+                    <div style="font-size: 0.85em; color: var(--primary-color); font-weight: 600; margin-top: 4px;">
+                        [Additional Post: {{ staff.additional_designation }}]
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="staff-dept">{{ staff.department }}</div>
 

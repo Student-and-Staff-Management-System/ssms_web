@@ -90,3 +90,23 @@ def notify_leave_status_change(sender, instance, created, **kwargs):
             send_user_notification(user=user, payload=payload, ttl=1000)
         except Exception as e:
             print(f"Failed to send push notification: {e}")
+
+
+@receiver(pre_save)
+def auto_compress_all_uploaded_files(sender, instance, **kwargs):
+    """
+    Globally intercept saves for all models in 'students' and 'staffs' apps.
+    Automatically compress any newly uploaded image or PDF files on the fly.
+    """
+    if instance._meta.app_label in ['students', 'staffs']:
+        from django.db.models import FileField
+        from django.core.files.uploadedfile import UploadedFile
+        from ssm.validators import compress_file
+
+        for field in instance._meta.get_fields():
+            if isinstance(field, FileField):
+                file_attr = getattr(instance, field.name)
+                # Check if it's a new upload (isinstance of UploadedFile)
+                if file_attr and hasattr(file_attr, 'file') and isinstance(file_attr.file, UploadedFile):
+                    compress_file(file_attr)
+

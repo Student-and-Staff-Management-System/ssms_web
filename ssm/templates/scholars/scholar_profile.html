@@ -102,9 +102,12 @@
                     <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
                         <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">UG Details</h4>
                         <div class="details-grid">
-                            <div class="detail-item"><strong>Course</strong><span>{{ ug.ug_course|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>College</strong><span>{{ ug.ug_college_name|default:"-" }}</span></div>
+                            <div class="detail-item" style="grid-column: span 2;"><strong>College Address</strong><span>{{ ug.ug_college_address|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Degree/Specialization</strong><span>{{ ug.ug_course|default:"-" }}</span></div>
                             <div class="detail-item"><strong>University</strong><span>{{ ug.ug_university|default:"-" }}</span></div>
-                            <div class="detail-item"><strong>Year</strong><span>{{ ug.ug_year_of_passing|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Passing Year</strong><span>{{ ug.ug_year_of_passing|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Percentage / OGPA</strong><span>{{ ug.ug_ogpa|default:"-" }}{% if ug.ug_ogpa %}%{% endif %}</span></div>
                         </div>
                     </div>
                     {% endif %}
@@ -113,9 +116,12 @@
                     <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
                         <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">PG Details</h4>
                         <div class="details-grid">
-                            <div class="detail-item"><strong>Course</strong><span>{{ pg.pg_course|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>College</strong><span>{{ pg.pg_college_name|default:"-" }}</span></div>
+                            <div class="detail-item" style="grid-column: span 2;"><strong>College Address</strong><span>{{ pg.pg_college_address|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Degree/Specialization</strong><span>{{ pg.pg_course|default:"-" }}</span></div>
                             <div class="detail-item"><strong>University</strong><span>{{ pg.pg_university|default:"-" }}</span></div>
-                            <div class="detail-item"><strong>Year</strong><span>{{ pg.pg_year_of_passing|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Passing Year</strong><span>{{ pg.pg_year_of_passing|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Percentage / OGPA</strong><span>{{ pg.pg_ogpa|default:"-" }}{% if pg.pg_ogpa %}%{% endif %}</span></div>
                         </div>
                     </div>
                     {% endif %}
@@ -125,6 +131,8 @@
                         <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">SSLC (10th) Details</h4>
                         <div class="details-grid">
                             <div class="detail-item"><strong>School</strong><span>{{ academichistory.sslc_school_name|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Board</strong><span>{{ academichistory.sslc_board|default:"-" }}</span></div>
+                            <div class="detail-item" style="grid-column: span 2;"><strong>School Address</strong><span>{{ academichistory.sslc_school_address|default:"-" }}</span></div>
                             <div class="detail-item"><strong>Percentage</strong><span>{{ academichistory.sslc_percentage|default:"-" }}%</span></div>
                             <div class="detail-item"><strong>Year</strong><span>{{ academichistory.sslc_year_of_passing|default:"-" }}</span></div>
                         </div>
@@ -136,6 +144,8 @@
                         <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">HSC (12th) Details</h4>
                         <div class="details-grid">
                             <div class="detail-item"><strong>School</strong><span>{{ academichistory.hsc_school_name|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Board</strong><span>{{ academichistory.hsc_board|default:"-" }}</span></div>
+                            <div class="detail-item" style="grid-column: span 2;"><strong>School Address</strong><span>{{ academichistory.hsc_school_address|default:"-" }}</span></div>
                             <div class="detail-item"><strong>Percentage</strong><span>{{ academichistory.hsc_percentage|default:"-" }}%</span></div>
                             <div class="detail-item"><strong>Year</strong><span>{{ academichistory.hsc_year_of_passing|default:"-" }}</span></div>
                         </div>
@@ -189,6 +199,18 @@
                         <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 0.9em; color: #475569;">HSC Marksheet</span>
                             <a href="{{ studentdocuments.hsc_marksheet.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                        {% if studentdocuments.ug_marksheet %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">UG Marksheet</span>
+                            <a href="{{ studentdocuments.ug_marksheet.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
+                        </div>
+                        {% endif %}
+                        {% if studentdocuments.pg_marksheet %}
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9em; color: #475569;">PG Marksheet</span>
+                            <a href="{{ studentdocuments.pg_marksheet.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9em;">View</a>
                         </div>
                         {% endif %}
                         {% if studentdocuments.income_certificate %}

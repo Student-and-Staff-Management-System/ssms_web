@@ -17,9 +17,9 @@
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; font-size: 14px;}
     .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; transition: border-color 0.3s; }
-    .form-input:focus { border-color: #28a745; box-shadow: 0 0 5px rgba(40,167,69,0.2); }
-    .btn-submit { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: background 0.3s; margin-top: 10px;}
-    .btn-submit:hover { background: #218838; }
+    .form-input:focus { border-color: var(--accent-color, #5a7d7c); box-shadow: 0 0 5px rgba(90,125,124,0.2); }
+    .btn-submit { width: 100%; padding: 14px; background: var(--accent-color, #5a7d7c); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: background 0.3s; margin-top: 10px;}
+    .btn-submit:hover { background: var(--accent-color-hover, #4a6b69); }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     
@@ -114,9 +114,21 @@
     </form>
     
     <div style="text-align:center; margin-top:20px;">
-        <a href="{% url 'scholar_login' %}" style="color: #28a745; text-decoration: none; font-weight: 500;">Already registered? Login Here</a>
+        <a href="{% url 'scholar_login' %}" style="color: var(--accent-color, #5a7d7c); text-decoration: none; font-weight: 500;">Already registered? Login Here</a>
     </div>
   </div>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <p>&copy; 2025 AU Dept of Information Technology. All Rights Reserved.</p>
+      <div class="social-links">
+        <a href="https://annamalaiuniversity.ac.in/index.php" title="AU MAIN SITE">University Site</a>
+        <a href="https://annamalaiuniversity.ac.in/studport/index.php" title="AU STUDENT PORTAL">University Student
+          Portal</a>
+        <a href="{% url 'homepage'%}" title="Home Page">Home</a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>

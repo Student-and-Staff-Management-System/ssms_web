@@ -6,7 +6,8 @@ from ssm.upload_paths import (
     staff_student_guided_document_path, staff_leave_document_path,
     staff_conference_document_path, staff_journal_document_path,
     staff_book_document_path, news_documents_path,
-    staff_qualification_document_path, staff_designation_document_path
+    staff_qualification_document_path, staff_designation_document_path,
+    staff_seminar_order_path
 )
 
 
@@ -27,6 +28,7 @@ class Staff(models.Model):
     # Professional Details
     salutation = models.CharField(max_length=10, choices=[('Dr.', 'Dr.'), ('Prof.', 'Prof.'), ('Mr.', 'Mr.'), ('Ms.', 'Ms.')])
     designation = models.CharField(max_length=100)
+    additional_designation = models.CharField(max_length=100, blank=True, null=True)
     department = models.CharField(max_length=100, default="Information Technology")
     qualification = models.CharField(max_length=255)
     specialization = models.CharField(max_length=255)
@@ -152,6 +154,11 @@ class StaffQualification(models.Model):
         validators=[validate_file_size]
     )
     order = models.PositiveIntegerField(default=0)
+    approval_status = models.CharField(
+        max_length=20,
+        choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')],
+        default='Pending'
+    )
 
     class Meta:
         ordering = ['-year_completed', '-order', 'degree']
@@ -174,6 +181,11 @@ class StaffPastDesignation(models.Model):
         validators=[validate_file_size]
     )
     order = models.PositiveIntegerField(default=0)
+    approval_status = models.CharField(
+        max_length=20,
+        choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')],
+        default='Pending'
+    )
 
     class Meta:
         ordering = ['-from_date', '-order', 'designation']
@@ -238,23 +250,70 @@ class StaffSeminar(models.Model):
         ('Seminar', 'Seminar'),
         ('Workshop', 'Workshop'),
         ('Conference', 'Conference'),
+        ('FDP', 'FDP'),
+        ('Summer/Winter Orientation', 'Summer/Winter Orientation'),
+        ('STTP', 'STTP'),
     ]
-    event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, default='Seminar')
+    event_type = models.CharField(max_length=40, choices=EVENT_TYPE_CHOICES, default='Seminar')
     venue_or_description = models.CharField(max_length=300, blank=True)
+    organized_by = models.CharField(max_length=300, blank=True)
     date_from = models.DateField(null=True, blank=True)
     date_to = models.DateField(null=True, blank=True)
+    total_days = models.PositiveIntegerField(null=True, blank=True)
     year = models.CharField(max_length=20, blank=True)
     supporting_document = models.FileField(
         upload_to=staff_seminar_document_path,
         blank=True,
         null=True,
-        help_text="Upload Certificate",
+        help_text="Upload Completion Certificate (Required)",
         validators=[validate_file_size]
+    )
+    order_certificate = models.FileField(
+        upload_to=staff_seminar_order_path,
+        blank=True,
+        null=True,
+        help_text="Upload Deputation Order Copy (Optional)",
+        validators=[validate_file_size]
+    )
+    mode = models.CharField(
+        max_length=20,
+        choices=[('Online', 'Online'), ('Offline', 'Offline')],
+        default='Offline'
+    )
+    participation_role = models.CharField(
+        max_length=20,
+        choices=[('Attended', 'Attended'), ('Conducted', 'Conducted')],
+        default='Attended'
     )
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['-order', '-year', 'title']
+
+    def save(self, *args, **kwargs):
+        import datetime
+        d_from = self.date_from
+        d_to = self.date_to
+
+        if isinstance(d_from, str):
+            try:
+                d_from = datetime.datetime.strptime(d_from, '%Y-%m-%d').date()
+            except ValueError:
+                d_from = None
+        elif isinstance(d_from, datetime.datetime):
+            d_from = d_from.date()
+
+        if isinstance(d_to, str):
+            try:
+                d_to = datetime.datetime.strptime(d_to, '%Y-%m-%d').date()
+            except ValueError:
+                d_to = None
+        elif isinstance(d_to, datetime.datetime):
+            d_to = d_to.date()
+
+        if d_from and d_to:
+            self.total_days = (d_to - d_from).days + 1
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} ({self.event_type})"
@@ -531,7 +590,21 @@ class JournalPublication(models.Model):
         help_text="Upload Paper Copy",
         validators=[validate_file_size]
     )
+    is_scopus = models.BooleanField(default=False, verbose_name="SCOPUS")
+    is_wos = models.BooleanField(default=False, verbose_name="WOS")
+    is_sci = models.BooleanField(default=False, verbose_name="SCI")
+    is_scie = models.BooleanField(default=False, verbose_name="SCIE")
+    is_ugc = models.BooleanField(default=False, verbose_name="UGC")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_journal_types(self):
+        types = []
+        if self.is_scopus: types.append("SCOPUS")
+        if self.is_wos: types.append("WOS")
+        if self.is_sci: types.append("SCI")
+        if self.is_scie: types.append("SCIE")
+        if self.is_ugc: types.append("UGC")
+        return types
 
     def __str__(self):
         return f"{self.title_of_paper} - {self.journal_name}"

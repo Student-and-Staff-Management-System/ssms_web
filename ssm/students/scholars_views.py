@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from students.models import (
-    Student, ResearchScholarProfile, RACMember, ZerothReview, RCWReview,
+    Student, ResearchScholarProfile, RACMember, ZerothReview, RCWReview, PhDProgress,
     PersonalInfo, UGDetails, PGDetails, StudentDocuments, OtherDetails,
     ScholarshipInfo, ScholarAttendance, LeaveRequest, AcademicHistory
 )
@@ -120,9 +120,13 @@ def scholar_register_step2(request):
                 'sslc_school_name': request.POST.get('sslc_school_name', ''),
                 'sslc_percentage': request.POST.get('sslc_percentage') or None,
                 'sslc_year_of_passing': request.POST.get('sslc_year_of_passing', ''),
+                'sslc_board': request.POST.get('sslc_board', ''),
+                'sslc_school_address': request.POST.get('sslc_school_address', ''),
                 'hsc_school_name': request.POST.get('hsc_school_name', ''),
                 'hsc_percentage': request.POST.get('hsc_percentage') or None,
                 'hsc_year_of_passing': request.POST.get('hsc_year_of_passing', ''),
+                'hsc_board': request.POST.get('hsc_board', ''),
+                'hsc_school_address': request.POST.get('hsc_school_address', ''),
             }
         )
 
@@ -131,7 +135,10 @@ def scholar_register_step2(request):
             student=student,
             defaults={
                 'ug_course': request.POST.get('ug_course', ''),
+                'ug_college_name': request.POST.get('ug_college_name', ''),
+                'ug_college_address': request.POST.get('ug_college_address', ''),
                 'ug_university': request.POST.get('ug_university', ''),
+                'ug_ogpa': request.POST.get('ug_percentage') or None,
                 'ug_year_of_passing': request.POST.get('ug_year_of_passing', ''),
             }
         )
@@ -139,7 +146,10 @@ def scholar_register_step2(request):
             student=student,
             defaults={
                 'pg_course': request.POST.get('pg_course', ''),
+                'pg_college_name': request.POST.get('pg_college_name', ''),
+                'pg_college_address': request.POST.get('pg_college_address', ''),
                 'pg_university': request.POST.get('pg_university', ''),
+                'pg_ogpa': request.POST.get('pg_percentage') or None,
                 'pg_year_of_passing': request.POST.get('pg_year_of_passing', ''),
             }
         )
@@ -151,6 +161,8 @@ def scholar_register_step2(request):
         if request.FILES.get('community_certificate'): docs.community_certificate = request.FILES.get('community_certificate')
         if request.FILES.get('sslc_marksheet'): docs.sslc_marksheet = request.FILES.get('sslc_marksheet')
         if request.FILES.get('hsc_marksheet'): docs.hsc_marksheet = request.FILES.get('hsc_marksheet')
+        if request.FILES.get('ug_marksheet'): docs.ug_marksheet = request.FILES.get('ug_marksheet')
+        if request.FILES.get('pg_marksheet'): docs.pg_marksheet = request.FILES.get('pg_marksheet')
         if request.FILES.get('income_certificate'): docs.income_certificate = request.FILES.get('income_certificate')
         if request.FILES.get('bank_passbook'): docs.bank_passbook = request.FILES.get('bank_passbook')
         if request.FILES.get('driving_license'): docs.driving_license = request.FILES.get('driving_license')
@@ -173,7 +185,9 @@ def scholar_dashboard(request):
     if not roll_number:
         return redirect('scholar_login')
     
-    student = get_object_or_404(Student, roll_number=roll_number, program_level='PHD')
+    student = get_object_or_404(Student, roll_number=roll_number)
+    if student.program_level != 'PHD':
+        return redirect('student_dashboard')
     profile = getattr(student, 'scholar_profile', None)
     zeroth = getattr(student, 'zeroth_review', None)
     
@@ -209,6 +223,9 @@ def scholar_dashboard(request):
     from .views import get_profile_completion_data
     completion_info = get_profile_completion_data(student)
 
+    # Get or create PhD progress tracking
+    phd_progress, _ = PhDProgress.objects.get_or_create(scholar=student)
+
     context = {
         'student': student,
         'profile': profile,
@@ -238,9 +255,38 @@ def scholar_dashboard(request):
         'book_count': student.scholar_books.count(),
         'semi_count': student.scholar_seminars.count(),
         'award_count': student.scholar_awards.count(),
+        # PhD Completion stage tracker context
+        'phd_progress': phd_progress,
+        'phd_deadline_info': phd_progress.current_deadline_info,
+        'phd_stats': phd_progress.progress_stats,
     }
     context['portfolio_total'] = context['conf_count'] + context['journ_count'] + context['book_count'] + context['semi_count'] + context['award_count']
     return render(request, 'scholars/scholar_dashboard.html', context)
+
+
+def scholar_phd_tracker(request):
+    roll_number = request.session.get('student_roll_number')
+    if not roll_number:
+        return redirect('scholar_login')
+        
+    student = get_object_or_404(Student, roll_number=roll_number)
+    if student.program_level != 'PHD':
+        return redirect('student_dashboard')
+        
+    profile = getattr(student, 'scholar_profile', None)
+    rcw_reviews = student.rcw_reviews.all()
+    phd_progress, _ = PhDProgress.objects.get_or_create(scholar=student)
+    
+    context = {
+        'student': student,
+        'profile': profile,
+        'rcw_reviews': rcw_reviews,
+        'phd_progress': phd_progress,
+        'phd_deadline_info': phd_progress.current_deadline_info,
+        'phd_stats': phd_progress.progress_stats,
+    }
+    return render(request, 'scholars/phd_tracker.html', context)
+
 
 @require_POST
 def scholar_add_rac(request):
@@ -303,10 +349,16 @@ def scholar_add_rcw(request):
         
     student = get_object_or_404(Student, roll_number=roll_number)
     
+    # Check if a final review already exists
+    if RCWReview.objects.filter(scholar=student, is_final=True).exists():
+        messages.error(request, "A Final RAC Review has already been submitted. No new RAC reviews can be logged.")
+        return redirect('scholar_dashboard')
+        
     date = request.POST.get('date')
     time = request.POST.get('time')
     progress = request.POST.get('progress')
     document = request.FILES.get('document')
+    is_final = request.POST.get('is_final') == 'on'
     
     if date and time and progress:
         RCWReview.objects.create(
@@ -314,10 +366,86 @@ def scholar_add_rcw(request):
             date=date,
             time=time,
             progress=progress,
-            document=document
+            document=document,
+            is_final=is_final
         )
-        messages.success(request, "RCW Review added successfully.")
         
+        # If this is marked as the final RAC review, advance stage in PhDProgress
+        if is_final:
+            from django.utils import timezone
+            now = timezone.now()
+            progress_obj, _ = PhDProgress.objects.get_or_create(scholar=student)
+            progress_obj.current_stage = 'PRE_SUBMISSION'
+            progress_obj.rac_completed_at = now
+            progress_obj.pre_submission_started_at = now
+            progress_obj.save()
+            messages.success(request, "Final RAC Review submitted successfully. Pre-Submission stage is now unlocked!")
+        else:
+            messages.success(request, "RAC Review added successfully.")
+        
+    return redirect('scholar_dashboard')
+
+@require_POST
+def scholar_upload_stage_docs(request):
+    roll_number = request.session.get('student_roll_number')
+    if not roll_number:
+        return redirect('scholar_login')
+        
+    student = get_object_or_404(Student, roll_number=roll_number)
+    progress_obj, _ = PhDProgress.objects.get_or_create(scholar=student)
+    
+    stage = progress_obj.current_stage
+    
+    if stage == 'PRE_SUBMISSION':
+        if request.FILES.get('pre_sub_letter'):
+            progress_obj.pre_sub_letter = request.FILES.get('pre_sub_letter')
+        if request.FILES.get('pre_sub_attendance'):
+            progress_obj.pre_sub_attendance = request.FILES.get('pre_sub_attendance')
+        if request.FILES.get('pre_sub_circular'):
+            progress_obj.pre_sub_circular = request.FILES.get('pre_sub_circular')
+            
+    elif stage == 'SYNOPSIS':
+        if request.FILES.get('synopsis_letter_copies'):
+            progress_obj.synopsis_letter_copies = request.FILES.get('synopsis_letter_copies')
+        if request.FILES.get('synopsis_copy'):
+            progress_obj.synopsis_copy = request.FILES.get('synopsis_copy')
+            
+    elif stage == 'THESIS_SUBMISSION':
+        if request.FILES.get('thesis_letter_docs'):
+            progress_obj.thesis_letter_docs = request.FILES.get('thesis_letter_docs')
+        if request.FILES.get('thesis_copy_file'):
+            progress_obj.thesis_copy_file = request.FILES.get('thesis_copy_file')
+        if request.FILES.get('thesis_plagiarism_docs'):
+            progress_obj.thesis_plagiarism_docs = request.FILES.get('thesis_plagiarism_docs')
+            
+    elif stage == 'THESIS_HARDBOUND':
+        if request.FILES.get('hardbound_letters_with_corrections'):
+            progress_obj.hardbound_letters_with_corrections = request.FILES.get('hardbound_letters_with_corrections')
+        if request.FILES.get('hardbound_final_thesis'):
+            progress_obj.hardbound_final_thesis = request.FILES.get('hardbound_final_thesis')
+            
+    elif stage == 'VIVA_VOCE':
+        if request.FILES.get('viva_circular'):
+            progress_obj.viva_circular = request.FILES.get('viva_circular')
+        if request.FILES.get('viva_letter_attendance'):
+            progress_obj.viva_letter_attendance = request.FILES.get('viva_letter_attendance')
+            
+    elif stage == 'PROVISIONAL':
+        if request.FILES.get('provisional_challan'):
+            progress_obj.provisional_challan = request.FILES.get('provisional_challan')
+            
+    elif stage == 'DEGREE':
+        if request.FILES.get('degree_challan'):
+            progress_obj.degree_challan = request.FILES.get('degree_challan')
+            
+    else:
+        messages.error(request, "No documents can be uploaded at this stage.")
+        return redirect('scholar_dashboard')
+        
+    progress_obj.save()
+    progress_obj.check_and_advance_stage()
+    
+    messages.success(request, "Documents uploaded successfully.")
     return redirect('scholar_dashboard')
 
 def scholar_profile(request):
@@ -325,7 +453,9 @@ def scholar_profile(request):
     if not roll_number:
         return redirect('scholar_login')
     
-    student = get_object_or_404(Student, roll_number=roll_number, program_level='PHD')
+    student = get_object_or_404(Student, roll_number=roll_number)
+    if student.program_level != 'PHD':
+        return redirect('student_profile')
 
     from django.db.models import Sum
     from students.models import (
@@ -365,7 +495,9 @@ def scholar_edit_profile(request):
     if not roll_number:
         return redirect('scholar_login')
 
-    student = get_object_or_404(Student, roll_number=roll_number, program_level='PHD')
+    student = get_object_or_404(Student, roll_number=roll_number)
+    if student.program_level != 'PHD':
+        return redirect('student_editprofile')
     
     # Sync all student-related models
     personal_info, _ = PersonalInfo.objects.get_or_create(student=student)
@@ -417,25 +549,35 @@ def scholar_edit_profile(request):
         academic_history.sslc_school_name = request.POST.get('sslc_school_name')
         academic_history.sslc_percentage = request.POST.get('sslc_percentage') or None
         academic_history.sslc_year_of_passing = request.POST.get('sslc_year_of_passing')
+        academic_history.sslc_board = request.POST.get('sslc_board')
+        academic_history.sslc_school_address = request.POST.get('sslc_school_address')
         
         academic_history.hsc_school_name = request.POST.get('hsc_school_name')
         academic_history.hsc_percentage = request.POST.get('hsc_percentage') or None
         academic_history.hsc_year_of_passing = request.POST.get('hsc_year_of_passing')
+        academic_history.hsc_board = request.POST.get('hsc_board')
+        academic_history.hsc_school_address = request.POST.get('hsc_school_address')
         academic_history.save()
 
         # 4. Update UG & PG (RS Specific)
         ug_details.ug_course = request.POST.get('ug_course', '')
+        ug_details.ug_college_name = request.POST.get('ug_college_name', '')
+        ug_details.ug_college_address = request.POST.get('ug_college_address', '')
         ug_details.ug_university = request.POST.get('ug_university', '')
+        ug_details.ug_ogpa = request.POST.get('ug_percentage') or None
         ug_details.ug_year_of_passing = request.POST.get('ug_year_of_passing', '')
         ug_details.save()
 
         pg_details.pg_course = request.POST.get('pg_course', '')
+        pg_details.pg_college_name = request.POST.get('pg_college_name', '')
+        pg_details.pg_college_address = request.POST.get('pg_college_address', '')
         pg_details.pg_university = request.POST.get('pg_university', '')
+        pg_details.pg_ogpa = request.POST.get('pg_percentage') or None
         pg_details.pg_year_of_passing = request.POST.get('pg_year_of_passing', '')
         pg_details.save()
 
         # 5. Update document uploads
-        from ssm.upload_paths import student_photo_path # ensure paths are available if needed, but FielField handles it
+        from ssm.upload_paths import student_photo_path
         files = request.FILES
         if 'student_photo' in files: student_docs.student_photo = files['student_photo']
         if 'student_id_card' in files: student_docs.student_id_card = files['student_id_card']
@@ -443,6 +585,8 @@ def scholar_edit_profile(request):
         if 'community_certificate' in files: student_docs.community_certificate = files['community_certificate']
         if 'sslc_marksheet' in files: student_docs.sslc_marksheet = files['sslc_marksheet']
         if 'hsc_marksheet' in files: student_docs.hsc_marksheet = files['hsc_marksheet']
+        if 'ug_marksheet' in files: student_docs.ug_marksheet = files['ug_marksheet']
+        if 'pg_marksheet' in files: student_docs.pg_marksheet = files['pg_marksheet']
         if 'income_certificate' in files: student_docs.income_certificate = files['income_certificate']
         if 'bank_passbook' in files: student_docs.bank_passbook = files['bank_passbook']
         if 'driving_license' in files: student_docs.driving_license = files['driving_license']

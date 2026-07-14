@@ -9,7 +9,7 @@
   <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
   <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
   <style>
-    .reg-container { max-width: 1000px; margin: 40px auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    .reg-container { max-width: 1400px; width: 95%; margin: 40px auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
     .reg-header { text-align: center; margin-bottom: 40px; }
     .reg-title { font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
     .reg-subtitle { color: #64748b; font-size: 16px; }
@@ -18,28 +18,28 @@
     .progress-box { background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
     .progress-labels { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #475569; }
     .progress-bar-bg { background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; }
-    .progress-bar-fill { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; width: 40%; transition: width 0.5s ease; }
-    .completion-hint { font-size: 13px; color: #059669; margin-top: 8px; display: block; font-weight: 500; }
+    .progress-bar-fill { background: linear-gradient(90deg, var(--accent-color-light, #7FB4B2), var(--accent-color, #5a7d7c)); height: 100%; width: 40%; transition: width 0.5s ease; }
+    .completion-hint { font-size: 13px; color: var(--accent-color, #5a7d7c); margin-top: 8px; display: block; font-weight: 500; }
 
     .form-section { margin-bottom: 40px; }
     .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; }
-    .section-icon { background: #eef2ff; color: #4f46e5; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 18px; }
+    .section-icon { background: rgba(90,125,124,0.1); color: var(--accent-color, #5a7d7c); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 18px; }
     .section-title { font-size: 18px; font-weight: 700; color: #1e293b; }
 
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
     .input-group { display: flex; flex-direction: column; gap: 8px; }
     .input-group label { font-size: 14px; font-weight: 600; color: #475569; }
     .form-control { padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 15px; transition: all 0.2s; background: #fff; }
-    .form-control:focus { border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); outline: none; }
+    .form-control:focus { border-color: var(--accent-color, #5a7d7c); box-shadow: 0 0 0 4px rgba(90,125,124,0.15); outline: none; }
     
     .file-input-wrapper { border: 1.5px dashed #cbd5e1; padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; transition: background 0.2s; }
-    .file-input-wrapper:hover { background: #f8fafc; border-color: #4f46e5; }
+    .file-input-wrapper:hover { background: #f8fafc; border-color: var(--accent-color, #5a7d7c); }
     .file-input-wrapper input { display: none; }
     .file-label { font-size: 13px; color: #64748b; cursor: pointer; }
-    .file-label strong { color: #4f46e5; display: block; margin-bottom: 4px; }
+    .file-label strong { color: var(--accent-color, #5a7d7c); display: block; margin-bottom: 4px; }
 
-    .btn-complete { width: 100%; padding: 16px; background: #1e293b; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: transform 0.2s, background 0.2s; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .btn-complete:hover { background: #0f172a; transform: translateY(-2px); }
+    .btn-complete { width: 100%; padding: 16px; background: var(--accent-color, #5a7d7c); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: 700; cursor: pointer; transition: transform 0.2s, background 0.2s; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .btn-complete:hover { background: var(--accent-color-hover, #4a6b69); transform: translateY(-2px); }
     .btn-complete:active { transform: translateY(0); }
 
     textarea.form-control { resize: vertical; min-height: 100px; }
@@ -109,7 +109,26 @@
           </div>
           <div class="input-group">
             <label>Blood Group</label>
-            <input type="text" name="blood_group" class="form-control" placeholder="e.g. O+ve" oninput="updateProgress()">
+            <!-- <input type="text" name="blood_group" class="form-control" placeholder="e.g. O+ve" oninput="updateProgress()"> -->
+             <select name="blood_group" class="form-control" required onchange="updateProgress()">
+                  <option value="">-- Select BloodGroup--</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="A1+">A1+</option>
+                  <option value="A1-">A1-</option>
+                  <option value="A2+">A2+</option>
+                  <option value="A2-">A2-</option>
+                  <option value="A1B+">A1B+</option>
+                  <option value="A1B-">A1B-</option>
+                  <option value="A2B+">A2B+</option>
+                  <option value="A2B-">A2B-</option>
+              </select>
           </div>
           <div class="input-group">
             <label>Aadhaar Number</label>
@@ -177,12 +196,16 @@
            <!-- SSLC -->
            <div style="grid-column: 1 / -1; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; margin-bottom: 10px; color: #64748b; font-weight: 600; font-size: 14px;">10th (SSLC) Details</div>
            <div class="input-group"><label>School Name</label><input type="text" name="sslc_school_name" class="form-control" oninput="updateProgress()"></div>
+           <div class="input-group"><label>Board</label><input type="text" name="sslc_board" class="form-control" placeholder="e.g. State Board, CBSE" oninput="updateProgress()"></div>
+           <div class="input-group" style="grid-column: span 2;"><label>School Address</label><input type="text" name="sslc_school_address" class="form-control" oninput="updateProgress()"></div>
            <div class="input-group"><label>Percentage / CGPA</label><input type="number" step="0.01" name="sslc_percentage" class="form-control" oninput="updateProgress()"></div>
            <div class="input-group"><label>Year of Passing</label><input type="text" name="sslc_year_of_passing" class="form-control" maxlength="4" oninput="updateProgress()"></div>
            
            <!-- HSC -->
            <div style="grid-column: 1 / -1; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; margin-bottom: 10px; margin-top: 15px; color: #64748b; font-weight: 600; font-size: 14px;">12th (HSC) Details</div>
            <div class="input-group"><label>School Name</label><input type="text" name="hsc_school_name" class="form-control" oninput="updateProgress()"></div>
+           <div class="input-group"><label>Board</label><input type="text" name="hsc_board" class="form-control" placeholder="e.g. State Board, CBSE" oninput="updateProgress()"></div>
+           <div class="input-group" style="grid-column: span 2;"><label>School Address</label><input type="text" name="hsc_school_address" class="form-control" oninput="updateProgress()"></div>
            <div class="input-group"><label>Percentage / CGPA</label><input type="number" step="0.01" name="hsc_percentage" class="form-control" oninput="updateProgress()"></div>
            <div class="input-group"><label>Year of Passing</label><input type="text" name="hsc_year_of_passing" class="form-control" maxlength="4" oninput="updateProgress()"></div>
         </div>
@@ -195,13 +218,23 @@
           <h2 class="section-title">Academic Qualifications</h2>
         </div>
         <div class="form-grid">
-          <div class="input-group"><label>UG Degree & Course</label><input type="text" name="ug_course" class="form-control" placeholder="e.g. B.Tech IT" required oninput="updateProgress()"></div>
+          <!-- UG -->
+          <div style="grid-column: 1 / -1; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; margin-bottom: 10px; color: #64748b; font-weight: 600; font-size: 14px;">Undergraduate (UG) Details</div>
+          <div class="input-group"><label>UG College Name</label><input type="text" name="ug_college_name" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group" style="grid-column: span 2;"><label>UG College Address</label><input type="text" name="ug_college_address" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>UG Degree & Specialization</label><input type="text" name="ug_course" class="form-control" placeholder="e.g. B.E. CSE" required oninput="updateProgress()"></div>
           <div class="input-group"><label>UG University</label><input type="text" name="ug_university" class="form-control" required oninput="updateProgress()"></div>
           <div class="input-group"><label>UG Year of Passing</label><input type="text" name="ug_year_of_passing" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>UG Percentage / OGPA</label><input type="number" step="0.01" name="ug_percentage" class="form-control" required oninput="updateProgress()"></div>
           
-          <div class="input-group"><label>PG Degree & Course</label><input type="text" name="pg_course" class="form-control" placeholder="e.g. M.Tech CS" required oninput="updateProgress()"></div>
+          <!-- PG -->
+          <div style="grid-column: 1 / -1; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; margin-bottom: 10px; margin-top: 15px; color: #64748b; font-weight: 600; font-size: 14px;">Postgraduate (PG) Details</div>
+          <div class="input-group"><label>PG College Name</label><input type="text" name="pg_college_name" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group" style="grid-column: span 2;"><label>PG College Address</label><input type="text" name="pg_college_address" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>PG Degree & Specialization</label><input type="text" name="pg_course" class="form-control" placeholder="e.g. M.E. CSE" required oninput="updateProgress()"></div>
           <div class="input-group"><label>PG University</label><input type="text" name="pg_university" class="form-control" required oninput="updateProgress()"></div>
           <div class="input-group"><label>PG Year of Passing</label><input type="text" name="pg_year_of_passing" class="form-control" required oninput="updateProgress()"></div>
+          <div class="input-group"><label>PG Percentage / OGPA</label><input type="number" step="0.01" name="pg_percentage" class="form-control" required oninput="updateProgress()"></div>
         </div>
       </div>
 
@@ -245,6 +278,20 @@
             <div class="file-input-wrapper" onclick="document.getElementById('hscInput').click()">
               <span class="file-label" id="hscLabel"><strong>Click to select file</strong> (PDF/Image)</span>
               <input type="file" id="hscInput" name="hsc_marksheet" accept=".pdf,image/*" onchange="handleFileChange(this, 'hscLabel')">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>UG Marksheet</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('ugMarksheetInput').click()">
+              <span class="file-label" id="ugMarksheetLabel"><strong>Click to select file</strong> (PDF/Image)</span>
+              <input type="file" id="ugMarksheetInput" name="ug_marksheet" accept=".pdf,image/*" onchange="handleFileChange(this, 'ugMarksheetLabel')">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>PG Marksheet</label>
+            <div class="file-input-wrapper" onclick="document.getElementById('pgMarksheetInput').click()">
+              <span class="file-label" id="pgMarksheetLabel"><strong>Click to select file</strong> (PDF/Image)</span>
+              <input type="file" id="pgMarksheetInput" name="pg_marksheet" accept=".pdf,image/*" onchange="handleFileChange(this, 'pgMarksheetLabel')">
             </div>
           </div>
           <div class="input-group">
@@ -336,9 +383,9 @@
         window.handleFileChange = function(input, labelId) {
             const label = document.getElementById(labelId);
             if (input.files && input.files[0]) {
-                label.innerHTML = `<span style="color: #10b981">Selected: ${input.files[0].name}</span>`;
-                label.parentNode.style.borderColor = '#10b981';
-                label.parentNode.style.background = '#f0fdf4';
+                label.innerHTML = `<span style="color: var(--accent-color, #5a7d7c)">Selected: ${input.files[0].name}</span>`;
+                label.parentNode.style.borderColor = 'var(--accent-color, #5a7d7c)';
+                label.parentNode.style.background = 'rgba(90,125,124,0.05)';
             }
             updateProgress();
         };
@@ -348,5 +395,18 @@
         updateProgress();
     });
     </script>
+
+  <footer class="site-footer no-print">
+    <div class="footer-content">
+      <p>&copy; 2025 AU Dept of Information Technology. All Rights Reserved.</p>
+      <div class="social-links">
+        <a href="https://annamalaiuniversity.ac.in/index.php" title="AU MAIN SITE">University Site</a>
+        <a href="https://annamalaiuniversity.ac.in/studport/index.php" title="AU STUDENT PORTAL">University Student
+          Portal</a>
+        <a href="{% url 'homepage'%}" title="Home Page">Home</a>
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>

@@ -91,6 +91,7 @@ def staff_dashboard(request):
     pending_leaves_count = 0
     pending_staff_leaves_count = 0
     pending_bonafide_count = 0
+    pending_portfolio_count = 0
     
     # Fetch News
     # Fetch News
@@ -108,6 +109,8 @@ def staff_dashboard(request):
         pending_staff_leaves_count = StaffLeaveRequest.objects.filter(status='Pending').count()
         # HOD sees requests waiting for sign
         pending_bonafide_count = BonafideRequest.objects.filter(status__in=['Pending HOD Approval', 'Waiting for HOD Sign']).count()
+        from .models import StaffPastDesignation
+        pending_portfolio_count = StaffPastDesignation.objects.filter(approval_status='Pending', to_date__isnull=True).count()
     elif staff.role == 'Office Staff':
          # Office Staff sees all active requests not yet collected/rejected
          pending_bonafide_count = BonafideRequest.objects.filter(
@@ -194,6 +197,7 @@ def staff_dashboard(request):
         'pending_leaves_count': pending_leaves_count,
         'pending_staff_leaves_count': pending_staff_leaves_count,
         'pending_bonafide_count': pending_bonafide_count,
+        'pending_portfolio_count': pending_portfolio_count,
         'recent_bonafide_requests': locals().get('recent_bonafide_requests', []),
         'news_list': news_list,
         'scholarship_students': scholarship_students,
@@ -246,6 +250,18 @@ def get_staff_profile_completion_data(staff):
     # Check basic fields
     check_fields(staff, ['name', 'email', 'mobile_number', 'date_of_birth', 'date_of_joining', 'address', 'salutation'])
 
+    basic_total = total_fields
+    basic_filled = filled_fields
+    basic_percentage = int((basic_filled / basic_total) * 100) if basic_total > 0 else 0
+
+    # Auto-update status based ONLY on basic onboarding fields completion
+    if basic_percentage == 100 and not staff.is_profile_complete:
+        staff.is_profile_complete = True
+        staff.save(update_fields=['is_profile_complete'])
+    elif basic_percentage < 100 and staff.is_profile_complete:
+        staff.is_profile_complete = False
+        staff.save(update_fields=['is_profile_complete'])
+
     # Qualifications
     total_fields += 1
     if staff.qualifications.exists():
@@ -261,14 +277,6 @@ def get_staff_profile_completion_data(staff):
         missing_fields.append('Designation History (At least 1)')
 
     percentage = int((filled_fields / total_fields) * 100) if total_fields > 0 else 0
-    
-    # Auto-update status
-    if percentage == 100 and not staff.is_profile_complete:
-        staff.is_profile_complete = True
-        staff.save(update_fields=['is_profile_complete'])
-    elif percentage < 100 and staff.is_profile_complete:
-        staff.is_profile_complete = False
-        staff.save(update_fields=['is_profile_complete'])
 
     return {
         'percentage': min(percentage, 100),
@@ -297,47 +305,98 @@ def staff_logout(request):
 from .forms import StaffRegistrationForm
 
 def staff_register(request):
-    onboarding_staff = None
+    from django.shortcuts import get_object_or_404
     onboarding_staff_id = request.session.get('onboarding_staff_id')
-    if onboarding_staff_id:
-        onboarding_staff = Staff.objects.filter(staff_id=onboarding_staff_id).first()
-
+    if not onboarding_staff_id:
+        messages.error(request, "Access Denied: Please log in first.")
+        return redirect('staffs:stafflogin')
+        
+    staff = get_object_or_404(Staff, staff_id=onboarding_staff_id)
+    
     if request.method == 'POST':
-        if onboarding_staff:
-            form = StaffRegistrationForm(request.POST, request.FILES, instance=onboarding_staff)
-        else:
-            form = StaffRegistrationForm(request.POST, request.FILES)
-        if form.is_valid():
-            new_staff = form.save()
-            from .utils import log_audit
-            if onboarding_staff:
-                new_staff.is_profile_complete = True
-                new_staff.save(update_fields=['is_profile_complete'])
-                request.session.pop('onboarding_staff_id', None)
-                log_audit(
-                    request, 'update',
-                    actor_type='staff',
-                    actor_id=new_staff.staff_id,
-                    actor_name=new_staff.name,
-                    object_type='Staff',
-                    object_id=new_staff.staff_id,
-                    message='Staff onboarding profile completed'
-                )
-                messages.success(request, f"Welcome {new_staff.name}! Your profile is now complete.")
-                return redirect('staffs:staff_dashboard')
-            else:
-                log_audit(request, 'create', actor_type='system', actor_id='system', actor_name='System', object_type='Staff', object_id=new_staff.staff_id, message=f'New staff registered: {new_staff.name}')
-                messages.success(request, f"Staff member {new_staff.name} has been registered successfully.")
-            return redirect('staffs:stafflogin')
-        else:
-            # Pass form errors to messages so they appear in the UI
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field.title()}: {error}")
-            # Render the form again with the entered data (optional, but good UX)
-            return render(request, 'staff/staffreg.html', {'form': form, 'onboarding_staff': onboarding_staff})
-
-    return render(request, 'staff/staffreg.html', {'onboarding_staff': onboarding_staff})
+        salutation = request.POST.get('salutation')
+        initial = request.POST.get('initial')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        photo = request.FILES.get('photo')
+        
+        dob_str = request.POST.get('date_of_birth')
+        doj_str = request.POST.get('date_of_joining')
+        mobile_number = request.POST.get('mobile_number')
+        address = request.POST.get('address')
+        
+        # Validation
+        if not email or not dob_str or not doj_str or not mobile_number or not address:
+            messages.error(request, "All fields are required except password & photo.")
+            return render(request, 'staff/staffreg.html', {'staff': staff})
+            
+        # Unique email exclusion
+        if Staff.objects.filter(email=email).exclude(staff_id=staff.staff_id).exists():
+            messages.error(request, "This email is already registered.")
+            return render(request, 'staff/staffreg.html', {'staff': staff})
+            
+        if password and len(password) < 6:
+            messages.error(request, "Password must be at least 6 characters long.")
+            return render(request, 'staff/staffreg.html', {'staff': staff})
+            
+        import datetime
+        try:
+            dob = datetime.datetime.strptime(dob_str, '%Y-%m-%d').date()
+            doj = datetime.datetime.strptime(doj_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "Invalid date format.")
+            return render(request, 'staff/staffreg.html', {'staff': staff})
+            
+        age = (datetime.date.today() - dob).days / 365.25
+        if age < 18:
+            messages.error(request, "Staff must be at least 18 years old.")
+            return render(request, 'staff/staffreg.html', {'staff': staff})
+            
+        if doj < dob:
+            messages.error(request, "Date of Joining cannot be before Date of Birth.")
+            return render(request, 'staff/staffreg.html', {'staff': staff})
+            
+        import re
+        if not re.match(r'^\d{10}$', mobile_number):
+            messages.error(request, "Mobile number must be exactly 10 digits.")
+            return render(request, 'staff/staffreg.html', {'staff': staff})
+            
+        # Update and complete profile
+        staff.salutation = salutation
+        staff.initial = initial
+        staff.email = email
+        if password:
+            staff.set_password(password)
+        if photo:
+            staff.photo = photo
+            
+        staff.date_of_birth = dob
+        staff.date_of_joining = doj
+        staff.mobile_number = mobile_number
+        staff.address = address
+        staff.is_profile_complete = True
+        staff.save()
+        
+        # Log audit
+        from .utils import log_audit
+        log_audit(
+            request, 'update',
+            actor_type='staff',
+            actor_id=staff.staff_id,
+            actor_name=staff.name,
+            object_type='Staff',
+            object_id=staff.staff_id,
+            message='Staff onboarding profile completed'
+        )
+        
+        # Log staff in by keeping staff_id in session and removing onboarding
+        request.session['staff_id'] = staff.staff_id
+        request.session.pop('onboarding_staff_id', None)
+        
+        messages.success(request, f"Welcome {staff.name}! Your profile is now complete.")
+        return redirect('staffs:staff_dashboard')
+        
+    return render(request, 'staff/staffreg.html', {'staff': staff})
 
 
 def generate_staff(request):
@@ -1280,10 +1339,12 @@ def staff_list(request):
     if department:
         staff_members = staff_members.filter(department__icontains=department)
 
+    logged_in_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
     return render(request, 'staff/stafflist.html', {
         'staff_members': staff_members,
         'query': query,
-        'departments': Staff.objects.values_list('department', flat=True).distinct()
+        'departments': Staff.objects.values_list('department', flat=True).distinct(),
+        'logged_in_staff': logged_in_staff,
     })
 def passed_out_batches(request):
     """View to list batches (Ending Years) of passed out students."""
@@ -2478,16 +2539,42 @@ def staff_portfolio(request):
     designations = staff.past_designations.all()
     memberships = staff.memberships.all()
 
-    # Dynamic Student Guidance (RS supervised)
-    supervised_scholars = staff.supervised_scholars.select_related('student').all()
-    combined_students_guided = list(students_guided)
-    for s in supervised_scholars:
-        combined_students_guided.append({
-            'student_name': s.student.student_name,
-            'degree_type': 'PhD',
-            'status': s.status,
-            'year': s.completion_year or '',
-            'is_dynamic': True
+    # Dynamic PhD Scholar Guidance — auto-fetched from ResearchScholarProfile.supervisor FK
+    from students.models import PhDProgress
+    stage_map = dict(PhDProgress.CURRENT_STAGE_CHOICES)
+
+    supervised_scholars_raw = staff.supervised_scholars.select_related(
+        'student', 'student__phd_progress', 'student__personalinfo'
+    ).all()
+
+    phd_scholars_data = []
+    for profile in supervised_scholars_raw:
+        student = profile.student
+        try:
+            progress = student.phd_progress
+            current_stage_key = progress.current_stage
+            current_stage_label = stage_map.get(current_stage_key, current_stage_key)
+            stats = progress.progress_stats
+        except AttributeError:
+            progress = None
+            current_stage_key = 'RAC_REVIEW'
+            current_stage_label = 'RAC Review'
+            stats = {}
+
+        phd_scholars_data.append({
+            'profile': profile,
+            'student': student,
+            'roll_number': student.roll_number,
+            'name': student.student_name,
+            'scholar_type': profile.get_scholar_type_display() if hasattr(profile, 'get_scholar_type_display') else profile.scholar_type,
+            'admission_date': profile.admission_date,
+            'status': profile.status,
+            'completion_year': profile.completion_year or '—',
+            'current_stage_key': current_stage_key,
+            'current_stage_label': current_stage_label,
+            'progress': progress,
+            'stats': stats,
+            'is_completed': current_stage_key == 'COMPLETED' or profile.status == 'Completed',
         })
 
     return render(request, 'staff/staff_portfolio.html', {
@@ -2495,7 +2582,8 @@ def staff_portfolio(request):
         'publications': publications,
         'awards': awards,
         'seminars': seminars,
-        'students_guided': combined_students_guided,
+        'students_guided': students_guided,
+        'phd_scholars': phd_scholars_data,
         'conferences': conferences,
         'journals': journals,
         'books': books,
@@ -2613,16 +2701,22 @@ def portfolio_add_seminar(request):
     if not staff:
         return redirect('staffs:stafflogin')
     if request.method == 'POST':
-        StaffSeminar.objects.create(
-            staff=staff,
+        sem = StaffSeminar(
             title=request.POST.get('title', '').strip(),
             event_type=request.POST.get('event_type', 'Seminar'),
             venue_or_description=request.POST.get('venue_or_description', '').strip(),
+            organized_by=request.POST.get('organized_by', '').strip(),
             date_from=request.POST.get('date_from') or None,
             date_to=request.POST.get('date_to') or None,
             year=request.POST.get('year', '').strip(),
             supporting_document=request.FILES.get('supporting_document'),
+            order_certificate=request.FILES.get('order_certificate'),
+            mode=request.POST.get('mode', 'Offline'),
+            participation_role=request.POST.get('participation_role', 'Attended'),
         )
+        sem._temp_staff_id = staff.staff_id
+        sem.save()
+        sem.staff.add(staff)
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', message='Added new seminar')
         messages.success(request, "Seminar added.")
@@ -2639,8 +2733,7 @@ def portfolio_add_conference(request):
     
     if request.method == 'POST':
         from .models import ConferenceParticipation
-        ConferenceParticipation.objects.create(
-            staff=staff,
+        item = ConferenceParticipation(
             participation_type=request.POST.get('participation_type', 'Presented'),
             national_international=request.POST.get('national_international', 'National'),
             author_name=request.POST.get('author_name', ''),
@@ -2656,6 +2749,9 @@ def portfolio_add_conference(request):
             publisher_proceedings=request.POST.get('publisher_proceedings', ''),
             supporting_document=request.FILES.get('supporting_document'),
         )
+        item._temp_staff_id = staff.staff_id
+        item.save()
+        item.staff.add(staff)
         messages.success(request, "Conference entry added successfully.")
         return redirect('staffs:staff_portfolio')
     
@@ -2669,8 +2765,7 @@ def portfolio_add_journal(request):
 
     if request.method == 'POST':
         from .models import JournalPublication
-        JournalPublication.objects.create(
-            staff=staff,
+        item = JournalPublication(
             national_international=request.POST.get('national_international', 'National'),
             published_month=request.POST.get('published_month', ''),
             published_year=request.POST.get('published_year', ''),
@@ -2682,8 +2777,16 @@ def portfolio_add_journal(request):
             year_of_publication_doi=request.POST.get('year_of_publication_doi', ''),
             page_numbers_from=request.POST.get('page_numbers_from', ''),
             page_numbers_to=request.POST.get('page_numbers_to', ''),
+            is_scopus=request.POST.get('is_scopus') == 'on',
+            is_wos=request.POST.get('is_wos') == 'on',
+            is_sci=request.POST.get('is_sci') == 'on',
+            is_scie=request.POST.get('is_scie') == 'on',
+            is_ugc=request.POST.get('is_ugc') == 'on',
             supporting_document=request.FILES.get('supporting_document'),
         )
+        item._temp_staff_id = staff.staff_id
+        item.save()
+        item.staff.add(staff)
         messages.success(request, "Journal publication added successfully.")
         return redirect('staffs:staff_portfolio')
     
@@ -2697,8 +2800,7 @@ def portfolio_add_book(request):
 
     if request.method == 'POST':
         from .models import BookPublication
-        BookPublication.objects.create(
-            staff=staff,
+        item = BookPublication(
             type=request.POST.get('type', 'Book'),
             author_name=request.POST.get('author_name', ''),
             title_of_book=request.POST.get('title_of_book', ''),
@@ -2712,6 +2814,9 @@ def portfolio_add_book(request):
             url_address=request.POST.get('url_address') or None,
             supporting_document=request.FILES.get('supporting_document'),
         )
+        item._temp_staff_id = staff.staff_id
+        item.save()
+        item.staff.add(staff)
         messages.success(request, "Book/Article entry added successfully.")
         return redirect('staffs:staff_portfolio')
     
@@ -2730,6 +2835,7 @@ def portfolio_add_qualification(request):
         if form.is_valid():
             qual = form.save(commit=False)
             qual.staff = staff
+            qual.approval_status = 'Approved'
             qual.save()
             messages.success(request, "Qualification added successfully.")
             return redirect('staffs:staff_portfolio')
@@ -2748,7 +2854,9 @@ def portfolio_edit_qualification(request, pk):
     if request.method == 'POST':
         form = StaffQualificationForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
-            form.save()
+            qual = form.save(commit=False)
+            qual.approval_status = 'Approved'
+            qual.save()
             messages.success(request, "Qualification updated.")
             return redirect('staffs:staff_portfolio')
     else:
@@ -2756,6 +2864,23 @@ def portfolio_edit_qualification(request, pk):
     return render(request, 'staff/portfolio_generic_form.html', {
         'staff': staff, 'form': form, 'title': 'Edit Qualification'
     })
+
+def sync_staff_additional_designation(staff_member):
+    """
+    Find the latest approved designation that is marked as 'Present' (to_date is null),
+    and set it as the staff's additional_designation.
+    """
+    latest_present_desig = staff_member.past_designations.filter(
+        approval_status='Approved',
+        to_date__isnull=True
+    ).order_by('-from_date', '-id').first()
+    
+    if latest_present_desig:
+        staff_member.additional_designation = latest_present_desig.designation
+    else:
+        staff_member.additional_designation = None
+    staff_member.save()
+
 
 def portfolio_add_designation(request):
     staff = _get_staff_for_portfolio(request)
@@ -2765,13 +2890,20 @@ def portfolio_add_designation(request):
         if form.is_valid():
             des = form.save(commit=False)
             des.staff = staff
+            des.approval_status = 'Pending' if not des.to_date else 'Approved'
             des.save()
+            sync_staff_additional_designation(staff)
             messages.success(request, "Designation added.")
             return redirect('staffs:staff_portfolio')
     else:
-        form = StaffPastDesignationForm()
+        initial_data = {}
+        if request.GET.get('type') == 'additional':
+            initial_data['is_present'] = True
+        form = StaffPastDesignationForm(initial=initial_data)
+    
+    title = 'Add Additional Post' if request.GET.get('type') == 'additional' else 'Add Designation'
     return render(request, 'staff/portfolio_generic_form.html', {
-        'staff': staff, 'form': form, 'title': 'Add Designation'
+        'staff': staff, 'form': form, 'title': title
     })
 
 def portfolio_edit_designation(request, pk):
@@ -2782,7 +2914,10 @@ def portfolio_edit_designation(request, pk):
     if request.method == 'POST':
         form = StaffPastDesignationForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
-            form.save()
+            des = form.save(commit=False)
+            des.approval_status = 'Pending' if not des.to_date else 'Approved'
+            des.save()
+            sync_staff_additional_designation(staff)
             messages.success(request, "Designation updated.")
             return redirect('staffs:staff_portfolio')
     else:
@@ -2847,6 +2982,8 @@ def portfolio_delete_entry(request, model_name, pk):
     ModelClass = model_map.get(model_name)
     if ModelClass:
         get_object_or_404(ModelClass, pk=pk, staff=staff).delete()
+        if model_name == 'designation':
+            sync_staff_additional_designation(staff)
         messages.success(request, "Entry deleted.")
     
     return redirect('staffs:staff_portfolio')
@@ -2878,6 +3015,7 @@ def portfolio_edit_conference(request, pk):
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         
+        item._temp_staff_id = staff.staff_id
         item.save()
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, 
@@ -2910,10 +3048,16 @@ def portfolio_edit_journal(request, pk):
         item.year_of_publication_doi = request.POST.get('year_of_publication_doi', '').strip()
         item.page_numbers_from = request.POST.get('page_numbers_from', '').strip()
         item.page_numbers_to = request.POST.get('page_numbers_to', '').strip()
+        item.is_scopus = request.POST.get('is_scopus') == 'on'
+        item.is_wos = request.POST.get('is_wos') == 'on'
+        item.is_sci = request.POST.get('is_sci') == 'on'
+        item.is_scie = request.POST.get('is_scie') == 'on'
+        item.is_ugc = request.POST.get('is_ugc') == 'on'
         
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         
+        item._temp_staff_id = staff.staff_id
         item.save()
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, 
@@ -2950,6 +3094,7 @@ def portfolio_edit_book(request, pk):
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         
+        item._temp_staff_id = staff.staff_id
         item.save()
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, 
@@ -2972,11 +3117,17 @@ def portfolio_edit_seminar(request, pk):
         item.title = request.POST.get('title', '').strip()
         item.event_type = request.POST.get('event_type', 'Seminar')
         item.venue_or_description = request.POST.get('venue_or_description', '').strip()
+        item.organized_by = request.POST.get('organized_by', '').strip()
         item.date_from = request.POST.get('date_from') or None
         item.date_to = request.POST.get('date_to') or None
         item.year = request.POST.get('year', '').strip()
+        item.mode = request.POST.get('mode', 'Offline')
+        item.participation_role = request.POST.get('participation_role', 'Attended')
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
+        if 'order_certificate' in request.FILES:
+            item.order_certificate = request.FILES['order_certificate']
+        item._temp_staff_id = staff.staff_id
         item.save()
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', object_id=str(item.pk), message='Updated seminar')
@@ -4193,7 +4344,7 @@ def staff_view_scholar_profile(request, roll_number):
 
     from students.models import (
         PersonalInfo, UGDetails, PGDetails, PhDDetails,
-        RACMember, ZerothReview, RCWReview
+        RACMember, ZerothReview, RCWReview, PhDProgress
     )
 
     profile = get_or_none(ResearchScholarProfile, student=student)
@@ -4202,6 +4353,8 @@ def staff_view_scholar_profile(request, roll_number):
     if staff.role != 'HOD' and (not profile or profile.supervisor != staff):
         messages.error(request, "You are not authorised to view this scholar's profile.")
         return redirect('staffs:staff_dashboard')
+
+    phd_progress, _ = PhDProgress.objects.get_or_create(scholar=student)
 
     context = {
         'student': student,
@@ -4213,7 +4366,309 @@ def staff_view_scholar_profile(request, roll_number):
         'rac_members': RACMember.objects.filter(scholar=student),
         'zeroth_review': get_or_none(ZerothReview, scholar=student),
         'rcw_reviews': RCWReview.objects.filter(scholar=student).order_by('-date', '-time'),
+        'phd_progress': phd_progress,
+        'phd_stats': phd_progress.progress_stats,
+        'phd_deadline_info': phd_progress.current_deadline_info,
     }
 
     return render(request, 'staff/scholar_profile_detail.html', context)
 
+
+def hod_portfolio_approvals(request):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: HOD only.")
+        return redirect('staffs:staff_dashboard')
+    
+    from .models import StaffPastDesignation
+    # Only show pending current designations (additional posts)
+    pending_desigs = StaffPastDesignation.objects.filter(approval_status='Pending', to_date__isnull=True).select_related('staff')
+    
+    return render(request, 'staff/hod_portfolio_approvals.html', {
+        'staff': staff,
+        'pending_quals': [],
+        'pending_desigs': pending_desigs,
+    })
+
+def approve_qualification(request, pk):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: HOD only.")
+        return redirect('staffs:staff_dashboard')
+    
+    from .models import StaffQualification
+    qual = get_object_or_404(StaffQualification, pk=pk)
+    qual.approval_status = 'Approved'
+    qual.save()
+    messages.success(request, f"Approved qualification {qual.degree} for {qual.staff.name}.")
+    return redirect('staffs:hod_portfolio_approvals')
+
+def reject_qualification(request, pk):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: HOD only.")
+        return redirect('staffs:staff_dashboard')
+    
+    from .models import StaffQualification
+    qual = get_object_or_404(StaffQualification, pk=pk)
+    qual.approval_status = 'Rejected'
+    qual.save()
+    messages.success(request, f"Rejected qualification {qual.degree} for {qual.staff.name}.")
+    return redirect('staffs:hod_portfolio_approvals')
+
+def approve_designation(request, pk):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: HOD only.")
+        return redirect('staffs:staff_dashboard')
+    
+    from .models import StaffPastDesignation
+    desig = get_object_or_404(StaffPastDesignation, pk=pk)
+    desig.approval_status = 'Approved'
+    desig.save()
+    
+    # Sync staff additional designation
+    sync_staff_additional_designation(desig.staff)
+    
+    messages.success(request, f"Approved designation {desig.designation} for {desig.staff.name}.")
+    return redirect('staffs:hod_portfolio_approvals')
+
+def reject_designation(request, pk):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: HOD only.")
+        return redirect('staffs:staff_dashboard')
+    
+    from .models import StaffPastDesignation
+    desig = get_object_or_404(StaffPastDesignation, pk=pk)
+    desig.approval_status = 'Rejected'
+    desig.save()
+    
+    # Sync staff additional designation
+    sync_staff_additional_designation(desig.staff)
+    
+    messages.success(request, f"Rejected designation {desig.designation} for {desig.staff.name}.")
+    return redirect('staffs:hod_portfolio_approvals')
+
+
+def hod_assign_post(request, staff_id):
+    messages.error(request, "Direct additional post assignment from HOD dashboard is disabled. Staff must add their designation in their portfolio and upload verification documents for approval.")
+    return redirect('staffs:staff_list')
+
+
+def manage_phd_stages(request):
+    """View to search, filter by stages, view details, and upload documents for Ph.D. scholars."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    
+    from students.models import Student, PhDProgress, ResearchScholarProfile
+    from django.db.models import Q
+    
+    # Scholars matching query and supervisor status
+    if staff.role == 'HOD':
+        students_qs = Student.objects.filter(program_level='PHD').select_related('scholar_profile', 'phd_progress')
+    else:
+        students_qs = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile', 'phd_progress')
+
+    # Apply search filter
+    q = request.GET.get('q', '').strip()
+    if q:
+        students_qs = students_qs.filter(
+            Q(student_name__icontains=q) | Q(roll_number__icontains=q)
+        )
+        
+    # Get dynamic counts per stage (before stage filter is applied)
+    stage_counts = {}
+    stage_choices = PhDProgress.CURRENT_STAGE_CHOICES
+    for choice, name in stage_choices:
+        # We need to compute counts using the supervisor/HOD restricted set
+        count_qs = Student.objects.filter(program_level='PHD')
+        if staff.role != 'HOD':
+            count_qs = count_qs.filter(scholar_profile__supervisor=staff)
+        if q:
+            count_qs = count_qs.filter(
+                Q(student_name__icontains=q) | Q(roll_number__icontains=q)
+            )
+        # We check count of students in this stage (handling default 'RAC_REVIEW' when no progress record exists yet)
+        if choice == 'RAC_REVIEW':
+            stage_counts[choice] = count_qs.filter(
+                Q(phd_progress__current_stage=choice) | Q(phd_progress__isnull=True)
+            ).count()
+        else:
+            stage_counts[choice] = count_qs.filter(phd_progress__current_stage=choice).count()
+
+    # Apply stage filter
+    stage_filter = request.GET.get('stage', '').strip()
+    if stage_filter:
+        if stage_filter == 'RAC_REVIEW':
+            students_qs = students_qs.filter(
+                Q(phd_progress__current_stage=stage_filter) | Q(phd_progress__isnull=True)
+            )
+        else:
+            students_qs = students_qs.filter(phd_progress__current_stage=stage_filter)
+
+    # Process selected student
+    selected_student = None
+    selected_roll = request.GET.get('student_roll', '').strip()
+    if selected_roll:
+        selected_student = students_qs.filter(roll_number=selected_roll).first()
+    if not selected_student and students_qs.exists():
+        selected_student = students_qs.first()
+
+    phd_progress = None
+    if selected_student:
+        phd_progress, _ = PhDProgress.objects.get_or_create(scholar=selected_student)
+        
+        # Handle staff uploads / actions
+        if request.method == 'POST':
+            # Check current stage
+            stage = phd_progress.current_stage
+            
+            if stage == 'SYNOPSIS':
+                if request.FILES.get('synopsis_panel_of_examiner'):
+                    phd_progress.synopsis_panel_of_examiner = request.FILES.get('synopsis_panel_of_examiner')
+                if request.FILES.get('synopsis_foreign_examiner'):
+                    phd_progress.synopsis_foreign_examiner = request.FILES.get('synopsis_foreign_examiner')
+                if request.FILES.get('synopsis_indian_examiner'):
+                    phd_progress.synopsis_indian_examiner = request.FILES.get('synopsis_indian_examiner')
+                    
+            elif stage == 'THESIS_HARDBOUND':
+                if request.FILES.get('hardbound_examiner_report'):
+                    phd_progress.hardbound_examiner_report = request.FILES.get('hardbound_examiner_report')
+                    
+            elif stage == 'VIVA_VOCE':
+                viva_date = request.POST.get('viva_date')
+                viva_time = request.POST.get('viva_time')
+                if viva_date:
+                    phd_progress.viva_date = viva_date
+                if viva_time:
+                    phd_progress.viva_time = viva_time
+                    
+                if request.FILES.get('viva_fixation'):
+                    phd_progress.viva_fixation = request.FILES.get('viva_fixation')
+                if request.FILES.get('viva_student_order'):
+                    phd_progress.viva_student_order = request.FILES.get('viva_student_order')
+                if request.FILES.get('viva_internal_order'):
+                    phd_progress.viva_internal_order = request.FILES.get('viva_internal_order')
+                if request.FILES.get('viva_external_order'):
+                    phd_progress.viva_external_order = request.FILES.get('viva_external_order')
+                    
+            elif stage == 'MEMO':
+                if request.FILES.get('memo_copy'):
+                    phd_progress.memo_copy = request.FILES.get('memo_copy')
+                    
+            elif stage == 'PROVISIONAL':
+                if request.FILES.get('provisional_doc'):
+                    phd_progress.provisional_doc = request.FILES.get('provisional_doc')
+                    
+            elif stage == 'DEGREE':
+                if request.FILES.get('degree_doc'):
+                    phd_progress.degree_doc = request.FILES.get('degree_doc')
+                    
+            phd_progress.save()
+            phd_progress.check_and_advance_stage()
+            messages.success(request, f"Details for {selected_student.student_name} updated successfully.")
+            return redirect(f"{request.path}?student_roll={selected_student.roll_number}&stage={stage_filter}&q={q}")
+
+    # Build student metadata list for display
+    students_display = []
+    for s in students_qs:
+        prog, _ = PhDProgress.objects.get_or_create(scholar=s)
+        stats = prog.progress_stats
+        dl_info = prog.current_deadline_info
+        students_display.append({
+            'student': s,
+            'progress': prog,
+            'stats': stats,
+            'dl_info': dl_info,
+        })
+
+    # If a student is selected, build their stats and details
+    selected_stats = phd_progress.progress_stats if phd_progress else None
+    selected_dl_info = phd_progress.current_deadline_info if phd_progress else None
+
+    # Load all RCW reviews for selected scholar if any
+    selected_rcw_reviews = None
+    if selected_student:
+        selected_rcw_reviews = selected_student.rcw_reviews.all().order_by('-date', '-time')
+
+    # Staff list for guide assignment (HOD only)
+    guide_staff_list = Staff.objects.filter(is_active=True).order_by('name') if staff.role == 'HOD' else []
+    rs_count = Student.objects.filter(program_level='PHD').count() if staff.role == 'HOD' else students_qs.count()
+
+    context = {
+        'staff': staff,
+        'students': students_display,
+        'selected_student': selected_student,
+        'phd_progress': phd_progress,
+        'phd_stats': selected_stats,
+        'phd_deadline_info': selected_dl_info,
+        'rcw_reviews': selected_rcw_reviews,
+        'stage_choices': stage_choices,
+        'stage_counts': stage_counts,
+        'q': q,
+        'stage_filter': stage_filter,
+        'guide_staff_list': guide_staff_list,
+        'rs_count': rs_count,
+    }
+    
+    return render(request, 'staff/manage_phd_stages.html', context)
+
+
+def assign_phd_guide(request):
+    """HOD-only: Assign or change the guide (supervisor) for a PhD scholar."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    hod = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if hod.role != 'HOD':
+        messages.error(request, 'Only HOD can assign guides.')
+        return redirect('staffs:manage_phd_stages')
+    if request.method != 'POST':
+        return redirect('staffs:manage_phd_stages')
+
+    from students.models import Student, ResearchScholarProfile
+    import datetime
+
+    roll = request.POST.get('roll_number', '').strip()
+    guide_id = request.POST.get('guide_staff_id', '').strip()
+    redirect_back = request.POST.get('redirect_url', '').strip()
+
+    student = get_object_or_404(Student, roll_number=roll, program_level='PHD')
+
+    # Get or create a minimal profile if scholar hasn't completed registration yet
+    profile, _ = ResearchScholarProfile.objects.get_or_create(
+        student=student,
+        defaults={
+            'scholar_type': 'Full Time',
+            'admission_date': datetime.date.today(),
+            'supervisor': None,
+        }
+    )
+
+    if guide_id:
+        new_guide = get_object_or_404(Staff, staff_id=guide_id)
+        old_guide_name = profile.supervisor.name if profile.supervisor else 'None'
+        profile.supervisor = new_guide
+        profile.save()
+        messages.success(request, f'Guide for {student.student_name} changed from {old_guide_name} to {new_guide.name}.')
+    else:
+        profile.supervisor = None
+        profile.save()
+        messages.success(request, f'Guide removed for {student.student_name}.')
+
+    if redirect_back:
+        return redirect(redirect_back)
+    from django.urls import reverse
+    return redirect(reverse('staffs:manage_phd_stages') + f'?student_roll={roll}')

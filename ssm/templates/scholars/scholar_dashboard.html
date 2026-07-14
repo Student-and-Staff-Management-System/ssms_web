@@ -11,195 +11,349 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+  <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
 
   <style>
     :root {
-      --primary: #5a7d7c;
-      --primary-light: #7FB4B2;
-      --primary-dark: #4a6b69;
-      --secondary: #c5a059;
-      --dark: #111827;
-      --light: #F3F4F6;
-      --surface: #FFFFFF;
-      --text: #374151;
-      --text-light: #6B7280;
-      --border: #E5E7EB;
+      --primary: var(--accent-color, #5a7d7c);
+      --primary-light: var(--accent-color-light, #7FB4B2);
+      --primary-dark: var(--accent-color-hover, #4a6b69);
+      --secondary: var(--accent-gold, #c5a059);
+      --secondary-dark: #b39150;
+      --dark: var(--text-primary, #212529);
+      --light: var(--primary-bg, #f8f9fa);
+      --surface: var(--secondary-bg, #ffffff);
+      --text: var(--text-primary, #212529);
+      --text-light: var(--text-secondary, #6c757d);
+      --border: var(--border-color, #dee2e6);
       --radius: 16px;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --glass-bg: rgba(255, 255, 255, 0.85);
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+      --shadow-hover: 0 20px 25px -5px rgba(90, 125, 124, 0.1), 0 10px 10px -5px rgba(90, 125, 124, 0.04);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --glass-border: rgba(255, 255, 255, 0.4);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    body { background-color: #F8FAFC; color: var(--text); line-height: 1.6; }
+    body { 
+      background-color: #f1f5f9; 
+      color: var(--text); 
+      line-height: 1.6; 
+      font-family: 'Inter', sans-serif;
+    }
     
     /* Sleek Navbar */
     .navbar {
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid var(--secondary);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      border-top: 4px solid var(--secondary);
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 12px 24px;
+      padding: 14px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       box-shadow: var(--shadow-sm);
     }
 
-    .nav-brand { display: flex; align-items: center; gap: 12px; }
-    .nav-brand img { height: 40px; }
-    .nav-brand div h1 { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); line-height: 1.2; }
-    .nav-brand div p { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;}
+    .nav-brand { display: flex; align-items: center; gap: 14px; }
+    .nav-brand img { height: 44px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
+    .nav-brand div h1 { font-family: 'Outfit', sans-serif; font-size: 19px; font-weight: 700; color: var(--dark); line-height: 1.2; letter-spacing: -0.3px; }
+    .nav-brand div p { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
 
     .nav-user { display: flex; align-items: center; gap: 16px; }
     .user-info { text-align: right; }
     .user-name { font-weight: 600; color: var(--dark); font-size: 14px; }
-    .user-role { font-size: 12px; color: var(--text-light); }
-    .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; text-transform: uppercase; }
-    .logout-btn { color: #EF4444; text-decoration: none; font-size: 20px; transition: transform 0.2s; display: flex; align-items: center;}
-    .logout-btn:hover { transform: scale(1.1); }
+    .user-role { font-size: 11px; color: var(--text-light); font-weight: 500; }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; text-transform: uppercase; border: 2px solid white; box-shadow: var(--shadow-md); }
+    .logout-btn { color: #EF4444; background: rgba(239, 68, 68, 0.08); width: 36px; height: 36px; border-radius: 50%; text-decoration: none; font-size: 20px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;}
+    .logout-btn:hover { background: #EF4444; color: white; transform: scale(1.05); }
 
     /* Main Layout */
-    .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+    .container { max-width: 1440px; margin: 0 auto; padding: 32px 24px; }
 
     /* Welcome Banner */
     .welcome-banner {
-      background: linear-gradient(100deg, var(--primary) 0%, var(--primary-light) 100%);
+      background: linear-gradient(135deg, #1f2e2d 0%, #3a5351 60%, #5a7d7c 100%);
       border-radius: var(--radius);
-      padding: 40px;
+      padding: 44px 40px;
       color: white;
       margin-bottom: 32px;
       position: relative;
       overflow: hidden;
-      box-shadow: var(--shadow-lg);
-      animation: fadeInDown 0.6s ease-out;
+      box-shadow: 0 10px 25px -5px rgba(90, 125, 124, 0.2);
+      animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+      border-left: 6px solid var(--secondary);
+    }
+    .welcome-banner::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -5%;
+      width: 280px; height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(197, 160, 89, 0.18) 0%, transparent 70%);
+      pointer-events: none;
     }
     .welcome-banner::after {
       content: '';
       position: absolute;
-      top: -50%; right: -10%;
-      width: 400px; height: 400px;
+      bottom: -40%; right: 12%;
+      width: 340px; height: 340px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
+      pointer-events: none;
     }
     .welcome-content { position: relative; z-index: 2; }
-    .welcome-title { font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-    .research-title { font-size: 18px; font-weight: 400; opacity: 0.9; display: flex; align-items: center; gap: 8px; }
+    .welcome-title { font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .research-title { font-size: 17px; font-weight: 400; opacity: 0.95; display: flex; align-items: center; gap: 10px; line-height: 1.4; max-width: 85%; }
+    .research-title i { font-size: 22px; color: var(--secondary); }
+
+    /* Quick Action Links */
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .quick-link:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+    .quick-link-highlight {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+      color: white;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .quick-link-highlight:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(197, 160, 89, 0.45);
+      filter: brightness(1.08);
+    }
 
     /* Dashboard Grid */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 1fr 2.2fr;
-      gap: 24px;
+      grid-template-columns: 1fr 1.9fr;
+      gap: 28px;
     }
 
     /* Cards */
     .card {
       background: var(--surface);
       border-radius: var(--radius);
-      padding: 24px;
+      padding: 26px;
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      margin-bottom: 24px;
-      animation: fadeInUp 0.6s ease-out;
-      animation-fill-mode: both;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 26px;
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+      position: relative;
+      overflow: hidden;
     }
-    .card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .card-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 8px; }
-    .card-title i { color: var(--primary); font-size: 20px; }
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-4px);
+      border-color: var(--primary-light);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .card-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 10px; letter-spacing: -0.2px; }
+    .card-title i { color: var(--primary); font-size: 22px; }
 
     /* Button Utilities */
-    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; }
-    .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(90, 125, 124, 0.2); border-radius: 6px;}
-    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 8px rgba(90, 125, 124, 0.3); }
-    .btn-outline { background: transparent; border: 1px solid #D1D5DB; color: var(--text); }
-    .btn-outline:hover { background: #F3F4F6; }
-    .btn-add { background: var(--secondary); color: white; border-radius: 50%; width: 32px; height: 32px; padding: 0; justify-content: center; font-size: 20px; box-shadow: 0 4px 6px rgba(197, 160, 89, 0.2); }
-    .btn-add:hover { background: #b39150; transform: scale(1.05); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: none; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; box-shadow: 0 4px 10px rgba(90, 125, 124, 0.2); }
+    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(90, 125, 124, 0.3); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--light); border-color: var(--primary-light); color: var(--primary-dark); }
+    .btn-add { background: var(--secondary); color: white; border-radius: 50%; width: 34px; height: 34px; padding: 0; justify-content: center; font-size: 20px; box-shadow: 0 4px 10px rgba(197, 160, 89, 0.25); }
+    .btn-add:hover { background: var(--secondary-dark); transform: scale(1.08); }
 
     /* Info List */
-    .info-list { display: flex; flex-direction: column; gap: 16px; }
-    .info-item { display: flex; align-items: flex-start; gap: 12px; }
-    .info-icon { width: 36px; height: 36px; border-radius: 8px; background: #EEF2F2; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-    .info-content .label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 2px; }
-    .info-content .value { font-size: 14px; font-weight: 500; color: var(--dark); }
+    .info-list { display: flex; flex-direction: column; gap: 14px; }
+    .info-item { display: flex; align-items: center; gap: 16px; padding: 8px; border-radius: var(--radius-sm); transition: background 0.2s ease; }
+    .info-item:hover { background: var(--light); }
+    .info-icon { width: 40px; height: 40px; border-radius: 10px; background: #eff6f6; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; transition: all 0.2s ease; }
+    .info-item:hover .info-icon { background: var(--primary); color: white; transform: scale(1.05); }
+    .info-content .label { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 2px; }
+    .info-content .value { font-size: 14px; font-weight: 600; color: var(--dark); }
 
     /* Badges */
-    .badge { display: inline-flex; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .badge-internal { background: #DEF7EC; color: #03543F; }
-    .badge-external { background: #E1EFFE; color: #1E429F; }
+    .badge { display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .badge-internal { background: #d1fae5; color: #065f46; }
+    .badge-external { background: #dbeafe; color: #1e40af; }
 
     /* Timeline for RCW */
-    .timeline { position: relative; padding-left: 30px; }
-    .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: #E5E7EB; }
-    .timeline-item { position: relative; margin-bottom: 24px; }
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 4px, transparent 4px, transparent 8px); }
+    .timeline-item { position: relative; margin-bottom: 28px; }
     .timeline-item:last-child { margin-bottom: 0; }
-    .timeline-dot { position: absolute; left: -30px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); border: 4px solid white; box-shadow: 0 0 0 1px #E5E7EB; }
-    .timeline-date { font-size: 12px; font-weight: 600; color: var(--primary); margin-bottom: 4px; display: inline-block; }
-    .timeline-content { background: #F9FAFB; border: 1px solid var(--border); padding: 16px; border-radius: 8px; }
-    .timeline-content p { font-size: 14px; color: var(--text); margin-bottom: 12px; }
+    .timeline-dot { position: absolute; left: -32px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid var(--primary); box-shadow: 0 0 0 4px rgba(90, 125, 124, 0.15); transition: all 0.3s ease; }
+    .timeline-item:hover .timeline-dot { background: var(--primary); transform: scale(1.1); }
+    .timeline-date { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; display: inline-block; }
+    .timeline-content { background: var(--light); border: 1px solid var(--border); padding: 18px; border-radius: 12px; transition: all 0.2s ease; }
+    .timeline-item:hover .timeline-content { border-color: var(--primary-light); background: white; box-shadow: var(--shadow-sm); }
+    .timeline-content p { font-size: 14px; color: var(--text); margin-bottom: 12px; font-weight: 500; }
 
     /* RCWs Grid */
-    .course-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .course-box { border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: #F9FAFB; transition: border-color 0.2s;}
-    .course-box:hover { border-color: var(--primary-light); }
-    .course-header { font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
-    .course-name { font-size: 14px; font-weight: 500; color: var(--dark); margin-bottom: 12px; min-height: 40px;}
+    .course-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .course-box { border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--light); transition: all 0.3s ease; }
+    .course-box:hover { border-color: var(--primary-light); background: white; box-shadow: var(--shadow-md); }
+    .course-header { font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px;}
+    .course-name { font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 14px; min-height: 40px; display: flex; align-items: center; gap: 8px; }
 
     /* Table */
-    .table-wrapper { overflow-x: auto; }
+    .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: white; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    th { text-align: left; padding: 12px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); font-weight: 600; border-bottom: 1px solid var(--border); }
-    td { padding: 16px; font-size: 14px; color: var(--dark); border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+    th { text-align: left; padding: 14px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-light); font-weight: 700; border-bottom: 2px solid var(--border); background: var(--light); }
+    td { padding: 16px; font-size: 14px; color: var(--dark); border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #F9FAFB; }
-    .member-info { display: flex; align-items: center; gap: 12px; }
-    .member-icon { width: 32px; height: 32px; border-radius: 50%; background: #F3F4F6; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    tr:hover td { background: var(--light); }
+    .member-info { display: flex; align-items: center; gap: 14px; }
+    .member-icon { width: 36px; height: 36px; border-radius: 50%; background: #eff6f6; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+    /* Metrics Grid & Custom Cards */
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; padding: 12px 0; }
+    .pub-metric-card { border-radius: 12px; padding: 20px 16px; text-align: center; border: 1px solid; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+    .pub-metric-card:hover { transform: translateY(-4px); }
+    .pub-metric-card i { font-size: 26px; margin-bottom: 8px; display: block; }
+    .pub-metric-value { font-size: 28px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; }
+    .pub-metric-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+    
+    .pub-metric-journals { background: #f0fdf4; border-color: #dcfce7; color: #166534; }
+    .pub-metric-journals:hover { box-shadow: 0 10px 20px -5px rgba(22, 101, 52, 0.18); }
+    .pub-metric-conferences { background: #eff6ff; border-color: #dbeafe; color: #1e40af; }
+    .pub-metric-conferences:hover { box-shadow: 0 10px 20px -5px rgba(30, 64, 175, 0.18); }
+    .pub-metric-books { background: #fffbeb; border-color: #fef3c7; color: #92400e; }
+    .pub-metric-books:hover { box-shadow: 0 10px 20px -5px rgba(146, 64, 14, 0.18); }
+    .pub-metric-awards { background: #f5f3ff; border-color: #ede9fe; color: #5b21b6; }
+    .pub-metric-awards:hover { box-shadow: 0 10px 20px -5px rgba(91, 33, 182, 0.18); }
+
+    /* Attendance stat pills */
+    .att-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px 16px 0; }
+    .att-stat-pill { color: white; border-radius: 10px; padding: 14px 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: all 0.2s ease; }
+    .att-stat-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+    .att-stat-total { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); }
+    .att-stat-approved { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+    .att-stat-rejected { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+    .att-stat-pending { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
 
     /* Modals */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(17, 24, 39, 0.4); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
     .modal-overlay.active { display: flex; opacity: 1; }
-    .modal { background: white; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); transform: scale(0.95); transition: transform 0.3s; overflow: hidden;}
+    .modal { background: white; border-radius: 18px; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); transform: scale(0.96); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); overflow: hidden;}
     .modal-overlay.active .modal { transform: scale(1); }
-    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .modal-header h3 { font-family: 'Outfit', sans-serif; font-size: 18px; color: var(--dark); }
-    .close-btn { background: transparent; border: none; font-size: 24px; color: var(--text-light); cursor: pointer; transition: color 0.2s; }
-    .close-btn:hover { color: var(--dark); }
-    .modal-body { padding: 24px; }
+    .modal-header { padding: 22px 26px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); letter-spacing: -0.3px; }
+    .close-btn { background: rgba(100, 116, 139, 0.1); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 20px; color: var(--text-light); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;}
+    .close-btn:hover { background: rgba(100, 116, 139, 0.2); color: var(--dark); }
+    .modal-body { padding: 26px; }
     
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .form-control { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 14px; transition: all 0.2s; outline: none; font-family: 'Inter', sans-serif;}
-    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-    textarea.form-control { resize: vertical; min-height: 80px; }
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .form-control { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; transition: all 0.2s; outline: none; font-family: 'Inter', sans-serif;}
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(90, 125, 124, 0.15); }
+    textarea.form-control { resize: vertical; min-height: 85px; }
     
-    .messages-container { margin-bottom: 20px; }
-    .alert { padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;}
-    .alert-success { background: #DEF7EC; color: #03543F; border: 1px solid #84E1BC;}
-    .alert-error { background: #FDE8E8; color: #9B1C1C; border: 1px solid #F8B4B4;}
+    .messages-container { margin-bottom: 24px; }
+    .alert { padding: 14px 18px; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; border-left: 5px solid; }
+    .alert-success { background: #d1fae5; color: #065f46; border-left-color: #059669;}
+    .alert-error { background: #fee2e2; color: #991b1b; border-left-color: #ef4444;}
 
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: translateY(0); } }
     
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
+    .delay-1 { animation-delay: 0.08s; }
+    .delay-2 { animation-delay: 0.16s; }
 
-    @media (max-width: 992px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
-      .welcome-banner { padding: 30px 20px; }
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; gap: 24px; }
+      .welcome-banner { padding: 36px 28px; }
     }
     @media (max-width: 768px) {
       .course-grid { grid-template-columns: 1fr; }
-      .nav-brand div h1 { font-size: 16px; }
+      .nav-brand div h1 { font-size: 17px; }
+      .container { padding: 20px 16px; }
+    }
+    @media (max-width: 600px) {
+      .nav-brand div p { display: none; }
+      .user-info { display: none; }
+      .nav-brand div h1 { font-size: 15px; }
+      .navbar { padding: 10px 16px; }
+      .welcome-banner { padding: 24px 20px; }
+      .welcome-title { font-size: 24px; }
+      .research-title { font-size: 14px; max-width: 100%; }
+      .quick-link, .quick-link-highlight { width: 100%; justify-content: center; }
+      .att-stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .att-stat-pill { padding: 10px 4px; }
+      .modal { width: calc(100% - 32px); margin: 16px; }
+      .modal-body { padding: 16px; }
+      .modal-header { padding: 16px; }
+      
+      /* Table Card View on Mobile */
+      .table-wrapper table, .table-wrapper thead, .table-wrapper tbody, .table-wrapper th, .table-wrapper td, .table-wrapper tr {
+        display: block;
+      }
+      .table-wrapper thead { display: none; }
+      .table-wrapper tr { border-bottom: 1px solid var(--border); padding: 16px 12px; }
+      .table-wrapper tr:last-child { border-bottom: none; }
+      .table-wrapper td { border: none; padding: 6px 0; display: flex; justify-content: space-between; align-items: center; text-align: right; }
+      .table-wrapper td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        color: var(--text-light);
+        letter-spacing: 0.5px;
+        float: left;
+        margin-right: 15px;
+      }
+      .table-wrapper td:first-child { display: block; text-align: left; margin-bottom: 8px; }
+      .table-wrapper td:first-child::before { display: none; }
+    }
+    @media (max-width: 480px) {
+      .metric-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .pub-metric-card { padding: 16px 10px; }
+      .pub-metric-value { font-size: 22px; }
     }
   </style>
 </head>
@@ -269,17 +423,17 @@
           {% endif %}
         </div>
         <!-- Quick action links -->
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;">
-          <a href="{% url 'scholar_apply_leave' %}" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.18); color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); transition: background 0.2s;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px;">
+          <a href="{% url 'scholar_apply_leave' %}" class="quick-link">
             <i class='bx bx-paper-plane'></i> Apply Leave
           </a>
-          <a href="{% url 'scholar_leave_history' %}" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid rgba(255,255,255,0.25); transition: background 0.2s;">
+          <a href="{% url 'scholar_leave_history' %}" class="quick-link">
             <i class='bx bx-history'></i> Leave History
           </a>
-          <a href="{% url 'scholar_profile' %}" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid rgba(255,255,255,0.25); transition: background 0.2s;">
+          <a href="{% url 'scholar_profile' %}" class="quick-link">
             <i class='bx bx-user'></i> My Profile
           </a>
-          <a href="{% url 'scholar_portfolio' %}" style="display: inline-flex; align-items: center; gap: 6px; background: #f59e0b; color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35); transition: transform 0.2s;">
+          <a href="{% url 'scholar_portfolio' %}" class="quick-link-highlight">
             <i class='bx bx-news'></i> My Publications
           </a>
         </div>
@@ -290,6 +444,50 @@
       <!-- Left Column (Profile & Supervisor) -->
       <div class="left-col">
         
+        <!-- Compact PhD Completion Stage Tracker Banner -->
+        <div class="card delay-1" style="background: white; border-top: 4px solid var(--primary); font-family: 'Outfit', sans-serif; padding: 18px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="background: var(--primary-light); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class='bx bx-award' style="font-size: 20px;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 8px;">
+                            PhD Completion Tracker
+                            <span class="badge" style="background: #fef3c7; color: #d97706; font-weight: 600; font-size: 10px; padding: 2px 6px; border-radius: 4px;">
+                                Active: {{ phd_progress.get_current_stage_display }}
+                            </span>
+                        </h4>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                            <div style="width: 120px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                <div style="width: {{ phd_stats.overall_percent }}%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 3px;"></div>
+                            </div>
+                            <span style="font-size: 11px; font-weight: 600; color: var(--text-light);">{{ phd_stats.overall_percent }}% Complete</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    {% if phd_deadline_info.has_deadline %}
+                    <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 4px; 
+                        background: {% if phd_deadline_info.status_class == 'danger' %}#fef2f2{% elif phd_deadline_info.status_class == 'warning' %}#fffbeb{% else %}#ecfdf5{% endif %};
+                        color: {% if phd_deadline_info.status_class == 'danger' %}#991b1b{% elif phd_deadline_info.status_class == 'warning' %}#92400e{% else %}#065f46{% endif %};">
+                        <i class='bx bx-alarm'></i>
+                        {% if phd_deadline_info.is_expired %}
+                            Expired by {{ phd_deadline_info.days_remaining }} days!
+                        {% else %}
+                            {{ phd_deadline_info.days_remaining }} days left
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'scholar_phd_tracker' %}" class="btn btn-primary" style="padding: 6px 12px; font-size: 11px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: var(--primary); border-color: var(--primary); color: white; border-radius: 6px;">
+                        <i class='bx bx-right-top-arrow-circle'></i> View Full Stages
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <div class="card delay-1">
           <div class="card-header">
             <h3 class="card-title"><a href="{% url 'scholar_profile' %}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;"><i class='bx bx-user-circle'></i> Scholar Profile</a></h3>
@@ -372,22 +570,22 @@
 
             {% if att_total > 0 %}
             <!-- Stat Pills Row -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; padding: 14px 16px 0;">
-                <div style="background: linear-gradient(135deg,#5a7d7c,#4a6b69); color: white; border-radius: 10px; padding: 10px 8px; text-align: center;">
-                    <div style="font-size: 20px; font-weight: 700; line-height: 1;">{{ att_total }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 3px;">Total</div>
+            <div class="att-stat-grid">
+                <div class="att-stat-pill att-stat-total">
+                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_total }}</div>
+                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Total</div>
                 </div>
-                <div style="background: linear-gradient(135deg,#059669,#047857); color: white; border-radius: 10px; padding: 10px 8px; text-align: center;">
-                    <div style="font-size: 20px; font-weight: 700; line-height: 1;">{{ att_approved }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 3px;">Approved</div>
+                <div class="att-stat-pill att-stat-approved">
+                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_approved }}</div>
+                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Approved</div>
                 </div>
-                <div style="background: linear-gradient(135deg,#DC2626,#B91C1C); color: white; border-radius: 10px; padding: 10px 8px; text-align: center;">
-                    <div style="font-size: 20px; font-weight: 700; line-height: 1;">{{ att_rejected }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 3px;">Rejected</div>
+                <div class="att-stat-pill att-stat-rejected">
+                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_rejected }}</div>
+                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Rejected</div>
                 </div>
-                <div style="background: linear-gradient(135deg,#D97706,#B45309); color: white; border-radius: 10px; padding: 10px 8px; text-align: center;">
-                    <div style="font-size: 20px; font-weight: 700; line-height: 1;">{{ att_pending }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 3px;">Pending</div>
+                <div class="att-stat-pill att-stat-pending">
+                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_pending }}</div>
+                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Pending</div>
                 </div>
             </div>
 
@@ -630,22 +828,26 @@
                 <a href="{% url 'scholar_portfolio' %}" class="btn btn-primary"><i class='bx bx-right-arrow-alt'></i> View All Portfolio</a>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; padding: 10px 0;">
-                <div style="background: #F0FDF4; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #DCFCE7;">
-                    <div style="font-size: 24px; font-weight: 700; color: #166534;">{{ journ_count }}</div>
-                    <div style="font-size: 11px; font-weight: 600; color: #15803d; text-transform: uppercase; margin-top: 4px;">Journals</div>
+            <div class="metric-grid">
+                <div class="pub-metric-card pub-metric-journals">
+                    <i class='bx bx-journal'></i>
+                    <div class="pub-metric-value">{{ journ_count }}</div>
+                    <div class="pub-metric-label">Journals</div>
                 </div>
-                <div style="background: #EFF6FF; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #DBEAFE;">
-                    <div style="font-size: 24px; font-weight: 700; color: #1e40af;">{{ conf_count }}</div>
-                    <div style="font-size: 11px; font-weight: 600; color: #1d4ed8; text-transform: uppercase; margin-top: 4px;">Conferences</div>
+                <div class="pub-metric-card pub-metric-conferences">
+                    <i class='bx bx-slideshow'></i>
+                    <div class="pub-metric-value">{{ conf_count }}</div>
+                    <div class="pub-metric-label">Conferences</div>
                 </div>
-                <div style="background: #FFFBEB; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #FEF3C7;">
-                    <div style="font-size: 24px; font-weight: 700; color: #92400e;">{{ book_count }}</div>
-                    <div style="font-size: 11px; font-weight: 600; color: #b45309; text-transform: uppercase; margin-top: 4px;">Books</div>
+                <div class="pub-metric-card pub-metric-books">
+                    <i class='bx bx-book'></i>
+                    <div class="pub-metric-value">{{ book_count }}</div>
+                    <div class="pub-metric-label">Books</div>
                 </div>
-                <div style="background: #F5F3FF; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #EDE9FE;">
-                    <div style="font-size: 24px; font-weight: 700; color: #5b21b6;">{{ award_count }}</div>
-                    <div style="font-size: 11px; font-weight: 600; color: #6d28d9; text-transform: uppercase; margin-top: 4px;">Awards</div>
+                <div class="pub-metric-card pub-metric-awards">
+                    <i class='bx bx-trophy'></i>
+                    <div class="pub-metric-value">{{ award_count }}</div>
+                    <div class="pub-metric-label">Awards</div>
                 </div>
             </div>
 
@@ -691,10 +893,10 @@
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Designation">
                       {% if m.member_type == 'Internal' %}{{ m.staff.designation }}{% else %}{{ m.external_designation }}{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Type">
                       {% if m.member_type == 'Internal' %}
                       <span class="badge badge-internal">Internal</span>
                       {% else %}
@@ -714,7 +916,11 @@
         <div class="card delay-2">
           <div class="card-header">
             <h3 class="card-title"><i class='bx bx-search-alt'></i> RAC Review Progress</h3>
+            {% if not phd_progress.rac_completed_at %}
             <button class="btn btn-primary" onclick="openModal('rcwModal')"><i class='bx bx-plus'></i> Log Review</button>
+            {% else %}
+            <span class="badge badge-success" style="font-size: 0.8rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;"><i class='bx bx-check-circle'></i> Final Review Logged</span>
+            {% endif %}
           </div>
           
           {% if rcw_reviews %}
@@ -738,6 +944,45 @@
             <h4 style="color: var(--text); font-weight: 500;">No reviews logged yet</h4>
             <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Record your first review progress to start tracking.</p>
           </div>
+          {% if not phd_progress.rac_completed_at %}
+          <div style="border-top: 1px dashed var(--border); margin-top: 20px; padding-top: 20px;">
+              <h4 style="font-size: 13px; font-weight: 700; color: #ef4444; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <i class='bx bxs-error-circle'></i> Finalize RAC Review Stage
+              </h4>
+              <p style="font-size: 12px; color: var(--text-light); margin-bottom: 15px;">
+                  Are you ready to submit your Final RAC Review? Once finalized, you cannot log any new reviews, and the Pre-Submission stage will be unlocked.
+              </p>
+              <form action="{% url 'scholar_add_rcw' %}" method="post" enctype="multipart/form-data" style="margin: 0; background: #fff5f5; border: 1px solid #fee2e2; padding: 20px; border-radius: 8px;">
+                  {% csrf_token %}
+                  <input type="hidden" name="is_final" value="on">
+                  
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+                      <div class="form-group">
+                          <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Review Date</label>
+                          <input type="date" name="date" class="form-control" style="padding: 8px; font-size: 13px;" required>
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Review Time</label>
+                          <input type="time" name="time" class="form-control" style="padding: 8px; font-size: 13px;" required>
+                      </div>
+                  </div>
+                  
+                  <div class="form-group" style="margin-bottom: 12px;">
+                      <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Progress Remarks & HOD/Guide Feedback</label>
+                      <textarea name="progress" class="form-control" style="padding: 8px; font-size: 13px; height: 70px;" placeholder="Summarize HOD/Guide panel feedback for the final review..." required></textarea>
+                  </div>
+                  
+                  <div class="form-group" style="margin-bottom: 20px;">
+                      <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Review Document (Optional)</label>
+                      <input type="file" name="document" class="form-control" style="padding: 6px; font-size: 12px;">
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; background: #ef4444; border-color: #ef4444; padding: 12px 20px; font-weight: 700; font-size: 14px; gap: 8px; color: white;">
+                      <i class='bx bx-check-shield' style="font-size: 18px;"></i> Submit Final RAC Review & Unlock Pre-Submission
+                  </button>
+              </form>
+          </div>
+          {% endif %}
           {% endif %}
         </div>
 
