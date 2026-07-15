@@ -34,6 +34,44 @@
         .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
         @media (max-width: 480px) { .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; } }
+        
+        .scrollable-checklist {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 6px 12px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            height: 150px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            background: white;
+            box-sizing: border-box;
+        }
+        .scrollable-checklist label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: calc(50% - 6px);
+            min-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .scrollable-checklist::-webkit-scrollbar {
+            width: 7px;
+        }
+        .scrollable-checklist::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .scrollable-checklist::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -175,11 +213,24 @@
                 <input type="file" name="supporting_document" {% if not item %}required{% endif %}>
             </div>
             <div class="form-group">
-                <label>Deputation / Permission Order Copy <small style="color:var(--text-muted);">(Optional, Max: 100KB)</small></label>
-                {% if item.order_certificate %}
-                <div class="form-help">Currently: <a href="{{ item.order_certificate.url }}" target="_blank">View File</a></div>
-                {% endif %}
-                <input type="file" name="order_certificate">
+                <label>Co-participants / Linked Faculty *</label>
+                <div class="scrollable-checklist">
+                    <!-- Me option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" name="co_authors" value="{{ staff.staff_id }}" checked style="width: auto; margin: 0;"> 
+                        Me ({{ staff.salutation }} {{ staff.name }})
+                    </label>
+                    {% for s in all_staffs %}
+                        {% if s.staff_id != staff.staff_id %}
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                    {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                {{ s.salutation }} {{ s.name }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select all faculty co-participants. This entry will reflect in their portfolios too.</div>
             </div>
             {% endif %}
 
@@ -231,8 +282,24 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author(s) Name</label>
-                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}">
+                <label>Author(s) / Linked Faculty *</label>
+                <div class="scrollable-checklist">
+                    <!-- Me option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" name="co_authors" value="{{ staff.staff_id }}" checked style="width: auto; margin: 0;"> 
+                        Me ({{ staff.salutation }} {{ staff.name }})
+                    </label>
+                    {% for s in all_staffs %}
+                        {% if s.staff_id != staff.staff_id %}
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                    {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                {{ s.salutation }} {{ s.name }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
                 <label>Title of Paper</label>
@@ -298,8 +365,24 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author Name(s) *</label>
-                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}" required>
+                <label>Author(s) / Linked Faculty *</label>
+                <div class="scrollable-checklist">
+                    <!-- Me option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" name="co_authors" value="{{ staff.staff_id }}" checked style="width: auto; margin: 0;"> 
+                        Me ({{ staff.salutation }} {{ staff.name }})
+                    </label>
+                    {% for s in all_staffs %}
+                        {% if s.staff_id != staff.staff_id %}
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                    {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                {{ s.salutation }} {{ s.name }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
                 <label>Title of Paper *</label>
@@ -379,8 +462,24 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author Name(s) *</label>
-                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}" required>
+                <label>Author(s) / Linked Faculty *</label>
+                <div class="scrollable-checklist">
+                    <!-- Me option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" name="co_authors" value="{{ staff.staff_id }}" checked style="width: auto; margin: 0;"> 
+                        Me ({{ staff.salutation }} {{ staff.name }})
+                    </label>
+                    {% for s in all_staffs %}
+                        {% if s.staff_id != staff.staff_id %}
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                    {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                {{ s.salutation }} {{ s.name }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
                 <label>Title of Book / Article *</label>
@@ -425,6 +524,78 @@
             <div class="form-group">
                 <label>Supporting Document</label>
                 <input type="file" name="supporting_document">
+            </div>
+            {% endif %}
+
+            {% if form_type == 'patent' %}
+            <div class="form-group">
+                <label>Title of Invention *</label>
+                <input type="text" name="title" value="{% if item %}{{ item.title }}{% endif %}" required>
+            </div>
+            <div class="form-group">
+                <label>Inventor(s) / Linked Faculty *</label>
+                <div class="scrollable-checklist">
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" name="co_authors" value="{{ staff.staff_id }}" checked style="width: auto; margin: 0;"> 
+                        Me ({{ staff.salutation }} {{ staff.name }})
+                    </label>
+                    {% for s in all_staffs %}
+                        {% if s.staff_id != staff.staff_id %}
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                    {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                {{ s.salutation }} {{ s.name }}
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select all co-inventors. This will appear in their portfolios too.</div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label>Patent Type</label>
+                    <select name="patent_type">
+                        <option value="Indian" {% if not item or item.patent_type == 'Indian' %}selected{% endif %}>Indian</option>
+                        <option value="International" {% if item and item.patent_type == 'International' %}selected{% endif %}>International</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="Applied" {% if not item or item.status == 'Applied' %}selected{% endif %}>Applied</option>
+                        <option value="Published" {% if item and item.status == 'Published' %}selected{% endif %}>Published</option>
+                        <option value="Granted" {% if item and item.status == 'Granted' %}selected{% endif %}>Granted</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Application Number</label>
+                <input type="text" name="application_number" value="{% if item %}{{ item.application_number }}{% endif %}" placeholder="e.g. 202341012345">
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label>Year of Application</label>
+                    <input type="text" name="application_year" value="{% if item %}{{ item.application_year }}{% endif %}" placeholder="e.g. 2023">
+                </div>
+                <div class="form-group">
+                    <label>Year of Grant <small style="color:var(--text-muted);">(if Granted)</small></label>
+                    <input type="text" name="grant_year" value="{% if item %}{{ item.grant_year }}{% endif %}" placeholder="e.g. 2024">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Funding Agency <small style="color:var(--text-muted);">(Optional)</small></label>
+                <input type="text" name="funding_agency" value="{% if item %}{{ item.funding_agency }}{% endif %}" placeholder="e.g. DST, SERB, Self-funded">
+            </div>
+            <div class="form-group">
+                <label>Brief Description <small style="color:var(--text-muted);">(Optional)</small></label>
+                <textarea name="description" rows="3" placeholder="Describe the invention briefly…">{% if item %}{{ item.description }}{% endif %}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Supporting Document <small style="color:var(--text-muted);">(Patent certificate / filing receipt, Max 100KB)</small></label>
+                <input type="file" name="supporting_document">
+                {% if item and item.supporting_document %}
+                <div class="form-help"><a href="{{ item.supporting_document.url }}" target="_blank">📄 View current document</a></div>
+                {% endif %}
             </div>
             {% endif %}
 

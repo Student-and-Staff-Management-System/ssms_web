@@ -54,13 +54,15 @@ def scholar_register_step1(request):
         student.save()
 
         # Create Profile
+        is_visvesvaraya_scheme = request.POST.get('is_visvesvaraya_scheme') == 'on'
         supervisor = Staff.objects.filter(staff_id=supervisor_id).first() if supervisor_id else None
         ResearchScholarProfile.objects.create(
             student=student,
             scholar_type=scholar_type,
             admission_date=admission_date,
             admission_order_doc=admission_order_doc,
-            supervisor=supervisor
+            supervisor=supervisor,
+            is_visvesvaraya_scheme=is_visvesvaraya_scheme
         )
         # Empty ZerothReview creation to attach file paths later
         ZerothReview.objects.create(scholar=student)
@@ -226,12 +228,19 @@ def scholar_dashboard(request):
     # Get or create PhD progress tracking
     phd_progress, _ = PhDProgress.objects.get_or_create(scholar=student)
 
+    non_final_reviews_count = rcw_reviews.filter(is_final=False).count()
+    final_rac_enabled = non_final_reviews_count >= 5
+    progress_percentage = min(100, non_final_reviews_count * 20)
+
     context = {
         'student': student,
         'profile': profile,
         'rac_members': rac_members,
         'zeroth': zeroth,
         'rcw_reviews': rcw_reviews,
+        'non_final_reviews_count': non_final_reviews_count,
+        'final_rac_enabled': final_rac_enabled,
+        'progress_percentage': progress_percentage,
         'staff_list': staff_list,
         'today_attendance': today_attendance,
         'attendance_history': attendance_history,
@@ -359,6 +368,12 @@ def scholar_add_rcw(request):
     progress = request.POST.get('progress')
     document = request.FILES.get('document')
     is_final = request.POST.get('is_final') == 'on'
+
+    if is_final:
+        non_final_count = RCWReview.objects.filter(scholar=student, is_final=False).count()
+        if non_final_count < 5:
+            messages.error(request, f"A minimum of 5 RAC Reviews must be logged before submitting the Final RAC Review. (Currently logged: {non_final_count}/5)")
+            return redirect('scholar_dashboard')
     
     if date and time and progress:
         RCWReview.objects.create(
@@ -735,16 +750,23 @@ def scholar_portfolio_add(request, form_type):
     staff_list = Staff.objects.filter(is_active=True).order_by('name')
     
     if request.method == 'POST':
-        staff_ids = request.POST.getlist('staff_ids')
-        if not staff_ids:
+        co_authors = request.POST.getlist('co_authors')
+        if not co_authors:
             messages.error(request, "Please select at least one Faculty member.")
             return redirect(request.path)
             
+        selected_staffs = []
+        for cid in co_authors:
+            try:
+                co_staff = Staff.objects.get(staff_id=cid)
+                selected_staffs.append(co_staff)
+            except Staff.DoesNotExist:
+                pass
+                
         if form_type == 'conference':
             item = ConferenceParticipation(student=student)
             item.participation_type = request.POST.get('participation_type', 'Presented')
             item.national_international = request.POST.get('national_international', 'National')
-            item.author_name = request.POST.get('author_name', '').strip()
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.title_of_proceedings = request.POST.get('title_of_proceedings', '').strip()
@@ -756,8 +778,9 @@ def scholar_portfolio_add(request, form_type):
             item.place_of_publication = request.POST.get('place_of_publication', '').strip()
             item.publisher_proceedings = request.POST.get('publisher_proceedings', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
+            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
-            item.staff.set(staff_ids)
+            item.staff.set(selected_staffs)
             messages.success(request, "Conference added.")
         
         elif form_type == 'journal':
@@ -765,7 +788,6 @@ def scholar_portfolio_add(request, form_type):
             item.national_international = request.POST.get('national_international', 'National')
             item.published_month = request.POST.get('published_month', '').strip()
             item.published_year = request.POST.get('published_year', '').strip()
-            item.author_name = request.POST.get('author_name', '').strip()
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.journal_name = request.POST.get('journal_name', '').strip()
             item.volume_number = request.POST.get('volume_number', '').strip()
@@ -774,14 +796,14 @@ def scholar_portfolio_add(request, form_type):
             item.page_numbers_from = request.POST.get('page_numbers_from', '').strip()
             item.page_numbers_to = request.POST.get('page_numbers_to', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
+            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
-            item.staff.set(staff_ids)
+            item.staff.set(selected_staffs)
             messages.success(request, "Journal added.")
             
         elif form_type == 'book':
             item = BookPublication(student=student)
             item.type = request.POST.get('type', 'Book')
-            item.author_name = request.POST.get('author_name', '').strip()
             item.title_of_book = request.POST.get('title_of_book', '').strip()
             item.publisher_name = request.POST.get('publisher_name', '').strip()
             item.publisher_address = request.POST.get('publisher_address', '').strip()
@@ -792,8 +814,9 @@ def scholar_portfolio_add(request, form_type):
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.url_address = request.POST.get('url_address', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
+            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
-            item.staff.set(staff_ids)
+            item.staff.set(selected_staffs)
             messages.success(request, "Book added.")
             
         elif form_type == 'seminar':
@@ -806,7 +829,7 @@ def scholar_portfolio_add(request, form_type):
             item.year = request.POST.get('year', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
             item.save()
-            item.staff.set(staff_ids)
+            item.staff.set(selected_staffs)
             messages.success(request, "Seminar added.")
             
         elif form_type == 'award':
@@ -818,7 +841,7 @@ def scholar_portfolio_add(request, form_type):
             item.description = request.POST.get('description', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
             item.save()
-            item.staff.set(staff_ids)
+            item.staff.set(selected_staffs)
             messages.success(request, "Award added.")
             
         return redirect('scholar_portfolio')
@@ -858,14 +881,22 @@ def scholar_portfolio_edit(request, form_type, pk):
     item = get_object_or_404(ModelClass, pk=pk, student=student)
     
     if request.method == 'POST':
-        staff_ids = request.POST.getlist('staff_ids')
-        if staff_ids:
-            item.staff.set(staff_ids)
+        co_authors = request.POST.getlist('co_authors')
+        if not co_authors:
+            messages.error(request, "Please select at least one Faculty member.")
+            return redirect(request.path)
             
+        selected_staffs = []
+        for cid in co_authors:
+            try:
+                co_staff = Staff.objects.get(staff_id=cid)
+                selected_staffs.append(co_staff)
+            except Staff.DoesNotExist:
+                pass
+                
         if form_type == 'conference':
             item.participation_type = request.POST.get('participation_type', 'Presented')
             item.national_international = request.POST.get('national_international', 'National')
-            item.author_name = request.POST.get('author_name', '').strip()
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.title_of_proceedings = request.POST.get('title_of_proceedings', '').strip()
@@ -877,14 +908,15 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.place_of_publication = request.POST.get('place_of_publication', '').strip()
             item.publisher_proceedings = request.POST.get('publisher_proceedings', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
+            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
+            item.staff.set(selected_staffs)
             messages.success(request, "Conference updated.")
         
         elif form_type == 'journal':
             item.national_international = request.POST.get('national_international', 'National')
             item.published_month = request.POST.get('published_month', '').strip()
             item.published_year = request.POST.get('published_year', '').strip()
-            item.author_name = request.POST.get('author_name', '').strip()
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.journal_name = request.POST.get('journal_name', '').strip()
             item.volume_number = request.POST.get('volume_number', '').strip()
@@ -893,12 +925,13 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.page_numbers_from = request.POST.get('page_numbers_from', '').strip()
             item.page_numbers_to = request.POST.get('page_numbers_to', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
+            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
+            item.staff.set(selected_staffs)
             messages.success(request, "Journal updated.")
             
         elif form_type == 'book':
             item.type = request.POST.get('type', 'Book')
-            item.author_name = request.POST.get('author_name', '').strip()
             item.title_of_book = request.POST.get('title_of_book', '').strip()
             item.publisher_name = request.POST.get('publisher_name', '').strip()
             item.publisher_address = request.POST.get('publisher_address', '').strip()
@@ -909,7 +942,9 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.url_address = request.POST.get('url_address', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
+            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
+            item.staff.set(selected_staffs)
             messages.success(request, "Book updated.")
             
         elif form_type == 'seminar':
@@ -921,6 +956,7 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.year = request.POST.get('year', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
             item.save()
+            item.staff.set(selected_staffs)
             messages.success(request, "Seminar updated.")
             
         elif form_type == 'award':
@@ -931,6 +967,7 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.description = request.POST.get('description', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
             item.save()
+            item.staff.set(selected_staffs)
             messages.success(request, "Award updated.")
             
         return redirect('scholar_portfolio')

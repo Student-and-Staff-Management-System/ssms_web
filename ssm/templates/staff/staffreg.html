@@ -122,6 +122,11 @@
         <textarea name="address" class="form-input" rows="3" required>{{ staff.address|default:'' }}</textarea>
       </div>
 
+      <div class="form-group">
+        <label>Area of Specialization</label>
+        <input type="text" name="specialization" class="form-input" placeholder="e.g. Image Processing, VLSI, Networks" required value="{{ staff.specialization|default:'' }}">
+      </div>
+
       <button type="submit" class="btn-submit">Complete Onboarding & Go to Dashboard</button>
     </form>
   </div>

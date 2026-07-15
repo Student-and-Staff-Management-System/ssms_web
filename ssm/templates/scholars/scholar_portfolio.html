@@ -383,6 +383,21 @@
             color: var(--text-main);
             font-size: 0.9rem;
         }
+        /* Override: labels inside the co-author checklist */
+        .d-modal-body .scrollable-checklist label {
+            display: flex !important;
+            margin-bottom: 0 !important;
+            font-weight: 400 !important;
+            align-items: center;
+        }
+        /* Override: checkboxes inside the co-author checklist */
+        .d-modal-body .scrollable-checklist input[type="checkbox"] {
+            width: auto !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            flex-shrink: 0;
+        }
         .d-modal-body .form-group input,
         .d-modal-body .form-group select,
         .d-modal-body .form-group textarea {
@@ -445,6 +460,50 @@
             margin: 6px 0 0;
             color: #dc2626;
             font-size: 0.83rem;
+        }
+        /* Scrollable checklist for co-authors */
+        .d-modal-body .scrollable-checklist,
+        .scrollable-checklist {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-content: flex-start;
+            gap: 6px 12px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            height: 150px !important;
+            min-height: 150px !important;
+            overflow-y: scroll !important;
+            overflow-x: hidden;
+            background: white;
+            box-sizing: border-box;
+        }
+        .d-modal-body .scrollable-checklist label,
+        .scrollable-checklist label {
+            display: flex !important;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: calc(50% - 6px);
+            min-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .d-modal-body .scrollable-checklist::-webkit-scrollbar,
+        .scrollable-checklist::-webkit-scrollbar {
+            width: 7px;
+        }
+        .d-modal-body .scrollable-checklist::-webkit-scrollbar-track,
+        .scrollable-checklist::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .d-modal-body .scrollable-checklist::-webkit-scrollbar-thumb,
+        .scrollable-checklist::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
         }
         .modal-spinner {
             display: flex;

@@ -5,9 +5,12 @@ from ssm.upload_paths import (
     staff_photo_path, staff_award_document_path, staff_seminar_document_path,
     staff_student_guided_document_path, staff_leave_document_path,
     staff_conference_document_path, staff_journal_document_path,
-    staff_book_document_path, news_documents_path,
+    staff_book_document_path, staff_patent_document_path, news_documents_path,
     staff_qualification_document_path, staff_designation_document_path,
-    staff_seminar_order_path
+    staff_seminar_order_path, staff_joining_order_path, 
+    staff_appointment_order_path, staff_board_order_path, 
+    staff_joining_letter_path, staff_sslc_marksheet_path,
+    staff_hsc_marksheet_path
 )
 
 
@@ -50,6 +53,12 @@ class Staff(models.Model):
     blood_group = models.CharField(max_length=5, null=True, blank=True)
     mobile_number = models.CharField(max_length=15, null=True, blank=True)
     address = models.TextField(blank=True)
+    joining_order = models.FileField(upload_to=staff_joining_order_path, blank=True, null=True, validators=[validate_file_size])
+    appointment_order = models.FileField(upload_to=staff_appointment_order_path, blank=True, null=True, validators=[validate_file_size])
+    board_order = models.FileField(upload_to=staff_board_order_path, blank=True, null=True, validators=[validate_file_size])
+    joining_letter = models.FileField(upload_to=staff_joining_letter_path, blank=True, null=True, validators=[validate_file_size])
+    sslc_marksheet = models.FileField(upload_to=staff_sslc_marksheet_path, blank=True, null=True, validators=[validate_file_size])
+    hsc_marksheet = models.FileField(upload_to=staff_hsc_marksheet_path, blank=True, null=True, validators=[validate_file_size])
 
     # Professional Accomplishments (using TextField for flexibility)
     academic_details = models.TextField(blank=True, help_text="List your degrees and qualifications.")
@@ -634,6 +643,43 @@ class BookPublication(models.Model):
 
     def __str__(self):
         return f"{self.title_of_book} ({self.type})"
+
+
+class StaffPatent(models.Model):
+    PATENT_TYPE_CHOICES = [
+        ('Indian', 'Indian'),
+        ('International', 'International'),
+    ]
+    STATUS_CHOICES = [
+        ('Applied', 'Applied'),
+        ('Published', 'Published'),
+        ('Granted', 'Granted'),
+    ]
+
+    staff = models.ManyToManyField(Staff, related_name='patents', blank=True)
+    title = models.CharField(max_length=500, verbose_name='Title of Invention')
+    application_number = models.CharField(max_length=100, blank=True, verbose_name='Application Number')
+    patent_type = models.CharField(max_length=20, choices=PATENT_TYPE_CHOICES, default='Indian', verbose_name='Patent Type')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Applied', verbose_name='Status')
+    application_year = models.CharField(max_length=10, blank=True, verbose_name='Year of Application')
+    grant_year = models.CharField(max_length=10, blank=True, verbose_name='Year of Grant (if Granted)')
+    inventors = models.CharField(max_length=500, blank=True, verbose_name='Inventor Names (auto-generated)')
+    funding_agency = models.CharField(max_length=255, blank=True, verbose_name='Funding Agency (if any)')
+    description = models.TextField(blank=True, verbose_name='Brief Description')
+    supporting_document = models.FileField(
+        upload_to=staff_patent_document_path,
+        blank=True,
+        null=True,
+        help_text='Upload Patent Certificate / Filing Receipt (Max 100KB)',
+        validators=[validate_file_size]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-application_year', '-created_at']
+
+    def __str__(self):
+        return f"{self.title} [{self.patent_type} · {self.status}]"
 
 
 class MailLog(models.Model):

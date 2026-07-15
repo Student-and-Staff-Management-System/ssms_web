@@ -324,10 +324,11 @@ def staff_register(request):
         doj_str = request.POST.get('date_of_joining')
         mobile_number = request.POST.get('mobile_number')
         address = request.POST.get('address')
+        specialization = request.POST.get('specialization')
         
         # Validation
-        if not email or not dob_str or not doj_str or not mobile_number or not address:
-            messages.error(request, "All fields are required except password & photo.")
+        if not email or not dob_str or not doj_str or not mobile_number or not address or not specialization:
+            messages.error(request, "All fields are required except password, photo, & onboarding documents.")
             return render(request, 'staff/staffreg.html', {'staff': staff})
             
         # Unique email exclusion
@@ -374,6 +375,8 @@ def staff_register(request):
         staff.date_of_joining = doj
         staff.mobile_number = mobile_number
         staff.address = address
+        staff.specialization = specialization
+            
         staff.is_profile_complete = True
         staff.save()
         
@@ -2492,7 +2495,27 @@ def staff_edit_profile(request):
         staff.date_of_birth = dob if dob else None
         doj = request.POST.get('date_of_joining')
         staff.date_of_joining = doj if doj else None
-        pass
+        staff.specialization = request.POST.get('specialization', '')
+
+        # Joining/Onboarding Documents
+        joining_order = request.FILES.get('joining_order')
+        if joining_order:
+            staff.joining_order = joining_order
+        appointment_order = request.FILES.get('appointment_order')
+        if appointment_order:
+            staff.appointment_order = appointment_order
+        board_order = request.FILES.get('board_order')
+        if board_order:
+            staff.board_order = board_order
+        joining_letter = request.FILES.get('joining_letter')
+        if joining_letter:
+            staff.joining_letter = joining_letter
+        sslc_marksheet = request.FILES.get('sslc_marksheet')
+        if sslc_marksheet:
+            staff.sslc_marksheet = sslc_marksheet
+        hsc_marksheet = request.FILES.get('hsc_marksheet')
+        if hsc_marksheet:
+            staff.hsc_marksheet = hsc_marksheet
 
         # New Fields
         staff.research_interests = request.POST.get('research_interests', '')
@@ -2538,6 +2561,7 @@ def staff_portfolio(request):
     qualifications = staff.qualifications.all().order_by('-year_completed')
     designations = staff.past_designations.all()
     memberships = staff.memberships.all()
+    patents = staff.patents.all().order_by('-application_year', '-created_at')
 
     # Dynamic PhD Scholar Guidance — auto-fetched from ResearchScholarProfile.supervisor FK
     from students.models import PhDProgress
@@ -2590,6 +2614,7 @@ def staff_portfolio(request):
         'qualifications': qualifications,
         'designations': designations,
         'memberships': memberships,
+        'patents': patents,
     })
 
 
@@ -2716,13 +2741,27 @@ def portfolio_add_seminar(request):
         )
         sem._temp_staff_id = staff.staff_id
         sem.save()
-        sem.staff.add(staff)
+        
+        # Link co-authors
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        sem.staff.set(selected_staffs)
+        
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', message='Added new seminar')
         messages.success(request, "Seminar added.")
         return redirect('staffs:staff_portfolio')
+        
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'seminar', 'item': None, 'title': 'Add Seminar / Workshop',
+        'staff': staff, 'form_type': 'seminar', 'item': None, 'title': 'Add Seminar / Workshop', 'all_staffs': all_staffs,
     })
 
 # --- New Portfolio Views (Conferences, Journals, Books) ---
@@ -2736,7 +2775,6 @@ def portfolio_add_conference(request):
         item = ConferenceParticipation(
             participation_type=request.POST.get('participation_type', 'Presented'),
             national_international=request.POST.get('national_international', 'National'),
-            author_name=request.POST.get('author_name', ''),
             year_of_publication=request.POST.get('year_of_publication', ''),
             title_of_paper=request.POST.get('title_of_paper', ''),
             title_of_proceedings=request.POST.get('title_of_proceedings', ''),
@@ -2751,12 +2789,27 @@ def portfolio_add_conference(request):
         )
         item._temp_staff_id = staff.staff_id
         item.save()
-        item.staff.add(staff)
+        
+        # Link co-authors and auto-generate author_name
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+        
         messages.success(request, "Conference entry added successfully.")
         return redirect('staffs:staff_portfolio')
     
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'conference', 'item': None, 'title': 'Add Conference Participation',
+        'staff': staff, 'form_type': 'conference', 'item': None, 'title': 'Add Conference Participation', 'all_staffs': all_staffs,
     })
 
 def portfolio_add_journal(request):
@@ -2769,7 +2822,6 @@ def portfolio_add_journal(request):
             national_international=request.POST.get('national_international', 'National'),
             published_month=request.POST.get('published_month', ''),
             published_year=request.POST.get('published_year', ''),
-            author_name=request.POST.get('author_name', ''),
             title_of_paper=request.POST.get('title_of_paper', ''),
             journal_name=request.POST.get('journal_name', ''),
             volume_number=request.POST.get('volume_number', ''),
@@ -2786,12 +2838,27 @@ def portfolio_add_journal(request):
         )
         item._temp_staff_id = staff.staff_id
         item.save()
-        item.staff.add(staff)
+        
+        # Link co-authors and auto-generate author_name
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+                
         messages.success(request, "Journal publication added successfully.")
         return redirect('staffs:staff_portfolio')
     
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'journal', 'item': None, 'title': 'Add Journal Publication',
+        'staff': staff, 'form_type': 'journal', 'item': None, 'title': 'Add Journal Publication', 'all_staffs': all_staffs,
     })
 
 def portfolio_add_book(request):
@@ -2802,7 +2869,6 @@ def portfolio_add_book(request):
         from .models import BookPublication
         item = BookPublication(
             type=request.POST.get('type', 'Book'),
-            author_name=request.POST.get('author_name', ''),
             title_of_book=request.POST.get('title_of_book', ''),
             publisher_name=request.POST.get('publisher_name', ''),
             publisher_address=request.POST.get('publisher_address', ''),
@@ -2816,12 +2882,27 @@ def portfolio_add_book(request):
         )
         item._temp_staff_id = staff.staff_id
         item.save()
-        item.staff.add(staff)
+        
+        # Link co-authors and auto-generate author_name
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+                
         messages.success(request, "Book/Article entry added successfully.")
         return redirect('staffs:staff_portfolio')
     
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Popular Article',
+        'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Popular Article', 'all_staffs': all_staffs,
     })
 
 from .forms import StaffQualificationForm, StaffPastDesignationForm, StaffMembershipForm
@@ -2965,7 +3046,7 @@ def portfolio_delete_entry(request, model_name, pk):
     staff = _get_staff_for_portfolio(request)
     if not staff: return redirect('staffs:stafflogin')
     
-    from .models import ConferenceParticipation, JournalPublication, BookPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, StaffPublication, StaffQualification, StaffPastDesignation, StaffMembership
+    from .models import ConferenceParticipation, JournalPublication, BookPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, StaffPublication, StaffQualification, StaffPastDesignation, StaffMembership, StaffPatent
     
     model_map = {
         'conference': ConferenceParticipation,
@@ -2977,16 +3058,108 @@ def portfolio_delete_entry(request, model_name, pk):
         'qualification': StaffQualification,
         'designation': StaffPastDesignation,
         'membership': StaffMembership,
+        'patent': StaffPatent,
     }
     
     ModelClass = model_map.get(model_name)
     if ModelClass:
-        get_object_or_404(ModelClass, pk=pk, staff=staff).delete()
+        item = get_object_or_404(ModelClass, pk=pk, staff=staff)
+        if model_name in ['journal', 'book', 'conference', 'seminar', 'patent'] and item.staff.count() > 1:
+            item.staff.remove(staff)
+        else:
+            item.delete()
         if model_name == 'designation':
             sync_staff_additional_designation(staff)
         messages.success(request, "Entry deleted.")
     
     return redirect('staffs:staff_portfolio')
+
+def portfolio_add_patent(request):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+
+    if request.method == 'POST':
+        from .models import StaffPatent
+        item = StaffPatent(
+            title=request.POST.get('title', '').strip(),
+            application_number=request.POST.get('application_number', '').strip(),
+            patent_type=request.POST.get('patent_type', 'Indian'),
+            status=request.POST.get('status', 'Applied'),
+            application_year=request.POST.get('application_year', '').strip(),
+            grant_year=request.POST.get('grant_year', '').strip(),
+            funding_agency=request.POST.get('funding_agency', '').strip(),
+            description=request.POST.get('description', '').strip(),
+        )
+        if 'supporting_document' in request.FILES:
+            item.supporting_document = request.FILES['supporting_document']
+        item._temp_staff_id = staff.staff_id
+        item.save()
+        
+        # Link co-inventors and auto-generate inventors field
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.inventors = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+        
+        messages.success(request, "Patent added successfully.")
+        return redirect('staffs:staff_portfolio')
+    
+    all_staffs = Staff.objects.all().order_by('name')
+    return render(request, 'staff/portfolio_form.html', {
+        'staff': staff, 'form_type': 'patent', 'item': None, 'title': 'Add Patent', 'all_staffs': all_staffs,
+    })
+
+
+def portfolio_edit_patent(request, pk):
+    staff = _get_staff_for_portfolio(request)
+    if not staff: return redirect('staffs:stafflogin')
+
+    from .models import StaffPatent
+    item = get_object_or_404(StaffPatent, pk=pk, staff=staff)
+
+    if request.method == 'POST':
+        item.title = request.POST.get('title', '').strip()
+        item.application_number = request.POST.get('application_number', '').strip()
+        item.patent_type = request.POST.get('patent_type', 'Indian')
+        item.status = request.POST.get('status', 'Applied')
+        item.application_year = request.POST.get('application_year', '').strip()
+        item.grant_year = request.POST.get('grant_year', '').strip()
+        item.funding_agency = request.POST.get('funding_agency', '').strip()
+        item.description = request.POST.get('description', '').strip()
+        if 'supporting_document' in request.FILES:
+            item.supporting_document = request.FILES['supporting_document']
+        item._temp_staff_id = staff.staff_id
+        item.save()
+        
+        # Update co-inventors and inventors field
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.inventors = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+        
+        messages.success(request, "Patent updated successfully.")
+        return redirect('staffs:staff_portfolio')
+
+    all_staffs = Staff.objects.all().order_by('name')
+    return render(request, 'staff/portfolio_form.html', {
+        'staff': staff, 'form_type': 'patent', 'item': item, 'title': 'Edit Patent', 'all_staffs': all_staffs,
+    })
 
 
 def portfolio_edit_conference(request, pk):
@@ -3000,7 +3173,6 @@ def portfolio_edit_conference(request, pk):
     if request.method == 'POST':
         item.participation_type = request.POST.get('participation_type', 'Presented')
         item.national_international = request.POST.get('national_international', 'National')
-        item.author_name = request.POST.get('author_name', '').strip()
         item.year_of_publication = request.POST.get('year_of_publication', '').strip()
         item.title_of_paper = request.POST.get('title_of_paper', '').strip()
         item.title_of_proceedings = request.POST.get('title_of_proceedings', '').strip()
@@ -3017,14 +3189,30 @@ def portfolio_edit_conference(request, pk):
         
         item._temp_staff_id = staff.staff_id
         item.save()
+        
+        # Link co-authors and auto-generate author_name
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+        
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, 
                   object_type='Conference', object_id=str(item.pk), message='Updated conference entry')
         messages.success(request, "Conference entry updated successfully.")
         return redirect('staffs:staff_portfolio')
     
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'conference', 'item': item, 'title': 'Edit Conference Participation',
+        'staff': staff, 'form_type': 'conference', 'item': item, 'title': 'Edit Conference Participation', 'all_staffs': all_staffs,
     })
 
 
@@ -3040,7 +3228,6 @@ def portfolio_edit_journal(request, pk):
         item.national_international = request.POST.get('national_international', 'National')
         item.published_month = request.POST.get('published_month', '').strip()
         item.published_year = request.POST.get('published_year', '').strip()
-        item.author_name = request.POST.get('author_name', '').strip()
         item.title_of_paper = request.POST.get('title_of_paper', '').strip()
         item.journal_name = request.POST.get('journal_name', '').strip()
         item.volume_number = request.POST.get('volume_number', '').strip()
@@ -3059,14 +3246,30 @@ def portfolio_edit_journal(request, pk):
         
         item._temp_staff_id = staff.staff_id
         item.save()
+        
+        # Update ManyToMany co-authors and auto-generate author_name
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+        
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, 
                   object_type='Journal', object_id=str(item.pk), message='Updated journal publication')
         messages.success(request, "Journal publication updated successfully.")
         return redirect('staffs:staff_portfolio')
     
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'journal', 'item': item, 'title': 'Edit Journal Publication',
+        'staff': staff, 'form_type': 'journal', 'item': item, 'title': 'Edit Journal Publication', 'all_staffs': all_staffs,
     })
 
 
@@ -3080,7 +3283,6 @@ def portfolio_edit_book(request, pk):
     
     if request.method == 'POST':
         item.type = request.POST.get('type', 'Book')
-        item.author_name = request.POST.get('author_name', '').strip()
         item.title_of_book = request.POST.get('title_of_book', '').strip()
         item.publisher_name = request.POST.get('publisher_name', '').strip()
         item.publisher_address = request.POST.get('publisher_address', '').strip()
@@ -3096,14 +3298,30 @@ def portfolio_edit_book(request, pk):
         
         item._temp_staff_id = staff.staff_id
         item.save()
+        
+        # Update ManyToMany co-authors and auto-generate author_name
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        item.save()
+        item.staff.set(selected_staffs)
+        
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, 
                   object_type='Book', object_id=str(item.pk), message='Updated book/article entry')
         messages.success(request, "Book/Article entry updated successfully.")
         return redirect('staffs:staff_portfolio')
     
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'book', 'item': item, 'title': 'Edit Book / Popular Article',
+        'staff': staff, 'form_type': 'book', 'item': item, 'title': 'Edit Book / Popular Article', 'all_staffs': all_staffs,
     })
 
 
@@ -3129,12 +3347,27 @@ def portfolio_edit_seminar(request, pk):
             item.order_certificate = request.FILES['order_certificate']
         item._temp_staff_id = staff.staff_id
         item.save()
+        
+        # Link co-authors
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        item.staff.set(selected_staffs)
+        
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', object_id=str(item.pk), message='Updated seminar')
         messages.success(request, "Entry updated.")
         return redirect('staffs:staff_portfolio')
+        
+    all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'seminar', 'item': item, 'title': 'Edit Seminar / Workshop / Conference',
+        'staff': staff, 'form_type': 'seminar', 'item': item, 'title': 'Edit Seminar / Workshop / Conference', 'all_staffs': all_staffs,
     })
 
 

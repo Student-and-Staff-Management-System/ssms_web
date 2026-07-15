@@ -587,6 +587,77 @@
             <div id="academic" class="tab-content">
                 <div class="card">
                     <div class="card-header">
+                        <div class="card-title">📌 Specialization & Onboarding Documents</div>
+                    </div>
+                    <div class="info-list" style="margin-bottom: 20px;">
+                        <div class="info-item">
+                            <span class="info-label">Area of Specialization</span>
+                            <span class="info-value">{{ staff.specialization|default:"Not specified" }}</span>
+                        </div>
+                    </div>
+                    <div class="items-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px;">
+                        {% if staff.joining_order %}
+                        <div class="item-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); box-sizing: border-box;">
+                            <div>
+                                <div class="item-title" style="font-size: 0.95rem; font-weight: 600;">Joining Order</div>
+                            </div>
+                            <a href="{{ staff.joining_order.url }}" target="_blank" class="badge" style="background: var(--primary); color: white; text-decoration: none; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;">View</a>
+                        </div>
+                        {% endif %}
+
+                        {% if staff.appointment_order %}
+                        <div class="item-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); box-sizing: border-box;">
+                            <div>
+                                <div class="item-title" style="font-size: 0.95rem; font-weight: 600;">Appointment Order</div>
+                            </div>
+                            <a href="{{ staff.appointment_order.url }}" target="_blank" class="badge" style="background: var(--primary); color: white; text-decoration: none; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;">View</a>
+                        </div>
+                        {% endif %}
+
+                        {% if staff.board_order %}
+                        <div class="item-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); box-sizing: border-box;">
+                            <div>
+                                <div class="item-title" style="font-size: 0.95rem; font-weight: 600;">Board Order</div>
+                            </div>
+                            <a href="{{ staff.board_order.url }}" target="_blank" class="badge" style="background: var(--primary); color: white; text-decoration: none; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;">View</a>
+                        </div>
+                        {% endif %}
+
+                        {% if staff.joining_letter %}
+                        <div class="item-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); box-sizing: border-box;">
+                            <div>
+                                <div class="item-title" style="font-size: 0.95rem; font-weight: 600;">Joining Letter</div>
+                            </div>
+                            <a href="{{ staff.joining_letter.url }}" target="_blank" class="badge" style="background: var(--primary); color: white; text-decoration: none; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;">View</a>
+                        </div>
+                        {% endif %}
+
+                        {% if staff.sslc_marksheet %}
+                        <div class="item-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); box-sizing: border-box;">
+                            <div>
+                                <div class="item-title" style="font-size: 0.95rem; font-weight: 600;">10th Marksheet (SSLC)</div>
+                            </div>
+                            <a href="{{ staff.sslc_marksheet.url }}" target="_blank" class="badge" style="background: var(--primary); color: white; text-decoration: none; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;">View</a>
+                        </div>
+                        {% endif %}
+
+                        {% if staff.hsc_marksheet %}
+                        <div class="item-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); box-sizing: border-box;">
+                            <div>
+                                <div class="item-title" style="font-size: 0.95rem; font-weight: 600;">12th Marksheet (HSC)</div>
+                            </div>
+                            <a href="{{ staff.hsc_marksheet.url }}" target="_blank" class="badge" style="background: var(--primary); color: white; text-decoration: none; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;">View</a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if not staff.joining_order and not staff.appointment_order and not staff.board_order and not staff.joining_letter and not staff.sslc_marksheet and not staff.hsc_marksheet %}
+                        <div style="padding: 10px 0; color: var(--text-light); grid-column: 1 / -1;">No onboarding documents uploaded.</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
                         <div class="card-title">🎓 Qualifications ({{ staff.qualifications.count }})</div>
                     </div>
                     <div class="items-list">

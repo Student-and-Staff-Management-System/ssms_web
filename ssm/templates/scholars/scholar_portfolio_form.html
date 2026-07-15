@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <style>
         :root {
             --primary: #5a7d7c; --primary-dark: #4a6b69;
@@ -55,6 +53,44 @@
         .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
         @media (max-width: 480px) { .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; } }
+        
+        .scrollable-checklist {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 6px 12px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            height: 150px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            background: white;
+            box-sizing: border-box;
+        }
+        .scrollable-checklist label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: calc(50% - 6px);
+            min-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .scrollable-checklist::-webkit-scrollbar {
+            width: 7px;
+        }
+        .scrollable-checklist::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .scrollable-checklist::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -66,16 +102,6 @@
 
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-
-    <div class="form-group" style="background:#eef4f4; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #c2dcdc;">
-        <label for="staff_ids" style="color:#0f3f3f; font-weight:700;">★ Tag Faculty Member(s) (Author/Supervisor) <span style="color:red">*</span></label>
-        <select name="staff_ids" id="staff_ids" multiple required style="width:100%;">
-            {% for staff in staff_list %}
-            <option value="{{ staff.staff_id }}" {% if item and staff in item.staff.all %}selected{% endif %}>{{ staff.name }} ({{ staff.staff_id }})</option>
-            {% endfor %}
-        </select>
-        <div class="form-help" style="color:#4a6b69;">Select one or more faculty members. This will automatically reflect in their profiles.</div>
-    </div>
 
 
             {% if form_type == 'publication' %}
@@ -131,11 +157,22 @@
                 <textarea name="description" placeholder="Optional details…">{% if item %}{{ item.description }}{% endif %}</textarea>
             </div>
             <div class="form-group">
-                <label>Certificate / Letter <small style="color:var(--text-muted);">(Max: 100KB)</small></label>
-                {% if item.supporting_document %}
-                <div class="form-help">Currently: <a href="{{ item.supporting_document.url }}" target="_blank">View File</a></div>
-                {% endif %}
-                <input type="file" name="supporting_document">
+                <label>Linked Faculty Supervisor(s) <span style="color:red">*</span></label>
+                <div class="scrollable-checklist">
+                    <!-- Scholar Option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: not-allowed; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" checked disabled style="width: auto; margin: 0;"> 
+                        Me ({{ student.student_name }})
+                    </label>
+                    {% for s in staff_list %}
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                            {{ s.salutation }} {{ s.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select linked faculty supervisor(s). This will reflect in their portfolios too.</div>
             </div>
             {% endif %}
 
@@ -173,11 +210,22 @@
                 </div>
             </div>
             <div class="form-group">
-                <label>Certificate <small style="color:var(--text-muted);">(Max: 100KB)</small></label>
-                {% if item.supporting_document %}
-                <div class="form-help">Currently: <a href="{{ item.supporting_document.url }}" target="_blank">View File</a></div>
-                {% endif %}
-                <input type="file" name="supporting_document">
+                <label>Co-participants / Linked Faculty <span style="color:red">*</span></label>
+                <div class="scrollable-checklist">
+                    <!-- Scholar Option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: not-allowed; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" checked disabled style="width: auto; margin: 0;"> 
+                        Me ({{ student.student_name }})
+                    </label>
+                    {% for s in staff_list %}
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                            {{ s.salutation }} {{ s.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select linked faculty supervisor(s) / co-participant(s). This will reflect in their portfolios too.</div>
             </div>
             {% endif %}
 
@@ -229,8 +277,22 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author(s) Name</label>
-                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}">
+                <label>Author(s) / Linked Faculty <span style="color:red">*</span></label>
+                <div class="scrollable-checklist">
+                    <!-- Scholar Option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: not-allowed; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" checked disabled style="width: auto; margin: 0;"> 
+                        Me ({{ student.student_name }})
+                    </label>
+                    {% for s in staff_list %}
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                            {{ s.salutation }} {{ s.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select linked faculty supervisor(s) / co-author(s). This will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
                 <label>Title of Paper</label>
@@ -296,8 +358,22 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author Name(s) *</label>
-                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}" required>
+                <label>Author(s) / Linked Faculty <span style="color:red">*</span></label>
+                <div class="scrollable-checklist">
+                    <!-- Scholar Option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: not-allowed; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" checked disabled style="width: auto; margin: 0;"> 
+                        Me ({{ student.student_name }})
+                    </label>
+                    {% for s in staff_list %}
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                            {{ s.salutation }} {{ s.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select linked faculty supervisor(s) / co-author(s). This will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
                 <label>Title of Paper *</label>
@@ -357,8 +433,22 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author Name(s) *</label>
-                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}" required>
+                <label>Author(s) / Linked Faculty <span style="color:red">*</span></label>
+                <div class="scrollable-checklist">
+                    <!-- Scholar Option -->
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: not-allowed; user-select: none; color: var(--primary-dark);">
+                        <input type="checkbox" checked disabled style="width: auto; margin: 0;"> 
+                        Me ({{ student.student_name }})
+                    </label>
+                    {% for s in staff_list %}
+                        <label style="display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="co_authors" value="{{ s.staff_id }}" 
+                                {% if item and s in item.staff.all %}checked{% endif %} style="width: auto; margin: 0;"> 
+                            {{ s.salutation }} {{ s.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+                <div class="form-help">Select linked faculty supervisor(s) / co-author(s). This will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
                 <label>Title of Book / Article *</label>
@@ -412,14 +502,6 @@
             </div>
         </form>
     </div>
-    <script>
-        $(document).ready(function() {
-            $('#staff_ids').select2({
-                placeholder: "-- Search and Select Faculty --",
-                allowClear: true,
-                width: '100%'
-            });
-        });
-    </script>
+
 </body>
 </html>

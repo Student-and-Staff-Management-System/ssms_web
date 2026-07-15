@@ -40,6 +40,8 @@ urlpatterns = [
     path('profile/portfolio/journal/<int:pk>/edit/', views.portfolio_edit_journal, name='portfolio_edit_journal'),
     path('profile/portfolio/book/add/', views.portfolio_add_book, name='portfolio_add_book'),
     path('profile/portfolio/book/<int:pk>/edit/', views.portfolio_edit_book, name='portfolio_edit_book'),
+    path('profile/portfolio/patent/add/', views.portfolio_add_patent, name='portfolio_add_patent'),
+    path('profile/portfolio/patent/<int:pk>/edit/', views.portfolio_edit_patent, name='portfolio_edit_patent'),
     
     path('profile/portfolio/qualification/add/', views.portfolio_add_qualification, name='portfolio_add_qualification'),
     path('profile/portfolio/qualification/<int:pk>/edit/', views.portfolio_edit_qualification, name='portfolio_edit_qualification'),

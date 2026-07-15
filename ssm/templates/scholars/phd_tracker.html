@@ -598,207 +598,361 @@
           <div class="card-header">
             <h3 class="card-title"><i class='bx bx-library'></i> All Uploaded PhD Stage Documents (Student & Staff)</h3>
           </div>
-          <div class="uploaded-grid">
-            
-            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_letter %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Pre-Sub Letter</div>
-                    <div class="file-name">pre_sub_letter</div>
-                </div>
-                <a href="{{ phd_progress.pre_sub_letter.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_attendance %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Pre-Sub Attendance</div>
-                    <div class="file-name">pre_sub_attendance</div>
-                </div>
-                <a href="{{ phd_progress.pre_sub_attendance.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_circular %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Pre-Sub Circular</div>
-                    <div class="file-name">pre_sub_circular</div>
-                </div>
-                <a href="{{ phd_progress.pre_sub_circular.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+          {% if phd_progress.pre_sub_letter or phd_progress.pre_sub_attendance or phd_progress.pre_sub_circular or phd_progress.synopsis_letter_copies or phd_progress.synopsis_copy or phd_progress.synopsis_panel_of_examiner or phd_progress.synopsis_foreign_examiner or phd_progress.synopsis_indian_examiner or phd_progress.thesis_letter_docs or phd_progress.thesis_copy_file or phd_progress.thesis_plagiarism_docs or phd_progress.hardbound_letters_with_corrections or phd_progress.hardbound_final_thesis or phd_progress.hardbound_examiner_report or phd_progress.viva_fixation or phd_progress.viva_student_order or phd_progress.viva_internal_order or phd_progress.viva_external_order or phd_progress.viva_circular or phd_progress.viva_letter_attendance or phd_progress.memo_copy or phd_progress.provisional_challan or phd_progress.provisional_doc or phd_progress.degree_challan or phd_progress.degree_doc %}
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+              
+              <!-- 1. Pre-Submission -->
+              {% if phd_stats.unlocked_stages.PRE_SUBMISSION and phd_progress.pre_sub_letter or phd_progress.pre_sub_attendance or phd_progress.pre_sub_circular %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">1</span>
+                      Pre-Submission Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      {% if phd_progress.pre_sub_letter %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Pre-Sub Letter</div>
+                              <div class="file-name">pre_sub_letter</div>
+                          </div>
+                          <a href="{{ phd_progress.pre_sub_letter.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.pre_sub_attendance %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Pre-Sub Attendance</div>
+                              <div class="file-name">pre_sub_attendance</div>
+                          </div>
+                          <a href="{{ phd_progress.pre_sub_attendance.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.pre_sub_circular %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Pre-Sub Circular</div>
+                              <div class="file-name">pre_sub_circular</div>
+                          </div>
+                          <a href="{{ phd_progress.pre_sub_circular.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                  </div>
+              </div>
+              {% endif %}
 
-            {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_letter_copies %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Synopsis Letter Copies</div>
-                    <div class="file-name">letter_copies</div>
-                </div>
-                <a href="{{ phd_progress.synopsis_letter_copies.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_copy %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Synopsis Document</div>
-                    <div class="file-name">synopsis_copy</div>
-                </div>
-                <a href="{{ phd_progress.synopsis_copy.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+              <!-- 2. Synopsis -->
+              {% if phd_stats.unlocked_stages.SYNOPSIS and phd_progress.synopsis_letter_copies or phd_progress.synopsis_copy or phd_progress.synopsis_panel_of_examiner or phd_progress.synopsis_foreign_examiner or phd_progress.synopsis_indian_examiner %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">2</span>
+                      Synopsis Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      {% if phd_progress.synopsis_letter_copies %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Synopsis Letter Copies</div>
+                              <div class="file-name">letter_copies</div>
+                          </div>
+                          <a href="{{ phd_progress.synopsis_letter_copies.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.synopsis_copy %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Synopsis Document</div>
+                              <div class="file-name">synopsis_copy</div>
+                          </div>
+                          <a href="{{ phd_progress.synopsis_copy.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.synopsis_panel_of_examiner %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Examiner Panel (Staff)</div>
+                              <div class="file-name">panel_of_examiner</div>
+                          </div>
+                          <a href="{{ phd_progress.synopsis_panel_of_examiner.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.synopsis_foreign_examiner %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Foreign Examiner (Staff)</div>
+                              <div class="file-name">foreign_examiner</div>
+                          </div>
+                          <a href="{{ phd_progress.synopsis_foreign_examiner.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.synopsis_indian_examiner %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Indian Examiner (Staff)</div>
+                              <div class="file-name">indian_examiner</div>
+                          </div>
+                          <a href="{{ phd_progress.synopsis_indian_examiner.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                  </div>
+              </div>
+              {% endif %}
 
-            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_letter_docs %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Thesis Letter Docs</div>
-                    <div class="file-name">thesis_letter_docs</div>
-                </div>
-                <a href="{{ phd_progress.thesis_letter_docs.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_copy_file %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Thesis Copy</div>
-                    <div class="file-name">thesis_copy_file</div>
-                </div>
-                <a href="{{ phd_progress.thesis_copy_file.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_plagiarism_docs %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Plagiarism Docs</div>
-                    <div class="file-name">plagiarism_docs</div>
-                </div>
-                <a href="{{ phd_progress.thesis_plagiarism_docs.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+              <!-- 3. Thesis Submission -->
+              {% if phd_stats.unlocked_stages.THESIS_SUBMISSION and phd_progress.thesis_letter_docs or phd_progress.thesis_copy_file or phd_progress.thesis_plagiarism_docs %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">3</span>
+                      Thesis Submission Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      {% if phd_progress.thesis_letter_docs %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Thesis Letter Docs</div>
+                              <div class="file-name">thesis_letter_docs</div>
+                          </div>
+                          <a href="{{ phd_progress.thesis_letter_docs.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.thesis_copy_file %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Thesis Copy</div>
+                              <div class="file-name">thesis_copy_file</div>
+                          </div>
+                          <a href="{{ phd_progress.thesis_copy_file.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.thesis_plagiarism_docs %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Plagiarism Docs</div>
+                              <div class="file-name">plagiarism_docs</div>
+                          </div>
+                          <a href="{{ phd_progress.thesis_plagiarism_docs.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                  </div>
+              </div>
+              {% endif %}
 
-            {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_letters_with_corrections %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Letters w/ Corrections</div>
-                    <div class="file-name">letters_with_corrections</div>
-                </div>
-                <a href="{{ phd_progress.hardbound_letters_with_corrections.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_final_thesis %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Final Thesis</div>
-                    <div class="file-name">final_thesis</div>
-                </div>
-                <a href="{{ phd_progress.hardbound_final_thesis.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+              <!-- 4. Thesis Hardbound -->
+              {% if phd_stats.unlocked_stages.THESIS_HARDBOUND and phd_progress.hardbound_letters_with_corrections or phd_progress.hardbound_final_thesis or phd_progress.hardbound_examiner_report %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">4</span>
+                      Thesis Hardbound Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      {% if phd_progress.hardbound_letters_with_corrections %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Letters w/ Corrections</div>
+                              <div class="file-name">letters_with_corrections</div>
+                          </div>
+                          <a href="{{ phd_progress.hardbound_letters_with_corrections.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.hardbound_final_thesis %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Final Thesis</div>
+                              <div class="file-name">final_thesis</div>
+                          </div>
+                          <a href="{{ phd_progress.hardbound_final_thesis.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.hardbound_examiner_report %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Examiner Report (Staff)</div>
+                              <div class="file-name">examiner_report</div>
+                          </div>
+                          <a href="{{ phd_progress.hardbound_examiner_report.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                  </div>
+              </div>
+              {% endif %}
 
-            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_circular %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Viva Circular</div>
-                    <div class="file-name">viva_circular</div>
-                </div>
-                <a href="{{ phd_progress.viva_circular.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_letter_attendance %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Letter w/ Attendance</div>
-                    <div class="file-name">viva_attendance</div>
-                </div>
-                <a href="{{ phd_progress.viva_letter_attendance.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_student_order %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
-                <div class="file-info">
-                    <div class="file-label">Student Order (Staff)</div>
-                    <div class="file-name">student_order</div>
-                </div>
-                <a href="{{ phd_progress.viva_student_order.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+              <!-- 5. Viva Voce -->
+              {% if phd_stats.unlocked_stages.VIVA_VOCE and phd_progress.viva_fixation or phd_progress.viva_student_order or phd_progress.viva_internal_order or phd_progress.viva_external_order or phd_progress.viva_circular or phd_progress.viva_letter_attendance %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">5</span>
+                      Viva Voce Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      {% if phd_progress.viva_fixation %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Viva Fixation (Staff)</div>
+                              <div class="file-name">viva_fixation</div>
+                          </div>
+                          <a href="{{ phd_progress.viva_fixation.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.viva_student_order %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Student Order (Staff)</div>
+                              <div class="file-name">student_order</div>
+                          </div>
+                          <a href="{{ phd_progress.viva_student_order.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.viva_internal_order %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Internal Order (Staff)</div>
+                              <div class="file-name">internal_order</div>
+                          </div>
+                          <a href="{{ phd_progress.viva_internal_order.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.viva_external_order %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">External Order (Staff)</div>
+                              <div class="file-name">external_order</div>
+                          </div>
+                          <a href="{{ phd_progress.viva_external_order.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.viva_circular %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Viva Circular</div>
+                              <div class="file-name">viva_circular</div>
+                          </div>
+                          <a href="{{ phd_progress.viva_circular.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.viva_letter_attendance %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Letter w/ Attendance</div>
+                              <div class="file-name">viva_attendance</div>
+                          </div>
+                          <a href="{{ phd_progress.viva_letter_attendance.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                  </div>
+              </div>
+              {% endif %}
 
-            {% if phd_stats.unlocked_stages.MEMO and phd_progress.memo_copy %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Memo Copy</div>
-                    <div class="file-name">memo_copy</div>
-                </div>
-                <a href="{{ phd_progress.memo_copy.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+              <!-- 6. Memo -->
+              {% if phd_stats.unlocked_stages.MEMO and phd_progress.memo_copy %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">6</span>
+                      Memo Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Memo Copy</div>
+                              <div class="file-name">memo_copy</div>
+                          </div>
+                          <a href="{{ phd_progress.memo_copy.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                  </div>
+              </div>
+              {% endif %}
 
-            {% if phd_stats.unlocked_stages.PROVISIONAL and phd_progress.provisional_challan %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Provisional Challan</div>
-                    <div class="file-name">provisional_challan</div>
-                </div>
-                <a href="{{ phd_progress.provisional_challan.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.PROVISIONAL and phd_progress.provisional_doc %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
-                <div class="file-info">
-                    <div class="file-label">Provisional Doc (Staff)</div>
-                    <div class="file-name">provisional_doc</div>
-                </div>
-                <a href="{{ phd_progress.provisional_doc.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+              <!-- 7. Provisional -->
+              {% if phd_stats.unlocked_stages.PROVISIONAL and phd_progress.provisional_challan or phd_progress.provisional_doc %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">7</span>
+                      Provisional Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      {% if phd_progress.provisional_challan %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Provisional Challan</div>
+                              <div class="file-name">provisional_challan</div>
+                          </div>
+                          <a href="{{ phd_progress.provisional_challan.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.provisional_doc %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Provisional Doc (Staff)</div>
+                              <div class="file-name">provisional_doc</div>
+                          </div>
+                          <a href="{{ phd_progress.provisional_doc.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                  </div>
+              </div>
+              {% endif %}
 
-            {% if phd_stats.unlocked_stages.DEGREE and phd_progress.degree_challan %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bx-file'></i></div>
-                <div class="file-info">
-                    <div class="file-label">Degree Challan</div>
-                    <div class="file-name">degree_challan</div>
-                </div>
-                <a href="{{ phd_progress.degree_challan.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
-            
-            {% if phd_stats.unlocked_stages.DEGREE and phd_progress.degree_doc %}
-            <div class="file-card">
-                <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
-                <div class="file-info">
-                    <div class="file-label">Degree Doc (Staff)</div>
-                    <div class="file-name">degree_doc</div>
-                </div>
-                <a href="{{ phd_progress.degree_doc.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
-            </div>
-            {% endif %}
+              <!-- 8. Degree -->
+              {% if phd_stats.unlocked_stages.DEGREE and phd_progress.degree_challan or phd_progress.degree_doc %}
+              <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--primary, #5a7d7c); display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      <span style="background: var(--primary, #5a7d7c); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">8</span>
+                      Degree Stage
+                  </h4>
+                  <div class="uploaded-grid" style="margin-top: 0; margin-bottom: 0;">
+                      {% if phd_progress.degree_challan %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bx-file'></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Degree Challan</div>
+                              <div class="file-name">degree_challan</div>
+                          </div>
+                          <a href="{{ phd_progress.degree_challan.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                      {% if phd_progress.degree_doc %}
+                      <div class="file-card">
+                          <div class="file-icon"><i class='bx bxs-file-pdf' style="color:#d97706;"></i></div>
+                          <div class="file-info">
+                              <div class="file-label">Degree Doc (Staff)</div>
+                              <div class="file-name">degree_doc</div>
+                          </div>
+                          <a href="{{ phd_progress.degree_doc.url }}" target="_blank" class="file-action-btn"><i class='bx bx-download'></i></a>
+                      </div>
+                      {% endif %}
+                  </div>
+              </div>
+              {% endif %}
 
           </div>
+          {% else %}
+          <div style="text-align: center; padding: 40px 20px; background: #F9FAFB; border-radius: 8px; border: 1px dashed var(--border);">
+              <i class='bx bx-file' style="font-size: 40px; color: #D1D5DB; margin-bottom: 12px;"></i>
+              <h4 style="color: var(--text); font-weight: 500;">No documents uploaded yet</h4>
+              <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Uploaded documents will appear here stage by stage.</p>
+          </div>
+          {% endif %}
         </div>
 
       </div>

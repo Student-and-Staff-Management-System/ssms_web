@@ -90,6 +90,7 @@
                         <div class="detail-item"><strong>Scholar Type</strong><span>{{ profile.scholar_type|default:"-" }}</span></div>
                         <div class="detail-item"><strong>Admission Date</strong><span>{{ profile.admission_date|default:"-" }}</span></div>
                         <div class="detail-item"><strong>Supervisor</strong><span>{% if profile.supervisor %}{{ profile.supervisor.name }} ({{ profile.supervisor.department }}){% else %}-{% endif %}</span></div>
+                        <div class="detail-item"><strong>Visvesvaraya Scheme</strong><span>{% if profile.is_visvesvaraya_scheme %}Yes{% else %}No{% endif %}</span></div>
                     </div>
                     
                     {% if ug %}

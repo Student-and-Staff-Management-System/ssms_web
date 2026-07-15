@@ -340,7 +340,7 @@
     </div>
 
     <!-- Main Form Wrapper -->
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Tab Nav -->
@@ -402,6 +402,66 @@
                         <h3 style="color: var(--primary); margin-top: 0;">Qualifications & Experience</h3>
                         <p style="color: var(--text-light); margin-bottom: 20px;">Detailed academic qualifications and professional experience are now securely managed within your centralized professional portfolio.</p>
                         <a href="{% url 'staffs:staff_portfolio' %}" class="btn btn-save" style="display: inline-block;">Go to Portfolio Manager</a>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 1.15rem; font-weight: 600;">Joining & Onboarding Details</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="specialization">Area of Specialization</label>
+                            <input type="text" id="specialization" name="specialization"
+                                value="{{ staff.specialization|default:'' }}" placeholder="e.g. Image Processing, VLSI Design, Cloud Computing">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="joining_order">Joining Order Document</label>
+                            <input type="file" id="joining_order" name="joining_order" accept=".pdf,.doc,.docx,.jpg,.png">
+                            {% if staff.joining_order %}
+                                <div style="margin-top: 8px; font-size: 13px;"><a href="{{ staff.joining_order.url }}" target="_blank" style="color: var(--primary); font-weight: 600;">📄 View Joining Order</a></div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appointment_order">Appointment Order</label>
+                            <input type="file" id="appointment_order" name="appointment_order" accept=".pdf,.doc,.docx,.jpg,.png">
+                            {% if staff.appointment_order %}
+                                <div style="margin-top: 8px; font-size: 13px;"><a href="{{ staff.appointment_order.url }}" target="_blank" style="color: var(--primary); font-weight: 600;">📄 View Appointment Order</a></div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="board_order">Board Order</label>
+                            <input type="file" id="board_order" name="board_order" accept=".pdf,.doc,.docx,.jpg,.png">
+                            {% if staff.board_order %}
+                                <div style="margin-top: 8px; font-size: 13px;"><a href="{{ staff.board_order.url }}" target="_blank" style="color: var(--primary); font-weight: 600;">📄 View Board Order</a></div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="joining_letter">Joining Letter</label>
+                            <input type="file" id="joining_letter" name="joining_letter" accept=".pdf,.doc,.docx,.jpg,.png">
+                            {% if staff.joining_letter %}
+                                <div style="margin-top: 8px; font-size: 13px;"><a href="{{ staff.joining_letter.url }}" target="_blank" style="color: var(--primary); font-weight: 600;">📄 View Joining Letter</a></div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sslc_marksheet">10th Marksheet / Certificate (SSLC)</label>
+                            <input type="file" id="sslc_marksheet" name="sslc_marksheet" accept=".pdf,.doc,.docx,.jpg,.png">
+                            {% if staff.sslc_marksheet %}
+                                <div style="margin-top: 8px; font-size: 13px;"><a href="{{ staff.sslc_marksheet.url }}" target="_blank" style="color: var(--primary); font-weight: 600;">📄 View 10th Marksheet</a></div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hsc_marksheet">12th Marksheet / Certificate (HSC)</label>
+                            <input type="file" id="hsc_marksheet" name="hsc_marksheet" accept=".pdf,.doc,.docx,.jpg,.png">
+                            {% if staff.hsc_marksheet %}
+                                <div style="margin-top: 8px; font-size: 13px;"><a href="{{ staff.hsc_marksheet.url }}" target="_blank" style="color: var(--primary); font-weight: 600;">📄 View 12th Marksheet</a></div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>

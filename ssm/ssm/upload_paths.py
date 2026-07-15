@@ -244,6 +244,27 @@ def staff_book_document_path(instance, filename):
     return f'staff/{staff_id}/book_{title_slug}_{year}.{ext}'
 
 
+def staff_patent_document_path(instance, filename):
+    """Upload path for staff patent certificate/documents."""
+    ext = filename.split('.')[-1]
+    title_slug = instance.title[:30].replace(' ', '_').lower() if instance.title else 'patent'
+    year = instance.application_year or 'undated'
+    
+    staff_id = getattr(instance, '_temp_staff_id', None)
+    if not staff_id:
+        try:
+            first_staff = instance.staff.first()
+            if first_staff:
+                staff_id = first_staff.staff_id
+        except Exception:
+            pass
+            
+    if not staff_id:
+        staff_id = 'unknown'
+        
+    return f'staff/{staff_id}/patent_{title_slug}_{year}.{ext}'
+
+
 def staff_qualification_document_path(instance, filename):
     """Upload path for staff qualification certificates."""
     ext = filename.split('.')[-1]
@@ -307,5 +328,36 @@ def staff_seminar_order_path(instance, filename):
         return f'students/{instance.student.roll_number}/seminar_order_{title_slug}_{year}.{ext}'
         
     return f'staff/unknown/seminar_order_{title_slug}_{year}.{ext}'
+
+
+def staff_document_path(instance, filename, doc_type):
+    """Generic path for staff onboarding/registration documents."""
+    ext = filename.split('.')[-1]
+    return f'staff/{instance.staff_id}/{doc_type}.{ext}'
+
+
+def staff_joining_order_path(instance, filename):
+    return staff_document_path(instance, filename, 'joining_order')
+
+
+def staff_appointment_order_path(instance, filename):
+    return staff_document_path(instance, filename, 'appointment_order')
+
+
+def staff_board_order_path(instance, filename):
+    return staff_document_path(instance, filename, 'board_order')
+
+
+def staff_joining_letter_path(instance, filename):
+    return staff_document_path(instance, filename, 'joining_letter')
+
+
+def staff_sslc_marksheet_path(instance, filename):
+    return staff_document_path(instance, filename, 'sslc_marksheet')
+
+
+def staff_hsc_marksheet_path(instance, filename):
+    return staff_document_path(instance, filename, 'hsc_marksheet')
+
 
 
