@@ -413,7 +413,14 @@
     <!-- Welcome Banner -->
     <div class="welcome-banner">
       <div class="welcome-content">
-        <h2 class="welcome-title">Welcome back, {{ student.student_name.split|first }}!</h2>
+        <h2 class="welcome-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+            Welcome back, {{ student.student_name.split|first }}!
+            {% if profile.is_visvesvaraya_scheme %}
+                <span class="badge-visvesvaraya" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1.5px solid rgba(255, 255, 255, 0.4); font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; font-family: 'Outfit', sans-serif;">
+                    🎓 Visvesvaraya Scheme
+                </span>
+            {% endif %}
+        </h2>
         <div class="research-title">
           <i class='bx bx-bulb'></i> 
           {% if zeroth.tentative_title %}
@@ -494,6 +501,15 @@
             <a href="{% url 'scholar_edit_profile' %}" class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; text-decoration: none;">Edit</a>
           </div>
           <div class="info-list">
+            {% if profile.is_visvesvaraya_scheme %}
+            <div class="info-item" style="background: #eff6ff; border: 1.5px solid #bfdbfe;">
+              <div class="info-icon" style="background: #3b82f6; color: white;"><i class='bx bx-award'></i></div>
+              <div class="info-content">
+                <div class="label" style="color: #2563eb; font-weight: 700;">Scheme</div>
+                <div class="value" style="color: #1d4ed8;">Visvesvaraya Scheme</div>
+              </div>
+            </div>
+            {% endif %}
             <div class="info-item">
               <div class="info-icon"><i class='bx bx-id-card'></i></div>
               <div class="info-content">

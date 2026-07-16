@@ -681,7 +681,12 @@
                     <div class="scholars-list">
                         {% for item in students %}
                         <button onclick="selectScholar('{{ item.student.roll_number }}')" class="scholar-card-btn {% if selected_student.roll_number == item.student.roll_number %}active{% endif %}">
-                            <div class="scholar-name">{{ item.student.student_name }}</div>
+                            <div class="scholar-name" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                {{ item.student.student_name }}
+                                {% if item.student.scholar_profile.is_visvesvaraya_scheme %}
+                                    <span class="scheme-badge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; line-height: 1; white-space: nowrap;">Visvesvaraya</span>
+                                {% endif %}
+                            </div>
                             <div class="scholar-roll">
                                 <span>{{ item.student.roll_number }}</span>
                                 <span style="font-weight: 700; color: {% if item.student.is_password_changed %}var(--primary){% else %}#ef4444{% endif %}; font-size: 11px; text-transform: uppercase;">
@@ -721,7 +726,12 @@
                 <!-- Scholar Header Info -->
                 <div style="background:white; border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
                     <div style="flex:1; min-width:200px;">
-                        <h2 style="font-size:1.25rem; font-weight:700; color:var(--dark); margin-bottom:4px;">{{ selected_student.student_name }}</h2>
+                        <h2 style="font-size:1.25rem; font-weight:700; color:var(--dark); margin-bottom:4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            {{ selected_student.student_name }}
+                            {% if selected_student.scholar_profile.is_visvesvaraya_scheme %}
+                                <span class="scheme-badge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-family: inherit; white-space: nowrap;">Visvesvaraya Scheme</span>
+                            {% endif %}
+                        </h2>
                         <p style="font-size:13px; color:var(--text-light);">Roll No: <strong>{{ selected_student.roll_number }}</strong></p>
                         {% if selected_student.scholar_profile.supervisor %}
                         <p style="font-size:13px; color:var(--text-light); margin-top:2px;">

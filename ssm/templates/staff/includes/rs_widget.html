@@ -61,8 +61,13 @@
                         <div class="avatar-initials">{{ student.student_name|slice:":1" }}</div>
                     {% endif %}
                 </div>
-                <div class="scholar-details">
-                    <h4>{{ student.student_name }}</h4>
+                <div class="scholar-details" style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <h4 style="margin: 0;">{{ student.student_name }}</h4>
+                        {% if student.scholar_profile.is_visvesvaraya_scheme %}
+                            <span class="scheme-badge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; white-space: nowrap;">Visvesvaraya</span>
+                        {% endif %}
+                    </div>
                     <p class="roll-number">Roll: {{ student.roll_number }}</p>
                     <div class="guide-info">
                         <i class='bx bx-user-voice' style="font-size: 14px; color: var(--primary);"></i>
