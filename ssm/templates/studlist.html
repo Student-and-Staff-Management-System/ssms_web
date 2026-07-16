@@ -83,7 +83,7 @@
         .search-container {
             margin-bottom: 14px;
             display: grid;
-            grid-template-columns: 1fr 160px auto;
+            grid-template-columns: 1fr 160px auto auto;
             gap: 10px;
             align-items: center;
         }
@@ -345,7 +345,7 @@
         </header>
 
         <form method="GET" class="search-container">
-            <input type="text" name="q" class="search-input" placeholder="Search by Name, Roll Number, or Email..."
+            <input type="text" name="q" class="search-input" placeholder="Search by Name, Roll, or Email..."
                 value="{{ query|default:'' }}">
             <select name="semester" class="filter-select">
                 <option value="">All Semesters</option>
@@ -354,7 +354,14 @@
                 {% endfor %}
                 <option value="9" {% if selected_semester == '9' %}selected{% endif %}> Completed</option>
             </select>
+            <input type="text" name="start_roll" class="search-input" placeholder="Start Roll..."
+                value="{{ start_roll|default:'' }}">
+            <input type="text" name="end_roll" class="search-input" placeholder="End Roll..."
+                value="{{ end_roll|default:'' }}">
             <button type="submit" class="search-btn">Search</button>
+            <button type="button" onclick="exportCSV()" class="action-btn" style="background-color: #16a34a; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 5px; height: 100%; border: none;">
+                📥 Export CSV
+            </button>
         </form>
 
         <div class="student-list">
@@ -371,13 +378,21 @@
                             alt="{{ student.student_name }}" class="student-img">
                         {% endif %}
                     </div>
-                    <div class="student-info">
-                        <h3>{{ student.student_name }}</h3>
-                        <p>{{ student.roll_number }}<br>{{ student.program_level }}</p>
+                    <div class="student-info" style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <h3 style="margin: 0; font-size: 1.1em; font-weight: 600;">{{ student.student_name }}</h3>
+                            {% if student.is_password_changed %}
+                                <span style="background: #e2fbe8; color: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Registered</span>
+                            {% else %}
+                                <span style="background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Not Registered</span>
+                            {% endif %}
+                        </div>
+                        <p style="margin: 4px 0 0 0;">{{ student.roll_number }}<br>{{ student.program_level }}</p>
                     </div>
                 </div>
                 
                 <div class="student-card-body" title="{% if missing %}Missing: {{ missing|join:', ' }}{% else %}Profile Complete!{% endif %}">
+                    {% if student.is_password_changed %}
                     <div class="completion-row">
                         <div class="completion-bar-bg">
                             <div class="completion-bar-fill {% if pct == 100 %}bar-green{% elif pct >= 70 %}bar-amber{% else %}bar-red{% endif %}"
@@ -393,6 +408,18 @@
                     {% else %}
                     <div style="margin-top: 10px; font-size: 0.8em; color: #16a34a; font-weight: 500;">
                         ✅ Profile completely updated
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="completion-row">
+                        <div class="completion-bar-bg" style="background: #fee2e2;">
+                            <div class="completion-bar-fill bar-red" style="width: 0%;"></div>
+                        </div>
+                        <span class="completion-label label-red">0%</span>
+                    </div>
+                    <div class="missing-fields-list" style="color: #ef4444; margin-top: 10px; font-size: 0.8em; font-weight: 500; display: flex; align-items: center; gap: 4px;">
+                        <span class="missing-icon">⚠</span>
+                        <span>Pending Student Registration</span>
                     </div>
                     {% endif %}
                 </div>
@@ -430,6 +457,13 @@
             // Smooth scroll is also handled by CSS 'scroll-behavior: smooth' on body
             document.body.scrollTop = 0; // For Safari
             document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        }
+
+        function exportCSV() {
+            const form = document.querySelector('.search-container');
+            const urlParams = new URLSearchParams(new FormData(form));
+            urlParams.append('export', 'csv');
+            window.location.href = `${window.location.pathname}?${urlParams.toString()}`;
         }
     </script>
 </body>

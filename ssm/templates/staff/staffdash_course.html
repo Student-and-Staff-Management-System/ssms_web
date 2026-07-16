@@ -69,6 +69,36 @@
                 </a>
             </nav>
 
+            {% if staff.role == 'HOD' %}
+            <nav class="nav-section">
+                <div class="nav-label">Administration</div>
+                <a href="{% url 'staffs:hod_leave_dashboard' %}" class="nav-item">
+                    <span class="nav-icon">👔</span> Staff Leaves
+                </a>
+                <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item">
+                    <span class="nav-icon">📝</span> Student Leaves
+                </a>
+                <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="nav-item">
+                    <span class="nav-icon">🎓</span> Portfolio Approvals
+                </a>
+                <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item">
+                    <span class="nav-icon">📢</span> Send Notification
+                </a>
+                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" style="color: var(--primary-dark);"
+                    target="_blank" rel="noopener noreferrer">
+                    <span class="nav-icon">⚙️</span> Admin Portal
+                </a>
+            </nav>
+            {% elif staff.is_admin %}
+            <nav class="nav-section">
+                <div class="nav-label">Administration</div>
+                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" style="color: var(--primary-dark);"
+                    target="_blank" rel="noopener noreferrer">
+                    <span class="nav-icon">⚙️</span> Admin Portal
+                </a>
+            </nav>
+            {% endif %}
+
             <div class="profile-mini">
                 {% if staff.photo %}
                 <img src="{{ staff.photo.url }}" alt="Profile">

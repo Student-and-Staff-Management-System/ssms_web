@@ -29,12 +29,12 @@ class Staff(models.Model):
     )
 
     # Professional Details
-    salutation = models.CharField(max_length=10, choices=[('Dr.', 'Dr.'), ('Prof.', 'Prof.'), ('Mr.', 'Mr.'), ('Ms.', 'Ms.')])
-    designation = models.CharField(max_length=100)
+    salutation = models.CharField(max_length=10, choices=[('Dr.', 'Dr.'), ('Prof.', 'Prof.'), ('Mr.', 'Mr.'), ('Ms.', 'Ms.')], blank=True)
+    designation = models.CharField(max_length=100, blank=True)
     additional_designation = models.CharField(max_length=100, blank=True, null=True)
     department = models.CharField(max_length=100, default="Information Technology")
-    qualification = models.CharField(max_length=255)
-    specialization = models.CharField(max_length=255)
+    qualification = models.CharField(max_length=255, blank=True)
+    specialization = models.CharField(max_length=255, blank=True)
     
     ROLE_CHOICES = [
         ('HOD', 'HOD'),
@@ -79,6 +79,15 @@ class Staff(models.Model):
 
     is_active = models.BooleanField(default=True)
     is_profile_complete = models.BooleanField(default=False)
+    is_admin = models.BooleanField(
+        default=False,
+        verbose_name="Is Admin",
+        help_text="Designates whether this staff member has administrative access."
+    )
+
+    @property
+    def is_staff_admin(self):
+        return self.role == 'HOD' or self.is_admin
 
     def clean(self):
         """Validate staff role assignments."""

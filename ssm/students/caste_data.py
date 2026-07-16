@@ -124,7 +124,7 @@ CASTE_DATA = {
         "Podikara Vellalar", "Pooluva Gounder", "Poraya", "Pulavar ( in Coimbatore and Erode Districts )", "Pulluvar or Pooluvar", "Pusala", "Reddy ( Ganjam )",
         "Sadhu Chetty ( including Telugu Chetty, Twenty four Manai Telugu Chetty)", "Sakkaravar or Kavathi ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )",
         "Salivagana", "Saliyar, Padmasaliyar, Pattusaliyar, Pattariyar, and Adhaviyar", "Savalakkarar",
-        "Senaithalaivar, Senaikudiyar and Illaivaniar", "Serakula Vellalar", "Sourashtra ( Patnulkarar )",
+        "Senaithalaivar, Senaikudiyar and Illaivaniar", "Serakula Vellalar","Segunthar Mudhaliyar", "Sourashtra ( Patnulkarar )",
         "Sozhiavellalar ( including Sozha Vellalar, Vetrilaikarar, Kodikalkarar and Keeraikarar )", "Srisayar", "Sundaram Chetty",
         "Thogatta Veerakshatriya", "Tholkollar ( in Kanniyakumari District and Shencottah Taluk of Tirunelveli District )",
         "Tholuva Naicker and Vetalakara Naicker", "Thoraiyar", "Thoriyar", "Ukkirakula Kshatriya Naicker", "Uppara, Uppillia and Sagara",

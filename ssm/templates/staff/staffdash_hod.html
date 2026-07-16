@@ -126,7 +126,7 @@
                         {{ staff.name }}
                     </div>
                     <div style="font-size: 0.75rem; color: var(--text-muted);">
-                        Head of Dept
+                        {% if staff.role == 'HOD' %}Head of Dept{% else %}Administrator{% endif %}
                         {% if staff.additional_designation %}
                         <div style="color: var(--primary); font-weight: 600; margin-top: 2px;">{{ staff.additional_designation }}</div>
                         {% endif %}

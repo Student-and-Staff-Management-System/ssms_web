@@ -684,12 +684,18 @@
                             <div class="scholar-name">{{ item.student.student_name }}</div>
                             <div class="scholar-roll">
                                 <span>{{ item.student.roll_number }}</span>
-                                <span style="font-weight: 600; color: var(--primary);">{{ item.progress.get_current_stage_display }}</span>
+                                <span style="font-weight: 700; color: {% if item.student.is_password_changed %}var(--primary){% else %}#ef4444{% endif %}; font-size: 11px; text-transform: uppercase;">
+                                    {% if item.student.is_password_changed %}
+                                        {{ item.progress.get_current_stage_display|default:"RAC REVIEW" }}
+                                    {% else %}
+                                        Not Registered
+                                    {% endif %}
+                                </span>
                             </div>
                             
                             <!-- Overall Progress Bar Mini -->
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" style="width: {{ item.stats.overall_percent }}%;"></div>
+                            <div class="mini-progress-bar" style="{% if not item.student.is_password_changed %}background: #fee2e2;{% endif %}">
+                                <div class="mini-progress-fill" style="width: {% if item.student.is_password_changed %}{{ item.stats.overall_percent }}{% else %}0{% endif %}%; {% if not item.student.is_password_changed %}background: #ef4444;{% endif %}"></div>
                             </div>
                             
                             <!-- Deadline Warning Tag -->

@@ -545,7 +545,8 @@ def student_list(request):
 
     query = request.GET.get('q')
     semester = request.GET.get('semester')
-    
+    start_roll = request.GET.get('start_roll')
+    end_roll = request.GET.get('end_roll')
     
     students = Student.objects.all().select_related('studentdocuments')
 
@@ -576,6 +577,11 @@ def student_list(request):
         except ValueError:
             pass  # ignore invalid semester input
 
+    if start_roll:
+        students = students.filter(roll_number__gte=start_roll)
+    if end_roll:
+        students = students.filter(roll_number__lte=end_roll)
+
     # Compute profile completion for each student
     from students.views import get_profile_completion_data
     students_with_completion = []
@@ -587,10 +593,113 @@ def student_list(request):
             'missing_fields': comp['missing_fields'],
         })
 
+    if request.GET.get('export') == 'csv':
+        import csv
+        from django.http import HttpResponse
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="student_directory.csv"'
+        writer = csv.writer(response)
+        
+        # CSV Headers
+        writer.writerow([
+            'Roll Number', 
+            'Register Number', 
+            'Student Name', 
+            'Student Email', 
+            'Program Level', 
+            'Current Semester', 
+            'Starting Year (Joining Year)', 
+            'Ending Year', 
+            'Status'
+        ])
+        
+        # Map existing students by roll_number for fast lookup
+        existing_map = {}
+        for item in students_with_completion:
+            s = item['student']
+            existing_map[s.roll_number] = item
+
+        # Determine sequence if start_roll and end_roll are numeric
+        try:
+            start_int = int(start_roll) if start_roll else None
+            end_int = int(end_roll) if end_roll else None
+            is_range = (start_int is not None and end_int is not None)
+        except (ValueError, TypeError):
+            is_range = False
+
+        if is_range and start_int <= end_int:
+            # Generate all roll numbers in the sequence preserving string length
+            length = len(start_roll)
+            sequence_rolls = [str(x).zfill(length) for x in range(start_int, end_int + 1)]
+            
+            for r_num in sequence_rolls:
+                if r_num in existing_map:
+                    item = existing_map[r_num]
+                    s = item['student']
+                    pct = item['completion_pct']
+                    if s.is_password_changed:
+                        status_str = f"Registered ({pct}%)"
+                    elif s.password and s.password.strip() != "":
+                        status_str = "Not Registered (Password Generated)"
+                    else:
+                        status_str = "No Password Generated"
+                    
+                    writer.writerow([
+                        f'="{s.roll_number}"',
+                        f'="{s.register_number}"' if s.register_number else '',
+                        s.student_name,
+                        s.student_email or '',
+                        s.program_level,
+                        s.current_semester,
+                        s.joining_year or '',
+                        s.ending_year or '',
+                        status_str
+                    ])
+                else:
+                    # In-between roll number not in DB
+                    writer.writerow([
+                        f'="{r_num}"',
+                        '',
+                        'Not Found (Not Generated)',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '3rd No Password Generated'
+                    ])
+        else:
+            # Fallback: Just output existing filtered records
+            for item in students_with_completion:
+                s = item['student']
+                pct = item['completion_pct']
+                if s.is_password_changed:
+                    status_str = f"1st Registered ({pct}%)"
+                elif s.password and s.password.strip() != "":
+                    status_str = "2nd Not Registered (Password Generated)"
+                else:
+                    status_str = "3rd No Password Generated"
+                
+                writer.writerow([
+                    f'="{s.roll_number}"',
+                    f'="{s.register_number}"' if s.register_number else '',
+                    s.student_name,
+                    s.student_email or '',
+                    s.program_level,
+                    s.current_semester,
+                    s.joining_year or '',
+                    s.ending_year or '',
+                    status_str
+                ])
+            
+        return response
+
     return render(request, 'studlist.html', {
         'students_with_completion': students_with_completion,
         'query': query,
-        'selected_semester': semester
+        'selected_semester': semester,
+        'start_roll': start_roll,
+        'end_roll': end_roll
     })
 
 
@@ -2131,8 +2240,8 @@ def admin_portal_login(request):
     except Staff.DoesNotExist:
         return redirect('staffs:stafflogin')
 
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: Only HOD can access Admin Portal.")
+    if staff.role != 'HOD' and not staff.is_admin:
+        messages.error(request, "Access Denied: Only HOD and Admin can access Admin Portal.")
         return redirect('staffs:staff_dashboard')
 
     from django.contrib.auth.models import User

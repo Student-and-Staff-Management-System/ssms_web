@@ -15,17 +15,17 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('staff_id', 'name', 'designation', 'role', 'assigned_semester', 'department')
-    list_editable = ('role', 'assigned_semester')
+    list_display = ('staff_id', 'name', 'designation', 'role', 'is_admin', 'assigned_semester', 'department')
+    list_editable = ('role', 'is_admin', 'assigned_semester')
     search_fields = ('staff_id', 'name', 'email')
-    list_filter = ('role', 'department', 'designation')
+    list_filter = ('role', 'is_admin', 'department', 'designation')
     fieldsets = (
         ('Basic Info', {
             'fields': ('staff_id', 'name', 'email', 'photo')
         }),
         ('Role & Designation', {
-            'fields': ('role', 'assigned_semester', 'salutation', 'designation', 'department'),
-            'description': 'Note: Only one HOD is allowed. Class Incharge must be assigned to a unique semester.'
+            'fields': ('role', 'is_admin', 'assigned_semester', 'salutation', 'designation', 'department'),
+            'description': 'Note: Only one HOD is allowed. Multiple admins can be set by checking "Is Admin". Class Incharge must be assigned to a unique semester.'
         }),
         ('Professional Details', {
             'fields': ('qualification', 'specialization', 'experience')
@@ -41,8 +41,67 @@ class StaffAdmin(admin.ModelAdmin):
         }),
     )
     
+    def get_logged_in_staff(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return None
+        try:
+            return Staff.objects.filter(email=request.user.email).first()
+        except Exception:
+            return None
+
+    def has_change_permission(self, request, obj=None):
+        has_perm = super().has_change_permission(request, obj)
+        if not has_perm:
+            return False
+        if obj:
+            # If the target object is an admin (HOD or is_admin)
+            if obj.role == 'HOD' or obj.is_admin:
+                logged_in = self.get_logged_in_staff(request)
+                # Only the HOD can modify admin profiles
+                if logged_in and logged_in.role != 'HOD':
+                    return False
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        has_perm = super().has_delete_permission(request, obj)
+        if not has_perm:
+            return False
+        if obj:
+            if obj.role == 'HOD' or obj.is_admin:
+                logged_in = self.get_logged_in_staff(request)
+                if logged_in and logged_in.role != 'HOD':
+                    return False
+        return True
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        logged_in = self.get_logged_in_staff(request)
+        if logged_in and logged_in.role != 'HOD':
+            # Additional admins cannot toggle is_admin or role in detail view
+            if 'is_admin' not in fields:
+                fields.append('is_admin')
+            if 'role' not in fields:
+                fields.append('role')
+        return fields
+
     def save_model(self, request, obj, form, change):
-        obj.full_clean()
+        if change:
+            logged_in = self.get_logged_in_staff(request)
+            if logged_in and logged_in.role != 'HOD':
+                original = Staff.objects.get(pk=obj.pk)
+                # Prevent modifying administrator status
+                if original.is_admin != obj.is_admin:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError("You do not have permission to modify administrator status.")
+                # Prevent modifying roles
+                if original.role != obj.role:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError("You do not have permission to modify staff roles.")
+                # Prevent modifying existing admin profiles
+                if original.role == 'HOD' or original.is_admin:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError("You do not have permission to modify administrator profiles.")
+        obj.clean()
         super().save_model(request, obj, form, change)
 
 @admin.register(ExamSchedule)
