@@ -518,6 +518,21 @@ def student_dashboard(request):
     from students.models import LeaveRequest
     recent_leaves = LeaveRequest.objects.filter(student=student).order_by('-created_at')[:5]
 
+    # Fetch Class Representatives for the student's batch
+    class_representatives = []
+    if student.lab_batch:
+        class_representatives = Student.objects.filter(
+            current_semester=student.current_semester,
+            lab_batch=student.lab_batch,
+            is_class_representative=True
+        ).only('student_name', 'roll_number')
+
+    # Fetch Class Contacts and Officers
+    from staffs.models import Staff
+    timetable_incharges = Staff.objects.filter(is_timetable_incharge=True).only('name', 'mobile_number')
+    scholarship_officers = Staff.objects.filter(is_scholarship_officer=True).only('name', 'mobile_number')
+    class_incharge = Staff.objects.filter(role='Class Incharge', assigned_semester=student.current_semester).first()
+
     # Helper for calendar data
     calendar_data = get_attendance_calendar_data(student)
 
@@ -533,6 +548,10 @@ def student_dashboard(request):
         'gpa_records': gpa_records,  # Added for History View
         'skills': skills,
         'projects': projects,
+        'class_representatives': class_representatives,
+        'timetable_incharges': timetable_incharges,
+        'scholarship_officers': scholarship_officers,
+        'class_incharge': class_incharge,
 
         'today': timezone.now().strftime('%A'),
         'calendar_data': calendar_data,
@@ -562,23 +581,79 @@ def get_profile_completion_data(student):
         # Student model
         'student_name': 'Full Name',
         'student_email': 'Email Address',
+        'register_number': 'Register Number',
         'program_level': 'Program Level',
         'current_semester': 'Current Semester',
         # PersonalInfo
         'date_of_birth': 'Date of Birth',
         'gender': 'Gender',
+        'blood_group': 'Blood Group',
+        'community': 'Community',
+        'religion': 'Religion',
+        'aadhaar_number': 'Aadhaar Number',
+        'permanent_address': 'Permanent Address',
+        'present_address': 'Present Address',
         'student_mobile': 'Mobile Number',
         'father_name': "Father's Name",
+        'father_occupation': "Father's Occupation",
         'father_mobile': "Father's Mobile",
-        'present_address': 'Present Address',
+        'mother_name': "Mother's Name",
+        'mother_occupation': "Mother's Occupation",
+        'mother_mobile': "Mother's Mobile",
+        'parent_annual_income': 'Parent Annual Income',
+        # BankDetails
+        'account_holder_name': 'Bank Account Holder Name',
+        'account_number': 'Bank Account Number',
+        'bank_name': 'Bank Name',
+        'branch_name': 'Bank Branch Name',
+        'ifsc_code': 'Bank IFSC Code',
         # AcademicHistory
+        'sslc_register_number': 'SSLC Register Number',
         'sslc_percentage': 'SSLC Percentage',
         'sslc_year_of_passing': 'SSLC Year of Passing',
+        'sslc_school_name': 'SSLC School Name',
+        'sslc_school_address': 'SSLC School Address',
+        'sslc_board': 'SSLC Board',
+        'hsc_register_number': 'HSC Register Number',
         'hsc_percentage': 'HSC Percentage',
         'hsc_year_of_passing': 'HSC Year of Passing',
+        'hsc_school_name': 'HSC School Name',
+        'hsc_board': 'HSC Board',
+        'hsc_school_address': 'HSC School Address',
+        # DiplomaDetails
+        'diploma_register_number': 'Diploma Register Number',
+        'diploma_percentage': 'Diploma Percentage',
+        'diploma_year_of_passing': 'Diploma Year of Passing',
+        'diploma_college_name': 'Diploma College Name',
+        'diploma_college_address': 'Diploma College Address',
+        # UGDetails
+        'ug_course': 'UG Course',
+        'ug_college_name': 'UG College Name',
+        'ug_college_address': 'UG College Address',
+        'ug_university': 'UG University',
+        'ug_ogpa': 'UG OGPA / Percentage',
+        'ug_year_of_passing': 'UG Year of Passing',
+        # PGDetails
+        'pg_course': 'PG Course',
+        'pg_college_name': 'PG College Name',
+        'pg_college_address': 'PG College Address',
+        'pg_university': 'PG University',
+        'pg_ogpa': 'PG OGPA / Percentage',
+        'pg_year_of_passing': 'PG Year of Passing',
+        # StudentDocuments
+        'student_photo': 'Uploaded Photo',
+        'student_id_card': 'Uploaded ID Card',
+        'community_certificate': 'Uploaded Community Certificate',
+        'aadhaar_card': 'Uploaded Aadhaar Card',
+        'sslc_marksheet': 'Uploaded SSLC Marksheet',
+        'hsc_marksheet': 'Uploaded HSC Marksheet',
+        'ug_marksheet': 'Uploaded UG Marksheet',
+        'pg_marksheet': 'Uploaded PG Marksheet',
+        'income_certificate': 'Uploaded Income Certificate',
+        'bank_passbook': 'Uploaded Bank Passbook',
     }
 
-    def check_fields(model_instance, fields_to_check, section_label=''):
+    def check_fields(model_instance, fields_to_check):
         nonlocal total_fields, filled_fields
         if not model_instance:
             total_fields += len(fields_to_check)
@@ -594,27 +669,109 @@ def get_profile_completion_data(student):
                 missing_fields.append(FIELD_LABELS.get(field, field.replace('_', ' ').title()))
 
     # 1. Student core fields
-    check_fields(student, ['student_name', 'student_email', 'program_level', 'current_semester'])
+    check_fields(student, ['student_name', 'student_email', 'register_number', 'program_level', 'current_semester'])
 
     # 2. Personal Info
+    from students.models import PersonalInfo, BankDetails, AcademicHistory, DiplomaDetails, UGDetails, PGDetails, StudentDocuments
     try:
         p_info = getattr(student, 'personalinfo', None)
         if not p_info:
             p_info = PersonalInfo.objects.filter(student=student).first()
-        check_fields(p_info, ['date_of_birth', 'gender', 'student_mobile', 'father_name', 'father_mobile', 'present_address'])
+        check_fields(p_info, [
+            'date_of_birth', 'gender', 'blood_group', 'community', 'religion', 'aadhaar_number',
+            'permanent_address', 'present_address', 'student_mobile', 'father_name', 'father_occupation',
+            'father_mobile', 'mother_name', 'mother_occupation', 'mother_mobile', 'parent_annual_income'
+        ])
     except Exception:
-        total_fields += 6
-        for f in ['date_of_birth', 'gender', 'student_mobile', 'father_name', 'father_mobile', 'present_address']:
-            missing_fields.append(FIELD_LABELS.get(f, f))
+        check_fields(None, [
+            'date_of_birth', 'gender', 'blood_group', 'community', 'religion', 'aadhaar_number',
+            'permanent_address', 'present_address', 'student_mobile', 'father_name', 'father_occupation',
+            'father_mobile', 'mother_name', 'mother_occupation', 'mother_mobile', 'parent_annual_income'
+        ])
 
-    # 3. Academic History
+    # 3. Bank Details
     try:
-        acad = AcademicHistory.objects.filter(student=student).first()
-        check_fields(acad, ['sslc_percentage', 'sslc_year_of_passing', 'hsc_percentage', 'hsc_year_of_passing'])
+        bank = getattr(student, 'bankdetails', None)
+        if not bank:
+            bank = BankDetails.objects.filter(student=student).first()
+        check_fields(bank, ['account_holder_name', 'account_number', 'bank_name', 'branch_name', 'ifsc_code'])
     except Exception:
-        total_fields += 4
-        for f in ['sslc_percentage', 'sslc_year_of_passing', 'hsc_percentage', 'hsc_year_of_passing']:
-            missing_fields.append(FIELD_LABELS.get(f, f))
+        check_fields(None, ['account_holder_name', 'account_number', 'bank_name', 'branch_name', 'ifsc_code'])
+
+    # 4. Academic Details (SSLC required for all)
+    try:
+        acad = getattr(student, 'academichistory', None)
+        if not acad:
+            acad = AcademicHistory.objects.filter(student=student).first()
+        check_fields(acad, ['sslc_register_number', 'sslc_percentage', 'sslc_year_of_passing', 'sslc_school_name', 'sslc_school_address', 'sslc_board'])
+    except Exception:
+        check_fields(None, ['sslc_register_number', 'sslc_percentage', 'sslc_year_of_passing', 'sslc_school_name', 'sslc_school_address', 'sslc_board'])
+
+    # 5. HSC or Diploma
+    is_lateral = (student.program_level == 'UG' and student.ug_entry_type == 'Lateral')
+    if is_lateral:
+        try:
+            diploma = getattr(student, 'diplomadetails', None)
+            if not diploma:
+                diploma = DiplomaDetails.objects.filter(student=student).first()
+            check_fields(diploma, ['diploma_register_number', 'diploma_percentage', 'diploma_year_of_passing', 'diploma_college_name', 'diploma_college_address'])
+        except Exception:
+            check_fields(None, ['diploma_register_number', 'diploma_percentage', 'diploma_year_of_passing', 'diploma_college_name', 'diploma_college_address'])
+    else:
+        try:
+            acad = getattr(student, 'academichistory', None)
+            if not acad:
+                acad = AcademicHistory.objects.filter(student=student).first()
+            check_fields(acad, ['hsc_register_number', 'hsc_percentage', 'hsc_year_of_passing', 'hsc_school_name', 'hsc_board', 'hsc_school_address'])
+        except Exception:
+            check_fields(None, ['hsc_register_number', 'hsc_percentage', 'hsc_year_of_passing', 'hsc_school_name', 'hsc_board', 'hsc_school_address'])
+
+    # 6. UG Details (for PG / PHD)
+    is_pg_or_phd = (student.program_level in ['PG', 'PHD'])
+    if is_pg_or_phd:
+        try:
+            ug = getattr(student, 'ugdetails', None)
+            if not ug:
+                ug = UGDetails.objects.filter(student=student).first()
+            check_fields(ug, ['ug_course', 'ug_college_name', 'ug_college_address', 'ug_university', 'ug_ogpa', 'ug_year_of_passing'])
+        except Exception:
+            check_fields(None, ['ug_course', 'ug_college_name', 'ug_college_address', 'ug_university', 'ug_ogpa', 'ug_year_of_passing'])
+
+    # 7. PG Details (for PHD)
+    is_phd = (student.program_level == 'PHD')
+    if is_phd:
+        try:
+            pg = getattr(student, 'pgdetails', None)
+            if not pg:
+                pg = PGDetails.objects.filter(student=student).first()
+            check_fields(pg, ['pg_course', 'pg_college_name', 'pg_college_address', 'pg_university', 'pg_ogpa', 'pg_year_of_passing'])
+        except Exception:
+            check_fields(None, ['pg_course', 'pg_college_name', 'pg_college_address', 'pg_university', 'pg_ogpa', 'pg_year_of_passing'])
+
+    # 8. Student Documents
+    try:
+        docs = getattr(student, 'studentdocuments', None)
+        if not docs:
+            docs = StudentDocuments.objects.filter(student=student).first()
+        
+        doc_fields = ['student_photo', 'student_id_card', 'community_certificate', 'aadhaar_card', 'sslc_marksheet', 'bank_passbook']
+        if not is_lateral:
+            doc_fields.append('hsc_marksheet')
+        if is_pg_or_phd:
+            doc_fields.append('ug_marksheet')
+        if is_phd:
+            doc_fields.append('pg_marksheet')
+            
+        check_fields(docs, doc_fields)
+    except Exception:
+        doc_fields = ['student_photo', 'student_id_card', 'community_certificate', 'aadhaar_card', 'sslc_marksheet', 'bank_passbook']
+        if not is_lateral:
+            doc_fields.append('hsc_marksheet')
+        if is_pg_or_phd:
+            doc_fields.append('ug_marksheet')
+        if is_phd:
+            doc_fields.append('pg_marksheet')
+        check_fields(None, doc_fields)
 
     percentage = int((filled_fields / total_fields) * 100) if total_fields > 0 else 0
     return {

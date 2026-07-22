@@ -84,6 +84,16 @@ class Staff(models.Model):
         verbose_name="Is Admin",
         help_text="Designates whether this staff member has administrative access."
     )
+    is_timetable_incharge = models.BooleanField(
+        default=False,
+        verbose_name="Timetable Incharge",
+        help_text="Designates whether this staff member is a timetable incharge."
+    )
+    is_scholarship_officer = models.BooleanField(
+        default=False,
+        verbose_name="Scholarship Officer",
+        help_text="Designates whether this staff member is a scholarship officer."
+    )
 
     @property
     def is_staff_admin(self):
@@ -99,6 +109,18 @@ class Staff(models.Model):
             if existing_hod.exists():
                 raise ValidationError({
                     'role': f'Only one HOD is allowed. Current HOD: {existing_hod.first().name} ({existing_hod.first().staff_id})'
+                })
+        
+        # Validate additional admin count limit
+        if self.is_admin:
+            max_allowed = AdminSettings.get_max_additional_admins()
+            existing_admins = Staff.objects.filter(is_admin=True)
+            if self.pk:
+                existing_admins = existing_admins.exclude(pk=self.pk)
+            
+            if existing_admins.count() >= max_allowed:
+                raise ValidationError({
+                    'is_admin': f'Cannot assign admin role. The maximum limit of additional admins ({max_allowed}) has been reached.'
                 })
         
         # Validate Class Incharge semester uniqueness
@@ -119,6 +141,26 @@ class Staff(models.Model):
                 'assigned_semester': 'Class Incharge must be assigned to a specific semester (1-8).'
             })
 
+        # Validate timetable incharge limit (max 2)
+        if self.is_timetable_incharge:
+            existing_tt = Staff.objects.filter(is_timetable_incharge=True)
+            if self.pk:
+                existing_tt = existing_tt.exclude(pk=self.pk)
+            if existing_tt.count() >= 2:
+                raise ValidationError({
+                    'is_timetable_incharge': 'Cannot assign timetable incharge. The maximum limit of 2 timetable incharges has been reached.'
+                })
+
+        # Validate scholarship officer limit (max 2)
+        if self.is_scholarship_officer:
+            existing_sch = Staff.objects.filter(is_scholarship_officer=True)
+            if self.pk:
+                existing_sch = existing_sch.exclude(pk=self.pk)
+            if existing_sch.count() >= 2:
+                raise ValidationError({
+                    'is_scholarship_officer': 'Cannot assign scholarship officer. The maximum limit of 2 scholarship officers has been reached.'
+                })
+
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
 
@@ -133,6 +175,75 @@ class StaffGenerator(Staff):
         proxy = True
         verbose_name = "Generate Staff"
         verbose_name_plural = "Generate Staff"
+
+
+class AdminSettings(models.Model):
+    max_additional_admins = models.PositiveIntegerField(
+        default=3,
+        verbose_name="Max Additional Admins",
+        help_text="The maximum number of staff members (excluding the HOD) that can be set as Admin (is_admin=True)."
+    )
+
+    class Meta:
+        verbose_name = "Admin Settings"
+        verbose_name_plural = "Admin Settings"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        # Enforce singleton pattern
+        if not self.pk and AdminSettings.objects.exists():
+            raise ValidationError("Only one Admin Settings configuration can exist.")
+        
+        # Enforce that max_additional_admins cannot be less than current additional admins
+        current_admin_count = Staff.objects.filter(is_admin=True).count()
+        if self.max_additional_admins < current_admin_count:
+            raise ValidationError({
+                'max_additional_admins': f"Cannot set limit to {self.max_additional_admins} because there are currently {current_admin_count} active additional admins. Disable some admins first."
+            })
+        super().clean()
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_max_additional_admins(cls):
+        config = cls.objects.first()
+        if config:
+            return config.max_additional_admins
+        return 3  # default fallback
+
+    def __str__(self):
+        return f"Global Admin Settings (Max Additional Admins: {self.max_additional_admins})"
+
+
+class Lab(models.Model):
+    name = models.CharField(max_length=255, unique=True, verbose_name="Lab Name")
+    short_name = models.CharField(
+        max_length=50, 
+        unique=True, 
+        verbose_name="Lab Short Name",
+        help_text="Unique short identifier for the lab (e.g. IT-LAB-01)"
+    )
+    staff = models.ForeignKey(
+        Staff, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='assigned_labs',
+        verbose_name="Lab Incharge",
+        help_text="The staff member in charge of this lab."
+    )
+    from_date = models.DateField(null=True, blank=True, verbose_name="From Date")
+    to_date = models.DateField(null=True, blank=True, verbose_name="To Date")
+
+    class Meta:
+        verbose_name = "Lab"
+        verbose_name_plural = "Labs"
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.short_name})"
 
 
 class StaffPublication(models.Model):

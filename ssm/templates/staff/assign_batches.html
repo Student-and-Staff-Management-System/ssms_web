@@ -1,6 +1,6 @@
 {% extends 'base2.html' %}
 
-{% block title %}Assign Lab Batches - Annamalai University{% endblock %}
+{% block title %}Assign Class Batches - Annamalai University{% endblock %}
 
 {% block content %}
 <style>
@@ -107,7 +107,7 @@
 
 <div class="dashboard-container">
     <header class="page-header">
-        <h1 style="color: #5a7d7c; margin: 0; font-size: 1.5rem;">👥 Assign Lab Batches</h1>
+        <h1 style="color: #5a7d7c; margin: 0; font-size: 1.5rem;">👥 Assign Class Batches</h1>
         <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Back to Dashboard</a>
     </header>
 
@@ -229,6 +229,7 @@
                         const radio = row.querySelector(`input[name="batch_${rollTxt}"][value="${valToSelect}"]`);
                         if (radio && !radio.checked) {
                             radio.checked = true;
+                            toggleRepCheckbox(rollTxt, valToSelect);
                             count++;
                         }
                     }
@@ -245,6 +246,58 @@
                 btn.style.background = originalBg;
             }, 3000);
         }
+
+        function toggleRepCheckbox(rollNumber, batchVal) {
+            const checkbox = document.getElementById('rep_' + rollNumber);
+            if (checkbox) {
+                if (batchVal === '') {
+                    checkbox.checked = false;
+                    checkbox.disabled = true;
+                } else {
+                    checkbox.disabled = false;
+                    if (checkbox.checked) {
+                        validateRepLimit(checkbox);
+                    }
+                }
+            }
+        }
+
+        function validateRepLimit(checkbox) {
+            if (checkbox.checked) {
+                const row = checkbox.closest('tr');
+                const rollCell = row.querySelector('td:first-child');
+                const rollTxt = rollCell.textContent.trim();
+                const checkedRadio = row.querySelector('input[name="batch_' + rollTxt + '"]:checked');
+                const batchVal = checkedRadio ? checkedRadio.value : '';
+                
+                if (!batchVal) {
+                    alert("Please assign a batch first.");
+                    checkbox.checked = false;
+                    return;
+                }
+                
+                let count = 0;
+                const allRows = document.querySelectorAll('.student-table tbody tr');
+                allRows.forEach(r => {
+                    if (r === row) return; // Skip self
+                    
+                    const rRep = r.querySelector('input[type="checkbox"][name^="rep_"]');
+                    if (rRep && rRep.checked) {
+                        const rRollCell = r.querySelector('td:first-child');
+                        const rRollTxt = rRollCell.textContent.trim();
+                        const rRadio = r.querySelector('input[name="batch_' + rRollTxt + '"]:checked');
+                        if (rRadio && rRadio.value === batchVal) {
+                            count++;
+                        }
+                    }
+                });
+                
+                if (count >= 2) {
+                    alert("Error: Batch " + batchVal + " already has 2 Class Representatives designated. You cannot assign a third.");
+                    checkbox.checked = false;
+                }
+            }
+        }
         </script>
         {% endif %}
         
@@ -253,7 +306,8 @@
                 <tr>
                     <th>Roll Number</th>
                     <th>Student Name</th>
-                    <th>Lab Batch Assignment</th>
+                    <th>Batch Assignment</th>
+                    <th>Class Representative</th>
                 </tr>
             </thead>
             <tbody>
@@ -264,30 +318,108 @@
                     <td>
                         <div class="batch-radio">
                             <label>
-                                <input type="radio" name="batch_{{ student.roll_number }}" value="A" {% if student.lab_batch == 'A' %}checked{% endif %}>
+                                <input type="radio" name="batch_{{ student.roll_number }}" value="A" {% if student.lab_batch == 'A' %}checked{% endif %} onchange="toggleRepCheckbox('{{ student.roll_number }}', 'A')">
                                 Batch A
                             </label>
                             <label>
-                                <input type="radio" name="batch_{{ student.roll_number }}" value="B" {% if student.lab_batch == 'B' %}checked{% endif %}>
+                                <input type="radio" name="batch_{{ student.roll_number }}" value="B" {% if student.lab_batch == 'B' %}checked{% endif %} onchange="toggleRepCheckbox('{{ student.roll_number }}', 'B')">
                                 Batch B
                             </label>
                             <label>
-                                <input type="radio" name="batch_{{ student.roll_number }}" value="" {% if not student.lab_batch %}checked{% endif %}>
+                                <input type="radio" name="batch_{{ student.roll_number }}" value="" {% if not student.lab_batch %}checked{% endif %} onchange="toggleRepCheckbox('{{ student.roll_number }}', '')">
                                 Not Assigned
                             </label>
                         </div>
                     </td>
+                    <td>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" name="rep_{{ student.roll_number }}" id="rep_{{ student.roll_number }}" value="true" {% if student.is_class_representative %}checked{% endif %} {% if not student.lab_batch %}disabled{% endif %} onchange="validateRepLimit(this)">
+                            <span>📢 Class Rep</span>
+                        </label>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3" style="text-align:center; padding: 30px; color: #7f8c8d;">No students found for Semester {{ selected_semester }}.</td>
+                    <td colspan="4" style="text-align:center; padding: 30px; color: #7f8c8d;">No students found for Semester {{ selected_semester }}.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         
         {% if students %}
-        <button type="submit" class="btn-submit">💾 Save Batch Assignments</button>
+        <button type="submit" class="btn-submit">💾 Save Batch Assignments & Class Representatives</button>
+        
+        <!-- Segregated Batches Preview Section -->
+        <h2 style="color: #5a7d7c; margin-top: 40px; font-size: 1.3rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            📊 Current Segregated Batches (Semester {{ selected_semester }})
+        </h2>
+        <div class="batches-preview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; margin-bottom: 50px;">
+            <!-- Batch A -->
+            <div class="batch-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-top: 4px solid #16a34a;">
+                <h3 style="color: #16a34a; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 600;">
+                    <span>🔬 Batch A</span>
+                    <span style="font-size: 0.8rem; background: #dcfce7; color: #16a34a; padding: 3px 10px; border-radius: 12px; font-weight: 500;">{{ batch_a_students|length }} Students</span>
+                </h3>
+                <div style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                    {% for s in batch_a_students %}
+                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; color: #334155;">{{ s.student_name }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b; font-family: monospace;">{{ s.roll_number }}</div>
+                        </div>
+                        {% if s.is_class_representative %}
+                        <span style="font-size: 0.75rem; background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">📢 Rep</span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 0.9rem;">No students assigned to Batch A.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Batch B -->
+            <div class="batch-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-top: 4px solid #2563eb;">
+                <h3 style="color: #2563eb; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 600;">
+                    <span>🔬 Batch B</span>
+                    <span style="font-size: 0.8rem; background: #dbeafe; color: #2563eb; padding: 3px 10px; border-radius: 12px; font-weight: 500;">{{ batch_b_students|length }} Students</span>
+                </h3>
+                <div style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                    {% for s in batch_b_students %}
+                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; color: #334155;">{{ s.student_name }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b; font-family: monospace;">{{ s.roll_number }}</div>
+                        </div>
+                        {% if s.is_class_representative %}
+                        <span style="font-size: 0.75rem; background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 2px 6px; border-radius: 4px; font-weight: 600;">📢 Rep</span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 0.9rem;">No students assigned to Batch B.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Unassigned -->
+            <div class="batch-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-top: 4px solid #64748b;">
+                <h3 style="color: #64748b; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 600;">
+                    <span>⚪ Unassigned</span>
+                    <span style="font-size: 0.8rem; background: #f1f5f9; color: #64748b; padding: 3px 10px; border-radius: 12px; font-weight: 500;">{{ unassigned_students|length }} Students</span>
+                </h3>
+                <div style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                    {% for s in unassigned_students %}
+                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; color: #334155;">{{ s.student_name }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b; font-family: monospace;">{{ s.roll_number }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 0.9rem;">All students assigned.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
         {% endif %}
     </form>
 </div>

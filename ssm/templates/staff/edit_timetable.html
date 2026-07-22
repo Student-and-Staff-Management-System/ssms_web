@@ -208,9 +208,27 @@
 
     <form id="tt-form" method="POST" action="{% url 'staffs:edit_timetable' semester %}">
         {% csrf_token %}
+        <input type="hidden" name="current_batch" value="{{ current_batch }}">
+        
+        <!-- Batch selector tabs -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; background: #f1f5f9; padding: 10px; border-radius: 8px; align-items: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); flex-wrap: wrap;">
+            <span style="font-weight: 600; color: #475569; font-size: 0.9rem; margin-right: 10px; display: flex; align-items: center; gap: 5px;">
+                ⚙️ Timetable Mode:
+            </span>
+            <a href="?batch=All" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; {% if current_batch == 'All' %}background: #5a7d7c; color: white; box-shadow: 0 2px 6px rgba(90,125,124,0.3);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                👥 Combined (All Students)
+            </a>
+            <a href="?batch=A" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; {% if current_batch == 'A' %}background: #5a7d7c; color: white; box-shadow: 0 2px 6px rgba(90,125,124,0.3);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                🅰️ Batch A Only
+            </a>
+            <a href="?batch=B" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; {% if current_batch == 'B' %}background: #5a7d7c; color: white; box-shadow: 0 2px 6px rgba(90,125,124,0.3);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                🅱️ Batch B Only
+            </a>
+        </div>
+
         <div class="tc">
             <div class="ttb">
-                <h2>📊 Week Grid — Mon to Fri · 7 Periods</h2>
+                <h2>📊 Week Grid — Mon to Fri · 7 Periods ({% if current_batch == 'All' %}Combined{% else %}Batch {{ current_batch }}{% endif %})</h2>
                 <button type="button" class="btn btn-ghost" style="font-size:.78rem;" onclick="clearAll()">🗑 Clear All</button>
             </div>
             <div class="tscroll">

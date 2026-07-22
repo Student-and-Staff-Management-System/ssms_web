@@ -4,7 +4,7 @@ from django.utils import timezone
 import random
 import string
 
-from .models import Staff, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog
+from .models import Staff, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog, Lab, AdminSettings
 from students.models import Student, ResearchScholarProfile, ScholarAttendance
 from django.db.models import Q, Case, When
 from django.db import transaction
@@ -188,6 +188,7 @@ def staff_dashboard(request):
         rs_pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').count() if rs_scholars.exists() else 0
 
     rs_count = rs_scholars.count()
+    assigned_labs = staff.assigned_labs.all()
     # ────────────────────────────────────────────────────────────────────────
     return render(request, template_name, {
         'staff': staff, 
@@ -209,7 +210,7 @@ def staff_dashboard(request):
         'rs_pending_leaves': rs_pending_leaves,
         'rs_pending_attendance': rs_pending_attendance,
         'rs_scholars': rs_scholars,
-
+        'assigned_labs': assigned_labs,
     })
 
 def get_staff_profile_completion_data(staff):
@@ -610,7 +611,8 @@ def student_list(request):
             'Current Semester', 
             'Starting Year (Joining Year)', 
             'Ending Year', 
-            'Status'
+            'Status',
+            'Missing Details'
         ])
         
         # Map existing students by roll_number for fast lookup
@@ -618,7 +620,7 @@ def student_list(request):
         for item in students_with_completion:
             s = item['student']
             existing_map[s.roll_number] = item
-
+ 
         # Determine sequence if start_roll and end_roll are numeric
         try:
             start_int = int(start_roll) if start_roll else None
@@ -626,7 +628,7 @@ def student_list(request):
             is_range = (start_int is not None and end_int is not None)
         except (ValueError, TypeError):
             is_range = False
-
+ 
         if is_range and start_int <= end_int:
             # Generate all roll numbers in the sequence preserving string length
             length = len(start_roll)
@@ -644,6 +646,7 @@ def student_list(request):
                     else:
                         status_str = "No Password Generated"
                     
+                    missing_str = ", ".join(item['missing_fields'])
                     writer.writerow([
                         f'="{s.roll_number}"',
                         f'="{s.register_number}"' if s.register_number else '',
@@ -653,7 +656,8 @@ def student_list(request):
                         s.current_semester,
                         s.joining_year or '',
                         s.ending_year or '',
-                        status_str
+                        status_str,
+                        missing_str
                     ])
                 else:
                     # In-between roll number not in DB
@@ -666,7 +670,8 @@ def student_list(request):
                         '',
                         '',
                         '',
-                        '3rd No Password Generated'
+                        'No Password Generated',
+                        'Not Found'
                     ])
         else:
             # Fallback: Just output existing filtered records
@@ -674,12 +679,13 @@ def student_list(request):
                 s = item['student']
                 pct = item['completion_pct']
                 if s.is_password_changed:
-                    status_str = f"1st Registered ({pct}%)"
+                    status_str = f"Registered ({pct}%)"
                 elif s.password and s.password.strip() != "":
-                    status_str = "2nd Not Registered (Password Generated)"
+                    status_str = "Not Registered (Password Generated)"
                 else:
-                    status_str = "3rd No Password Generated"
+                    status_str = "No Password Generated"
                 
+                missing_str = ", ".join(item['missing_fields'])
                 writer.writerow([
                     f'="{s.roll_number}"',
                     f'="{s.register_number}"' if s.register_number else '',
@@ -689,7 +695,8 @@ def student_list(request):
                     s.current_semester,
                     s.joining_year or '',
                     s.ending_year or '',
-                    status_str
+                    status_str,
+                    missing_str
                 ])
             
         return response
@@ -1589,40 +1596,77 @@ def assign_lab_batches(request):
         return redirect('staffs:stafflogin')
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: Only HOD can assign lab batches.")
+    
+    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+        messages.error(request, "Access Denied: Only HOD or Timetable Incharge can assign batches.")
         return redirect('staffs:staff_dashboard')
         
     selected_semester = request.GET.get('semester', 1)
-    if request.method == 'POST':
-        selected_semester = request.POST.get('semester', selected_semester)
     try:
         selected_semester = int(selected_semester)
     except ValueError:
         selected_semester = 1
         
-    students = Student.objects.filter(current_semester=selected_semester).order_by('roll_number')
-    
     if request.method == 'POST':
+        semester_val = request.POST.get('semester')
+        try:
+            selected_semester = int(semester_val)
+        except (ValueError, TypeError):
+            pass
+        students = list(Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD'))
+        
+        rep_a_count = 0
+        rep_b_count = 0
+        
+        # Validation Loop
+        for student in students:
+            is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
+            batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
+            
+            if is_rep:
+                if batch_val == 'A':
+                    rep_a_count += 1
+                elif batch_val == 'B':
+                    rep_b_count += 1
+                else:
+                    messages.error(request, f"Error: {student.student_name} ({student.roll_number}) is selected as Class Representative but is not assigned to Batch A or B.")
+                    return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
+                    
+        if rep_a_count > 2:
+            messages.error(request, "Error: Batch A cannot have more than 2 Class Representatives.")
+            return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
+        if rep_b_count > 2:
+            messages.error(request, "Error: Batch B cannot have more than 2 Class Representatives.")
+            return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
+            
         from django.db import transaction
         with transaction.atomic():
             for student in students:
-                batch_val = request.POST.get(f'batch_{student.roll_number}', '')
-                if batch_val in ['A', 'B', '']:
-                    batch_val = None if not batch_val else batch_val
-                    if student.lab_batch != batch_val:
-                        student.lab_batch = batch_val
-                        student.save(update_fields=['lab_batch'])
-        
-        from django.contrib import messages
-        messages.success(request, f'Lab batches updated successfully for Semester {selected_semester}.')
+                batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
+                is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
+                
+                student.lab_batch = batch_val
+                student.is_class_representative = is_rep
+                student.save(update_fields=['lab_batch', 'is_class_representative'])
+                        
+        messages.success(request, f'Lab batches and Class Representatives updated successfully for Semester {selected_semester}.')
         return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
         
+    students = Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD').order_by('roll_number')
+    semesters = range(1, 9)
+    
+    batch_a_students = [s for s in students if s.lab_batch == 'A']
+    batch_b_students = [s for s in students if s.lab_batch == 'B']
+    unassigned_students = [s for s in students if not s.lab_batch]
+    
     return render(request, 'staff/assign_batches.html', {
         'staff': staff,
         'students': students,
         'selected_semester': selected_semester,
-        'semesters': range(1, 9)
+        'semesters': semesters,
+        'batch_a_students': batch_a_students,
+        'batch_b_students': batch_b_students,
+        'unassigned_students': unassigned_students,
     })
 
 def edit_timetable(request, semester):
@@ -1632,8 +1676,8 @@ def edit_timetable(request, semester):
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
-    if staff.role != 'HOD':
-        messages.error(request, 'Access Denied: Only HOD can edit the timetable.')
+    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+        messages.error(request, 'Access Denied: Only HOD or Timetable Incharge can edit the timetable.')
         return redirect('staffs:timetable')
         
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -1645,6 +1689,13 @@ def edit_timetable(request, semester):
     # Get all active staff to populate dropdowns
     all_staff = Staff.objects.filter(is_active=True).order_by('name')
     
+    # Check current batch mode
+    current_batch = request.GET.get('batch', 'All')
+    if request.method == 'POST':
+        current_batch = request.POST.get('current_batch', 'All')
+    if current_batch not in ['All', 'A', 'B']:
+        current_batch = 'All'
+        
     if request.method == 'POST':
         from .utils import send_staff_notification
         from django.db import transaction
@@ -1676,14 +1727,6 @@ def edit_timetable(request, semester):
                     # Fetch existing entries for all batches
                     entries = list(Timetable.objects.filter(semester=semester, day=day, period=period))
                     
-                    # Handle clearing
-                    if not sub_val:
-                        for entry in entries:
-                            if entry.staff:
-                                send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
-                            entry.delete()
-                        continue
-
                     # Helper to manage creation/update of a batch entry
                     def handle_batch_entry(batch_val, subj_id, virtual_sub=None):
                         # Locate existing entry for this batch
@@ -1735,33 +1778,81 @@ def edit_timetable(request, semester):
                             except IntegrityError:
                                 pass
 
-                    if sub_val == 'LAB_SESSION':
-                        # If no batch payload came from UI but A/B rows already exist, retain
-                        # existing assignments to avoid creating mid-session data holes.
-                        if not lab_a_val and not lab_b_val and any(e.batch in ['A', 'B'] for e in entries):
-                            continue
+                    if current_batch == 'All':
+                        # Combined mode edit
+                        if sub_val == 'LAB_SESSION':
+                            # If no batch payload came from UI but A/B rows already exist, retain
+                            # existing assignments to avoid creating mid-session data holes.
+                            if not lab_a_val and not lab_b_val and any(e.batch in ['A', 'B'] for e in entries):
+                                continue
 
-                        # Delete any 'All' batch entries
-                        for entry in entries:
-                            if entry.batch == 'All':
-                                if entry.staff:
-                                    send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
-                                entry.delete()
-                        
-                        handle_batch_entry('A', lab_a_val)
-                        handle_batch_entry('B', lab_b_val)
+                            # Delete any 'All' batch entries
+                            for entry in entries:
+                                if entry.batch == 'All':
+                                    if entry.staff:
+                                        send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
+                                    entry.delete()
+                            
+                            handle_batch_entry('A', lab_a_val)
+                            handle_batch_entry('B', lab_b_val)
+                        else:
+                            # Theory or other virtual slots: Clean up 'A' and 'B' entries first
+                            for entry in entries:
+                                if entry.batch in ['A', 'B']:
+                                    if entry.staff:
+                                        send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {entry.batch}).", url="/staffs/my-timetable/")
+                                    entry.delete()
+                            
+                            # Set everything as 'All' batch
+                            if not sub_val:
+                                for entry in entries:
+                                    if entry.staff:
+                                        send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
+                                    entry.delete()
+                            else:
+                                virt_lbl = sub_val if sub_val in VIRTUAL_SLOTS else None
+                                subj_id_to_use = None if virt_lbl else sub_val
+                                handle_batch_entry('All', subj_id_to_use, virtual_sub=virt_lbl)
+                                
                     else:
-                        # Theory or other virtual slots: Clean up 'A' and 'B' entries first
-                        for entry in entries:
-                            if entry.batch in ['A', 'B']:
-                                if entry.staff:
-                                    send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {entry.batch}).", url="/staffs/my-timetable/")
-                                entry.delete()
-                        
-                        # Set everything as 'All' batch
-                        virt_lbl = sub_val if sub_val in VIRTUAL_SLOTS else None
-                        subj_id_to_use = None if virt_lbl else sub_val
-                        handle_batch_entry('All', subj_id_to_use, virtual_sub=virt_lbl)
+                        # Batch A or Batch B specific mode edit
+                        if not sub_val:
+                            # Clear specific batch entry for this slot
+                            for entry in entries:
+                                if entry.batch == current_batch:
+                                    if entry.staff:
+                                        send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {current_batch}).", url="/staffs/my-timetable/")
+                                    entry.delete()
+                        else:
+                            virt_lbl = sub_val if sub_val in VIRTUAL_SLOTS else None
+                            subj_id_to_use = None if virt_lbl else sub_val
+                            
+                            b_subject = Subject.objects.filter(id=subj_id_to_use).first() if subj_id_to_use else None
+                            b_staff = b_subject.staff if b_subject else None
+                            
+                            # Check if there is an existing 'All' entry
+                            all_entry = next((e for e in entries if e.batch == 'All'), None)
+                            if all_entry:
+                                # Split the 'All' entry into two separate entries
+                                other_batch = 'B' if current_batch == 'A' else 'A'
+                                Timetable.objects.create(
+                                    semester=semester,
+                                    day=day,
+                                    period=period,
+                                    subject=all_entry.subject,
+                                    staff=all_entry.staff,
+                                    batch=other_batch
+                                )
+                                all_entry.delete()
+                                
+                            # Create or update specific batch entry
+                            Timetable.objects.update_or_create(
+                                semester=semester,
+                                day=day,
+                                period=period,
+                                batch=current_batch,
+                                defaults={'subject': b_subject, 'staff': b_staff}
+                            )
                                 
         messages.success(request, f'Timetable for Semester {semester} updated successfully.')
         return redirect(f'/staffs/timetable/?semester={semester}')
@@ -1783,24 +1874,32 @@ def edit_timetable(request, semester):
                 name = e1.subject.name if e1.subject and e2.subject and e1.subject.id == e2.subject.id else "Lab Session"
             self.subject = DummySubj()
 
-    for entry in entries:
-        if 1 <= entry.period <= 7:
-            curr = timetable_data[entry.day][entry.period-1]
-            if curr is None:
-                timetable_data[entry.day][entry.period-1] = entry
-            elif getattr(curr, 'is_batch', False):
-                # Keep first complete batch-pair representation in the slot.
-                continue
-            elif curr.batch in ['A', 'B'] and entry.batch in ['A', 'B'] and curr.batch != entry.batch:
-                timetable_data[entry.day][entry.period-1] = BatchBlock(curr, entry)
-            elif curr.batch == 'All' and entry.batch in ['A', 'B']:
-                # Prefer explicit split-batch data over an older 'All' record in same slot.
-                timetable_data[entry.day][entry.period-1] = entry
-            elif curr.batch in ['A', 'B'] and entry.batch == 'All':
-                # Keep batch entry; it better represents LAB_SESSION slots.
-                continue
-            else:
-                timetable_data[entry.day][entry.period-1] = entry
+    if current_batch == 'All':
+        for entry in entries:
+            if 1 <= entry.period <= 7:
+                curr = timetable_data[entry.day][entry.period-1]
+                if curr is None:
+                    timetable_data[entry.day][entry.period-1] = entry
+                elif getattr(curr, 'is_batch', False):
+                    continue
+                elif curr.batch in ['A', 'B'] and entry.batch in ['A', 'B'] and curr.batch != entry.batch:
+                    timetable_data[entry.day][entry.period-1] = BatchBlock(curr, entry)
+                elif curr.batch == 'All' and entry.batch in ['A', 'B']:
+                    timetable_data[entry.day][entry.period-1] = entry
+                elif curr.batch in ['A', 'B'] and entry.batch == 'All':
+                    continue
+                else:
+                    timetable_data[entry.day][entry.period-1] = entry
+    else:
+        for entry in entries:
+            if 1 <= entry.period <= 7:
+                curr = timetable_data[entry.day][entry.period-1]
+                if entry.batch == current_batch:
+                    timetable_data[entry.day][entry.period-1] = entry
+                elif entry.batch == 'All':
+                    # Only fallback if no specific batch entry has been set yet
+                    if curr is None or curr.batch != current_batch:
+                        timetable_data[entry.day][entry.period-1] = entry
 
     timetable_rows = []
     for day in days:
@@ -1816,13 +1915,14 @@ def edit_timetable(request, semester):
             'name': subj.name,
             'code': subj.code,
         }
-
+    
     return render(request, 'staff/edit_timetable.html', {
         'staff': staff,
         'semester': semester,
         'timetable_rows': timetable_rows,
         'subjects': subjects,
         'subject_staff_map_json': _json.dumps(subject_staff_map),
+        'current_batch': current_batch,
     })
 
 def my_timetable(request):
@@ -2315,7 +2415,7 @@ def scholarship_manager(request):
     except Staff.DoesNotExist:
         return redirect('staffs:stafflogin')
         
-    if staff.role != 'Scholarship Officer' and staff.role != 'Office Staff':
+    if staff.role != 'Scholarship Officer' and staff.role != 'Office Staff' and not staff.is_scholarship_officer:
         messages.error(request, "Access restricted to Scholarship Officer or Office Staff.")
         return redirect('staffs:staff_dashboard')
         
@@ -4806,6 +4906,111 @@ def reject_designation(request, pk):
 def hod_assign_post(request, staff_id):
     messages.error(request, "Direct additional post assignment from HOD dashboard is disabled. Staff must add their designation in their portfolio and upload verification documents for approval.")
     return redirect('staffs:staff_list')
+
+
+def hod_manage_labs(request):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+        
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: Only HOD can manage labs.")
+        return redirect('staffs:staff_dashboard')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create':
+            name = request.POST.get('name', '').strip()
+            short_name = request.POST.get('short_name', '').strip()
+            staff_id = request.POST.get('staff_id', '').strip()
+            from_date = request.POST.get('from_date', '').strip() or None
+            to_date = request.POST.get('to_date', '').strip() or None
+            
+            if not name or not short_name:
+                messages.error(request, "Lab Name and Lab Short Name are required.")
+            else:
+                try:
+                    assigned_staff = None
+                    if staff_id:
+                        assigned_staff = Staff.objects.get(staff_id=staff_id)
+                    
+                    Lab.objects.create(
+                        name=name, 
+                        short_name=short_name, 
+                        staff=assigned_staff,
+                        from_date=from_date,
+                        to_date=to_date
+                    )
+                    messages.success(request, f"Lab '{name}' created successfully.")
+                    return redirect('staffs:hod_manage_labs')
+                except Staff.DoesNotExist:
+                    messages.error(request, "Selected staff member does not exist.")
+                except Exception as e:
+                    messages.error(request, f"Error creating lab: {str(e)}")
+        
+        elif action == 'edit':
+            lab_id = request.POST.get('lab_id')
+            name = request.POST.get('name', '').strip()
+            short_name = request.POST.get('short_name', '').strip()
+            staff_id = request.POST.get('staff_id', '').strip()
+            from_date = request.POST.get('from_date', '').strip() or None
+            to_date = request.POST.get('to_date', '').strip() or None
+            
+            try:
+                lab = Lab.objects.get(id=lab_id)
+                assigned_staff = None
+                if staff_id:
+                    assigned_staff = Staff.objects.get(staff_id=staff_id)
+                
+                lab.name = name
+                lab.short_name = short_name
+                lab.staff = assigned_staff
+                lab.from_date = from_date
+                lab.to_date = to_date
+                lab.save()
+                messages.success(request, f"Lab '{name}' updated successfully.")
+                return redirect('staffs:hod_manage_labs')
+            except Lab.DoesNotExist:
+                messages.error(request, "Lab not found.")
+            except Exception as e:
+                messages.error(request, f"Error updating lab: {str(e)}")
+                
+    labs = Lab.objects.all().select_related('staff').order_by('name')
+    all_staff = Staff.objects.filter(is_active=True).order_by('name')
+    
+    return render(request, 'staff/manage_labs.html', {
+        'staff': staff,
+        'labs': labs,
+        'all_staff': all_staff
+    })
+
+
+def hod_delete_lab(request, lab_id):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+        
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: Only HOD can delete labs.")
+        return redirect('staffs:staff_dashboard')
+        
+    try:
+        lab = Lab.objects.get(id=lab_id)
+        name = lab.name
+        lab.delete()
+        messages.success(request, f"Lab '{name}' deleted successfully.")
+    except Lab.DoesNotExist:
+        messages.error(request, "Lab not found.")
+    except Exception as e:
+        messages.error(request, f"Error deleting lab: {str(e)}")
+        
+    return redirect('staffs:hod_manage_labs')
 
 
 def manage_phd_stages(request):

@@ -140,6 +140,16 @@
                 <a href="{% url 'staffs:my_timetable' %}" class="nav-item">
                     <span class="nav-icon">🗓️</span> My Timetable
                 </a>
+                {% if staff.role == 'HOD' or staff.is_timetable_incharge %}
+                <a href="{% url 'staffs:timetable' %}" class="nav-item">
+                    <span class="nav-icon">📅</span> Timetable Management
+                </a>
+                {% endif %}
+                {% if staff.role == 'Scholarship Officer' or staff.is_scholarship_officer %}
+                <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item">
+                    <span class="nav-icon">🎓</span> Scholarship Manager
+                </a>
+                {% endif %}
                 <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item">
                     <span class="nav-icon">✈️</span> Apply Leave
                 </a>
@@ -223,8 +233,17 @@
                 <div class="greeting" style="display: flex; align-items: center;">
                     <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
                     <div>
-                        <h2>Hello, {{ staff.name }} 👋</h2>
-                        <p>Managing Student Scholarships</p>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <h2 style="margin: 0;">Hello, {{ staff.name }} 👋</h2>
+                            <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Scholarship Officer</span>
+                            {% if staff.is_timetable_incharge %}
+                            <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 12px; font-weight: 600;">📅 Timetable Incharge</span>
+                            {% endif %}
+                            {% if staff.is_scholarship_officer %}
+                            <span style="font-size: 0.75rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 12px; font-weight: 600;">🎓 Scholarship Officer</span>
+                            {% endif %}
+                        </div>
+                        <p style="margin: 4px 0 0 0; color: var(--text-muted);">Managing Student Scholarships.</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center;">
@@ -331,6 +350,37 @@
                     </a>
                 </div>
             </section>
+
+            <!-- My Assigned Labs -->
+            {% if assigned_labs %}
+            <section class="actions-section" style="margin-top: 24px;">
+                <div class="section-header">
+                    <h3>🔬 My Assigned Labs</h3>
+                </div>
+                <div class="actions-grid">
+                    {% for lab in assigned_labs %}
+                    <div class="action-tile" style="border-left: 4px solid var(--primary); padding: 18px; border-radius: 12px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary-dark); padding: 4px 10px; border-radius: 6px; font-weight: 600;">{{ lab.short_name }}</span>
+                            <span style="font-size: 1.2rem;">🔬</span>
+                        </div>
+                        <h4 style="font-size: 1.05rem; margin: 5px 0 2px 0; font-weight: 600; color: var(--text-main);">{{ lab.name }}</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">You are the designated Lab Incharge for this laboratory.</p>
+                        {% if lab.from_date or lab.to_date %}
+                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                            <span>📅</span>
+                            <span>
+                                {% if lab.from_date %}{{ lab.from_date|date:"M d, Y" }}{% else %}...{% endif %} 
+                                - 
+                                {% if lab.to_date %}{{ lab.to_date|date:"M d, Y" }}{% else %}Present{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
         </main>
     </div>
     <script>

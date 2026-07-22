@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Staff, Subject, ExamSchedule, Timetable, News, StaffLeaveRequest, AuditLog, StaffGenerator
+from .models import Staff, Subject, ExamSchedule, Timetable, News, StaffLeaveRequest, AuditLog, StaffGenerator, AdminSettings, Lab
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
@@ -15,16 +15,16 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('staff_id', 'name', 'designation', 'role', 'is_admin', 'assigned_semester', 'department')
-    list_editable = ('role', 'is_admin', 'assigned_semester')
+    list_display = ('staff_id', 'name', 'designation', 'role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'department')
+    list_editable = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester')
     search_fields = ('staff_id', 'name', 'email')
-    list_filter = ('role', 'is_admin', 'department', 'designation')
+    list_filter = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'department', 'designation')
     fieldsets = (
         ('Basic Info', {
             'fields': ('staff_id', 'name', 'email', 'photo')
         }),
         ('Role & Designation', {
-            'fields': ('role', 'is_admin', 'assigned_semester', 'salutation', 'designation', 'department'),
+            'fields': ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'salutation', 'designation', 'department'),
             'description': 'Note: Only one HOD is allowed. Multiple admins can be set by checking "Is Admin". Class Incharge must be assigned to a unique semester.'
         }),
         ('Professional Details', {
@@ -300,3 +300,21 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                 messages.error(request, f"Error: {str(e)}")
 
         return render(request, 'staff/generate_staff.html', {})
+
+
+@admin.register(AdminSettings)
+class AdminSettingsAdmin(admin.ModelAdmin):
+    list_display = ('max_additional_admins',)
+
+    def has_add_permission(self, request):
+        return not AdminSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Lab)
+class LabAdmin(admin.ModelAdmin):
+    list_display = ('short_name', 'name', 'staff', 'from_date', 'to_date')
+    search_fields = ('short_name', 'name')
+    list_filter = ('staff', 'from_date', 'to_date')

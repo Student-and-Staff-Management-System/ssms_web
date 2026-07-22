@@ -292,7 +292,7 @@
     </select>
     <button type="submit" class="btn btn-primary">View</button>
 
-    {% if staff.role == 'HOD' %}
+    {% if staff.role == 'HOD' or staff.is_timetable_incharge %}
       <div style="width: 1px; height: 24px; background: var(--gray-200); margin: 0 4px;"></div>
       <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn btn-outline">Edit Timetable</a>
       <a href="{% url 'staffs:assign_lab_batches' %}?semester={{ selected_semester }}" class="btn btn-warning">Assign Batches</a>

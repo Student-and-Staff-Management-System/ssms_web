@@ -407,6 +407,11 @@
                 </div>
                 <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }}
                     -{{student.ending_year }}</div>
+                {% if student.lab_batch %}
+                <div title="Class Batch" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+                    <span style="font-size: 0.85rem;">🔬</span> Batch {{ student.lab_batch }}
+                </div>
+                {% endif %}
                 <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
                 </div>
                 <div title="Mobile"><span style="margin-right: 5px;">📱</span>
@@ -517,6 +522,67 @@
         <div class="dash-col">
             <!-- News Widget (Top Right) -->
             {% include 'news_component.html' %}
+
+            <!-- Class Representatives Widget -->
+            {% if class_representatives %}
+            <div class="chart-card" style="margin-top: 25px; border-left: 4px solid #e67e22; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+                <h3 style="margin: 0 0 12px 0; color: #5a7d7c; display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600;">
+                    📢 Class Representatives (Batch {{ student.lab_batch }})
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    {% for rep in class_representatives %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-weight: 600; color: #334155;">{{ rep.student_name }}</span>
+                        <span style="font-size: 0.8rem; color: #64748b; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">{{ rep.roll_number }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Class Contacts & Officers Widget -->
+            <div class="chart-card" style="margin-top: 25px; border-left: 4px solid #3b82f6; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+                <h3 style="margin: 0 0 12px 0; color: #5a7d7c; display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600;">
+                    👥 Department Contacts & Officers
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% if class_incharge %}
+                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600; color: #334155;">{{ class_incharge.name }}</span>
+                            <span style="font-size: 0.75rem; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Class Incharge</span>
+                        </div>
+                        {% if class_incharge.mobile_number %}
+                        <div style="font-size: 0.8rem; color: #64748b;">📞 {{ class_incharge.mobile_number }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% for tt_inc in timetable_incharges %}
+                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600; color: #334155;">{{ tt_inc.name }}</span>
+                            <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Timetable Incharge</span>
+                        </div>
+                        {% if tt_inc.mobile_number %}
+                        <div style="font-size: 0.8rem; color: #64748b;">📞 {{ tt_inc.mobile_number }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    {% for sch_inc in scholarship_officers %}
+                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600; color: #334155;">{{ sch_inc.name }}</span>
+                            <span style="font-size: 0.75rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Scholarship Officer</span>
+                        </div>
+                        {% if sch_inc.mobile_number %}
+                        <div style="font-size: 0.8rem; color: #64748b;">📞 {{ sch_inc.mobile_number }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
 
             <!-- Standout Feature: Sticky Note -->
             <div id="stickyWidget" class="sticky-note-widget">
