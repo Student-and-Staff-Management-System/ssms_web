@@ -148,7 +148,7 @@ from .models import StaffQualification, StaffPastDesignation, StaffMembership
 class StaffQualificationForm(forms.ModelForm):
     class Meta:
         model = StaffQualification
-        fields = ['degree', 'university', 'year_completed', 'certificate']
+        fields = ['degree', 'specialization', 'university', 'year_completed', 'certificate']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

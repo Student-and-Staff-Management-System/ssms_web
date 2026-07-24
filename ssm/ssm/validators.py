@@ -10,18 +10,22 @@ from django.core.exceptions import ValidationError
 
 def compress_file(file):
     """
-    Attempt to compress an image or PDF file in-place to be under 100KB.
+    Attempt to compress an image or PDF file in-place to be under the 100KB limit.
     """
     from django.core.files.base import File as DjangoFile
     
     max_size_kb = 100
     max_size_bytes = max_size_kb * 1024
     
+    # Skip compression if already under the limit
+    if file.size <= max_size_bytes:
+        return
+        
     # Resolve the underlying UploadedFile wrapper if file is a FieldFile
     django_file = file
     if hasattr(file, 'file') and isinstance(file.file, DjangoFile):
         django_file = file.file
-
+    
     filename, ext = os.path.splitext(file.name)
     ext = ext.lower()
     
@@ -30,6 +34,11 @@ def compress_file(file):
         try:
             file.seek(0)
             img = Image.open(file)
+            
+            # Downscale resolution immediately to save memory and CPU
+            MAX_DIM = 1200
+            if max(img.size) > MAX_DIM:
+                img.thumbnail((MAX_DIM, MAX_DIM), Image.Resampling.LANCZOS)
             
             # Handle transparency (RGBA / LA / Palette with transparency) for JPEG conversion
             if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
@@ -44,18 +53,20 @@ def compress_file(file):
             quality = 80
             img.save(output, format='JPEG', quality=quality)
             
-            # Progressively reduce quality to fit within 100KB
-            while output.tell() > max_size_bytes and quality > 30:
-                output = BytesIO()
-                quality -= 10
-                img.save(output, format='JPEG', quality=quality)
-                
-            # If still too large, downscale the resolution
-            if output.tell() > max_size_bytes:
-                width, height = img.size
-                img = img.resize((int(width * 0.75), int(height * 0.75)), Image.Resampling.LANCZOS)
-                output = BytesIO()
-                img.save(output, format='JPEG', quality=50)
+            # Progressively reduce quality or downscale to fit within 100KB
+            while output.tell() > max_size_bytes:
+                if quality > 30:
+                    quality -= 10
+                    output = BytesIO()
+                    img.save(output, format='JPEG', quality=quality)
+                else:
+                    width, height = img.size
+                    if width < 150 or height < 150:
+                        break
+                    img = img.resize((int(width * 0.8), int(height * 0.8)), Image.Resampling.LANCZOS)
+                    quality = 60
+                    output = BytesIO()
+                    img.save(output, format='JPEG', quality=quality)
                 
             output.seek(0)
             new_size = output.getbuffer().nbytes

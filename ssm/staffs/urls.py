@@ -18,6 +18,7 @@ urlpatterns = [
     path('profile/', views.staff_profile, name='staff_profile'), # User profile
     path('profile/edit/', views.staff_edit_profile, name='staff_edit_profile'),
     path('profile/portfolio/', views.staff_portfolio, name='staff_portfolio'),
+    path('profile/generate-pdf/', views.generate_biodata_pdf, name='generate_biodata_pdf'),
     path('profile/portfolio/publication/add/', views.portfolio_add_publication, name='portfolio_add_publication'),
     path('profile/portfolio/publication/<int:pk>/edit/', views.portfolio_edit_publication, name='portfolio_edit_publication'),
     path('profile/portfolio/publication/<int:pk>/delete/', views.portfolio_delete_publication, name='portfolio_delete_publication'),

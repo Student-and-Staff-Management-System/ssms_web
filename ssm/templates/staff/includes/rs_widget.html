@@ -55,8 +55,8 @@
             <!-- Top Section: Photo & Primary Info -->
             <div class="card-top">
                 <div class="avatar-container">
-                    {% if student.student_photo %}
-                        <img src="{{ student.student_photo.url }}" alt="{{ student.student_name }}">
+                    {% if student.studentdocuments.student_photo %}
+                        <img src="{{ student.studentdocuments.student_photo.url }}" alt="{{ student.student_name }}">
                     {% else %}
                         <div class="avatar-initials">{{ student.student_name|slice:":1" }}</div>
                     {% endif %}

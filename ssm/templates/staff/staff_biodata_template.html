@@ -1,0 +1,416 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Faculty Bio Data - {{ staff.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5in 0.5in;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Calibri, "Segoe UI", Arial, sans-serif;
+            font-size: 10pt;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            border-bottom: 2px solid #5a7d7c;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .faculty-title {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #5a7d7c;
+            line-height: 1.1;
+        }
+
+        .faculty-desig {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        .faculty-dept {
+            font-size: 10pt;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .contact-info {
+            text-align: right;
+            font-size: 9pt;
+            color: #444;
+            line-height: 1.4;
+        }
+
+        /* ===== SECTION ===== */
+        .section {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 11.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #5a7d7c;
+            border-bottom: 1.5px solid #5a7d7c;
+            margin-bottom: 8px;
+            padding-bottom: 2px;
+        }
+
+        /* ===== TABLES ===== */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5pt;
+            margin-bottom: 5px;
+        }
+
+        table.data-table th {
+            background-color: #f2f5f5;
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1.5px solid #5a7d7c;
+        }
+
+        table.data-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+
+        /* ===== LISTS ===== */
+        .bullet-list {
+            margin-left: 15px;
+            font-size: 9.5pt;
+        }
+
+        .bullet-list li {
+            margin-bottom: 4px;
+        }
+
+        .item-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .item-meta {
+            color: #666;
+            font-style: italic;
+        }
+
+        /* ===== PROFILE INFO ===== */
+        table.profile-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5pt;
+        }
+
+        table.profile-table td {
+            border: none;
+            padding: 4px 0;
+            vertical-align: top;
+        }
+
+        table.profile-table td.label {
+            font-weight: bold;
+            width: 150px;
+            color: #555;
+        }
+
+        .links-row {
+            margin-top: 10px;
+            font-size: 9pt;
+        }
+
+        .links-row span {
+            margin-right: 15px;
+        }
+
+        .links-row a {
+            color: #5a7d7c;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td>
+                    <div class="faculty-title">{{ staff.salutation }} {{ staff.name }} {{ staff.initial|default:"" }}</div>
+                    <div class="faculty-desig">{{ staff.designation }}</div>
+                    <div class="faculty-dept">{{ staff.department|default:"Annamalai University" }}</div>
+                </td>
+                <td class="contact-info">
+                    <strong>ID:</strong> {{ staff.staff_id }}<br>
+                    <strong>Email:</strong> {{ staff.email }}<br>
+                    <strong>Mobile:</strong> {{ staff.mobile_number|default:"N/A" }}<br>
+                    {% if staff.address %}
+                    <strong>Address:</strong> {{ staff.address|truncatechars:50 }}
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+
+        <!-- Profile Links -->
+        {% if staff.linkedin_link or staff.google_scholar_link or staff.orcid_link or staff.research_gate_link %}
+        <div class="links-row">
+            {% if staff.linkedin_link %}
+            <span><strong>LinkedIn:</strong> <a href="{{ staff.linkedin_link }}">{{ staff.linkedin_link }}</a></span>
+            {% endif %}
+            {% if staff.google_scholar_link %}
+            <span><strong>Scholar:</strong> <a href="{{ staff.google_scholar_link }}">{{ staff.google_scholar_link }}</a></span>
+            {% endif %}
+            {% if staff.orcid_link %}
+            <span><strong>ORCID:</strong> <a href="{{ staff.orcid_link }}">{{ staff.orcid_link }}</a></span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== RESEARCH INTERESTS ===== -->
+    {% if staff.research_interests %}
+    <div class="section">
+        <div class="section-title">Research Interests</div>
+        <p style="font-size: 9.5pt; text-align: justify; color: #444;">{{ staff.research_interests }}</p>
+    </div>
+    {% endif %}
+
+    <!-- ===== ACADEMIC QUALIFICATIONS ===== -->
+    {% if qualifications %}
+    <div class="section">
+        <div class="section-title">Academic Qualifications</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Degree</th>
+                    <th style="width: 35%;">Specialization / Thesis</th>
+                    <th style="width: 35%;">Institution / University</th>
+                    <th style="width: 15%;">Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in qualifications %}
+                <tr>
+                    <td><strong>{{ q.degree }}</strong></td>
+                    <td>{{ q.specialization }}</td>
+                    <td>{{ q.institution }}</td>
+                    <td>{{ q.year_completed }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ===== PROFESSIONAL EXPERIENCE ===== -->
+    <div class="section">
+        <div class="section-title">Professional Experience</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Designation</th>
+                    <th style="width: 45%;">Organization / University</th>
+                    <th style="width: 20%;">Period</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>{{ staff.designation }}</strong></td>
+                    <td>Annamalai University</td>
+                    <td>{{ staff.date_of_joining|date:"M Y"|default:"Joining" }} – Present</td>
+                </tr>
+                {% for d in designations %}
+                <tr>
+                    <td><strong>{{ d.designation }}</strong></td>
+                    <td>{{ d.organization }}</td>
+                    <td>{{ d.start_date|date:"M Y" }} – {{ d.end_date|date:"M Y"|default:"Present" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== JOURNAL PUBLICATIONS ===== -->
+    {% if journals %}
+    <div class="section">
+        <div class="section-title">Journal Publications</div>
+        <ul class="bullet-list">
+            {% for j in journals %}
+            <li>
+                <span class="item-title">"{{ j.paper_title }}"</span><br>
+                <span class="item-meta">{{ j.journal_name }}, Vol. {{ j.volume|default:"-" }}, Issue {{ j.issue|default:"-" }}, Page {{ j.page_range|default:"-" }} ({{ j.published_year }})</span>
+                {% if j.doi %} | DOI: {{ j.doi }}{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- ===== CONFERENCES ===== -->
+    {% if conferences %}
+    <div class="section">
+        <div class="section-title">Conference Presentations</div>
+        <ul class="bullet-list">
+            {% for c in conferences %}
+            <li>
+                <span class="item-title">"{{ c.paper_title }}"</span><br>
+                <span class="item-meta">{{ c.conference_name }}, {{ c.location|default:"" }} ({{ c.year_of_publication }})</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- ===== BOOKS / CHAPTERS ===== -->
+    {% if books %}
+    <div class="section">
+        <div class="section-title">Books & Chapters Published</div>
+        <ul class="bullet-list">
+            {% for b in books %}
+            <li>
+                <span class="item-title">{{ b.book_title }}</span> ({{ b.chapter_title|default:"Full Book" }})<br>
+                <span class="item-meta">Publisher: {{ b.publisher }}, ISBN: {{ b.isbn|default:"N/A" }} ({{ b.year_of_publication }})</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- ===== PATENTS ===== -->
+    {% if patents %}
+    <div class="section">
+        <div class="section-title">Patents</div>
+        <ul class="bullet-list">
+            {% for p in patents %}
+            <li>
+                <span class="item-title">{{ p.title }}</span><br>
+                <span class="item-meta">App Number: {{ p.application_number }}, Status: {{ p.status }} ({{ p.application_year }})</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- ===== RESEARCH SCHOLARS SUPERVISED ===== -->
+    {% if phd_scholars %}
+    <div class="section">
+        <div class="section-title">Research Guidance (Ph.D. Scholars)</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Roll No</th>
+                    <th style="width: 30%;">Scholar Name</th>
+                    <th style="width: 25%;">Scholar Type</th>
+                    <th style="width: 20%;">Current Stage</th>
+                    <th style="width: 10%;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scholar in phd_scholars %}
+                <tr>
+                    <td>{{ scholar.roll_number }}</td>
+                    <td><strong>{{ scholar.name }}</strong></td>
+                    <td>{{ scholar.scholar_type }}</td>
+                    <td>{{ scholar.current_stage_label }}</td>
+                    <td>{{ scholar.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ===== AWARDS & HONOURS ===== -->
+    {% if awards %}
+    <div class="section">
+        <div class="section-title">Awards & Honours</div>
+        <ul class="bullet-list">
+            {% for a in awards %}
+            <li>
+                <span class="item-title">{{ a.award_name }}</span><br>
+                <span class="item-meta">Awarded by: {{ a.awarding_body }} ({{ a.year }})</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- ===== PERSONAL BIO-DATA ===== -->
+    <div class="section">
+        <div class="section-title">Personal Details</div>
+        <table class="profile-table">
+            <tr>
+                <td class="label">Date of Birth</td>
+                <td>: {{ staff.date_of_birth|date:"d F Y"|default:"N/A" }}</td>
+                <td class="label">Gender</td>
+                <td>: {{ staff.gender|default:"N/A" }}</td>
+            </tr>
+            <tr>
+                <td class="label">Blood Group</td>
+                <td>: {{ staff.blood_group|default:"N/A" }}</td>
+                <td class="label">Date of Joining</td>
+                <td>: {{ staff.date_of_joining|date:"d F Y"|default:"N/A" }}</td>
+            </tr>
+            {% if staff.address %}
+            <tr>
+                <td class="label">Address</td>
+                <td colspan="3">: {{ staff.address }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <!-- ===== DECLARATION ===== -->
+    <div class="section" style="margin-top: 40px; page-break-inside: avoid;">
+        <p style="font-size: 9.5pt; text-align: justify; margin-bottom: 25px;">
+            I hereby declare that the details provided above are true and correct to the best of my knowledge and belief.
+        </p>
+        <table style="width: 100%; border: none; font-size: 9.5pt;">
+            <tr>
+                <td style="border: none; padding: 0;">
+                    <strong>Date:</strong> {% now "d-m-Y" %}<br>
+                    <strong>Place:</strong> Chidambaram
+                </td>
+                <td style="border: none; padding: 0; text-align: right;">
+                    <br>
+                    <strong>Signature of Faculty Member</strong>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

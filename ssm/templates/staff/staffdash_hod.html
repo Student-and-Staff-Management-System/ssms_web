@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}HOD Dashboard | {{ staff.name }}{% endblock %}</title>
+    <title>{% block title %}HOD Dashboard | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
         type="image/png">
@@ -134,7 +134,7 @@
                 <div style="flex: 1; min-width: 0;">
                     <div
                         style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
-                        {{ staff.name }}
+                        {{ staff.name }} {{ staff.initial|default:"" }}
                     </div>
                     <div style="font-size: 0.75rem; color: var(--text-muted);">
                         {% if staff.role == 'HOD' %}Head of Dept{% else %}Administrator{% endif %}
@@ -176,7 +176,7 @@
                     <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <h2 style="margin: 0;">Hello, {{ staff.name }} 👋</h2>
+                            <h2 style="margin: 0;">Hello, {{ staff.name }} {{ staff.initial|default:"" }} 👋</h2>
                             <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 12px; font-weight: 600;">HOD</span>
                             {% if staff.is_timetable_incharge %}
                             <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 12px; font-weight: 600;">📅 Timetable Incharge</span>

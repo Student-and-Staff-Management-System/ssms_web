@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ staff.name }} | Faculty Profile</title>
+    <title>{{ staff.name }} {{ staff.initial|default:"" }} | Faculty Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
         type="image/png">
@@ -425,7 +425,7 @@
             {% endif %}
 
             <div class="hero-info">
-                <h1>{{ staff.salutation }} {{ staff.name }}</h1>
+                <h1>{{ staff.salutation }} {{ staff.name }} {{ staff.initial|default:"" }}</h1>
                 <div class="designation">
                     <span>{{ staff.designation }}</span>
                     {% if staff.department %}
@@ -470,6 +470,10 @@
                     <a href="{% url 'staffs:staff_portfolio' %}" class="tab-btn"
                         style="background: white; color: var(--primary); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
                         <span>💼</span> Manage Portfolio
+                    </a>
+                    <a href="{% url 'staffs:generate_biodata_pdf' %}" class="tab-btn"
+                        style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
+                        <span>📄</span> Download Bio Data
                     </a>
             </div>
         </div>
@@ -548,7 +552,7 @@
                     <div class="info-list">
                         <div class="info-item">
                             <span class="info-label">Full Name</span>
-                            <span class="info-value">{{ staff.salutation }} {{ staff.name }}</span>
+                             <span class="info-value">{{ staff.salutation }} {{ staff.name }} {{ staff.initial|default:"" }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Staff ID</span>
@@ -663,7 +667,12 @@
                     <div class="items-list">
                         {% for q in staff.qualifications.all %}
                         <div class="item-card">
-                            <div class="item-title">{{ q.degree }}</div>
+                            <div class="item-title">
+                                {{ q.degree }}
+                                {% if q.specialization %}
+                                <span style="font-weight: normal; font-size: 0.9rem; color: var(--text-light);">({{ q.specialization }})</span>
+                                {% endif %}
+                            </div>
                             <div class="item-meta">{{ q.university }} • {{ q.year_completed }}</div>
                         </div>
                         {% empty %}

@@ -273,6 +273,7 @@ class StaffQualification(models.Model):
     """Educational qualifications of staff."""
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='qualifications')
     degree = models.CharField(max_length=100)
+    specialization = models.CharField(max_length=255, blank=True, null=True, help_text="Specialization (e.g. Computer Science)")
     university = models.CharField(max_length=255)
     year_completed = models.CharField(max_length=10)
     certificate = models.FileField(

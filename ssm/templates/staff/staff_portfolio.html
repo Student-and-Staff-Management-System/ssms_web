@@ -820,6 +820,9 @@
                         <tr>
                             <td>
                                 <strong>{{ item.degree }}</strong>
+                                {% if item.specialization %}
+                                <br><small style="color:var(--text-muted); font-size:0.82rem;">Specialization: {{ item.specialization }}</small>
+                                {% endif %}
                                 {% if item.certificate %}
                                 <br><a href="{{ item.certificate.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none;">📄 View Certificate</a>
                                 {% endif %}

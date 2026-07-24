@@ -2827,6 +2827,92 @@ def staff_portfolio(request):
     })
 
 
+def generate_biodata_pdf(request):
+    """View to generate a printable PDF of the logged-in staff member's biodata."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+
+    publications = staff.publication_list.all()
+    awards = staff.award_list.all()
+    seminars = staff.seminar_list.all()
+    students_guided = staff.student_guided_list.all()
+    
+    # New Models
+    conferences = staff.conferences.all().order_by('-year_of_publication', '-created_at')
+    journals = staff.journals.all().order_by('-published_year', '-created_at')
+    books = staff.books.all().order_by('-year_of_publication', '-created_at')
+    
+    qualifications = staff.qualifications.all().order_by('-year_completed')
+    designations = staff.past_designations.all()
+    memberships = staff.memberships.all()
+    patents = staff.patents.all().order_by('-application_year', '-created_at')
+
+    # Dynamic PhD Scholar Guidance
+    from students.models import PhDProgress
+    stage_map = dict(PhDProgress.CURRENT_STAGE_CHOICES)
+
+    supervised_scholars_raw = staff.supervised_scholars.select_related(
+        'student', 'student__phd_progress', 'student__personalinfo'
+    ).all()
+
+    phd_scholars_data = []
+    for profile in supervised_scholars_raw:
+        student = profile.student
+        try:
+            progress = student.phd_progress
+            current_stage_key = progress.current_stage
+            current_stage_label = stage_map.get(current_stage_key, current_stage_key)
+        except AttributeError:
+            current_stage_label = 'RAC Review'
+
+        phd_scholars_data.append({
+            'roll_number': student.roll_number,
+            'name': student.student_name,
+            'scholar_type': profile.get_scholar_type_display() if hasattr(profile, 'get_scholar_type_display') else profile.scholar_type,
+            'admission_date': profile.admission_date,
+            'status': profile.status,
+            'current_stage_label': current_stage_label,
+        })
+
+    context = {
+        'staff': staff,
+        'publications': publications,
+        'awards': awards,
+        'seminars': seminars,
+        'students_guided': students_guided,
+        'phd_scholars': phd_scholars_data,
+        'conferences': conferences,
+        'journals': journals,
+        'books': books,
+        'qualifications': qualifications,
+        'designations': designations,
+        'memberships': memberships,
+        'patents': patents,
+    }
+
+    from django.template.loader import get_template
+    from django.http import HttpResponse
+    from xhtml2pdf import pisa
+
+    template_path = 'staff/staff_biodata_template.html'
+    template = get_template(template_path)
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"{staff.name.replace(' ', '_')}_BioData.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+
 def portfolio_add_publication(request):
     staff = _get_staff_for_portfolio(request)
     if not staff:
