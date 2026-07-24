@@ -3001,8 +3001,7 @@ def portfolio_add_award(request):
     if not staff:
         return redirect('staffs:stafflogin')
     if request.method == 'POST':
-        StaffAwardHonour.objects.create(
-            staff=staff,
+        item = StaffAwardHonour.objects.create(
             title=request.POST.get('title', '').strip(),
             awarded_by=request.POST.get('awarded_by', '').strip(),
             description=request.POST.get('description', '').strip(),
@@ -3010,6 +3009,7 @@ def portfolio_add_award(request):
             category=request.POST.get('category', 'Award'),
             supporting_document=request.FILES.get('supporting_document'),
         )
+        item.staff.add(staff)
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Award', message='Added new award/honour')
         messages.success(request, "Entry added.")

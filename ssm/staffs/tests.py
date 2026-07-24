@@ -455,5 +455,44 @@ class AdditionalRolesTestCase(TestCase):
             staff4.clean()
 
 
+class StaffPortfolioTestCase(TestCase):
+    def setUp(self):
+        from django.contrib.auth.hashers import make_password
+        self.staff = Staff.objects.create(
+            staff_id="PORTFOLIO_STAFF",
+            name="Portfolio Faculty",
+            email="portfaculty@example.com",
+            password=make_password("password123"),
+            role="Course Incharge",
+            is_profile_complete=True
+        )
+
+    def test_portfolio_add_award(self):
+        from staffs.models import StaffAwardHonour
+        
+        self.client.login(username=self.staff.staff_id, password="password123")
+        session = self.client.session
+        session['staff_id'] = self.staff.staff_id
+        session.save()
+
+        # Send POST request to add an award
+        response = self.client.post(reverse('staffs:portfolio_add_award'), {
+            'title': 'Best Teacher Award',
+            'awarded_by': 'University',
+            'description': 'Awarded for excellence in teaching.',
+            'year': '2026',
+            'category': 'Award',
+        })
+        
+        # Verify redirect to staff_portfolio
+        self.assertRedirects(response, reverse('staffs:staff_portfolio'))
+        
+        # Verify award was created and associated with staff
+        awards = StaffAwardHonour.objects.filter(title='Best Teacher Award')
+        self.assertEqual(awards.count(), 1)
+        award = awards.first()
+        self.assertIn(self.staff, award.staff.all())
+
+
 
 
