@@ -2706,6 +2706,32 @@ def staff_edit_profile(request):
         staff.date_of_joining = doj if doj else None
         staff.specialization = request.POST.get('specialization', '')
 
+        # Profile Picture Upload/Clear
+        clear_photo = request.POST.get('clear_photo') == 'true'
+        if clear_photo:
+            if staff.photo:
+                try:
+                    staff.photo.delete(save=False)
+                except Exception as e:
+                    print(f"Error deleting old photo: {e}")
+            staff.photo = None
+        else:
+            photo = request.FILES.get('photo')
+            if photo:
+                from django.core.exceptions import ValidationError
+                from ssm.validators import validate_file_size
+                try:
+                    validate_file_size(photo)
+                    if staff.photo:
+                        try:
+                            staff.photo.delete(save=False)
+                        except Exception as e:
+                            print(f"Error deleting old photo: {e}")
+                    staff.photo = photo
+                except ValidationError as e:
+                    messages.error(request, f"Profile Picture: {e.message}")
+                    return render(request, 'staff/staff_edit_profile.html', {'staff': staff})
+
         # Joining/Onboarding Documents
         joining_order = request.FILES.get('joining_order')
         if joining_order:
