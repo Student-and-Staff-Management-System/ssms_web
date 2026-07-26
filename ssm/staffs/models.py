@@ -9,8 +9,8 @@ from ssm.upload_paths import (
     staff_qualification_document_path, staff_designation_document_path,
     staff_seminar_order_path, staff_joining_order_path, 
     staff_appointment_order_path, staff_board_order_path, 
-    staff_joining_letter_path, staff_sslc_marksheet_path,
-    staff_hsc_marksheet_path
+    staff_joining_letter_path, staff_sslc_marksheet_path, staff_hsc_marksheet_path, staff_student_guided_thesis_path,
+    staff_student_guided_papers_path, staff_research_project_path
 )
 
 
@@ -170,6 +170,11 @@ class Staff(models.Model):
     def __str__(self):
         return f"{self.salutation} {self.name}"
 
+    @property
+    def publication_count(self):
+        return self.journals.count() + self.conferences.count() + self.books.count()
+
+
 class StaffGenerator(Staff):
     class Meta:
         proxy = True
@@ -267,6 +272,22 @@ class StaffPublication(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.year})"
+
+    @property
+    def mla_format(self):
+        parts = []
+        if self.staff:
+            parts.append(f"{self.staff.name.strip()} {self.staff.initial.strip()},".strip())
+        if self.title:
+            title = self.title.strip()
+            if not title.endswith('.'):
+                title += '.'
+            parts.append(f'"{title}"')
+        if self.venue_or_journal:
+            parts.append(f"{self.venue_or_journal.strip()},")
+        if self.year:
+            parts.append(f"{self.year.strip()}.")
+        return " ".join(parts)
 
 
 class StaffQualification(models.Model):
@@ -456,12 +477,30 @@ class StaffStudentGuided(models.Model):
     degree_type = models.CharField(max_length=10, choices=[('PG', 'PG'), ('PhD', 'PhD')])
     status = models.CharField(max_length=20, choices=[('Ongoing', 'Ongoing'), ('Completed', 'Completed')], default='Ongoing')
     year = models.CharField(max_length=20, blank=True)
+    viva_date = models.DateField(null=True, blank=True, help_text="Viva Voce Examination Date (Completed Ph.D. scholars)")
     supporting_document = models.FileField(
         upload_to=staff_student_guided_document_path,
         blank=True,
         null=True,
         help_text="Memo/Provisional Certificate for PG/PhD, Allocation Order for New Students",
         validators=[validate_file_size]
+    )
+    department = models.CharField(max_length=255, blank=True, default='')
+    roll_number = models.CharField(max_length=100, blank=True, default='')
+    thesis_title = models.CharField(max_length=500, blank=True, default='')
+    thesis_document = models.FileField(
+        upload_to=staff_student_guided_thesis_path,
+        blank=True,
+        null=True,
+        validators=[validate_file_size],
+        help_text="Upload Thesis PDF"
+    )
+    papers_pdf = models.FileField(
+        upload_to=staff_student_guided_papers_path,
+        blank=True,
+        null=True,
+        validators=[validate_file_size],
+        help_text="Upload Publication Papers PDF"
     )
     order = models.PositiveIntegerField(default=0)
 
@@ -470,6 +509,36 @@ class StaffStudentGuided(models.Model):
 
     def __str__(self):
         return f"{self.student_name} ({self.degree_type})"
+
+
+class StaffResearchProject(models.Model):
+    """Research Project undertaken by staff."""
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='research_projects')
+    title = models.CharField(max_length=400)
+    description = models.TextField(blank=True, default='')
+    funded_by = models.CharField(max_length=255, blank=True, default='')
+    funding_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Funding amount in INR")
+    supporting_document = models.FileField(
+        upload_to=staff_research_project_path,
+        blank=True,
+        null=True,
+        validators=[validate_file_size],
+        help_text="Upload Project Sanction Order or related supporting document (PDF)"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=[('Ongoing', 'Ongoing'), ('Completed', 'Completed')],
+        default='Ongoing'
+    )
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-order', '-start_date', 'title']
+
+    def __str__(self):
+        return f"{self.title} ({self.status})"
 
 
 class Subject(models.Model):
@@ -699,6 +768,37 @@ class ConferenceParticipation(models.Model):
     def __str__(self):
         return f"{self.title_of_paper} ({self.year_of_publication})"
 
+    @property
+    def mla_format(self):
+        parts = []
+        if self.author_name:
+            parts.append(f"{self.author_name.strip()},")
+        if self.title_of_paper:
+            title = self.title_of_paper.strip()
+            if not title.endswith('.'):
+                title += '.'
+            parts.append(f'"{title}"')
+        if self.title_of_proceedings:
+            parts.append(f"{self.title_of_proceedings.strip()},")
+            
+        date_str = ""
+        if self.date_from:
+            date_str += self.date_from.strftime("%b %Y")
+        elif self.year_of_publication:
+            date_str += self.year_of_publication.strip()
+        if date_str:
+            parts.append(f"{date_str.strip()},")
+            
+        if self.page_numbers_from and self.page_numbers_to:
+            parts.append(f"pp. {self.page_numbers_from.strip()}-{self.page_numbers_to.strip()}.")
+        elif self.page_numbers_from:
+            parts.append(f"p. {self.page_numbers_from.strip()}.")
+            
+        if self.year_of_publication:
+            parts.append(f"{self.year_of_publication.strip()}.")
+            
+        return " ".join(parts)
+
 class JournalPublication(models.Model):
     staff = models.ManyToManyField(Staff, related_name='journals', blank=True)
     student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_journals')
@@ -739,6 +839,41 @@ class JournalPublication(models.Model):
     def __str__(self):
         return f"{self.title_of_paper} - {self.journal_name}"
 
+    @property
+    def mla_format(self):
+        parts = []
+        if self.author_name:
+            parts.append(f"{self.author_name.strip()},")
+        if self.title_of_paper:
+            title = self.title_of_paper.strip()
+            if not title.endswith('.'):
+                title += '.'
+            parts.append(f'"{title}"')
+        if self.journal_name:
+            parts.append(f"{self.journal_name.strip()},")
+        if self.volume_number:
+            parts.append(f"Volume {self.volume_number.strip()},")
+        if self.issue_number:
+            parts.append(f"Number {self.issue_number.strip()},")
+        
+        date_str = ""
+        if self.published_month:
+            date_str += f"{self.published_month.strip()} "
+        if self.published_year:
+            date_str += f"{self.published_year.strip()}"
+        if date_str:
+            parts.append(f"{date_str.strip()},")
+            
+        if self.page_numbers_from and self.page_numbers_to:
+            parts.append(f"pp. {self.page_numbers_from.strip()}-{self.page_numbers_to.strip()}.")
+        elif self.page_numbers_from:
+            parts.append(f"p. {self.page_numbers_from.strip()}.")
+            
+        if self.published_year:
+            parts.append(f"{self.published_year.strip()}.")
+            
+        return " ".join(parts)
+
 class BookPublication(models.Model):
     staff = models.ManyToManyField(Staff, related_name='books', blank=True)
     student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_books')
@@ -764,6 +899,39 @@ class BookPublication(models.Model):
 
     def __str__(self):
         return f"{self.title_of_book} ({self.type})"
+
+    @property
+    def mla_format(self):
+        parts = []
+        if self.author_name:
+            parts.append(f"{self.author_name.strip()},")
+        if self.title_of_book:
+            title = self.title_of_book.strip()
+            if not title.endswith('.'):
+                title += '.'
+            parts.append(f'"{title}"')
+        if self.publisher_name:
+            parts.append(f"{self.publisher_name.strip()},")
+        if self.publisher_address:
+            parts.append(f"{self.publisher_address.strip()},")
+            
+        date_str = ""
+        if self.month_of_publication:
+            date_str += f"{self.month_of_publication.strip()} "
+        if self.year_of_publication:
+            date_str += f"{self.year_of_publication.strip()}"
+        if date_str:
+            parts.append(f"{date_str.strip()},")
+            
+        if self.page_numbers_from and self.page_numbers_to:
+            parts.append(f"pp. {self.page_numbers_from.strip()}-{self.page_numbers_to.strip()}.")
+        elif self.page_numbers_from:
+            parts.append(f"p. {self.page_numbers_from.strip()}.")
+            
+        if self.year_of_publication:
+            parts.append(f"{self.year_of_publication.strip()}.")
+            
+        return " ".join(parts)
 
 
 class StaffPatent(models.Model):

@@ -51,6 +51,9 @@ urlpatterns = [
     path('profile/portfolio/membership/add/', views.portfolio_add_membership, name='portfolio_add_membership'),
     path('profile/portfolio/membership/<int:pk>/edit/', views.portfolio_edit_membership, name='portfolio_edit_membership'),
     
+    path('profile/portfolio/research_project/add/', views.portfolio_add_research_project, name='portfolio_add_research_project'),
+    path('profile/portfolio/research_project/<int:pk>/edit/', views.portfolio_edit_research_project, name='portfolio_edit_research_project'),
+    
     path('profile/portfolio/delete/<str:model_name>/<int:pk>/', views.portfolio_delete_entry, name='portfolio_delete_entry'),
 
     # The URL will be /staff/logout/
@@ -65,6 +68,7 @@ urlpatterns = [
     path('subjects/<int:subject_id>/attendance/', views.manage_attendance, name='manage_attendance'),
     path('subjects/<int:subject_id>/attendance/report/', views.attendance_report, name='attendance_report'),
     path('staff/list/', views.staff_list, name='staff_list'),
+    path('staff/<str:staff_id>/profile/', views.view_faculty_profile, name='view_faculty_profile'),
     
     # Class Substitutions
     path('substitutions/manage/', views.manage_substitutions, name='manage_substitutions'),

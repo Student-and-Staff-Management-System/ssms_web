@@ -306,6 +306,15 @@ def register_student(request):
                 def save_related(form_instance):
                     obj = form_instance.save(commit=False)
                     obj.student = s
+                    if form_instance == docs_form:
+                        for field in ['student_photo', 'student_id_card', 'community_certificate', 'aadhaar_card', 
+                                      'first_graduate_certificate', 'sslc_marksheet', 'hsc_marksheet', 
+                                      'income_certificate', 'bank_passbook', 'driving_license']:
+                            if data.get(f'clear_{field}') == 'true':
+                                file_field = getattr(obj, field, None)
+                                if file_field:
+                                    file_field.delete(save=False)
+                                setattr(obj, field, None)
                     obj.save()
 
                 save_related(bank_form)
@@ -613,12 +622,10 @@ def get_profile_completion_data(student):
         'sslc_year_of_passing': 'SSLC Year of Passing',
         'sslc_school_name': 'SSLC School Name',
         'sslc_school_address': 'SSLC School Address',
-        'sslc_board': 'SSLC Board',
         'hsc_register_number': 'HSC Register Number',
         'hsc_percentage': 'HSC Percentage',
         'hsc_year_of_passing': 'HSC Year of Passing',
         'hsc_school_name': 'HSC School Name',
-        'hsc_board': 'HSC Board',
         'hsc_school_address': 'HSC School Address',
         # DiplomaDetails
         'diploma_register_number': 'Diploma Register Number',
@@ -641,16 +648,16 @@ def get_profile_completion_data(student):
         'pg_ogpa': 'PG OGPA / Percentage',
         'pg_year_of_passing': 'PG Year of Passing',
         # StudentDocuments
-        'student_photo': 'Uploaded Photo',
-        'student_id_card': 'Uploaded ID Card',
-        'community_certificate': 'Uploaded Community Certificate',
-        'aadhaar_card': 'Uploaded Aadhaar Card',
-        'sslc_marksheet': 'Uploaded SSLC Marksheet',
-        'hsc_marksheet': 'Uploaded HSC Marksheet',
-        'ug_marksheet': 'Uploaded UG Marksheet',
-        'pg_marksheet': 'Uploaded PG Marksheet',
-        'income_certificate': 'Uploaded Income Certificate',
-        'bank_passbook': 'Uploaded Bank Passbook',
+        'student_photo': 'Photo',
+        'student_id_card': 'ID Card',
+        'community_certificate': 'Community Certificate',
+        'aadhaar_card': 'Aadhaar Card',
+        'sslc_marksheet': 'SSLC Marksheet',
+        'hsc_marksheet': 'HSC Marksheet',
+        'ug_marksheet': 'UG Marksheet',
+        'pg_marksheet': 'PG Marksheet',
+        'income_certificate': 'Income Certificate',
+        'bank_passbook': 'Bank Passbook',
     }
 
     def check_fields(model_instance, fields_to_check):
@@ -703,9 +710,9 @@ def get_profile_completion_data(student):
         acad = getattr(student, 'academichistory', None)
         if not acad:
             acad = AcademicHistory.objects.filter(student=student).first()
-        check_fields(acad, ['sslc_register_number', 'sslc_percentage', 'sslc_year_of_passing', 'sslc_school_name', 'sslc_school_address', 'sslc_board'])
+        check_fields(acad, ['sslc_register_number', 'sslc_percentage', 'sslc_year_of_passing', 'sslc_school_name', 'sslc_school_address'])
     except Exception:
-        check_fields(None, ['sslc_register_number', 'sslc_percentage', 'sslc_year_of_passing', 'sslc_school_name', 'sslc_school_address', 'sslc_board'])
+        check_fields(None, ['sslc_register_number', 'sslc_percentage', 'sslc_year_of_passing', 'sslc_school_name', 'sslc_school_address'])
 
     # 5. HSC or Diploma
     is_lateral = (student.program_level == 'UG' and student.ug_entry_type == 'Lateral')
@@ -722,9 +729,9 @@ def get_profile_completion_data(student):
             acad = getattr(student, 'academichistory', None)
             if not acad:
                 acad = AcademicHistory.objects.filter(student=student).first()
-            check_fields(acad, ['hsc_register_number', 'hsc_percentage', 'hsc_year_of_passing', 'hsc_school_name', 'hsc_board', 'hsc_school_address'])
+            check_fields(acad, ['hsc_register_number', 'hsc_percentage', 'hsc_year_of_passing', 'hsc_school_name', 'hsc_school_address'])
         except Exception:
-            check_fields(None, ['hsc_register_number', 'hsc_percentage', 'hsc_year_of_passing', 'hsc_school_name', 'hsc_board', 'hsc_school_address'])
+            check_fields(None, ['hsc_register_number', 'hsc_percentage', 'hsc_year_of_passing', 'hsc_school_name', 'hsc_school_address'])
 
     # 6. UG Details (for PG / PHD)
     is_pg_or_phd = (student.program_level in ['PG', 'PHD'])
@@ -919,30 +926,17 @@ def student_editprofile(request):
         scholarship_info.save()
         
         # Update document uploads
-        if 'student_photo' in request.FILES:
-            student_docs.student_photo = request.FILES['student_photo']
-        if 'student_id_card' in request.FILES:
-            student_docs.student_id_card = request.FILES['student_id_card']
-        if 'aadhaar_card' in request.FILES:
-            student_docs.aadhaar_card = request.FILES['aadhaar_card']
-        if 'community_certificate' in request.FILES:
-            student_docs.community_certificate = request.FILES['community_certificate']
-        if 'sslc_marksheet' in request.FILES:
-            student_docs.sslc_marksheet = request.FILES['sslc_marksheet']
-        if 'hsc_marksheet' in request.FILES:
-            student_docs.hsc_marksheet = request.FILES['hsc_marksheet']
-        if 'income_certificate' in request.FILES:
-            student_docs.income_certificate = request.FILES['income_certificate']
-        if 'bank_passbook' in request.FILES:
-            student_docs.bank_passbook = request.FILES['bank_passbook']
-        if 'driving_license' in request.FILES:
-            student_docs.driving_license = request.FILES['driving_license']
-        if 'first_graduate_certificate' in request.FILES:
-            student_docs.first_graduate_certificate = request.FILES['first_graduate_certificate']
-        if 'tuition_fee_challan' in request.FILES:
-            student_docs.tuition_fee_challan = request.FILES['tuition_fee_challan']
-        if 'hostel_fee_challan' in request.FILES:
-            student_docs.hostel_fee_challan = request.FILES['hostel_fee_challan']
+        for field in ['student_photo', 'student_id_card', 'community_certificate', 'aadhaar_card', 
+                      'first_graduate_certificate', 'sslc_marksheet', 'hsc_marksheet', 
+                      'income_certificate', 'bank_passbook', 'driving_license',
+                      'tuition_fee_challan', 'hostel_fee_challan']:
+            if request.POST.get(f'clear_{field}') == 'true':
+                file_field = getattr(student_docs, field, None)
+                if file_field:
+                    file_field.delete(save=False)
+                setattr(student_docs, field, None)
+            elif field in request.FILES:
+                setattr(student_docs, field, request.FILES[field])
         
         student_docs.save()
         

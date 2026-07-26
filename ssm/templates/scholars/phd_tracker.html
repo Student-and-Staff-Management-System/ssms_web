@@ -9,7 +9,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
   <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
@@ -60,7 +60,7 @@
 
     .nav-brand { display: flex; align-items: center; gap: 14px; }
     .nav-brand img { height: 44px; }
-    .nav-brand div h1 { font-family: 'Outfit', sans-serif; font-size: 19px; font-weight: 700; color: var(--dark); line-height: 1.2; }
+    .nav-brand div h1 { font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: 700; color: var(--dark); line-height: 1.2; }
     .nav-brand div p { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
 
     .nav-user { display: flex; align-items: center; gap: 16px; }
@@ -133,7 +133,7 @@
     }
 
     .card-title {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Poppins', sans-serif;
       font-size: 16px;
       font-weight: 700;
       color: var(--dark);
@@ -266,7 +266,7 @@
       border: none;
       padding: 13px 20px;
       border-radius: 10px;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Poppins', sans-serif;
       font-weight: 600;
       font-size: 14px;
       display: inline-flex;
@@ -314,11 +314,11 @@
     <div class="page-header">
       <div>
         <a href="{% url 'scholar_dashboard' %}" class="back-btn"><i class='bx bx-left-arrow-alt'></i> Back to Dashboard</a>
-        <h2 style="font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 700; color: var(--dark); margin-top: 8px;">PhD Completion Stages Tracker</h2>
+        <h2 style="font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 700; color: var(--dark); margin-top: 8px;">PhD Completion Stages Tracker</h2>
       </div>
       <div style="text-align: right;">
         <span style="font-size: 13px; font-weight: 600; color: var(--text-light);">Overall Program Completion</span>
-        <div style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-dark);">{{ phd_stats.overall_percent }}%</div>
+        <div style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-dark);">{{ phd_stats.overall_percent }}%</div>
       </div>
     </div>
 
@@ -365,7 +365,7 @@
 
         <!-- 9-Stage Milestone checklist -->
         <div class="card" style="position: relative;">
-          <h4 style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+          <h4 style="font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
             <i class='bx bx-git-commit' style="font-size: 18px; color: var(--primary);"></i> Milestone Checklist
           </h4>
           

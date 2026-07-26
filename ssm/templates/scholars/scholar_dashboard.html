@@ -8,7 +8,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
   <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
@@ -64,7 +64,7 @@
 
     .nav-brand { display: flex; align-items: center; gap: 14px; }
     .nav-brand img { height: 44px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
-    .nav-brand div h1 { font-family: 'Outfit', sans-serif; font-size: 19px; font-weight: 700; color: var(--dark); line-height: 1.2; letter-spacing: -0.3px; }
+    .nav-brand div h1 { font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: 700; color: var(--dark); line-height: 1.2; letter-spacing: -0.3px; }
     .nav-brand div p { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
 
     .nav-user { display: flex; align-items: center; gap: 16px; }
@@ -110,7 +110,7 @@
       pointer-events: none;
     }
     .welcome-content { position: relative; z-index: 2; }
-    .welcome-title { font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .welcome-title { font-family: 'Poppins', sans-serif; font-size: 34px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
     .research-title { font-size: 17px; font-weight: 400; opacity: 0.95; display: flex; align-items: center; gap: 10px; line-height: 1.4; max-width: 85%; }
     .research-title i { font-size: 22px; color: var(--secondary); }
 
@@ -196,7 +196,7 @@
     }
 
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
-    .card-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 10px; letter-spacing: -0.2px; }
+    .card-title { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 10px; letter-spacing: -0.2px; }
     .card-title i { color: var(--primary); font-size: 22px; }
 
     /* Button Utilities */
@@ -229,7 +229,7 @@
     .timeline-item:last-child { margin-bottom: 0; }
     .timeline-dot { position: absolute; left: -32px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid var(--primary); box-shadow: 0 0 0 4px rgba(90, 125, 124, 0.15); transition: all 0.3s ease; }
     .timeline-item:hover .timeline-dot { background: var(--primary); transform: scale(1.1); }
-    .timeline-date { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; display: inline-block; }
+    .timeline-date { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; display: inline-block; }
     .timeline-content { background: var(--light); border: 1px solid var(--border); padding: 18px; border-radius: 12px; transition: all 0.2s ease; }
     .timeline-item:hover .timeline-content { border-color: var(--primary-light); background: white; box-shadow: var(--shadow-sm); }
     .timeline-content p { font-size: 14px; color: var(--text); margin-bottom: 12px; font-weight: 500; }
@@ -283,7 +283,7 @@
     .modal { background: white; border-radius: 18px; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); transform: scale(0.96); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); overflow: hidden;}
     .modal-overlay.active .modal { transform: scale(1); }
     .modal-header { padding: 22px 26px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .modal-header h3 { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); letter-spacing: -0.3px; }
+    .modal-header h3 { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); letter-spacing: -0.3px; }
     .close-btn { background: rgba(100, 116, 139, 0.1); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 20px; color: var(--text-light); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;}
     .close-btn:hover { background: rgba(100, 116, 139, 0.2); color: var(--dark); }
     .modal-body { padding: 26px; }
@@ -416,7 +416,7 @@
         <h2 class="welcome-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
             Welcome back, {{ student.student_name.split|first }}!
             {% if profile.is_visvesvaraya_scheme %}
-                <span class="badge-visvesvaraya" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1.5px solid rgba(255, 255, 255, 0.4); font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; font-family: 'Outfit', sans-serif;">
+                <span class="badge-visvesvaraya" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1.5px solid rgba(255, 255, 255, 0.4); font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; font-family: 'Poppins', sans-serif;">
                     🎓 Visvesvaraya Scheme
                 </span>
             {% endif %}
@@ -452,7 +452,7 @@
       <div class="left-col">
         
         <!-- Compact PhD Completion Stage Tracker Banner -->
-        <div class="card delay-1" style="background: white; border-top: 4px solid var(--primary); font-family: 'Outfit', sans-serif; padding: 18px; margin-bottom: 20px;">
+        <div class="card delay-1" style="background: white; border-top: 4px solid var(--primary); font-family: 'Poppins', sans-serif; padding: 18px; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="background: var(--primary-light); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">

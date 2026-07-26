@@ -275,6 +275,9 @@
                         <span>{{ staff.role }}</span>
                     </div>
                 </div>
+                <div style="margin-top: 15px; width: 100%;">
+                    <a href="{% url 'staffs:view_faculty_profile' staff.staff_id %}" class="back-btn" style="display: block; text-align: center;">View Profile</a>
+                </div>
             </div>
             {% empty %}
             <div class="no-results">

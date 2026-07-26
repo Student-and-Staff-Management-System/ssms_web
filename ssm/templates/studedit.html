@@ -510,7 +510,11 @@
                         <input type="file" id="student_photo" name="student_photo" accept="image/*">
                         {% if studentdocuments.student_photo %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.student_photo.url }}"
-                                target="_blank">View Photo</a></div>
+                                target="_blank">View Photo</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_student_photo" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -522,7 +526,11 @@
                         <input type="file" id="student_id_card" name="student_id_card" accept="image/*,application/pdf">
                         {% if studentdocuments.student_id_card %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.student_id_card.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_student_id_card" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -534,7 +542,11 @@
                         <input type="file" id="aadhaar_card" name="aadhaar_card" accept="image/*,application/pdf">
                         {% if studentdocuments.aadhaar_card %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.aadhaar_card.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_aadhaar_card" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -547,7 +559,11 @@
                             accept="image/*,application/pdf">
                         {% if studentdocuments.community_certificate %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.community_certificate.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_community_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -559,7 +575,11 @@
                         <input type="file" id="sslc_marksheet" name="sslc_marksheet" accept="image/*,application/pdf">
                         {% if studentdocuments.sslc_marksheet %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.sslc_marksheet.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_sslc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -571,7 +591,11 @@
                         <input type="file" id="hsc_marksheet" name="hsc_marksheet" accept="image/*,application/pdf">
                         {% if studentdocuments.hsc_marksheet %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.hsc_marksheet.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_hsc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -584,7 +608,11 @@
                             accept="image/*,application/pdf">
                         {% if studentdocuments.income_certificate %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.income_certificate.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_income_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -596,7 +624,11 @@
                         <input type="file" id="bank_passbook" name="bank_passbook" accept="image/*,application/pdf">
                         {% if studentdocuments.bank_passbook %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.bank_passbook.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_bank_passbook" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -608,7 +640,11 @@
                         <input type="file" id="driving_license" name="driving_license" accept="image/*,application/pdf">
                         {% if studentdocuments.driving_license %}
                         <div class="current-file">Current: <a href="{{ studentdocuments.driving_license.url }}"
-                                target="_blank">View Document</a></div>
+                                target="_blank">View Document</a>
+                            <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                <input type="checkbox" name="clear_driving_license" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                            </label>
+                        </div>
                         {% else %}
                         <div class="current-file not-uploaded">Not uploaded yet</div>
                         {% endif %}
@@ -631,7 +667,11 @@
                             <label for="first_graduate_certificate" style="margin-bottom: 8px; display: block;">First Graduate Certificate <span style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
                             <input type="file" id="first_graduate_certificate" name="first_graduate_certificate" accept="image/*,application/pdf">
                             {% if studentdocuments.first_graduate_certificate %}
-                            <div class="current-file" style="margin-top: 8px;">Current: <a href="{{ studentdocuments.first_graduate_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600;">View Certificate</a></div>
+                            <div class="current-file" style="margin-top: 8px;">Current: <a href="{{ studentdocuments.first_graduate_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight: 600;">View Certificate</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_first_graduate_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
                             {% else %}
                             <div class="current-file not-uploaded" style="margin-top: 8px;">Not uploaded yet</div>
                             {% endif %}
@@ -867,6 +907,41 @@
                     document.getElementById('projTitle').focus();
                 }, 500); // slight delay to allow toggle animation/render if any
             }
+        });
+
+        // --- Clear selected files script ---
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[type="file"]').forEach(function(input) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.innerHTML = '✕ Clear';
+                clearBtn.className = 'btn-clear-selection';
+                clearBtn.style.display = 'none';
+                clearBtn.style.marginLeft = '8px';
+                clearBtn.style.padding = '3px 8px';
+                clearBtn.style.fontSize = '0.8rem';
+                clearBtn.style.border = '1px solid #cbd5e1';
+                clearBtn.style.borderRadius = '4px';
+                clearBtn.style.backgroundColor = '#f1f5f9';
+                clearBtn.style.color = '#475569';
+                clearBtn.style.cursor = 'pointer';
+                
+                input.parentNode.insertBefore(clearBtn, input.nextSibling);
+                
+                input.addEventListener('change', function() {
+                    if (input.files && input.files.length > 0) {
+                        clearBtn.style.display = 'inline-block';
+                    } else {
+                        clearBtn.style.display = 'none';
+                    }
+                });
+                
+                clearBtn.addEventListener('click', function() {
+                    input.value = '';
+                    clearBtn.style.display = 'none';
+                    input.dispatchEvent(new Event('change'));
+                });
+            });
         });
     </script>
 </body>

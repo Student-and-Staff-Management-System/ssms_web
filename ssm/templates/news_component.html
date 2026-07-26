@@ -1,329 +1,514 @@
-<div class="news-ticker-panel content-section">
-    <div class="section-title-row"
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color, #e2e8f0);">
-        <div class="section-title"
-            style="display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text-main);">
-            📢 Announcements
+{% load static %}
+<div class="modern-notices-board">
+    <!-- Header Row -->
+    <div class="board-header">
+        <div class="board-title">
+            <span class="board-icon">📢</span>
+            <h3>Notice Board</h3>
         </div>
-        <div class="news-filters" style="display: flex; gap: 5px;">
-            <button class="filter-btn active" onclick="filterNews('all', this)">All</button>
+        <div class="board-filters">
+            <button class="pill-filter active" onclick="filterNotices('all', this)">All</button>
             {% if staff %}
-            <button class="filter-btn" onclick="filterNews('staff', this)">Staff</button>
+            <button class="pill-filter" onclick="filterNotices('staff', this)">Staff Only</button>
             {% endif %}
-            <button class="filter-btn" onclick="filterNews('student', this)">Students</button>
+            <button class="pill-filter" onclick="filterNotices('student', this)">Students</button>
         </div>
     </div>
 
-    <div class="news-scroll-window" id="newsWindow">
-        <div class="news-scroll-content" id="newsContent">
-            {% if news_list %}
-            {% for news in news_list %}
-            <div class="news-item" data-target="{{ news.target|lower }}">
-                <span class="news-date">{{ news.date|date:"M d, Y" }} <span
-                        style="font-weight: 400; opacity: 0.7; font-size: 0.9em; margin-left: 5px;">{{news.date|time:"h:iA"}}</span></span>
-
-                {% if news.should_show_new_indicator %}
-                <span class="new-indicator">🆕 NEW</span>
-                {% endif %}
-
-                {% if news.link %}
-                <p><a href="{{ news.link }}" target="_blank" class="news-link">
-                        {{ news.content }} <span style="font-size: 0.8em;">🔗</span>
-                    </a>
-                    <span class="news-tag {{ news.target|lower }}">{{ news.target }}</span>
-                    {% if news.document %}
-                    <a href="{{ news.document.url }}" target="_blank" class="document-link-inline">📎 View Document</a>
-                    {% endif %}
-                </p>
-                {% else %}
-                <p>{{ news.content }} <span class="news-tag {{ news.target|lower }}">{{ news.target }}</span>
-                    {% if news.document %}
-                    <a href="{{ news.document.url }}" target="_blank" class="document-link-inline">📎 View Document</a>
-                    {% endif %}
-                </p>
-                {% endif %}
+    <!-- Notices Layout -->
+    <div class="board-container">
+        {% if news_list %}
+            <!-- Left Pane: Featured Spotlight -->
+            <div class="spotlight-pane" id="spotlightCard">
+                <!-- Will be populated dynamically by JavaScript to match active filters -->
             </div>
-            {% endfor %}
-            {% else %}
-            <div class="news-item" style="text-align: center; color: var(--text-muted);">
-                <p>No new announcements.</p>
+
+            <!-- Right Pane: List Feed -->
+            <div class="feed-pane" id="noticesFeed">
+                {% for news in news_list %}
+                <div class="feed-item" data-target="{{ news.target|lower }}">
+                    <div class="feed-item-indicator {{ news.target|lower }}"></div>
+                    <div class="feed-item-body">
+                        <div class="feed-item-meta">
+                            <span class="feed-item-date">{{ news.date|date:"M d, Y" }} · {{ news.date|time:"h:i A" }}</span>
+                            {% if news.should_show_new_indicator %}
+                            <span class="feed-new-badge">NEW</span>
+                            {% endif %}
+                        </div>
+                        <p class="feed-item-text">
+                            {% if news.link %}
+                            <a href="{{ news.link }}" target="_blank" class="feed-link">{{ news.content }} 🔗</a>
+                            {% else %}
+                            {{ news.content }}
+                            {% endif %}
+                        </p>
+                        <div class="feed-item-footer">
+                            <span class="feed-target-badge {{ news.target|lower }}">{{ news.target }}</span>
+                            {% if news.document %}
+                            <a href="{{ news.document.url }}" target="_blank" class="feed-doc-link">
+                                📎 Document
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            {% endif %}
-        </div>
+        {% else %}
+            <div class="empty-board">
+                <span class="empty-icon">📭</span>
+                <p>No active notices or announcements.</p>
+            </div>
+        {% endif %}
     </div>
 </div>
 
 <style>
-    /* Native Theme Integration */
-    .news-ticker-panel {
-        background: var(--card-bg, #fff);
-        border-radius: var(--radius, 12px);
-        box-shadow: var(--shadow, 0 4px 6px rgba(0, 0, 0, 0.05));
+    /* Premium Modern Board Style */
+    .modern-notices-board {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-lg, 16px);
         padding: 20px;
-        margin-top: 25px;
-        border: 1px solid var(--border-color, #e2e8f0);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.25s ease;
     }
 
-    /* Filter Buttons */
-    .filter-btn {
-        background: transparent;
-        border: 1px solid var(--border-color, #e2e8f0);
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        color: var(--text-muted, #64748b);
-        transition: all 0.2s;
+    .board-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border, #e2e8f0);
+        padding-bottom: 12px;
     }
 
-    .filter-btn:hover {
+    .board-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .board-icon {
+        font-size: 1.3rem;
+    }
+
+    .board-title h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--text-main, #0f172a);
+    }
+
+    /* Filter Pills */
+    .board-filters {
+        display: flex;
+        gap: 6px;
+    }
+
+    .pill-filter {
         background: var(--bg-body, #f8fafc);
-        color: var(--text-main, #334155);
+        border: 1px solid var(--border, #e2e8f0);
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-secondary, #475569);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .filter-btn.active {
+    .pill-filter:hover {
+        background: var(--primary-light, #eef2f2);
+        color: var(--primary-dark, #4a6b69);
+        border-color: transparent;
+    }
+
+    .pill-filter.active {
         background: var(--primary, #5a7d7c);
         color: white;
         border-color: var(--primary, #5a7d7c);
+        box-shadow: 0 2px 4px rgba(90, 125, 124, 0.15);
     }
 
-    /* Scroll Area */
-    .news-scroll-window {
-        height: 400px;
-        overflow: hidden;
+    /* Split Container Layout */
+    .board-container {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 20px;
+        min-height: auto;
+    }
+
+    @media (max-width: 768px) {
+        .board-container {
+            grid-template-columns: 1fr;
+            min-height: auto;
+        }
+        .spotlight-pane {
+            height: auto !important;
+            min-height: 200px;
+        }
+        .feed-pane {
+            height: 250px !important;
+        }
+    }
+
+    /* Left Pane: Spotlight style */
+    .spotlight-pane {
+        background: linear-gradient(135deg, var(--primary, #5a7d7c) 0%, var(--primary-dark, #4a6b69) 100%);
+        border-radius: var(--radius-md, 12px);
+        padding: 20px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 4px 15px rgba(90, 125, 124, 0.15);
         position: relative;
+        overflow: hidden;
+        animation: fadeIn 0.3s ease-out;
+        height: 335px;
+        box-sizing: border-box;
     }
 
-    .news-scroll-window::after {
-        content: "";
+    .spotlight-pane::before {
+        content: '';
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        background: linear-gradient(to top, var(--card-bg, #fff), transparent);
+        top: 0; right: 0;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
         pointer-events: none;
     }
 
-    .news-scroll-content {
-        position: absolute;
-        width: 100%;
-        animation: scroll-vertical 15s linear infinite;
-        top: 100%;
+    .spotlight-badge {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        background: rgba(255, 255, 255, 0.18);
+        padding: 4px 8px;
+        border-radius: 4px;
+        width: fit-content;
+        text-transform: uppercase;
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .news-ticker-panel:hover .news-scroll-content {
-        animation-play-state: paused;
+    .spotlight-content-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 15px 0;
     }
 
-    /* News Items */
-    .news-item {
-        margin-bottom: 20px;
-        padding-bottom: 20px;
-        border-bottom: 1px dashed var(--border-color, #e2e8f0);
-        display: block;
-        /* Default display */
+    .spotlight-date {
+        font-size: 0.72rem;
+        opacity: 0.85;
+        font-weight: 500;
     }
 
-    .news-item.hidden {
+    .spotlight-text {
+        font-size: 1.05rem;
+        font-weight: 600;
+        line-height: 1.5;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .spotlight-text a {
+        color: white;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .spotlight-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding-top: 12px;
+        margin-top: auto;
+    }
+
+    .spotlight-doc-btn {
+        background: white;
+        color: var(--primary-dark, #4a6b69);
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .spotlight-doc-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        color: var(--primary, #5a7d7c);
+    }
+
+    /* Right Pane: Feed list style */
+    .feed-pane {
+        height: 335px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-right: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border, #cbd5e1) transparent;
+    }
+
+    .feed-pane::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .feed-pane::-webkit-scrollbar-thumb {
+        background: var(--border, #cbd5e1);
+        border-radius: 10px;
+    }
+
+    .feed-item {
+        background: var(--bg-body, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        gap: 12px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .feed-item:hover {
+        transform: translateX(3px);
+        border-color: var(--primary, #5a7d7c);
+        background: var(--surface, #ffffff);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .feed-item.hidden {
         display: none !important;
     }
 
-    .news-item:last-child {
-        border-bottom: none;
+    .feed-item-indicator {
+        width: 4px;
+        border-radius: 10px;
+        flex-shrink: 0;
     }
 
-    .news-date {
-        font-size: 0.75rem;
+    .feed-item-indicator.all {
+        background: #f59e0b; /* Amber */
+    }
+
+    .feed-item-indicator.staff {
+        background: var(--primary, #5a7d7c); /* Sage */
+    }
+
+    .feed-item-indicator.student {
+        background: #3b82f6; /* Blue */
+    }
+
+    .feed-item-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .feed-item-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .feed-item-date {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-muted, #94a3b8);
+    }
+
+    .feed-new-badge {
+        font-size: 0.6rem;
         font-weight: 700;
-        color: var(--primary-color, #2c3e50);
-        margin-bottom: 5px;
-        display: block;
-        text-transform: uppercase;
+        background: #ef4444;
+        color: white;
+        padding: 1px 5px;
+        border-radius: 4px;
         letter-spacing: 0.5px;
     }
 
-    .news-item p {
-        margin: 0;
-        font-size: 0.95rem;
+    .feed-item-text {
+        margin: 4px 0;
+        font-size: 0.85rem;
+        line-height: 1.45;
         color: var(--text-main, #334155);
-        line-height: 1.6;
+        font-weight: 500;
+        word-wrap: break-word;
     }
 
-    .news-link {
-        color: var(--accent-color, #2563eb);
+    .feed-link {
+        color: var(--text-main, #0f172a);
         text-decoration: none;
-        font-weight: 500;
         transition: color 0.2s;
     }
 
-    .news-link:hover {
-        color: var(--primary-color, #1e293b);
+    .feed-link:hover {
+        color: var(--primary, #5a7d7c);
         text-decoration: underline;
     }
 
-    /* News Tags */
-    .news-tag {
+    .feed-item-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4px;
+    }
+
+    /* Target badge styling */
+    .feed-target-badge {
         font-size: 0.65rem;
+        font-weight: 700;
         padding: 2px 6px;
         border-radius: 4px;
-        margin-left: 8px;
-        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        vertical-align: middle;
-        background: #e2e8f0;
-        color: #64748b;
     }
 
-    .news-tag.all {
-        background: #dcfce7;
-        color: #166534;
+    .feed-target-badge.all {
+        background: #fef3c7;
+        color: #b56009;
     }
 
-    .news-tag.staff {
-        background: #dbeafe;
+    .feed-target-badge.staff {
+        background: var(--primary-light, #eef2f2);
+        color: var(--primary-dark, #4a6b69);
+    }
+
+    .feed-target-badge.student {
+        background: #eff6ff;
         color: #1e40af;
     }
 
-    .news-tag.student {
-        background: #fae8ff;
-        color: #86198f;
-    }
-
-    /* NEW Indicator - Eye-catching Design */
-    .new-indicator {
-        display: inline-block;
-        background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
-        color: white;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-right: 8px;
-        margin-bottom: 5px;
-        box-shadow: 0 2px 8px rgba(255, 8, 68, 0.4), 0 0 15px rgba(255, 8, 68, 0.2);
-        animation: shimmer 2s ease-in-out infinite, glow 1.5s ease-in-out infinite;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .new-indicator::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg,
-                transparent 30%,
-                rgba(255, 255, 255, 0.3) 50%,
-                transparent 70%);
-        animation: shine 3s infinite;
-    }
-
-    @keyframes shimmer {
-
-        0%,
-        100% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.05);
-        }
-    }
-
-    @keyframes glow {
-
-        0%,
-        100% {
-            box-shadow: 0 2px 8px rgba(255, 8, 68, 0.4), 0 0 15px rgba(255, 8, 68, 0.2);
-        }
-
-        50% {
-            box-shadow: 0 2px 12px rgba(255, 8, 68, 0.6), 0 0 25px rgba(255, 8, 68, 0.4);
-        }
-    }
-
-    @keyframes shine {
-        0% {
-            transform: translateX(-100%) translateY(-100%) rotate(45deg);
-        }
-
-        100% {
-            transform: translateX(100%) translateY(100%) rotate(45deg);
-        }
-    }
-
-    /* Document Link - Inline */
-    .document-link-inline {
-        display: inline;
-        color: #3730a3;
+    .feed-doc-link {
+        color: var(--primary, #5a7d7c);
         text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-        margin-left: 8px;
-        padding: 2px 6px;
-        background: #e0e7ff;
-        border-radius: 4px;
-        transition: background 0.2s;
+        font-size: 0.72rem;
+        font-weight: 600;
+        transition: opacity 0.2s;
     }
 
-    .document-link-inline:hover {
-        background: #c7d2fe;
-        text-decoration: none;
+    .feed-doc-link:hover {
+        opacity: 0.8;
+        text-decoration: underline;
     }
 
-    @keyframes scroll-vertical {
-        0% {
-            top: 100%;
-        }
+    .empty-board {
+        grid-column: span 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        color: var(--text-muted, #94a3b8);
+        gap: 10px;
+    }
 
-        100% {
-            top: -150%;
-        }
+    .empty-icon {
+        font-size: 2.5rem;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-4px); }
+        to { opacity: 1; transform: translateX(0); }
     }
 </style>
 
 <script>
-    function filterNews(type, btn) {
-        // Update Buttons
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    function updateFeaturedNotice(item) {
+        const spotlight = document.getElementById('spotlightCard');
+        if (!spotlight) return;
+
+        if (!item) {
+            spotlight.innerHTML = `
+                <div class="spotlight-badge">NOTICES</div>
+                <div class="spotlight-content-wrap" style="text-align: center; justify-content: center;">
+                    <p class="spotlight-text" style="opacity: 0.7;">Select a filter to display announcements.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const date = item.querySelector('.feed-item-date').textContent;
+        const textElement = item.querySelector('.feed-item-text');
+        const textHtml = textElement.innerHTML;
+        const targetBadge = item.querySelector('.feed-target-badge');
+        const targetText = targetBadge.textContent;
+        const targetClass = targetBadge.className;
+
+        const docLink = item.querySelector('.feed-doc-link');
+        let docHtml = '';
+        if (docLink) {
+            docHtml = `<a href="${docLink.getAttribute('href')}" target="_blank" class="spotlight-doc-btn">📎 View Document</a>`;
+        }
+
+        spotlight.innerHTML = `
+            <div class="spotlight-badge">LATEST NOTICE</div>
+            <div class="spotlight-content-wrap">
+                <span class="spotlight-date">${date}</span>
+                <p class="spotlight-text">${textHtml}</p>
+            </div>
+            <div class="spotlight-footer">
+                <span class="${targetClass}" style="border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white;">${targetText}</span>
+                ${docHtml}
+            </div>
+        `;
+    }
+
+    function filterNotices(type, btn) {
+        // Update active filter pill
+        document.querySelectorAll('.pill-filter').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Filter Items
-        const items = document.querySelectorAll('.news-item');
+        // Filter feed items
+        const items = document.querySelectorAll('.feed-item');
+        let firstVisible = null;
+
         items.forEach(item => {
             const target = item.getAttribute('data-target');
+            let show = false;
 
-            // Strict filtering logic as requested
             if (type === 'all') {
-                // Show everything
+                show = true;
+            } else if (type === 'student' && target === 'student') {
+                show = true;
+            } else if (type === 'staff' && target === 'staff') {
+                show = true;
+            }
+
+            if (show) {
                 item.classList.remove('hidden');
-            } else if (type === 'student') {
-                // Show ONLY 'student' target (hide 'all' and 'staff')
-                if (target === 'student') {
-                    item.classList.remove('hidden');
-                } else {
-                    item.classList.add('hidden');
+                if (!firstVisible) {
+                    firstVisible = item;
                 }
-            } else if (type === 'staff') {
-                // Show ONLY 'staff' target (hide 'all' and 'student')
-                if (target === 'staff') {
-                    item.classList.remove('hidden');
-                } else {
-                    item.classList.add('hidden');
-                }
+            } else {
+                item.classList.add('hidden');
             }
         });
 
-        // Reset Animation to ensure flow isn't broken
-        const content = document.getElementById('newsContent');
-        content.style.animation = 'none';
-        content.offsetHeight; /* trigger reflow */
-        content.style.animation = 'scroll-vertical 10s linear infinite';
+        // Set the spotlight pane content to match the first visible notice under the current filter
+        updateFeaturedNotice(firstVisible);
     }
+
+    // Initialize Spotlight on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstItem = document.querySelector('.feed-item:not(.hidden)');
+        updateFeaturedNotice(firstItem);
+    });
 </script>

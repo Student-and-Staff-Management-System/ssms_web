@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #5a7d7c; --primary-dark: #4a6b69;
@@ -12,7 +12,7 @@
             --surface: #ffffff; --text-main: #1a2e2e;
             --text-muted: #6b7280; --border: #e2eded; --radius: 12px;
         }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 40px 20px; display: flex; justify-content: center; min-height: 100vh; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 40px 20px; display: flex; justify-content: center; min-height: 100vh; }
         .form-container { background: var(--surface); padding: 36px; border-radius: var(--radius); box-shadow: 0 4px 20px rgba(90,125,124,0.12); max-width: 640px; width: 100%; }
         .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
         .form-header h2 { margin: 0; color: var(--primary-dark); font-size: 1.4rem; }
@@ -20,14 +20,14 @@
         .back-link:hover { color: var(--primary); }
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Outfit', sans-serif; font-size: 0.95rem; box-sizing: border-box; transition: border-color 0.18s; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Poppins', sans-serif; font-size: 0.95rem; box-sizing: border-box; transition: border-color 0.18s; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(90,125,124,0.12); }
         .form-group textarea { min-height: 80px; resize: vertical; }
         .form-group input[type="file"] { padding: 8px; }
         .form-help { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
         .errorlist { color: #dc2626; font-size: 0.83rem; list-style: none; padding: 0; margin: 5px 0 0; }
         .btn-bar { display: flex; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .btn-save { background: var(--primary); color: white; padding: 11px 28px; border: none; border-radius: 9px; font-size: 0.95rem; font-family: 'Outfit', sans-serif; font-weight: 600; cursor: pointer; transition: background 0.18s; }
+        .btn-save { background: var(--primary); color: white; padding: 11px 28px; border: none; border-radius: 9px; font-size: 0.95rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; transition: background 0.18s; }
         .btn-save:hover { background: var(--primary-dark); }
         .btn-cancel { color: var(--text-muted); text-decoration: none; padding: 11px 16px; border-radius: 9px; font-weight: 500; transition: all 0.18s; display: inline-block; }
         .btn-cancel:hover { background: var(--primary-light); color: var(--primary-dark); }
@@ -241,19 +241,63 @@
             </div>
             <div class="form-grid-2">
                 <div class="form-group">
+                    <label>Roll Number</label>
+                    <input type="text" name="roll_number" value="{% if item %}{{ item.roll_number }}{% endif %}" placeholder="e.g. 20PGIT01">
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" name="department" value="{% if item %}{{ item.department }}{% endif %}" placeholder="e.g. Information Technology">
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
                     <label>Degree Type</label>
-                    <select name="degree_type">
+                    <select name="degree_type" id="id_degree_type">
                         <option value="PG" {% if not item or item.degree_type == 'PG' %}selected{% endif %}>PG (M.Tech, M.Sc)</option>
                         <option value="PhD" {% if item and item.degree_type == 'PhD' %}selected{% endif %}>PhD</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Status</label>
-                    <select name="status">
+                    <select name="status" id="id_status">
                         <option value="Ongoing" {% if not item or item.status == 'Ongoing' %}selected{% endif %}>Ongoing</option>
                         <option value="Completed" {% if item and item.status == 'Completed' %}selected{% endif %}>Completed</option>
                     </select>
                 </div>
+            </div>
+            
+            <div class="form-group" id="viva-date-group" style="display: none;">
+                <label>Viva Voce Examination Date</label>
+                <input type="date" name="viva_date" value="{% if item and item.viva_date %}{{ item.viva_date|date:'Y-m-d' }}{% endif %}">
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const degreeSelect = document.getElementById('id_degree_type');
+                    const statusSelect = document.getElementById('id_status');
+                    const vivaGroup = document.getElementById('viva-date-group');
+
+                    function toggleViva() {
+                        if (degreeSelect && statusSelect && vivaGroup) {
+                            if (degreeSelect.value === 'PhD' && statusSelect.value === 'Completed') {
+                                vivaGroup.style.display = 'block';
+                            } else {
+                                vivaGroup.style.display = 'none';
+                            }
+                        }
+                    }
+
+                    if (degreeSelect && statusSelect) {
+                        degreeSelect.addEventListener('change', toggleViva);
+                        statusSelect.addEventListener('change', toggleViva);
+                        toggleViva();
+                    }
+                });
+            </script>
+
+            <div class="form-group">
+                <label>Thesis Title</label>
+                <input type="text" name="thesis_title" value="{% if item %}{{ item.thesis_title }}{% endif %}" placeholder="e.g. A Study on Machine Learning Models">
             </div>
             <div class="form-group">
                 <label>Year</label>
@@ -262,7 +306,25 @@
             <div class="form-group">
                 <label>Supporting Document <small style="color:var(--text-muted);">(Max: 100KB)</small></label>
                 <input type="file" name="supporting_document" accept=".pdf,.jpg,.jpeg,.png">
+                {% if item and item.supporting_document %}
+                <div class="form-help">Currently: <a href="{{ item.supporting_document.url }}" target="_blank">View Document</a></div>
+                {% else %}
                 <div class="form-help">Memo, Provisional Certificate, or Allocation Order</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label>Thesis Document <small style="color:var(--text-muted);">(PDF only)</small></label>
+                <input type="file" name="thesis_document" accept=".pdf">
+                {% if item and item.thesis_document %}
+                <div class="form-help">Currently: <a href="{{ item.thesis_document.url }}" target="_blank">View Thesis</a></div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label>Papers (PDFs) <small style="color:var(--text-muted);">(PDF only)</small></label>
+                <input type="file" name="papers_pdf" accept=".pdf">
+                {% if item and item.papers_pdf %}
+                <div class="form-help">Currently: <a href="{{ item.papers_pdf.url }}" target="_blank">View Papers</a></div>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -300,6 +362,15 @@
                     {% endfor %}
                 </div>
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Student Scholar (Optional)</label>
+                <select name="student" style="width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Poppins', sans-serif;">
+                    <option value="">-- None --</option>
+                    {% for s in phd_students %}
+                        <option value="{{ s.pk }}" {% if item and item.student.pk == s.pk %}selected{% endif %}>{{ s.student_name }} ({{ s.roll_number }})</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="form-group">
                 <label>Title of Paper</label>
@@ -383,6 +454,15 @@
                     {% endfor %}
                 </div>
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Student Scholar (Optional)</label>
+                <select name="student" style="width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Poppins', sans-serif;">
+                    <option value="">-- None --</option>
+                    {% for s in phd_students %}
+                        <option value="{{ s.pk }}" {% if item and item.student.pk == s.pk %}selected{% endif %}>{{ s.student_name }} ({{ s.roll_number }})</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="form-group">
                 <label>Title of Paper *</label>
@@ -480,6 +560,15 @@
                     {% endfor %}
                 </div>
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Student Scholar (Optional)</label>
+                <select name="student" style="width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Poppins', sans-serif;">
+                    <option value="">-- None --</option>
+                    {% for s in phd_students %}
+                        <option value="{{ s.pk }}" {% if item and item.student.pk == s.pk %}selected{% endif %}>{{ s.student_name }} ({{ s.roll_number }})</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="form-group">
                 <label>Title of Book / Article *</label>

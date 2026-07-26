@@ -173,12 +173,35 @@ def staff_student_guided_document_path(instance, filename):
     return f'staff/{instance.staff.staff_id}/student_guided_{name_slug}_{degree}.{ext}'
 
 
+def staff_student_guided_thesis_path(instance, filename):
+    """Upload path for manually guided student thesis."""
+    ext = filename.split('.')[-1]
+    name_slug = instance.student_name[:20].replace(' ', '_').lower()
+    degree = instance.degree_type.lower()
+    return f'staff/{instance.staff.staff_id}/student_guided_thesis_{name_slug}_{degree}.{ext}'
+
+
+def staff_student_guided_papers_path(instance, filename):
+    """Upload path for manually guided student papers."""
+    ext = filename.split('.')[-1]
+    name_slug = instance.student_name[:20].replace(' ', '_').lower()
+    degree = instance.degree_type.lower()
+    return f'staff/{instance.staff.staff_id}/student_guided_papers_{name_slug}_{degree}.{ext}'
+
+
+
 def staff_leave_document_path(instance, filename):
     """Upload path for staff leave documents."""
     ext = filename.split('.')[-1]
     date_str = datetime.now().strftime('%Y%m%d')
     leave_type = instance.leave_type.lower().replace(' ', '_')
     return f'staff/{instance.staff.staff_id}/leave_{leave_type}_{date_str}.{ext}'
+
+def staff_research_project_path(instance, filename):
+    """Upload path for staff research project documents."""
+    ext = filename.split('.')[-1]
+    title_slug = instance.title[:20].replace(' ', '_').lower() if instance.title else 'project'
+    return f'staff/{instance.staff.staff_id}/research_project_{title_slug}.{ext}'
 
 
 def staff_conference_document_path(instance, filename):

@@ -602,51 +602,131 @@
                             <label for="student_photo">Student Photo <span style="font-size:0.8em; color:#6c757d;">(Max:
                                     100KB)</span></label>
                             <input type="file" id="student_photo" name="student_photo" accept="image/*">
+                            {% if docs.student_photo %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.student_photo.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Photo</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_student_photo" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="student_id_card">Student ID Card <span
                                     style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
                             <input type="file" id="student_id_card" name="student_id_card">
+                            {% if docs.student_id_card %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.student_id_card.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_student_id_card" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="community_certificate">Community Certificate <span
                                     style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
                             <input type="file" id="community_certificate" name="community_certificate">
+                            {% if docs.community_certificate %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.community_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_community_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="aadhaar_card">Aadhaar Card <span style="font-size:0.8em; color:#6c757d;">(Max:
                                     100KB)</span></label>
                             <input type="file" id="aadhaar_card" name="aadhaar_card">
+                            {% if docs.aadhaar_card %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.aadhaar_card.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_aadhaar_card" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="sslc_marksheet">SSLC Marksheet <span
                                     style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
                             <input type="file" id="sslc_marksheet" name="sslc_marksheet">
+                            {% if docs.sslc_marksheet %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.sslc_marksheet.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_sslc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="hsc_marksheet">HSC Marksheet <span style="font-size:0.8em; color:#6c757d;">(Max:
                                     100KB)</span></label>
                             <input type="file" id="hsc_marksheet" name="hsc_marksheet">
+                            {% if docs.hsc_marksheet %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.hsc_marksheet.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_hsc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="income_certificate">Income Certificate <span
                                     style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
                             <input type="file" id="income_certificate" name="income_certificate">
+                            {% if docs.income_certificate %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.income_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_income_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="bank_passbook">Bank Passbook <span style="font-size:0.8em; color:#6c757d;">(Max:
                                     100KB)</span></label>
                             <input type="file" id="bank_passbook" name="bank_passbook">
+                            {% if docs.bank_passbook %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.bank_passbook.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_bank_passbook" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="input-group">
                             <label for="driving_license">Driving License <span
                                     style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
                             <input type="file" id="driving_license" name="driving_license">
+                            {% if docs.driving_license %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.driving_license.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Document</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_driving_license" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                         <div id="fg-cert-upload-section" class="input-group conditional-section">
                             <label for="first_graduate_certificate">First Graduate Certificate <span
                                     style="font-size:0.8em; color:#6c757d;">(Max: 100KB)</span></label>
                             <input type="file" id="first_graduate_certificate" name="first_graduate_certificate">
+                            {% if docs.first_graduate_certificate %}
+                            <div class="current-file" style="font-size:0.85em; color:var(--text-secondary); margin-top:5px;">
+                                Current: <a href="{{ docs.first_graduate_certificate.url }}" target="_blank" style="color: var(--accent-color); font-weight:600;">View Certificate</a>
+                                <label style="margin-left: 12px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                    <input type="checkbox" name="clear_first_graduate_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -967,6 +1047,39 @@
             // Initial calls
             fetchCasteData();
             handleProgramChange();  // initialise conditional sections
+
+            // --- Clear selected files script ---
+            document.querySelectorAll('input[type="file"]').forEach(function(input) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.innerHTML = '✕ Clear';
+                clearBtn.className = 'btn-clear-selection';
+                clearBtn.style.display = 'none';
+                clearBtn.style.marginLeft = '8px';
+                clearBtn.style.padding = '3px 8px';
+                clearBtn.style.fontSize = '0.8rem';
+                clearBtn.style.border = '1px solid #cbd5e1';
+                clearBtn.style.borderRadius = '4px';
+                clearBtn.style.backgroundColor = '#f1f5f9';
+                clearBtn.style.color = '#475569';
+                clearBtn.style.cursor = 'pointer';
+                
+                input.parentNode.insertBefore(clearBtn, input.nextSibling);
+                
+                input.addEventListener('change', function() {
+                    if (input.files && input.files.length > 0) {
+                        clearBtn.style.display = 'inline-block';
+                    } else {
+                        clearBtn.style.display = 'none';
+                    }
+                });
+                
+                clearBtn.addEventListener('click', function() {
+                    input.value = '';
+                    clearBtn.style.display = 'none';
+                    input.dispatchEvent(new Event('change'));
+                });
+            });
         });
     </script>
     <script src="{% static 'js/registration_validation.js' %}?v=1.2"></script>

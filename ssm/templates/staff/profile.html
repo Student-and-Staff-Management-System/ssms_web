@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ staff.name }} {{ staff.initial|default:"" }} | Faculty Profile</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
         type="image/png">
     <style>
@@ -34,7 +34,7 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             margin: 0;
@@ -243,6 +243,254 @@
             box-shadow: 0 4px 10px rgba(90, 125, 124, 0.4);
         }
 
+        /* ─── PORTFOLIO METRICS SUMMARY ─── */
+        .portfolio-stats-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 1024px) {
+            .portfolio-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .stats-summary-card {
+            background: var(--surface, white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .stats-card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+        
+        .fresh-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            flex-grow: 1;
+        }
+        @media (max-width: 640px) {
+            .fresh-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .fresh-stat-card {
+            background: var(--surface, white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box;
+        }
+        .fresh-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.08);
+            border-color: var(--primary-light);
+        }
+        .card-glow {
+            position: absolute;
+            top: -50%; right: -50%;
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-glow, rgba(90,125,124,0.15)) 0%, transparent 70%);
+            opacity: 0.6;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .fresh-stat-card:hover .card-glow {
+            transform: scale(1.2);
+            opacity: 0.8;
+        }
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .category-icon {
+            font-size: 1.2rem;
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .category-icon.conferences { background: #e0e7ff; color: #4f46e5; }
+        .category-icon.seminars { background: #d1fae5; color: #059669; }
+        .category-icon.symposia { background: #fef3c7; color: #d97706; }
+        .category-icon.workshops { background: #ffe4e6; color: #e11d48; }
+
+        .fresh-stat-card h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .card-total {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .total-number {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1;
+        }
+        .total-label {
+            font-size: 0.76rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            border-top: 1px dashed var(--border);
+            padding-top: 12px;
+        }
+        .detail-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .block-header {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .block-header .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .attended .dot { background: #3b82f6; }
+        .conducted .dot { background: #10b981; }
+
+        .block-val {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .block-split {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            font-size: 0.68rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+        .block-split span strong {
+            color: var(--text-main);
+        }
+        .block-split span {
+            white-space: nowrap;
+        }
+
+        .guidance-visual-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+        .guidance-card {
+            background: var(--bg-body, #f8fafc);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .guidance-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .guidance-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .guidance-header .icon {
+            font-size: 1.35rem;
+            background: var(--surface, white);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-card);
+        }
+        .guidance-header .desc-info h4 {
+            margin: 0;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .guidance-header .desc-info p {
+            margin: 2px 0 0;
+            font-size: 0.78rem;
+            color: var(--text-light);
+        }
+        .guidance-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .metric-progress-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .metric-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        .metric-meta .label {
+            color: var(--text-light);
+        }
+        .metric-meta .val {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .progress-bar-track {
+            height: 6px;
+            background: var(--border, #e2e8f0);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+        }
+
         /* --- Content Layout --- */
         .content-container {
             max-width: 1200px;
@@ -444,9 +692,15 @@
                     alt="University Logo" style="height: 35px; width: auto;">
                 <span>Faculty Profile</span>
             </div>
+            {% if is_own_profile %}
             <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">
                 <span>&larr;</span> Back to Dashboard
             </a>
+            {% else %}
+            <a href="{% url 'staffs:staff_list' %}" class="back-btn">
+                <span>&larr;</span> Back to Staff Directory
+            </a>
+            {% endif %}
         </div>
     </nav>
 
@@ -461,10 +715,12 @@
                 <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=3b82f6&color=fff&size=200&bold=true"
                     alt="{{ staff.name }}" class="hero-avatar">
                 {% endif %}
+                {% if is_own_profile %}
                 <a href="{% url 'staffs:staff_edit_profile' %}" class="avatar-overlay">
                     <span style="font-size: 1.5rem;">📷</span>
                     <span>Update Photo</span>
                 </a>
+                {% endif %}
             </div>
 
             <div class="hero-info">
@@ -506,6 +762,7 @@
                 </div>
 
                 <div style="margin-top: 25px; display: flex; gap: 12px;">
+                    {% if is_own_profile %}
                     <a href="{% url 'staffs:staff_edit_profile' %}" class="tab-btn"
                         style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
                         <span>✏️</span> Edit Profile
@@ -514,10 +771,12 @@
                         style="background: white; color: var(--primary); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
                         <span>💼</span> Manage Portfolio
                     </a>
-                    <a href="{% url 'staffs:generate_biodata_pdf' %}" class="tab-btn"
+                    {% endif %}
+                    <a href="{% url 'staffs:generate_biodata_pdf' %}?staff_id={{ staff.staff_id }}" class="tab-btn"
                         style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
                         <span>📄</span> Download Bio Data
                     </a>
+                </div>
             </div>
         </div>
     </header>
@@ -547,7 +806,7 @@
                 {% if staff.role != 'Office Staff' %}
                 <div class="stats-row">
                     <div class="stat-box">
-                        <span class="stat-number">{{ staff.publication_list.count }}</span>
+                        <span class="stat-number">{{ staff.publication_count }}</span>
                         <span class="stat-label">Publications</span>
                     </div>
                     <div class="stat-box">
@@ -752,20 +1011,231 @@
             {% if staff.role != 'Office Staff' %}
             <!-- 4. RESEARCH TAB -->
             <div id="research" class="tab-content">
+                <!-- ═══ PORTFOLIO METRICS SPOTLIGHT ═══ -->
+                <div class="portfolio-stats-grid">
+                    
+                    <!-- Left Side: Fresh 2x2 Stats Cards Grid -->
+                    <div class="fresh-stats-grid">
+                        
+                        <!-- Conferences Card -->
+                        <div class="fresh-stat-card">
+                            <div class="card-glow" style="--accent-glow: rgba(79, 70, 229, 0.15)"></div>
+                            <div class="card-top">
+                                <div class="category-icon conferences">🎤</div>
+                                <h3>Conferences</h3>
+                            </div>
+                            <div class="card-total">
+                                <span class="total-number">{{ conf_attended_national|add:conf_attended_international|add:conf_conducted_national|add:conf_conducted_international }}</span>
+                                <span class="total-label">Total</span>
+                            </div>
+                            <div class="card-details">
+                                <div class="detail-block attended">
+                                    <div class="block-header"><span class="dot"></span> Attended</div>
+                                    <div class="block-val">{{ conf_attended_national|add:conf_attended_international }}</div>
+                                    <div class="block-split">
+                                        <span>Nat: <strong>{{ conf_attended_national }}</strong></span>
+                                        <span>Int: <strong>{{ conf_attended_international }}</strong></span>
+                                    </div>
+                                </div>
+                                <div class="detail-block conducted">
+                                    <div class="block-header"><span class="dot"></span> Conducted</div>
+                                    <div class="block-val">{{ conf_conducted_national|add:conf_conducted_international }}</div>
+                                    <div class="block-split">
+                                        <span>Nat: <strong>{{ conf_conducted_national }}</strong></span>
+                                        <span>Int: <strong>{{ conf_conducted_international }}</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seminars Card -->
+                        <div class="fresh-stat-card">
+                            <div class="card-glow" style="--accent-glow: rgba(16, 185, 129, 0.15)"></div>
+                            <div class="card-top">
+                                <div class="category-icon seminars">📰</div>
+                                <h3>Seminars</h3>
+                            </div>
+                            <div class="card-total">
+                                <span class="total-number">{{ seminars_attended|add:seminars_conducted }}</span>
+                                <span class="total-label">Total</span>
+                            </div>
+                            <div class="card-details">
+                                <div class="detail-block attended">
+                                    <div class="block-header"><span class="dot"></span> Attended</div>
+                                    <div class="block-val">{{ seminars_attended }}</div>
+                                </div>
+                                <div class="detail-block conducted">
+                                    <div class="block-header"><span class="dot"></span> Conducted</div>
+                                    <div class="block-val">{{ seminars_conducted }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Symposia Card -->
+                        <div class="fresh-stat-card">
+                            <div class="card-glow" style="--accent-glow: rgba(245, 158, 11, 0.15)"></div>
+                            <div class="card-top">
+                                <div class="category-icon symposia">🏛️</div>
+                                <h3>Symposia</h3>
+                            </div>
+                            <div class="card-total">
+                                <span class="total-number">{{ symposia_attended|add:symposia_conducted }}</span>
+                                <span class="total-label">Total</span>
+                            </div>
+                            <div class="card-details">
+                                <div class="detail-block attended">
+                                    <div class="block-header"><span class="dot"></span> Attended</div>
+                                    <div class="block-val">{{ symposia_attended }}</div>
+                                </div>
+                                <div class="detail-block conducted">
+                                    <div class="block-header"><span class="dot"></span> Conducted</div>
+                                    <div class="block-val">{{ symposia_conducted }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Workshops Card -->
+                        <div class="fresh-stat-card">
+                            <div class="card-glow" style="--accent-glow: rgba(244, 63, 94, 0.15)"></div>
+                            <div class="card-top">
+                                <div class="category-icon workshops">⚙️</div>
+                                <h3>Workshops</h3>
+                            </div>
+                            <div class="card-total">
+                                <span class="total-number">{{ workshops_attended|add:workshops_conducted }}</span>
+                                <span class="total-label">Total</span>
+                            </div>
+                            <div class="card-details">
+                                <div class="detail-block attended">
+                                    <div class="block-header"><span class="dot"></span> Attended</div>
+                                    <div class="block-val">{{ workshops_attended }}</div>
+                                </div>
+                                <div class="detail-block conducted">
+                                    <div class="block-header"><span class="dot"></span> Conducted</div>
+                                    <div class="block-val">{{ workshops_conducted }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Guidance Card: Research Guidance (PhD vs PG) -->
+                    <div class="stats-summary-card">
+                        <div class="stats-card-title">
+                            <span>🧑‍🏫 Research Guidance Summary</span>
+                        </div>
+                        <div class="guidance-visual-grid">
+                            <!-- PG Guidance -->
+                            <div class="guidance-card pg">
+                                <div class="guidance-header">
+                                    <span class="icon">🎓</span>
+                                    <div class="desc-info">
+                                        <h4>M.Phil / M.E. / M.Sc. (PG)</h4>
+                                        <p>Postgraduate Research</p>
+                                    </div>
+                                </div>
+                                <div class="guidance-metrics">
+                                    <div class="metric-progress-item">
+                                        <div class="metric-meta">
+                                            <span class="label">Awarded (Completed)</span>
+                                            <span class="val">{{ pg_completed }}</span>
+                                        </div>
+                                        <div class="progress-bar-track">
+                                            <div class="progress-bar-fill completed" style="width: {{ pg_completed_pct }}%; background: #10b981;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="metric-progress-item">
+                                        <div class="metric-meta">
+                                            <span class="label">Ongoing Guidance</span>
+                                            <span class="val">{{ pg_ongoing }}</span>
+                                        </div>
+                                        <div class="progress-bar-track">
+                                            <div class="progress-bar-fill ongoing" style="width: {{ pg_ongoing_pct }}%; background: #3b82f6;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                    <!-- PhD Guidance -->
+                    <div class="guidance-card phd">
+                        <div class="guidance-header">
+                            <span class="icon">🔬</span>
+                            <div class="desc-info">
+                                <h4>Doctor of Philosophy (Ph.D.)</h4>
+                                <p>Doctoral Research</p>
+                            </div>
+                        </div>
+                        <div class="guidance-metrics">
+                            <div class="metric-progress-item">
+                                <div class="metric-meta">
+                                    <span class="label">Awarded (Completed)</span>
+                                    <span class="val">{{ phd_completed }}</span>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill completed" style="width: {{ phd_completed_pct }}%; background: #059669;"></div>
+                                </div>
+                            </div>
+                            <div class="metric-progress-item">
+                                <div class="metric-meta">
+                                    <span class="label">Ongoing Guidance</span>
+                                    <span class="val">{{ phd_ongoing }}</span>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill ongoing" style="width: {{ phd_ongoing_pct }}%; background: #6366f1;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
                 <!-- Publications -->
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">📚 Publications ({{ staff.publication_list.count }})</div>
+                        <div class="card-title">📚 Publications ({{ staff.publication_count }})</div>
                     </div>
                     <div class="items-list">
-                        {% for pub in staff.publication_list.all %}
+                        <!-- Journals -->
+                        {% for j in staff.journals.all %}
                         <div class="item-card">
-                            <div class="item-title">{{ pub.title }}</div>
-                            <div class="item-meta">{{ pub.journal_name }} • {{ pub.year }}</div>
+                            <div class="item-meta" style="font-size: 0.95rem; color: var(--text-main); line-height: 1.5;">
+                                {{ j.mla_format }}
+                                {% if j.student %}
+                                <br><small style="color: var(--primary-dark); font-weight: 600;">🎓 Student Scholar: {{ j.student.student_name }} ({{ j.student.roll_number }})</small>
+                                {% endif %}
+                            </div>
                         </div>
-                        {% empty %}
-                        <div style="padding: 20px; color: var(--text-light);">No publications found.</div>
                         {% endfor %}
+
+                        <!-- Conferences -->
+                        {% for c in staff.conferences.all %}
+                        <div class="item-card">
+                            <div class="item-meta" style="font-size: 0.95rem; color: var(--text-main); line-height: 1.5;">
+                                {{ c.mla_format }}
+                                {% if c.student %}
+                                <br><small style="color: var(--primary-dark); font-weight: 600;">🎓 Student Scholar: {{ c.student.student_name }} ({{ c.student.roll_number }})</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Books -->
+                        {% for b in staff.books.all %}
+                        <div class="item-card">
+                            <div class="item-meta" style="font-size: 0.95rem; color: var(--text-main); line-height: 1.5;">
+                                {{ b.mla_format }}
+                                {% if b.student %}
+                                <br><small style="color: var(--primary-dark); font-weight: 600;">🎓 Student Scholar: {{ b.student.student_name }} ({{ b.student.roll_number }})</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        {% if not staff.journals.all and not staff.conferences.all and not staff.books.all %}
+                        <div style="padding: 20px; color: var(--text-light);">No publications found.</div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -795,7 +1265,25 @@
                         {% for student in staff.student_guided_list.all %}
                         <div class="item-card">
                             <div class="item-title">{{ student.student_name }}</div>
-                            <div class="item-meta">{{ student.thesis_title }} • {{ student.year }}</div>
+                            <div class="item-meta">
+                                {% if student.roll_number %}Roll: {{ student.roll_number }} • {% endif %}
+                                {% if student.degree_type %}{{ student.degree_type }} • {% endif %}
+                                {% if student.department %}Dept: {{ student.department }} • {% endif %}
+                                {% if student.viva_date %}Viva Date: {{ student.viva_date|date:"d M Y" }} • {% endif %}
+                                {% if student.thesis_title %}Thesis: "{{ student.thesis_title }}" • {% endif %}
+                                Year: {{ student.year|default:"-" }}
+                                <div style="margin-top: 6px; display: flex; gap: 8px;">
+                                    {% if student.supporting_document %}
+                                        <a href="{{ student.supporting_document.url }}" target="_blank" style="font-size:0.78rem; text-decoration:none; color:var(--primary); font-weight:600;">📄 Memo/Cert</a>
+                                    {% endif %}
+                                    {% if student.thesis_document %}
+                                        <a href="{{ student.thesis_document.url }}" target="_blank" style="font-size:0.78rem; text-decoration:none; color:var(--primary); font-weight:600;">📘 Thesis</a>
+                                    {% endif %}
+                                    {% if student.papers_pdf %}
+                                        <a href="{{ student.papers_pdf.url }}" target="_blank" style="font-size:0.78rem; text-decoration:none; color:var(--primary); font-weight:600;">📰 Papers</a>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                         {% empty %}
                         <div style="padding: 20px; color: var(--text-light);">No students guided.</div>

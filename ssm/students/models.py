@@ -103,7 +103,7 @@ RELIGION_CHOICES = [('Hindu', 'Hindu'), ('Christian', 'Christian'), ('Muslim', '
 COMMUNITY_CHOICES = [('OC', 'OC'), ('BC', 'BC'), ('MBC', 'MBC'), ('SC', 'SC'), ('ST', 'ST'),('BC MUSLIM','BC MUSLIM')]
 
 class Caste(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=500, unique=True)
 
     def __str__(self):
         return self.name
@@ -164,7 +164,7 @@ class PersonalInfo(models.Model):
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES, blank=True)
     community = models.CharField(max_length=50, choices=COMMUNITY_CHOICES, blank=True)
     caste = models.ForeignKey(Caste, on_delete=models.SET_NULL, blank=True, null=True)
-    caste_other = models.CharField(max_length=100, blank=True, null=True)
+    caste_other = models.CharField(max_length=500, blank=True, null=True)
     religion = models.CharField(max_length=50, choices=RELIGION_CHOICES, blank=True)
     aadhaar_number = models.CharField(max_length=12, blank=True)
     permanent_address = models.TextField(blank=True)

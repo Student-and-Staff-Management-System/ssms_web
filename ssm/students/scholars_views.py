@@ -122,12 +122,10 @@ def scholar_register_step2(request):
                 'sslc_school_name': request.POST.get('sslc_school_name', ''),
                 'sslc_percentage': request.POST.get('sslc_percentage') or None,
                 'sslc_year_of_passing': request.POST.get('sslc_year_of_passing', ''),
-                'sslc_board': request.POST.get('sslc_board', ''),
                 'sslc_school_address': request.POST.get('sslc_school_address', ''),
                 'hsc_school_name': request.POST.get('hsc_school_name', ''),
                 'hsc_percentage': request.POST.get('hsc_percentage') or None,
                 'hsc_year_of_passing': request.POST.get('hsc_year_of_passing', ''),
-                'hsc_board': request.POST.get('hsc_board', ''),
                 'hsc_school_address': request.POST.get('hsc_school_address', ''),
             }
         )
@@ -564,13 +562,11 @@ def scholar_edit_profile(request):
         academic_history.sslc_school_name = request.POST.get('sslc_school_name')
         academic_history.sslc_percentage = request.POST.get('sslc_percentage') or None
         academic_history.sslc_year_of_passing = request.POST.get('sslc_year_of_passing')
-        academic_history.sslc_board = request.POST.get('sslc_board')
         academic_history.sslc_school_address = request.POST.get('sslc_school_address')
         
         academic_history.hsc_school_name = request.POST.get('hsc_school_name')
         academic_history.hsc_percentage = request.POST.get('hsc_percentage') or None
         academic_history.hsc_year_of_passing = request.POST.get('hsc_year_of_passing')
-        academic_history.hsc_board = request.POST.get('hsc_board')
         academic_history.hsc_school_address = request.POST.get('hsc_school_address')
         academic_history.save()
 
@@ -592,19 +588,16 @@ def scholar_edit_profile(request):
         pg_details.save()
 
         # 5. Update document uploads
-        from ssm.upload_paths import student_photo_path
-        files = request.FILES
-        if 'student_photo' in files: student_docs.student_photo = files['student_photo']
-        if 'student_id_card' in files: student_docs.student_id_card = files['student_id_card']
-        if 'aadhaar_card' in files: student_docs.aadhaar_card = files['aadhaar_card']
-        if 'community_certificate' in files: student_docs.community_certificate = files['community_certificate']
-        if 'sslc_marksheet' in files: student_docs.sslc_marksheet = files['sslc_marksheet']
-        if 'hsc_marksheet' in files: student_docs.hsc_marksheet = files['hsc_marksheet']
-        if 'ug_marksheet' in files: student_docs.ug_marksheet = files['ug_marksheet']
-        if 'pg_marksheet' in files: student_docs.pg_marksheet = files['pg_marksheet']
-        if 'income_certificate' in files: student_docs.income_certificate = files['income_certificate']
-        if 'bank_passbook' in files: student_docs.bank_passbook = files['bank_passbook']
-        if 'driving_license' in files: student_docs.driving_license = files['driving_license']
+        for field in ['student_photo', 'student_id_card', 'aadhaar_card', 'community_certificate', 
+                      'sslc_marksheet', 'hsc_marksheet', 'ug_marksheet', 'pg_marksheet', 
+                      'income_certificate', 'bank_passbook', 'driving_license']:
+            if request.POST.get(f'clear_{field}') == 'true':
+                file_field = getattr(student_docs, field, None)
+                if file_field:
+                    file_field.delete(save=False)
+                setattr(student_docs, field, None)
+            elif field in request.FILES:
+                setattr(student_docs, field, request.FILES[field])
             
         student_docs.save()
 

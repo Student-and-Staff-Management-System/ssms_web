@@ -181,7 +181,6 @@
                             <div style="margin-bottom: 10px;">
                                 <div class="form-grid-3">
                                     <div class="input-group"><label>SSLC %</label><input type="number" step="0.01" name="sslc_percentage" value="{{ academichistory.sslc_percentage|default:'' }}"></div>
-                                    <div class="input-group"><label>SSLC Board</label><input type="text" name="sslc_board" value="{{ academichistory.sslc_board|default:'' }}"></div>
                                     <div class="input-group"><label>SSLC Year</label><input type="text" name="sslc_year_of_passing" value="{{ academichistory.sslc_year_of_passing|default:'' }}"></div>
                                     <div class="input-group" style="grid-column: span 3;"><label>SSLC School Name</label><input type="text" name="sslc_school_name" value="{{ academichistory.sslc_school_name|default:'' }}"></div>
                                     <div class="input-group" style="grid-column: span 3;"><label>SSLC School Address</label><input type="text" name="sslc_school_address" value="{{ academichistory.sslc_school_address|default:'' }}"></div>
@@ -190,7 +189,6 @@
                              <div style="margin-bottom: 10px;">
                                 <div class="form-grid-3">
                                     <div class="input-group"><label>HSC %</label><input type="number" step="0.01" name="hsc_percentage" value="{{ academichistory.hsc_percentage|default:'' }}"></div>
-                                    <div class="input-group"><label>HSC Board</label><input type="text" name="hsc_board" value="{{ academichistory.hsc_board|default:'' }}"></div>
                                     <div class="input-group"><label>HSC Year</label><input type="text" name="hsc_year_of_passing" value="{{ academichistory.hsc_year_of_passing|default:'' }}"></div>
                                     <div class="input-group" style="grid-column: span 3;"><label>HSC School Name</label><input type="text" name="hsc_school_name" value="{{ academichistory.hsc_school_name|default:'' }}"></div>
                                     <div class="input-group" style="grid-column: span 3;"><label>HSC School Address</label><input type="text" name="hsc_school_address" value="{{ academichistory.hsc_school_address|default:'' }}"></div>
@@ -276,14 +274,102 @@
                     <div class="card">
                         <h2 class="card-title">📂 Documents</h2>
                         <div class="form-grid-3">
-                            <div class="input-group"><label>Photo</label><input type="file" name="student_photo">{% if studentdocuments.student_photo %}<div class="current-file"><a href="{{ studentdocuments.student_photo.url }}" target="_blank">View</a></div>{% endif %}</div>
-                            <div class="input-group"><label>Aadhaar</label><input type="file" name="aadhaar_card">{% if studentdocuments.aadhaar_card %}<div class="current-file"><a href="{{ studentdocuments.aadhaar_card.url }}" target="_blank">View</a></div>{% endif %}</div>
-                            <div class="input-group"><label>Community</label><input type="file" name="community_certificate">{% if studentdocuments.community_certificate %}<div class="current-file"><a href="{{ studentdocuments.community_certificate.url }}" target="_blank">View</a></div>{% endif %}</div>
-                            <div class="input-group"><label>SSLC Marksheet</label><input type="file" name="sslc_marksheet">{% if studentdocuments.sslc_marksheet %}<div class="current-file"><a href="{{ studentdocuments.sslc_marksheet.url }}" target="_blank">View</a></div>{% endif %}</div>
-                            <div class="input-group"><label>HSC Marksheet</label><input type="file" name="hsc_marksheet">{% if studentdocuments.hsc_marksheet %}<div class="current-file"><a href="{{ studentdocuments.hsc_marksheet.url }}" target="_blank">View</a></div>{% endif %}</div>
-                            <div class="input-group"><label>UG Marksheet</label><input type="file" name="ug_marksheet">{% if studentdocuments.ug_marksheet %}<div class="current-file"><a href="{{ studentdocuments.ug_marksheet.url }}" target="_blank">View</a></div>{% endif %}</div>
-                            <div class="input-group"><label>PG Marksheet</label><input type="file" name="pg_marksheet">{% if studentdocuments.pg_marksheet %}<div class="current-file"><a href="{{ studentdocuments.pg_marksheet.url }}" target="_blank">View</a></div>{% endif %}</div>
-                            <div class="input-group"><label>Income Cert</label><input type="file" name="income_certificate">{% if studentdocuments.income_certificate %}<div class="current-file"><a href="{{ studentdocuments.income_certificate.url }}" target="_blank">View</a></div>{% endif %}</div>
+                            <div class="input-group">
+                                <label>Photo</label>
+                                <input type="file" name="student_photo">
+                                {% if studentdocuments.student_photo %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.student_photo.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_student_photo" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>Aadhaar</label>
+                                <input type="file" name="aadhaar_card">
+                                {% if studentdocuments.aadhaar_card %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.aadhaar_card.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_aadhaar_card" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>Community</label>
+                                <input type="file" name="community_certificate">
+                                {% if studentdocuments.community_certificate %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.community_certificate.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_community_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>SSLC Marksheet</label>
+                                <input type="file" name="sslc_marksheet">
+                                {% if studentdocuments.sslc_marksheet %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.sslc_marksheet.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_sslc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>HSC Marksheet</label>
+                                <input type="file" name="hsc_marksheet">
+                                {% if studentdocuments.hsc_marksheet %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.hsc_marksheet.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_hsc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>UG Marksheet</label>
+                                <input type="file" name="ug_marksheet">
+                                {% if studentdocuments.ug_marksheet %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.ug_marksheet.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_ug_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>PG Marksheet</label>
+                                <input type="file" name="pg_marksheet">
+                                {% if studentdocuments.pg_marksheet %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.pg_marksheet.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_pg_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="input-group">
+                                <label>Income Cert</label>
+                                <input type="file" name="income_certificate">
+                                {% if studentdocuments.income_certificate %}
+                                <div class="current-file">
+                                    <a href="{{ studentdocuments.income_certificate.url }}" target="_blank">View</a>
+                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
+                                        <input type="checkbox" name="clear_income_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
 
@@ -430,6 +516,41 @@
             const data = await response.json();
             if (data.success) document.getElementById(`project-${id}`).remove();
         }
+
+        // --- Clear selected files script ---
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[type="file"]').forEach(function(input) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.innerHTML = '✕ Clear';
+                clearBtn.className = 'btn-clear-selection';
+                clearBtn.style.display = 'none';
+                clearBtn.style.marginLeft = '8px';
+                clearBtn.style.padding = '3px 8px';
+                clearBtn.style.fontSize = '0.8rem';
+                clearBtn.style.border = '1px solid #cbd5e1';
+                clearBtn.style.borderRadius = '4px';
+                clearBtn.style.backgroundColor = '#f1f5f9';
+                clearBtn.style.color = '#475569';
+                clearBtn.style.cursor = 'pointer';
+                
+                input.parentNode.insertBefore(clearBtn, input.nextSibling);
+                
+                input.addEventListener('change', function() {
+                    if (input.files && input.files.length > 0) {
+                        clearBtn.style.display = 'inline-block';
+                    } else {
+                        clearBtn.style.display = 'none';
+                    }
+                });
+                
+                clearBtn.addEventListener('click', function() {
+                    input.value = '';
+                    clearBtn.style.display = 'none';
+                    input.dispatchEvent(new Event('change'));
+                });
+            });
+        });
     </script>
 </body>
 </html>

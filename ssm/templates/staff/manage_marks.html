@@ -217,7 +217,7 @@
                                 {% with grade=claimed_grades_map|get_item:student.roll_number %}
                                 {% if grade %}
                                 <span
-                                    style="background:#e0f2f1;color:#0f766e;padding:4px 10px;border-radius:12px;font-weight:600;">
+                                    style="background:var(--primary-light, #eef2f2);color:var(--primary-dark, #4a6b69);padding:4px 10px;border-radius:12px;font-weight:600;">
                                     {{ grade.grade }}
                                 </span>
                                 <br>
@@ -272,7 +272,7 @@
                 });
 
                 input.addEventListener('focus', () => {
-                    input.closest('tr').style.backgroundColor = '#f0fdfa';
+                    input.closest('tr').style.backgroundColor = 'var(--primary-light, #eef2f2)';
                 });
 
                 input.addEventListener('blur', () => {

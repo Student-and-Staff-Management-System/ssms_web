@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4;
-            margin: 0.5in 0.5in;
+            margin: 0.55in 0.6in 0.6in 0.6in;
         }
 
         * {
@@ -18,16 +18,16 @@
 
         body {
             font-family: Calibri, "Segoe UI", Arial, sans-serif;
-            font-size: 10pt;
-            color: #2c3e50;
-            line-height: 1.4;
+            font-size: 9.5pt;
+            color: #2d3748;
+            line-height: 1.45;
         }
 
         /* ===== HEADER ===== */
         .header {
-            border-bottom: 2px solid #5a7d7c;
-            padding-bottom: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 24px;
+            border-bottom: 3px solid #5a7d7c;
+            padding-bottom: 16px;
         }
 
         .header-table {
@@ -38,39 +38,57 @@
         .header-table td {
             border: none;
             padding: 0;
-            vertical-align: top;
+            vertical-align: middle;
         }
 
         .faculty-title {
-            font-size: 20pt;
+            font-size: 22pt;
             font-weight: bold;
-            color: #5a7d7c;
+            color: #2c3e50;
             line-height: 1.1;
         }
 
         .faculty-desig {
             font-size: 11pt;
             font-weight: 600;
-            color: #555;
+            color: #5a7d7c;
             margin-top: 4px;
         }
 
         .faculty-dept {
             font-size: 10pt;
-            color: #777;
+            color: #718096;
             margin-top: 2px;
         }
 
         .contact-info {
             text-align: right;
             font-size: 9pt;
-            color: #444;
-            line-height: 1.4;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+
+        .contact-info strong {
+            color: #2d3748;
+        }
+
+        .links-row {
+            margin-top: 10px;
+            font-size: 8.5pt;
+            color: #718096;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 8px;
+        }
+
+        .links-row a {
+            color: #5a7d7c;
+            text-decoration: none;
+            font-weight: bold;
         }
 
         /* ===== SECTION ===== */
         .section {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             page-break-inside: avoid;
         }
 
@@ -81,49 +99,53 @@
             color: #5a7d7c;
             border-bottom: 1.5px solid #5a7d7c;
             margin-bottom: 8px;
-            padding-bottom: 2px;
+            padding-bottom: 3px;
+            letter-spacing: 0.6px;
         }
 
         /* ===== TABLES ===== */
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9.5pt;
-            margin-bottom: 5px;
+            font-size: 9pt;
+            margin-bottom: 6px;
         }
 
         table.data-table th {
-            background-color: #f2f5f5;
-            color: #2c3e50;
+            background-color: #f7fafc;
+            color: #2d3748;
             font-weight: bold;
             text-align: left;
             padding: 6px 8px;
-            border-bottom: 1.5px solid #5a7d7c;
+            border-bottom: 2px solid #5a7d7c;
         }
 
         table.data-table td {
             padding: 6px 8px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #edf2f7;
             vertical-align: top;
+            color: #4a5568;
         }
 
         /* ===== LISTS ===== */
         .bullet-list {
-            margin-left: 15px;
-            font-size: 9.5pt;
+            margin-left: 16px;
+            font-size: 9pt;
+            color: #4a5568;
         }
 
         .bullet-list li {
-            margin-bottom: 4px;
+            margin-bottom: 5px;
+            text-align: justify;
         }
 
         .item-title {
             font-weight: bold;
-            color: #2c3e50;
+            color: #2d3748;
         }
 
         .item-meta {
-            color: #666;
+            color: #718096;
             font-style: italic;
         }
 
@@ -131,34 +153,33 @@
         table.profile-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9.5pt;
+            font-size: 9pt;
         }
 
         table.profile-table td {
             border: none;
-            padding: 4px 0;
+            padding: 5px 0;
             vertical-align: top;
+            color: #4a5568;
         }
 
         table.profile-table td.label {
             font-weight: bold;
-            width: 150px;
-            color: #555;
+            width: 130px;
+            color: #2d3748;
         }
 
-        .links-row {
-            margin-top: 10px;
-            font-size: 9pt;
+        /* ===== PHOTO FRAME ===== */
+        .photo-td {
+            width: 90px;
+            padding-right: 18px;
         }
-
-        .links-row span {
-            margin-right: 15px;
-        }
-
-        .links-row a {
-            color: #5a7d7c;
-            text-decoration: none;
-            font-weight: 600;
+        
+        .photo-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            border: 2px solid #5a7d7c;
         }
     </style>
 </head>
@@ -168,6 +189,11 @@
     <div class="header">
         <table class="header-table">
             <tr>
+                {% if staff.photo %}
+                <td class="photo-td">
+                    <img src="{{ staff.photo.path }}" class="photo-img" />
+                </td>
+                {% endif %}
                 <td>
                     <div class="faculty-title">{{ staff.salutation }} {{ staff.name }} {{ staff.initial|default:"" }}</div>
                     <div class="faculty-desig">{{ staff.designation }}</div>
@@ -178,20 +204,20 @@
                     <strong>Email:</strong> {{ staff.email }}<br>
                     <strong>Mobile:</strong> {{ staff.mobile_number|default:"N/A" }}<br>
                     {% if staff.address %}
-                    <strong>Address:</strong> {{ staff.address|truncatechars:50 }}
+                    <strong>Address:</strong> {{ staff.address|truncatechars:65 }}
                     {% endif %}
                 </td>
             </tr>
         </table>
 
         <!-- Profile Links -->
-        {% if staff.linkedin_link or staff.google_scholar_link or staff.orcid_link or staff.research_gate_link %}
+        {% if staff.linkedin_link or staff.google_scholar_link or staff.orcid_link %}
         <div class="links-row">
             {% if staff.linkedin_link %}
-            <span><strong>LinkedIn:</strong> <a href="{{ staff.linkedin_link }}">{{ staff.linkedin_link }}</a></span>
+            <span><strong>LinkedIn:</strong> <a href="{{ staff.linkedin_link }}">{{ staff.linkedin_link }}</a> &nbsp; | &nbsp; </span>
             {% endif %}
             {% if staff.google_scholar_link %}
-            <span><strong>Scholar:</strong> <a href="{{ staff.google_scholar_link }}">{{ staff.google_scholar_link }}</a></span>
+            <span><strong>Scholar:</strong> <a href="{{ staff.google_scholar_link }}">{{ staff.google_scholar_link }}</a> &nbsp; | &nbsp; </span>
             {% endif %}
             {% if staff.orcid_link %}
             <span><strong>ORCID:</strong> <a href="{{ staff.orcid_link }}">{{ staff.orcid_link }}</a></span>
@@ -204,7 +230,7 @@
     {% if staff.research_interests %}
     <div class="section">
         <div class="section-title">Research Interests</div>
-        <p style="font-size: 9.5pt; text-align: justify; color: #444;">{{ staff.research_interests }}</p>
+        <p style="font-size: 9pt; text-align: justify; color: #4a5568;">{{ staff.research_interests }}</p>
     </div>
     {% endif %}
 
@@ -225,8 +251,8 @@
                 {% for q in qualifications %}
                 <tr>
                     <td><strong>{{ q.degree }}</strong></td>
-                    <td>{{ q.specialization }}</td>
-                    <td>{{ q.institution }}</td>
+                    <td>{{ q.specialization|default:"—" }}</td>
+                    <td>{{ q.university|default:"—" }}</td>
                     <td>{{ q.year_completed }}</td>
                 </tr>
                 {% endfor %}
@@ -256,41 +282,67 @@
                 <tr>
                     <td><strong>{{ d.designation }}</strong></td>
                     <td>{{ d.organization }}</td>
-                    <td>{{ d.start_date|date:"M Y" }} – {{ d.end_date|date:"M Y"|default:"Present" }}</td>
+                    <td>
+                        {% if d.from_date %}
+                            {{ d.from_date|date:"M Y" }} – {% if d.to_date %}{{ d.to_date|date:"M Y" }}{% else %}Present{% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
+    <!-- ===== RESEARCH PROJECTS ===== -->
+    {% if research_projects %}
+    <div class="section">
+        <div class="section-title">Research Projects Funded</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Project Title</th>
+                    <th style="width: 25%;">Funding Agency</th>
+                    <th style="width: 15%;">Amount (INR)</th>
+                    <th style="width: 20%;">Status / Period</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in research_projects %}
+                <tr>
+                    <td><strong>{{ p.title }}</strong></td>
+                    <td>{{ p.funded_by|default:"—" }}</td>
+                    <td>{% if p.funding_amount %}₹{{ p.funding_amount }}{% else %}—{% endif %}</td>
+                    <td>{{ p.status }} {% if p.start_date %}<br><small>{{ p.start_date|date:"Y" }} - {{ p.end_date|date:"Y" }}</small>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
     <!-- ===== JOURNAL PUBLICATIONS ===== -->
     {% if journals %}
     <div class="section">
         <div class="section-title">Journal Publications</div>
-        <ul class="bullet-list">
+        <ol class="bullet-list">
             {% for j in journals %}
-            <li>
-                <span class="item-title">"{{ j.paper_title }}"</span><br>
-                <span class="item-meta">{{ j.journal_name }}, Vol. {{ j.volume|default:"-" }}, Issue {{ j.issue|default:"-" }}, Page {{ j.page_range|default:"-" }} ({{ j.published_year }})</span>
-                {% if j.doi %} | DOI: {{ j.doi }}{% endif %}
-            </li>
+            <li>{{ j.mla_format }}</li>
             {% endfor %}
-        </ul>
+        </ol>
     </div>
     {% endif %}
 
     <!-- ===== CONFERENCES ===== -->
     {% if conferences %}
     <div class="section">
-        <div class="section-title">Conference Presentations</div>
-        <ul class="bullet-list">
+        <div class="section-title">Conference Publications / Presentations</div>
+        <ol class="bullet-list">
             {% for c in conferences %}
-            <li>
-                <span class="item-title">"{{ c.paper_title }}"</span><br>
-                <span class="item-meta">{{ c.conference_name }}, {{ c.location|default:"" }} ({{ c.year_of_publication }})</span>
-            </li>
+            <li>{{ c.mla_format }}</li>
             {% endfor %}
-        </ul>
+        </ol>
     </div>
     {% endif %}
 
@@ -298,14 +350,11 @@
     {% if books %}
     <div class="section">
         <div class="section-title">Books & Chapters Published</div>
-        <ul class="bullet-list">
+        <ol class="bullet-list">
             {% for b in books %}
-            <li>
-                <span class="item-title">{{ b.book_title }}</span> ({{ b.chapter_title|default:"Full Book" }})<br>
-                <span class="item-meta">Publisher: {{ b.publisher }}, ISBN: {{ b.isbn|default:"N/A" }} ({{ b.year_of_publication }})</span>
-            </li>
+            <li>{{ b.mla_format }}</li>
             {% endfor %}
-        </ul>
+        </ol>
     </div>
     {% endif %}
 
@@ -313,29 +362,28 @@
     {% if patents %}
     <div class="section">
         <div class="section-title">Patents</div>
-        <ul class="bullet-list">
+        <ol class="bullet-list">
             {% for p in patents %}
             <li>
                 <span class="item-title">{{ p.title }}</span><br>
                 <span class="item-meta">App Number: {{ p.application_number }}, Status: {{ p.status }} ({{ p.application_year }})</span>
             </li>
             {% endfor %}
-        </ul>
+        </ol>
     </div>
     {% endif %}
 
     <!-- ===== RESEARCH SCHOLARS SUPERVISED ===== -->
     {% if phd_scholars %}
     <div class="section">
-        <div class="section-title">Research Guidance (Ph.D. Scholars)</div>
+        <div class="section-title">Research Guidance (Active Ph.D. Scholars)</div>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width: 15%;">Roll No</th>
-                    <th style="width: 30%;">Scholar Name</th>
+                    <th style="width: 20%;">Roll No</th>
+                    <th style="width: 35%;">Scholar Name</th>
                     <th style="width: 25%;">Scholar Type</th>
                     <th style="width: 20%;">Current Stage</th>
-                    <th style="width: 10%;">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -345,7 +393,39 @@
                     <td><strong>{{ scholar.name }}</strong></td>
                     <td>{{ scholar.scholar_type }}</td>
                     <td>{{ scholar.current_stage_label }}</td>
-                    <td>{{ scholar.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ===== STUDENTS GUIDED (ALUMNI) ===== -->
+    {% if students_guided %}
+    <div class="section">
+        <div class="section-title">Academic Supervision (Completed PG/Ph.D.)</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Degree</th>
+                    <th style="width: 30%;">Scholar Name</th>
+                    <th style="width: 40%;">Thesis Title</th>
+                    <th style="width: 15%;">Viva Date / Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students_guided %}
+                <tr>
+                    <td><strong>{{ s.degree_type }}</strong></td>
+                    <td>{{ s.student_name }}</td>
+                    <td>{% if s.thesis_title %}"{{ s.thesis_title }}"{% else %}—{% endif %}</td>
+                    <td>
+                        {% if s.viva_date %}
+                            {{ s.viva_date|date:"d M Y" }}
+                        {% else %}
+                            {{ s.year|default:"—" }}
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -360,15 +440,15 @@
         <ul class="bullet-list">
             {% for a in awards %}
             <li>
-                <span class="item-title">{{ a.award_name }}</span><br>
-                <span class="item-meta">Awarded by: {{ a.awarding_body }} ({{ a.year }})</span>
+                <span class="item-title">{{ a.title }}</span><br>
+                <span class="item-meta">Awarded by: {{ a.organization }} ({{ a.year }})</span>
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
 
-    <!-- ===== PERSONAL BIO-DATA ===== -->
+    <!-- ===== PERSONAL DETAILS ===== -->
     <div class="section">
         <div class="section-title">Personal Details</div>
         <table class="profile-table">
@@ -394,13 +474,13 @@
     </div>
 
     <!-- ===== DECLARATION ===== -->
-    <div class="section" style="margin-top: 40px; page-break-inside: avoid;">
-        <p style="font-size: 9.5pt; text-align: justify; margin-bottom: 25px;">
+    <div class="section" style="margin-top: 35px; page-break-inside: avoid;">
+        <p style="font-size: 9pt; text-align: justify; margin-bottom: 25px; color: #4a5568;">
             I hereby declare that the details provided above are true and correct to the best of my knowledge and belief.
         </p>
-        <table style="width: 100%; border: none; font-size: 9.5pt;">
+        <table style="width: 100%; border: none; font-size: 9pt;">
             <tr>
-                <td style="border: none; padding: 0;">
+                <td style="border: none; padding: 0; color: #4a5568;">
                     <strong>Date:</strong> {% now "d-m-Y" %}<br>
                     <strong>Place:</strong> Chidambaram
                 </td>

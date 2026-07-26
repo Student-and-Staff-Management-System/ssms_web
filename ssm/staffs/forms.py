@@ -143,7 +143,7 @@ class StaffLeaveRequestForm(forms.ModelForm):
         
         return cleaned_data
 
-from .models import StaffQualification, StaffPastDesignation, StaffMembership
+from .models import StaffQualification, StaffPastDesignation, StaffMembership, StaffResearchProject
 
 class StaffQualificationForm(forms.ModelForm):
     class Meta:
@@ -189,4 +189,22 @@ class StaffMembershipForm(forms.ModelForm):
     class Meta:
         model = StaffMembership
         fields = ['institute_name', 'membership_no', 'membership_type', 'year', 'month']
+
+
+class StaffResearchProjectForm(forms.ModelForm):
+    class Meta:
+        model = StaffResearchProject
+        fields = ['title', 'description', 'funded_by', 'funding_amount', 'supporting_document', 'status', 'start_date', 'end_date']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].required = True
+        self.fields['funded_by'].required = True
+        if not self.instance or not self.instance.pk:
+            self.fields['supporting_document'].required = True
 

@@ -94,7 +94,7 @@ class StudentForm(forms.ModelForm):
         return student
 
 class PersonalInfoForm(forms.ModelForm):
-    caste_name = forms.CharField(max_length=255, required=False)
+    caste_name = forms.CharField(max_length=500, required=False)
     
     # Extensive Validation
     umis_id = forms.CharField(required=False, validators=[alphanumeric_validator])
