@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scholar Attendance | Staff Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Scholar Attendance | Staff Portal{% endblock %}
+
+{% block page_title %}Scholar Attendance{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary-bg: #f8f9fa;
             --secondary-bg: #ffffff;
             --text-primary: #212529;
@@ -159,13 +159,11 @@
         .messages .error { background: #FEE2E2; color: #991B1B; }
         .messages .warning { background: #FEF3C7; color: #92400E; }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header class="page-header">
-            <h1>Research Scholar Attendance</h1>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
-        </header>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+        
 
         {% if messages %}
             <ul class="messages">
@@ -256,7 +254,4 @@
             {% else %}
             <div class="empty-state">No past history records found.</div>
             {% endif %}
-        </div>
-    </div>
-</body>
-</html>
+{% endblock %}

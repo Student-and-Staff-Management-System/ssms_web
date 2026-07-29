@@ -1,15 +1,13 @@
+{% extends 'staff/staff_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Low Attendance Alert | Class Incharge</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+{% block title %}Low Attendance Alert | Class Incharge{% endblock %}
+
+{% block page_title %}Low Attendance Alert{% endblock %}
+
+{% block extra_css %}
     <style>
-        /* Minimal specific overrides consistent with theme */
+/* Minimal specific overrides consistent with theme */
         .page-title-area {
             margin-bottom: 20px;
             display: flex;
@@ -140,11 +138,10 @@
             color: #64748b;
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <div class="app-container">
+{% block content %}
+<div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
@@ -203,7 +200,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
+        
             <div class="top-bar">
                 <div class="greeting">
                     <h2>Low Attendance Alert</h2>
@@ -242,16 +239,7 @@
                     }
                 }
             </style>
-            <script>
-                // Auto-dismiss toasts after 5 seconds
-                setTimeout(() => {
-                    const toasts = document.querySelectorAll('.toast-message');
-                    toasts.forEach(toast => {
-                        toast.style.animation = 'slideOut 0.3s ease-in';
-                        setTimeout(() => toast.remove(), 300);
-                    });
-                }, 5000);
-            </script>
+            
             {% endif %}
 
             <!-- Summary & Filter -->
@@ -485,7 +473,21 @@
         }
     </style>
 
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
+                // Auto-dismiss toasts after 5 seconds
+                setTimeout(() => {
+                    const toasts = document.querySelectorAll('.toast-message');
+                    toasts.forEach(toast => {
+                        toast.style.animation = 'slideOut 0.3s ease-in';
+                        setTimeout(() => toast.remove(), 300);
+                    });
+                }, 5000);
+            </script>
+<script>
         let formToSubmit = null;
 
         function openConfirmModal(form, studentName) {
@@ -517,8 +519,4 @@
             }
         }
     </script>
-
-
-</body>
-
-</html>
+{% endblock %}

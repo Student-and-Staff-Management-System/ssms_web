@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Incoming Substitutions | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Incoming Substitutions | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Incoming Substitutions{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary: #5a7d7c;
             --bg: #f4f7f6;
             --card: #ffffff;
@@ -137,9 +137,10 @@
         .badge-approved { background: #d1fae5; color: #059669; }
         .badge-rejected { background: #fee2e2; color: #dc2626; }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
+
+{% block content %}
+<div class="container">
         <div class="page-header">
             <div>
                 <h1>📥 Incoming Substitutions</h1>
@@ -224,6 +225,4 @@
             {% endfor %}
         </div>
         {% endif %}
-    </div>
-</body>
-</html>
+{% endblock %}

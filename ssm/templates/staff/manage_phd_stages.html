@@ -1,16 +1,13 @@
+{% extends 'staff/staff_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhD Completion Manager | Faculty Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
-    
+
+{% block title %}PhD Completion Manager | Faculty Portal{% endblock %}
+
+{% block page_title %}PhD Completion Manager{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary: #5a7d7c;
             --primary-dark: #4a6b69;
             --primary-light: #eff6f6;
@@ -615,10 +612,10 @@
             margin-bottom: 4px;
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-    <div class="container">
+{% block content %}
+<div class="container">
         <!-- Header -->
         <div class="page-header">
             <h1><i class='bx bx-graduation'></i> PhD Completion Manager</h1>
@@ -735,7 +732,7 @@
                         <p style="font-size:13px; color:var(--text-light);">Roll No: <strong>{{ selected_student.roll_number }}</strong></p>
                         {% if selected_student.scholar_profile.supervisor %}
                         <p style="font-size:13px; color:var(--text-light); margin-top:2px;">
-                            Guide: <strong style="color:var(--primary);">Dr. {{ selected_student.scholar_profile.supervisor.name }}</strong>
+                            Guide: <strong style="color:var(--primary);">Dr. {{ selected_student.scholar_profile.supervisor.name }} {{ selected_student.scholar_profile.supervisor.initial|default:"" }}</strong>
                             <span style="font-size:11px; color:var(--text-light);"> · {{ selected_student.scholar_profile.supervisor.department }}</span>
                         </p>
                         {% else %}
@@ -1581,7 +1578,11 @@
         </div>
     </div>
 
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
         function selectScholar(rollNumber) {
             const urlParams = new URLSearchParams(window.location.search);
             urlParams.set('student_roll', rollNumber);
@@ -1595,5 +1596,4 @@
             window.location.search = urlParams.toString();
         }
     </script>
-</body>
-</html>
+{% endblock %}

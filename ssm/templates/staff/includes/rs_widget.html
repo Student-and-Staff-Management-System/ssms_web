@@ -69,12 +69,17 @@
                             <span class="scheme-badge" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; white-space: nowrap;">Visvesvaraya</span>
                         {% endif %}
                     </div>
-                    <p class="roll-number">Roll: {{ student.roll_number }}</p>
+                    <p class="roll-number">
+                        Roll: {{ student.roll_number }}
+                        {% if student.register_number %}
+                            | Reg No: {{ student.register_number }}
+                        {% endif %}
+                    </p>
                     <div class="guide-info">
                         <i class='bx bx-user-voice' style="font-size: 14px; color: var(--primary);"></i>
                         <span>
                             {% if student.scholar_profile.supervisor %}
-                                Guide: {{ student.scholar_profile.supervisor.name }}
+                                Guide: {{ student.scholar_profile.supervisor.name }} {{ student.scholar_profile.supervisor.initial|default:"" }}
                             {% else %}
                                 Guide: Not Assigned
                             {% endif %}

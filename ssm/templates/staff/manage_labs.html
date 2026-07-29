@@ -1,16 +1,13 @@
+{% extends 'staff/staff_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Lab In Charge | HOD Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
-    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+{% block title %}Manage Lab In Charge | HOD Dashboard{% endblock %}
+
+{% block page_title %}Manage Lab In Charge{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary: #5a7d7c;
             --primary-dark: #4a6b69;
             --primary-light: #eef2f2;
@@ -334,10 +331,10 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <div class="app-container">
+{% block content %}
+<div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="brand">
@@ -376,7 +373,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
+        
             <div class="top-bar">
                 <div class="page-title">
                     <h2>Manage Lab Incharge & Laboratories</h2>
@@ -572,7 +569,11 @@
         </div>
     </div>
 
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
         function filterLabs() {
             const input = document.getElementById('labSearch');
             const filter = input.value.toLowerCase();
@@ -620,6 +621,4 @@
             }
         }
     </script>
-</body>
-
-</html>
+{% endblock %}

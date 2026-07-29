@@ -557,7 +557,7 @@
             <div style="width: 80px; height: 80px; border-radius: 50%; background: white; box-shadow: var(--shadow-md); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--primary);">
               <i class='bx bx-user'></i>
             </div>
-            <h4 style="font-size: 18px; color: var(--dark); margin-bottom: 4px;">{{ profile.supervisor.name }}</h4>
+            <h4 style="font-size: 18px; color: var(--dark); margin-bottom: 4px;">{{ profile.supervisor.name }} {{ profile.supervisor.initial|default:"" }}</h4>
             <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">{{ profile.supervisor.designation }}</p>
             <p style="font-size: 13px; color: var(--text-light);"><i class='bx bx-buildings'></i> {{ profile.supervisor.department }}</p>
           </div>

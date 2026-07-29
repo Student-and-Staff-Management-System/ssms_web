@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apply for Leave | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Apply for Leave | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Apply for Leave{% endblock %}
+{% block page_subtitle %}Submit leave applications and check balances{% endblock %}
+
+{% block extra_css %}
     <style>
         :root {
             --primary-color: #5a7d7c;
@@ -184,41 +182,9 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <div class="dashboard-container">
-        <header class="page-header">
-            <div class="header-brand">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo"
-                    style="height: 45px;">
-                <h1>Apply Leave</h1>
-            </div>
-            <a href="{% url 'staffs:staff_logout' %}" class="action-btn" style="background:#dc3545">Logout</a>
-        </header>
-
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            {% if staff.photo %}
-            <img src="{{ staff.photo.url }}" alt="{{ staff.name }}" class="profile-img">
-            {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=random&size=200"
-                alt="{{ staff.name }}" class="profile-img">
-            {% endif %}
-            <div class="profile-name">{{ staff.salutation }} {{ staff.name }}</div>
-            <div class="profile-role">{{ staff.role }}</div>
-            <div class="profile-meta">{{ staff.department }}</div>
-            <br>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="action-btn"
-                style="width:100%; box-sizing:border-box; display:block;">Dashboard</a>
-            <br>
-            <a href="{% url 'staffs:staff_leave_history' %}" class="action-btn"
-                style="width:100%; box-sizing:border-box; display:block; background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);">📜 Leave
-                    History</a>
-            <br>
-        </aside>
-
-        <main class="main-content">
+{% block content %}
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <a href="{% url 'staffs:staff_dashboard' %}" class="back-link" style="margin-bottom: 0;">← Back to
                     Dashboard</a>
@@ -336,8 +302,6 @@
                         <button type="submit" class="action-btn">Submit Application</button>
                     </div>
             </div>
-        </main>
-    </div>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -433,6 +397,4 @@
             });
         });
     </script>
-</body>
-
-</html>
+{% endblock %}

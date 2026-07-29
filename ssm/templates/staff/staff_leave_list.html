@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Requests | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Leave Requests | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Leave Requests{% endblock %}
+{% block page_subtitle %}Manage leave requests submitted by students{% endblock %}
+
+{% block extra_css %}
     <style>
         :root {
             --primary-color: #5a7d7c;
@@ -633,40 +631,9 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <div class="dashboard-container">
-        <header class="page-header">
-            <div class="header-brand">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo"
-                    style="height: 45px;">
-                <h1>Manage Leave Requests</h1>
-            </div>
-            <a href="{% url 'staffs:staff_logout' %}" class="action-btn"
-                style="background:var(--danger-color)">Logout</a>
-        </header>
-
-        <!-- Sidebar (Reused) -->
-        <aside class="sidebar">
-            {% if staff.photo %}
-            <img src="{{ staff.photo.url }}" alt="{{ staff.name }}" class="profile-img">
-            {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=random&size=200"
-                alt="{{ staff.name }}" class="profile-img">
-            {% endif %}
-            <div>
-                <div class="profile-name">{{ staff.salutation }} {{ staff.name }}</div>
-                <div class="profile-role">{{ staff.role }}</div>
-                {% if staff.role == 'Class Incharge' %}
-                <div class="profile-meta">Semester: {{ staff.assigned_semester|default:"-" }}</div>
-                {% endif %}
-            </div>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="action-btn"
-                style="width:100%; box-sizing:border-box; display:block;">Dashboard</a>
-        </aside>
-
-        <main class="main-content">
+{% block content %}
             <a href="{% url 'staffs:staff_dashboard' %}" class="back-link">← Back to Dashboard</a>
 
             {% if messages %}
@@ -722,8 +689,4 @@
                 <p>All clear! There are no leave requests awaiting approval.</p>
             </div>
             {% endfor %}
-        </main>
-    </div>
-</body>
-
-</html>
+{% endblock %}

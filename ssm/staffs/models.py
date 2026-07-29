@@ -337,6 +337,7 @@ class StaffPastDesignation(models.Model):
         choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')],
         default='Pending'
     )
+    is_additional = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-from_date', '-order', 'designation']

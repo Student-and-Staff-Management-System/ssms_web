@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passed Out Batches | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Passed Out Batches | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Passed Out Batches{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary-color: #5a7d7c;
             --secondary-color: #4a6b69;
             --bg-color: #f4f7f6;
@@ -135,18 +132,11 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <div class="dashboard-container">
-        <!-- Header -->
-        <header class="page-header">
-            <div class="header-brand">
-                <h1>🎓 Passed Out Batches</h1>
-            </div>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Back to Dashboard</a>
-        </header>
+{% block content %}
+<!-- Header -->
+        
 
         <!-- Batches Grid -->
         <div class="batches-grid">
@@ -161,9 +151,4 @@
                 <small>Ensure students have "Ending Year" set in their profile.</small>
             </div>
             {% endfor %}
-        </div>
-    </div>
-
-</body>
-
-</html>
+{% endblock %}

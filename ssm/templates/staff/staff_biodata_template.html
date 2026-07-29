@@ -196,7 +196,7 @@
                 {% endif %}
                 <td>
                     <div class="faculty-title">{{ staff.salutation }} {{ staff.name }} {{ staff.initial|default:"" }}</div>
-                    <div class="faculty-desig">{{ staff.designation }}</div>
+                    <div class="faculty-desig">{{ staff.designation|default:"Faculty" }}</div>
                     <div class="faculty-dept">{{ staff.department|default:"Annamalai University" }}</div>
                 </td>
                 <td class="contact-info">
@@ -274,7 +274,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>{{ staff.designation }}</strong></td>
+                    <td><strong>{{ staff.designation|default:"Faculty" }}</strong></td>
                     <td>Annamalai University</td>
                     <td>{{ staff.date_of_joining|date:"M Y"|default:"Joining" }} – Present</td>
                 </tr>

@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scholar Leave Requests | Staff Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Scholar Leave Requests | Staff Portal{% endblock %}
+
+{% block page_title %}Scholar Leave Requests{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary-bg: #f8f9fa;
             --surface: #ffffff;
             --text-primary: #212529;
@@ -124,8 +124,9 @@
         .messages .warning { background: #FEF3C7; color: #92400E; }
         .messages .error   { background: #FEE2E2; color: #991B1B; }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 <div class="container">
 
     <div class="page-header">
@@ -236,8 +237,4 @@
         {% else %}
         <div class="empty">No history yet.</div>
         {% endif %}
-    </div>
-
-</div>
-</body>
-</html>
+{% endblock %}

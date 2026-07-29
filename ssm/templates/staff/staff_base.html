@@ -9,6 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
     <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <style>
+        /* Ensure sidebar sits above mobile backdrop overlay (cache-proof override) */
+        .sidebar {
+            z-index: 1050 !important;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 

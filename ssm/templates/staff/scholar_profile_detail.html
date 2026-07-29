@@ -52,7 +52,10 @@
             {% endif %}
 
             <div class="profile-name">{{ student.student_name }}</div>
-            <div class="profile-meta">{{ student.roll_number }}</div>
+            <div class="profile-meta">Roll: {{ student.roll_number }}</div>
+            {% if student.register_number %}
+            <div class="profile-meta">Reg No: {{ student.register_number }}</div>
+            {% endif %}
             <div class="profile-meta">Research Scholar ({{ profile.scholar_type }})</div>
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
@@ -63,7 +66,7 @@
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.7rem; color: var(--text-muted);">Supervisor</label>
-                    <span style="font-size: 0.85rem; font-weight: 500;">{{ profile.supervisor.name|default:"Not Assigned" }}</span>
+                    <span style="font-size: 0.85rem; font-weight: 500;">{% if profile.supervisor %}{{ profile.supervisor.name }} {{ profile.supervisor.initial|default:"" }}{% else %}Not Assigned{% endif %}</span>
                 </div>
             </div>
         </aside>
@@ -89,7 +92,7 @@
                     <div class="details-grid" style="margin-bottom: 16px;">
                         <div class="detail-item"><strong>Scholar Type</strong><span>{{ profile.scholar_type|default:"-" }}</span></div>
                         <div class="detail-item"><strong>Admission Date</strong><span>{{ profile.admission_date|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Supervisor</strong><span>{% if profile.supervisor %}{{ profile.supervisor.name }} ({{ profile.supervisor.department }}){% else %}-{% endif %}</span></div>
+                        <div class="detail-item"><strong>Supervisor</strong><span>{% if profile.supervisor %}{{ profile.supervisor.name }} {{ profile.supervisor.initial|default:"" }} ({{ profile.supervisor.department }}){% else %}-{% endif %}</span></div>
                         <div class="detail-item"><strong>Visvesvaraya Scheme</strong><span>{% if profile.is_visvesvaraya_scheme %}Yes{% else %}No{% endif %}</span></div>
                     </div>
                     

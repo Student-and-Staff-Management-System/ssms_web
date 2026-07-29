@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student List | Staff Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Student List | Staff Portal{% endblock %}
+
+{% block page_title %}Student List{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary-bg: #f8f9fa;
             --secondary-bg: #ffffff;
             --text-primary: #212529;
@@ -328,21 +326,14 @@
             flex-shrink: 0;
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <!-- Scroll To Top Button -->
+{% block content %}
+<!-- Scroll To Top Button -->
     <button onclick="topFunction()" id="scrollToTopBtn" title="Go to top">↑</button>
 
     <div class="container">
-        <header class="page-header">
-            <div class="title-group">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo"
-                    style="height:40px;">
-                <h1>Student Directory</h1>
-            </div>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="action-btn">← Back to Dashboard</a>
-        </header>
+        
 
         <form method="GET" class="search-container">
             <input type="text" name="q" class="search-input" placeholder="Search by Name, Roll, or Email..."
@@ -437,7 +428,11 @@
     </div>
 
     <!-- JavaScript for Scroll To Top -->
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
         // Get the button
         let mybutton = document.getElementById("scrollToTopBtn");
 
@@ -466,6 +461,4 @@
             window.location.href = `${window.location.pathname}?${urlParams.toString()}`;
         }
     </script>
-</body>
-
-</html>
+{% endblock %}

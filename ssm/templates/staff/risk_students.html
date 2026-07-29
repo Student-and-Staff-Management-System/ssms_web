@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risk Students | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Risk Students | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Risk Students{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary: #5a7d7c;
             --primary-dark: #4a6b69;
             --primary-light: #eef2f2;
@@ -176,11 +174,10 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <div class="container">
+{% block content %}
+<div class="container">
         <div class="header">
             <div>
                 <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">← Back to Dashboard</a>
@@ -317,7 +314,11 @@
 
     </div>
 
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
         function filterSemesters() {
             const filter = document.getElementById('semFilter').value;
             const blocks = document.querySelectorAll('.semester-block');
@@ -331,6 +332,4 @@
             });
         }
     </script>
-</body>
-
-</html>
+{% endblock %}

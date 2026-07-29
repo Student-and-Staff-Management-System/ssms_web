@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Schedule | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Exam Schedule | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Exam Schedule{% endblock %}
+{% block page_subtitle %}Review scheduled exams and sessions{% endblock %}
+
+{% block extra_css %}
     <style>
         :root {
             --primary-color: #5a7d7c;
@@ -167,16 +165,9 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <div class="dashboard-container">
-        <!-- Header -->
-        <header class="page-header">
-            <h1 style="color: var(--primary-color); margin: 0; font-size: 1.5rem;">📅 Exam Schedule</h1>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Back to Dashboard</a>
-        </header>
+{% block content %}
 
         <!-- Filter -->
         <form method="GET" class="semester-filter">
@@ -222,8 +213,4 @@
         </div>
         {% endif %}
 
-    </div>
-
-</body>
-
-</html>
+{% endblock %}

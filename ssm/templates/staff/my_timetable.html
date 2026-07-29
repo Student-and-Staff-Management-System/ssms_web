@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Timetable | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}My Timetable | {{ staff.name }}{% endblock %}
+
+{% block page_title %}My Timetable{% endblock %}
+{% block page_subtitle %}My scheduled classes for the semester{% endblock %}
+
+{% block extra_css %}
     <style>
         :root {
             --primary: #5a7d7c;
@@ -278,19 +277,10 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
+{% block content %}
     <div class="container">
-
-        <!-- Header -->
-        <div class="page-header">
-            <div>
-                <h1>🗓️ My Timetable</h1>
-                <div class="subtitle">{{ staff.name }} &nbsp;·&nbsp; {{ staff.designation|default:"Staff" }}</div>
-            </div>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
-        </div>
 
         {% if has_entries %}
 
@@ -427,6 +417,4 @@
         {% endif %}
 
     </div>
-</body>
-
-</html>
+{% endblock %}

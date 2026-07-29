@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Timetable | {{ staff.name }}</title>
-  <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    /* ═══════════════════════════════════════════════════════
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Timetable | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Timetable{% endblock %}
+
+{% block extra_css %}
+    <style>
+/* ═══════════════════════════════════════════════════════
        TOKENS & VARIABLES
     ═══════════════════════════════════════════════════════ */
     :root {
@@ -265,23 +265,13 @@
     .legend-heading { font-size: 0.75rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.05em; }
     .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 500; color: var(--gray-800); }
     .legend-swatch { width: 14px; height: 14px; border-radius: 4px; }
-  </style>
-</head>
-<body>
+    </style>
+{% endblock %}
+
+{% block content %}
 <div class="page">
 
-  <header class="header">
-    <div class="header-left">
-      <div class="header-avatar">{{ staff.name|slice:":2"|upper }}</div>
-      <div class="header-info">
-        <h1>{{ staff.name }}</h1>
-        <p>{{ staff.department }} &nbsp;·&nbsp; {{ staff.designation|default:"Faculty" }}{% if staff.role == 'HOD' %} &nbsp;·&nbsp; <strong>HOD</strong>{% endif %}</p>
-      </div>
-    </div>
-    <div class="header-actions">
-      <a href="{% url 'staffs:staff_dashboard' %}" class="btn btn-primary">Dashboard</a>
-    </div>
-  </header>
+  
 
   <form method="GET" class="filter-bar">
     <span class="filter-label">Semester</span>
@@ -557,9 +547,4 @@
     </div>
     <div class="legend-item">
       <div class="legend-swatch" style="background:var(--amber-50); border:1px solid var(--amber-200);"></div> Batch B
-    </div>
-  </div>
-
-</div>
-</body>
-</html>
+{% endblock %}

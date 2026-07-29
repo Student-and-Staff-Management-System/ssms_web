@@ -1,17 +1,13 @@
+{% extends 'staff/staff_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Remarks | Class Incharge</title>
+{% block title %}Student Remarks | Class Incharge{% endblock %}
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+{% block page_title %}Student Remarks{% endblock %}
 
+{% block extra_css %}
     <style>
-        /* ================= DESKTOP (UNCHANGED) ================= */
+/* ================= DESKTOP (UNCHANGED) ================= */
 
         .table-container {
             background: white;
@@ -167,11 +163,10 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <div class="app-container">
+{% block content %}
+<div class="app-container">
 
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -235,7 +230,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
+        
             <div class="top-bar">
                 <div>
                     <h2>Student Remarks</h2>
@@ -292,11 +287,4 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-        </main>
-
-    </div>
-
-</body>
-
-</html>
+{% endblock %}

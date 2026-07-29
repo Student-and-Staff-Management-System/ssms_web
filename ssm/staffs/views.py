@@ -3445,30 +3445,44 @@ def portfolio_edit_qualification(request, pk):
 
 def sync_staff_additional_designation(staff_member):
     """
-    Find the latest approved designation that is marked as 'Present' (to_date is null),
-    and set it as the staff's additional_designation.
+    Sync both primary designation and additional posts based on approved Present designations.
     """
-    latest_present_desig = staff_member.past_designations.filter(
+    # 1. Sync Primary Designation (is_additional=False)
+    latest_present_primary = staff_member.past_designations.filter(
         approval_status='Approved',
-        to_date__isnull=True
+        to_date__isnull=True,
+        is_additional=False
     ).order_by('-from_date', '-id').first()
-    
-    if latest_present_desig:
-        staff_member.additional_designation = latest_present_desig.designation
+
+    if latest_present_primary:
+        staff_member.designation = latest_present_primary.designation
+
+    # 2. Sync Additional Designation (is_additional=True)
+    latest_present_additional = staff_member.past_designations.filter(
+        approval_status='Approved',
+        to_date__isnull=True,
+        is_additional=True
+    ).order_by('-from_date', '-id').first()
+
+    if latest_present_additional:
+        staff_member.additional_designation = latest_present_additional.designation
     else:
         staff_member.additional_designation = None
-    staff_member.save()
+
+    staff_member.save(update_fields=['designation', 'additional_designation'])
 
 
 def portfolio_add_designation(request):
     staff = _get_staff_for_portfolio(request)
     if not staff: return redirect('staffs:stafflogin')
+    is_additional = request.GET.get('type') == 'additional'
     if request.method == 'POST':
         form = StaffPastDesignationForm(request.POST, request.FILES)
         if form.is_valid():
             des = form.save(commit=False)
             des.staff = staff
             des.approval_status = 'Pending' if not des.to_date else 'Approved'
+            des.is_additional = is_additional
             des.save()
             sync_staff_additional_designation(staff)
             messages.success(request, "Designation added.")

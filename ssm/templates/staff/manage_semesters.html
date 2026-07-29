@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Semesters | Staff Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Manage Semesters | Staff Portal{% endblock %}
+
+{% block page_title %}Manage Semesters{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
+:root {
             --primary-bg: #f8f9fa;
             --secondary-bg: #ffffff;
             --text-primary: #212529;
@@ -173,14 +171,11 @@
             color: var(--text-secondary);
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-    <div class="container">
-        <header class="page-header">
-            <h1>Manage Semesters</h1>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn"> Back to Dashboard</a>
-        </header>
+{% block content %}
+<div class="container">
+        
 
         <section class="filter-card">
             <form method="GET" class="filter-form">
@@ -285,13 +280,15 @@
         {% endif %}
     </div>
 
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
         // Select All Checkbox Logic
         document.getElementById('selectAll')?.addEventListener('change', function () {
             const checkboxes = document.querySelectorAll('.student-checkbox');
             checkboxes.forEach(cb => cb.checked = this.checked);
         });
     </script>
-</body>
-
-</html>
+{% endblock %}

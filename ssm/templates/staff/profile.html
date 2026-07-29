@@ -1,14 +1,12 @@
+{% extends 'staff/staff_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ staff.name }} {{ staff.initial|default:"" }} | Faculty Profile</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}{{ staff.name }} {{ staff.initial|default:"" }} | Faculty Profile{% endblock %}
+
+{% block page_title %}Faculty Profile{% endblock %}
+{% block page_subtitle %}{{ staff.salutation }} {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block extra_css %}
     <style>
         :root {
             /* --- Site Native Teal Theme Match --- */
@@ -680,29 +678,9 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <!-- Nav -->
-    <nav class="top-nav">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-                    alt="University Logo" style="height: 35px; width: auto;">
-                <span>Faculty Profile</span>
-            </div>
-            {% if is_own_profile %}
-            <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">
-                <span>&larr;</span> Back to Dashboard
-            </a>
-            {% else %}
-            <a href="{% url 'staffs:staff_list' %}" class="back-btn">
-                <span>&larr;</span> Back to Staff Directory
-            </a>
-            {% endif %}
-        </div>
-    </nav>
+{% block content %}
 
     <!-- Hero -->
     <header class="hero">
@@ -726,7 +704,7 @@
             <div class="hero-info">
                 <h1>{{ staff.salutation }} {{ staff.name }} {{ staff.initial|default:"" }}</h1>
                 <div class="designation">
-                    <span>{{ staff.designation }}</span>
+                    <span>{{ staff.designation|default:"Faculty" }}</span>
                     {% if staff.department %}
                     <span>&nbsp;•&nbsp; {{ staff.department }}</span>
                     {% endif %}
@@ -1315,6 +1293,9 @@
         </div>
     </div>
 
+{% endblock %}
+
+{% block extra_js %}
     <!-- Script to Handle Tabs -->
     <script>
         function switchTab(tabId) {
@@ -1329,7 +1310,4 @@
             event.target.classList.add('active');
         }
     </script>
-
-</body>
-
-</html>
+{% endblock %}

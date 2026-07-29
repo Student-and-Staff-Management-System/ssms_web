@@ -1,17 +1,13 @@
+{% extends 'staff/staff_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scholarship Manager | {{ staff.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
-    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+{% block title %}Scholarship Manager | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Scholarship Manager{% endblock %}
+
+{% block extra_css %}
     <style>
-        .filter-layout {
+.filter-layout {
             display: grid;
             grid-template-columns: 300px 1fr;
             gap: 25px;
@@ -152,11 +148,10 @@
             }
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <div class="app-container">
+{% block content %}
+<div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
@@ -197,7 +192,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
+        
             <div class="top-bar">
                 <div class="greeting">
                     <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
@@ -366,7 +361,11 @@
         </main>
     </div>
 
-    <script>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
         function updateClock() {
             const now = new Date();
             document.getElementById('digital-clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -412,6 +411,4 @@
             window.location.href = '?' + params.toString();
         }
     </script>
-</body>
-
-</html>
+{% endblock %}

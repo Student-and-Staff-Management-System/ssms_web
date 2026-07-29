@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'staff/staff_base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Directory | SSM</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+{% block title %}Faculty Directory | SSM{% endblock %}
+
+{% block page_title %}Faculty Directory{% endblock %}
+{% block page_subtitle %}Search and view profiles of department staff{% endblock %}
+
+{% block extra_css %}
     <style>
         :root {
             --primary-color: #5a7d7c;
@@ -200,19 +198,9 @@
             font-size: 1.1rem;
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-    <header class="page-header">
-        <div class="header-brand">
-            <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo"
-                style="height: 40px;">
-            <h1>Staff Directory</h1>
-        </div>
-        <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn">Back to Dashboard</a>
-    </header>
-
+{% block content %}
     <div class="container">
         <!-- Search Filter -->
         <form method="GET" class="search-container">
@@ -243,9 +231,9 @@
                     alt="{{ staff.name }}" class="profile-img">
                 {% endif %}
 
-                <div class="staff-name">{{ staff.salutation }} {{ staff.name }}</div>
+                <div class="staff-name">{{ staff.salutation }} {{ staff.name }}{% if staff.initial %} {{ staff.initial }}{% endif %}</div>
                 <div class="staff-role">
-                    {{ staff.designation }}
+                    {{ staff.designation|default:"Faculty" }}
                     {% if staff.role == 'Class Incharge' and staff.assigned_semester %}
                     <span style="font-size: 0.8em; margin-left: 5px;">(Sem {{ staff.assigned_semester }})</span>
                     {% endif %}
@@ -286,7 +274,4 @@
             {% endfor %}
         </div>
     </div>
-
-</body>
-
-</html>
+{% endblock %}
