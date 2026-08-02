@@ -82,7 +82,7 @@
         }
 
         /* Sidebar Profile */
-        .sidebar {
+        .profile-sidebar-legacy {
             background: var(--card-bg);
             border-radius: var(--radius);
             padding: 40px 30px;
@@ -240,7 +240,7 @@
                 padding: 0 15px;
             }
 
-            .sidebar {
+            .profile-sidebar-legacy {
                 position: static;
                 display: flex;
                 flex-direction: column;
@@ -308,7 +308,7 @@
             }
 
             /* Sidebar Mobile */
-            .sidebar {
+            .profile-sidebar-legacy {
                 padding: 20px 15px;
                 border-radius: 10px;
             }
@@ -334,7 +334,7 @@
                 font-size: 0.85rem;
             }
 
-            .sidebar .action-btn {
+            .profile-sidebar-legacy .action-btn {
                 margin-top: 15px;
                 padding: 10px 20px;
             }
@@ -472,7 +472,7 @@
                 height: 30px !important;
             }
 
-            .sidebar {
+            .profile-sidebar-legacy {
                 padding: 15px 12px;
             }
 
@@ -516,7 +516,7 @@
 
         /* Landscape Mobile */
         @media (max-width: 900px) and (orientation: landscape) {
-            .sidebar {
+            .profile-sidebar-legacy {
                 flex-direction: row;
                 text-align: left;
                 gap: 20px;
@@ -530,11 +530,11 @@
                 margin-bottom: 0;
             }
 
-            .sidebar > div:first-of-type {
+            .profile-sidebar-legacy > div:first-of-type {
                 flex: 1;
             }
 
-            .sidebar .action-btn {
+            .profile-sidebar-legacy .action-btn {
                 margin-top: 0;
                 width: auto;
             }
@@ -611,7 +611,7 @@
         /* Print Support (for mobile) */
         @media print {
             .page-header .action-btn,
-            .sidebar .action-btn,
+            .profile-sidebar-legacy .action-btn,
             .back-link,
             .actions {
                 display: none !important;
@@ -621,7 +621,7 @@
                 grid-template-columns: 1fr;
             }
 
-            .sidebar {
+            .profile-sidebar-legacy {
                 display: none;
             }
 

@@ -3,6 +3,8 @@
 
 {% block title %}Office Staff Dashboard | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
 
+{% block body_class %}dashboard-portal{% endblock %}
+
 {% block page_title %}
     Hello, {{ staff.name }} {{ staff.initial|default:"" }} 👋
     <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">Office Staff</span>

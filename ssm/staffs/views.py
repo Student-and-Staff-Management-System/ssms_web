@@ -17,6 +17,8 @@ def stafflogin(request):
     if request.method == 'POST':
         staff_id = request.POST.get('staff_id')
         password = request.POST.get('password')
+        if staff_id:
+            staff_id = staff_id.strip().upper()
         try:
             staff = Staff.objects.get(staff_id=staff_id)
             if staff.check_password(password):
@@ -75,15 +77,23 @@ def staff_dashboard(request):
         
     print(f"DEBUG: staff_dashboard - Role: '{staff.role}' -> Template: '{template_name}'")
         
+    assigned_subjects = []
     _completion_data = get_staff_profile_completion_data(staff)
     if not staff.is_profile_complete:
         template_name = 'staff/staff_profile_status.html'
 
-    # Fetch assigned subjects for this staff member
-    if staff.role == 'Office Staff':
-        assigned_subjects = []
     else:
-        assigned_subjects = staff.subjects.all().order_by('semester', 'code')
+        assigned_subjects = staff.get_teaching_subjects()
+        for subj in assigned_subjects:
+            if subj.staff == staff:
+                if not subj.staff_batch_b or subj.staff_batch_b == staff:
+                    subj.dashboard_batch = 'Both'
+                else:
+                    subj.dashboard_batch = 'A'
+            elif subj.staff_batch_b == staff:
+                subj.dashboard_batch = 'B'
+            else:
+                subj.dashboard_batch = 'None'
         
     # Calculate pending leaves for notification badge
     from students.models import LeaveRequest, BonafideRequest, ScholarshipInfo
@@ -878,37 +888,64 @@ def manage_subjects(request):
         elif action == 'assign_staff':
             subject_id = request.POST.get('subject_id')
             staff_id = request.POST.get('staff_id')
+            staff_batch_b_id = request.POST.get('staff_batch_b_id')
             
             if subject_id:
                 subject = get_object_or_404(Subject, id=subject_id)
+                allowed = True
+                staff_member = None
+                staff_batch_b_member = None
+                
+                # Resolve Batch A / Both Staff
                 if staff_id:
-                     staff_member = get_object_or_404(Staff, staff_id=staff_id)
-                     
-                     # Check existing assignments in this semester (excluding current subject)
-                     existing_assignments = Subject.objects.filter(staff=staff_member, semester=subject.semester).exclude(id=subject.id)
-                     
-                     allowed = True
-                     
-                     if subject.subject_type == 'Theory':
-                         existing_theory = existing_assignments.filter(subject_type='Theory').first()
-                         if existing_theory:
-                             messages.error(request, f"Cannot assign {subject.code}: {staff_member.name} already handles a Theory subject in Sem {subject.semester} ({existing_theory.code}). Limit: 1 Theory + 1 Lab.")
-                             allowed = False
-                             
-                     elif subject.subject_type == 'Lab':
-                         existing_lab = existing_assignments.filter(subject_type='Lab').first()
-                         if existing_lab:
-                             messages.error(request, f"Cannot assign {subject.code}: {staff_member.name} already handles a Lab in Sem {subject.semester} ({existing_lab.code}). Limit: 1 Theory + 1 Lab.")
-                             allowed = False
-                             
-                     if allowed:
-                         subject.staff = staff_member
-                         subject.save()
-                         messages.success(request, f"Assigned {staff_member.name} to {subject.name} ({subject.subject_type}).")
-                else:
-                    subject.staff = None
+                    staff_member = get_object_or_404(Staff, staff_id=staff_id)
+                    # Limit Check for Batch A Staff
+                    existing_assignments = Subject.objects.filter(staff=staff_member, semester=subject.semester).exclude(code=subject.code)
+                    existing_b_assignments = Subject.objects.filter(staff_batch_b=staff_member, semester=subject.semester).exclude(code=subject.code)
+                    
+                    if subject.subject_type == 'Theory':
+                        existing_theory = (existing_assignments.filter(subject_type='Theory') | existing_b_assignments.filter(subject_type='Theory')).first()
+                        if existing_theory:
+                            messages.error(request, f"Cannot assign Batch A: {staff_member.name} already handles a Theory subject in Sem {subject.semester} ({existing_theory.code}). Limit: 1 Theory + 1 Lab.")
+                            allowed = False
+                    elif subject.subject_type == 'Lab':
+                        existing_lab = (existing_assignments.filter(subject_type='Lab') | existing_b_assignments.filter(subject_type='Lab')).first()
+                        if existing_lab:
+                            messages.error(request, f"Cannot assign Batch A: {staff_member.name} already handles a Lab in Sem {subject.semester} ({existing_lab.code}). Limit: 1 Theory + 1 Lab.")
+                            allowed = False
+                
+                # Resolve Batch B Staff (if specified and different from Batch A)
+                if staff_batch_b_id and staff_batch_b_id != staff_id:
+                    staff_batch_b_member = get_object_or_404(Staff, staff_id=staff_batch_b_id)
+                    # Limit Check for Batch B Staff
+                    existing_assignments = Subject.objects.filter(staff=staff_batch_b_member, semester=subject.semester).exclude(code=subject.code)
+                    existing_b_assignments = Subject.objects.filter(staff_batch_b=staff_batch_b_member, semester=subject.semester).exclude(code=subject.code)
+                    
+                    if subject.subject_type == 'Theory':
+                        existing_theory = (existing_assignments.filter(subject_type='Theory') | existing_b_assignments.filter(subject_type='Theory')).first()
+                        if existing_theory:
+                            messages.error(request, f"Cannot assign Batch B: {staff_batch_b_member.name} already handles a Theory subject in Sem {subject.semester} ({existing_theory.code}). Limit: 1 Theory + 1 Lab.")
+                            allowed = False
+                    elif subject.subject_type == 'Lab':
+                        existing_lab = (existing_assignments.filter(subject_type='Lab') | existing_b_assignments.filter(subject_type='Lab')).first()
+                        if existing_lab:
+                            messages.error(request, f"Cannot assign Batch B: {staff_batch_b_member.name} already handles a Lab in Sem {subject.semester} ({existing_lab.code}). Limit: 1 Theory + 1 Lab.")
+                            allowed = False
+
+                if allowed:
+                    subject.staff = staff_member
+                    subject.staff_batch_b = staff_batch_b_member
+                    subject.assigned_batch = 'Both' # Standard default
                     subject.save()
-                    messages.success(request, f"Unassigned staff from {subject.name}.")
+                    
+                    if staff_member and staff_batch_b_member:
+                        messages.success(request, f"Assigned {staff_member.name} (Batch A) and {staff_batch_b_member.name} (Batch B) to {subject.name}.")
+                    elif staff_member:
+                        messages.success(request, f"Assigned {staff_member.name} to {subject.name} (Both Batches).")
+                    elif staff_batch_b_member:
+                        messages.success(request, f"Assigned {staff_batch_b_member.name} to {subject.name} (Batch B only).")
+                    else:
+                        messages.success(request, f"Unassigned staff from {subject.name}.")
 
         elif action == 'delete_subject':
             subject_id = request.POST.get('subject_id')
@@ -2012,13 +2049,13 @@ def risk_students(request):
     
     elif staff.role == 'Class Incharge' and staff.assigned_semester:
         # Class Incharge sees subjects they teach + ALL subjects in their assigned semester
-        teaching_subjects = staff.subjects.all()
+        teaching_subjects = staff.get_teaching_subjects()
         semester_subjects = Subject.objects.filter(semester=staff.assigned_semester)
         subjects_to_analyze = (teaching_subjects | semester_subjects).distinct().order_by('semester', 'code')
         
     else:
         # Regular Staff / Course Incharge
-        subjects_to_analyze = staff.subjects.all().order_by('semester', 'code')
+        subjects_to_analyze = staff.get_teaching_subjects().order_by('semester', 'code')
 
     # Process Risk Metrics
     for subject in subjects_to_analyze:
@@ -2061,10 +2098,10 @@ def export_risk_list(request, subject_id):
         can_access = True
     elif staff.role == 'Class Incharge' and staff.assigned_semester:
         # Allow if subject is in their assigned semester OR if they teach it
-        if subject.semester == staff.assigned_semester or subject in staff.subjects.all():
+        if subject.semester == staff.assigned_semester or subject in staff.get_teaching_subjects():
             can_access = True
     else:
-        if subject in staff.subjects.all():
+        if subject in staff.get_teaching_subjects():
             can_access = True
             
     # If HOD, access is True. If strict access needed:

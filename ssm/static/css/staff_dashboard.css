@@ -34,6 +34,11 @@
     
     /* Transitions */
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Sidebar & Navigation Dimensions */
+    --sidebar-collapsed: 70px;
+    --sidebar-expanded: 280px;
+    --topbar-height: 70px;
 }
 
 /* Color Palette - Dark Mode Override */
@@ -51,6 +56,55 @@ body.dark-theme {
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 12px 20px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+
+    /* Local overrides for legacy HTML template stylesheets in dark mode */
+    --primary-bg: #0b0f19 !important;
+    --secondary-bg: #111827 !important;
+    --text-primary: #f8fafc !important;
+    --text-secondary: #cbd5e1 !important;
+    --border-color: #1f2937 !important;
+    
+    --bg-color: #0b0f19 !important;
+    --bg: #0b0f19 !important;
+    --card-bg: #111827 !important;
+    --card: #111827 !important;
+    
+    --text: #f8fafc !important;
+    --text-light: #cbd5e1 !important;
+    --text-main: #f8fafc !important;
+    --text-muted: #94a3b8 !important;
+    --muted: #94a3b8 !important;
+    
+    --border: #1f2937 !important;
+    --primary-border: #1f2937 !important;
+    
+    /* Layout styling colors and variables */
+    --white: #111827 !important;
+    --gray-50: #0b0f19 !important;
+    --gray-100: #111827 !important;
+    --gray-200: #1f2937 !important;
+    --gray-300: #374151 !important;
+    --gray-400: #4b5563 !important;
+    --gray-600: #9ca3af !important;
+    --gray-800: #cbd5e1 !important;
+
+    /* Semantic Status colors for dark theme templates */
+    --danger-bg: rgba(239, 68, 68, 0.15) !important;
+    --danger-text: #ef4444 !important;
+    --danger-color: #ef4444 !important;
+    --success-bg: rgba(16, 185, 129, 0.15) !important;
+    --success-text: #10b981 !important;
+    --success-color: #10b981 !important;
+    --warning-bg: rgba(245, 158, 11, 0.15) !important;
+    --warning-text: #f59e0b !important;
+    --warning-color: #f59e0b !important;
+
+    /* Timetable special template variables */
+    --break-bg: rgba(90, 125, 124, 0.08) !important;
+    --my-period-bg: rgba(90, 125, 124, 0.12) !important;
+    --my-period-text: #f8fafc !important;
+    --today-bg: rgba(90, 125, 124, 0.15) !important;
+    --today-border: var(--primary) !important;
 }
 
 /* ==========================================
@@ -74,9 +128,23 @@ body {
 }
 
 .app-container {
-    display: grid;
-    grid-template-columns: 280px 1fr;
+    display: flex;
     min-height: 100vh;
+    position: relative;
+}
+
+/* Spacer for page content behind the fixed collapsed sidebar (desktop only) */
+.app-container::before {
+    content: '';
+    display: block;
+    width: var(--sidebar-collapsed);
+    flex-shrink: 0;
+    transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* When the body has dashboard-portal class, remove spacer and hide sidebar */
+body.dashboard-portal .app-container::before {
+    width: 0;
 }
 
 /* ==========================================
@@ -86,14 +154,65 @@ body {
 .sidebar {
     background-color: var(--surface);
     border-right: 1px solid var(--border);
-    padding: 24px 16px;
+    padding: 20px 12px;
     display: flex;
     flex-direction: column;
-    position: sticky;
+    position: fixed;
+    left: 0;
     top: 0;
+    bottom: 0;
+    width: var(--sidebar-collapsed);
     height: 100vh;
-    z-index: 1000;
-    transition: var(--transition);
+    z-index: 1050;
+    transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    overflow: hidden;
+}
+
+/* Expanded Sidebar State */
+.sidebar.expanded {
+    width: var(--sidebar-expanded);
+    box-shadow: var(--shadow-lg);
+}
+
+/* When body is dashboard-portal, make sidebar off-screen overlay drawer on desktop */
+body.dashboard-portal .sidebar {
+    width: var(--sidebar-expanded);
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+body.dashboard-portal .sidebar.mobile-open {
+    transform: translateX(0) !important;
+}
+
+/* Force text elements to show when opened as overlay on dashboard portal */
+body.dashboard-portal .sidebar.mobile-open .nav-text,
+body.dashboard-portal .sidebar.mobile-open .profile-mini,
+body.dashboard-portal .sidebar.mobile-open .sidebar-category-header,
+body.dashboard-portal .sidebar.mobile-open .nav-group-chevron {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    height: auto !important;
+    pointer-events: auto !important;
+}
+
+body.dashboard-portal .sidebar.mobile-open .brand h1 {
+    opacity: 1 !important;
+}
+
+body.dashboard-portal .sidebar.mobile-open .nav-group-chevron {
+    display: block !important;
+}
+
+/* Keep group content closed initially, opening on group click */
+body.dashboard-portal .sidebar.mobile-open .nav-group:not(.open) .nav-group-content {
+    display: none !important;
+}
+body.dashboard-portal .sidebar.mobile-open .nav-group.open .nav-group-content {
+    display: flex !important;
 }
 
 .brand {
@@ -101,7 +220,8 @@ body {
     align-items: center;
     gap: 12px;
     margin-bottom: 32px;
-    padding: 0 12px;
+    padding: 0 4px;
+    height: 40px;
 }
 
 .brand img {
@@ -116,6 +236,58 @@ body {
     color: var(--primary-dark);
     line-height: 1.2;
     letter-spacing: -0.02em;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.sidebar.expanded .brand h1 {
+    opacity: 1;
+}
+
+/* Sidebar Toggle button inside brand section */
+.sidebar-toggle-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--text-main);
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: var(--surface-hover);
+}
+
+/* Collapsed sidebar brand style overrides (desktop inner pages only) */
+@media (min-width: 993px) {
+    body:not(.dashboard-portal) .sidebar:not(.expanded) .brand {
+        padding: 0;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body:not(.dashboard-portal) .sidebar:not(.expanded) .brand img {
+        display: none !important;
+    }
+
+    body:not(.dashboard-portal) .sidebar:not(.expanded) .brand h1 {
+        display: none !important;
+    }
+}
+
+/* On mobile/dashboard overlay view, sidebar behaves as expanded, so restore horizontal flex */
+body.dashboard-portal .brand {
+    display: flex !important;
+    flex-direction: row !important;
+    height: 40px !important;
+    gap: 12px !important;
+    padding: 0 4px !important;
 }
 
 body.dark-theme .brand h1 {
@@ -195,6 +367,15 @@ body.dark-theme .nav-group-header:hover {
     padding-bottom: 8px;
 }
 
+/* Hide chevron and content under collapsed sidebar in desktop */
+.sidebar:not(.expanded) .nav-group-chevron {
+    display: none !important;
+}
+
+.sidebar:not(.expanded) .nav-group-content {
+    display: none !important;
+}
+
 /* Nav Item Links */
 .nav-item {
     display: flex;
@@ -219,9 +400,16 @@ body.dark-theme .nav-item:hover {
 }
 
 .nav-item.active {
-    background-color: var(--primary);
-    color: #ffffff !important;
+    background-color: var(--primary-light) !important;
+    color: var(--primary-dark) !important;
+    border-left: 4px solid var(--primary);
     font-weight: 600;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+body.dark-theme .nav-item.active {
+    background-color: rgba(90, 125, 124, 0.15) !important;
+    color: var(--primary) !important;
 }
 
 .nav-icon {
@@ -240,7 +428,7 @@ body.dark-theme .nav-item:hover {
     background-color: var(--bg-body);
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
-    transition: var(--transition);
+    transition: padding 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
 }
 
 .profile-mini img {
@@ -249,11 +437,91 @@ body.dark-theme .nav-item:hover {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--primary);
+    flex-shrink: 0;
 }
 
-.profile-mini-info {
-    flex: 1;
-    min-width: 0;
+/* Collapsible elements toggling logic classes */
+.sidebar .nav-text,
+.sidebar .profile-mini-details,
+.sidebar .profile-mini-logout,
+.sidebar .sidebar-category-header,
+.sidebar .nav-group-chevron {
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    pointer-events: none;
+}
+
+.sidebar.expanded .nav-text,
+.sidebar.expanded .profile-mini-details,
+.sidebar.expanded .profile-mini-logout,
+.sidebar.expanded .sidebar-category-header,
+.sidebar.expanded .nav-group-chevron {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Collapsed profile mini styles (desktop inner pages only) */
+@media (min-width: 993px) {
+    body:not(.dashboard-portal) .sidebar:not(.expanded) .profile-mini {
+        padding: 2px;
+        background-color: transparent;
+        border-color: transparent;
+        justify-content: center;
+    }
+}
+
+/* Category header adjustments */
+.sidebar-category-header {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    padding: 16px 16px 8px 16px;
+    height: 38px;
+    transition: opacity var(--transition), height var(--transition), padding var(--transition);
+}
+
+.sidebar:not(.expanded) .sidebar-category-header {
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Sidebar Tooltips on hover when collapsed */
+.sidebar:not(.expanded) .nav-item,
+.sidebar:not(.expanded) .nav-group-header {
+    position: relative;
+}
+
+.sidebar:not(.expanded) .nav-item[data-tooltip]::after,
+.sidebar:not(.expanded) .nav-group-header[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.9);
+    background-color: var(--text-main);
+    color: var(--surface);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    box-shadow: var(--shadow-md);
+    z-index: 1100;
+    border: 1px solid var(--border);
+}
+
+.sidebar:not(.expanded) .nav-item[data-tooltip]:hover::after,
+.sidebar:not(.expanded) .nav-group-header[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
 }
 
 /* ==========================================
@@ -261,7 +529,7 @@ body.dark-theme .nav-item:hover {
    ========================================== */
 
 .main-content {
-    padding: 32px;
+    padding: 24px;
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
@@ -269,76 +537,152 @@ body.dark-theme .nav-item:hover {
 }
 
 .top-bar {
+    height: var(--topbar-height);
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
-    gap: 20px;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 980;
+    margin-bottom: 24px;
+    transition: var(--transition);
 }
 
-.greeting h2 {
-    font-size: 1.6rem;
+/* Breadcrumbs Styling */
+.breadcrumbs-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.breadcrumbs-container a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.breadcrumbs-container a:hover {
+    color: var(--primary);
+}
+
+.breadcrumbs-container span {
+    color: var(--text-muted);
+}
+
+.breadcrumbs-container a::after {
+    content: '/';
+    margin-left: 8px;
+    color: var(--border);
+}
+
+/* Floating Search Bar Styling */
+.top-bar-search {
+    position: relative;
+    width: 320px;
+    display: flex;
+    align-items: center;
+}
+
+.top-bar-search input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.top-bar-search input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: var(--surface);
+    box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15);
+}
+
+.top-bar-search .search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+/* User Profile Badge in Top Bar */
+.user-profile-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 6px 12px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    transition: var(--transition);
+}
+
+.user-profile-badge:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--primary);
+}
+
+.user-profile-badge .avatar-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid var(--primary);
+}
+
+/* Top bar Brand element */
+.top-bar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.top-bar-logo {
+    height: 28px;
+    width: auto;
+}
+
+.top-bar-title {
+    font-size: 1.1rem;
     font-weight: 700;
+    color: var(--primary-dark);
     letter-spacing: -0.02em;
 }
 
-.greeting p {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-top: 4px;
-}
-
+/* Toggle menu button */
 .menu-toggle-btn {
-    display: none;
+    display: none; /* Hide on desktop inner pages by default to prevent double hamburger */
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     cursor: pointer;
     color: var(--text-main);
-    padding: 8px;
+    padding: 6px 10px;
     border-radius: var(--radius-sm);
-    transition: var(--transition);
+    transition: background-color 0.15s ease;
 }
 
 .menu-toggle-btn:hover {
-    background-color: var(--border);
-}
-
-/* Controls */
-.theme-toggle-btn {
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text-main);
-    padding: 10px 16px;
-    border-radius: 50px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition);
-}
-
-.theme-toggle-btn:hover {
     background-color: var(--surface-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
 }
 
-.clock-badge {
-    background-color: var(--surface);
-    padding: 10px 18px;
-    border-radius: 50px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
+body.dashboard-portal .menu-toggle-btn {
+    display: block !important;
 }
 
 /* ==========================================
@@ -604,7 +948,7 @@ body.dark-theme .stat-icon.amber {
     height: 100vh;
     background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(4px);
-    z-index: 990;
+    z-index: 1040;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s, visibility 0.25s;
@@ -616,24 +960,60 @@ body.dark-theme .stat-icon.amber {
 }
 
 @media (max-width: 992px) {
-    .app-container {
-        grid-template-columns: 1fr;
+    .app-container::before {
+        display: none !important;
     }
 
     .sidebar {
         position: fixed !important;
         top: 0 !important;
-        left: -290px !important;
-        width: 280px !important;
+        left: 0 !important;
+        transform: translateX(-100%) !important;
+        width: var(--sidebar-expanded) !important;
         height: 100vh !important;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15) !important;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
         display: flex !important;
         z-index: 1050 !important;
     }
 
-    .sidebar.open {
-        left: 0 !important;
+    .sidebar.mobile-open {
+        transform: translateX(0) !important;
+    }
+
+    /* Force all text and labels to be visible in mobile overlay drawer */
+    .sidebar .nav-text,
+    .sidebar .profile-mini,
+    .sidebar .sidebar-category-header,
+    .sidebar .nav-group-chevron {
+        transition: opacity var(--transition);
+    }
+
+    .sidebar.mobile-open .nav-text,
+    .sidebar.mobile-open .profile-mini,
+    .sidebar.mobile-open .sidebar-category-header,
+    .sidebar.mobile-open .nav-group-chevron {
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+        height: auto !important;
+        pointer-events: auto !important;
+    }
+
+    .sidebar.mobile-open .brand h1 {
+        opacity: 1 !important;
+    }
+
+    .sidebar.mobile-open .nav-group-chevron {
+        display: block !important;
+    }
+
+    /* Keep group content closed initially on mobile, opening on group click */
+    .sidebar.mobile-open .nav-group:not(.open) .nav-group-content {
+        display: none !important;
+    }
+    .sidebar.mobile-open .nav-group.open .nav-group-content {
+        display: flex !important;
     }
 
     .menu-toggle-btn {
@@ -651,29 +1031,133 @@ body.dark-theme .stat-icon.amber {
 
 @media (max-width: 768px) {
     .main-content {
-        padding: 20px 16px;
+        padding: 16px;
     }
 
     .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
+        padding: 0 16px;
+        gap: 12px;
     }
 
-    .top-bar > div {
-        width: 100%;
-        justify-content: space-between;
+    .top-bar-search {
+        display: none; /* Hide search input on small screens */
+    }
+
+    .breadcrumbs-container {
+        display: none; /* Hide breadcrumbs on mobile screens */
+    }
+
+    .user-profile-name {
+        display: none; /* Show icon only for profile on mobile */
     }
 
     .clock-badge {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .theme-toggle-btn {
-        width: 100%;
-        justify-content: center;
+        display: none; /* Hide clock on mobile to make room */
     }
 }
 
-/* Sidebar collapsed overrides reverted */
+/* ==========================================
+   PREMIUM CUSTOM SIDEBAR SCROLLBAR & TWEAKS
+   ========================================== */
+.nav-section::-webkit-scrollbar {
+    width: 5px;
+}
+.nav-section::-webkit-scrollbar-track {
+    background: transparent;
+}
+.nav-section::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+.nav-section::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+.sidebar-toggle-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: var(--primary-light) !important;
+    color: var(--primary-dark) !important;
+    transform: scale(1.05);
+}
+
+.sidebar {
+    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.03);
+}
+
+/* Premium Theme Toggle Button */
+.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle-btn:active {
+    transform: translateY(0);
+}
+
+.theme-toggle-btn .theme-icon {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Offline-Safe User initials profile avatar placeholder */
+.avatar-placeholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: 2px solid var(--primary);
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.avatar-placeholder.small-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+    border-width: 1.5px;
+}
+
+/* Sidebar Collapsed Layout Alignment bug fixes */
+.sidebar:not(.expanded) .profile-mini-details,
+.sidebar:not(.expanded) .profile-mini-logout {
+    display: none !important;
+}
+
+.sidebar:not(.expanded) .profile-mini {
+    justify-content: center !important;
+}

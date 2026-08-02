@@ -80,7 +80,7 @@
             background: var(--secondary-color);
         }
 
-        .sidebar {
+        .profile-sidebar-legacy {
             background: var(--card-bg);
             border-radius: var(--radius);
             padding: 40px 30px;
@@ -234,7 +234,7 @@
             .dashboard-container {
                 grid-template-columns: 1fr;
             }
-            .sidebar {
+            .profile-sidebar-legacy {
                 position: static;
             }
         }
@@ -246,7 +246,7 @@
         
 
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="profile-sidebar-legacy">
             {% if staff.photo %}
             <img src="{{ staff.photo.url }}" class="profile-img" alt="Profile">
             {% else %}

@@ -96,10 +96,15 @@
                 {% for subject in subjects %}
                 <div class="action-tile" style="border-left: 4px solid var(--primary);">
                     <div style="display: flex; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 5px;">
+                        <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
                             <span style="font-size: 0.7rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 4px;">{{subject.code}}</span>
                             {% if subject.subject_type == 'Lab' %}
                             <span style="font-size: 0.7rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Lab</span>
+                            {% endif %}
+                            {% if subject.staff and subject.staff_batch_b and subject.staff != subject.staff_batch_b %}
+                            <span style="font-size: 0.7rem; background: #fef3c7; color: #d97706; padding: 2px 8px; border-radius: 4px; font-weight: 500;">{{ subject.staff.name }} (A) / {{ subject.staff_batch_b.name }} (B)</span>
+                            {% elif subject.staff %}
+                            <span style="font-size: 0.7rem; background: #f3f4f6; color: #4b5563; padding: 2px 8px; border-radius: 4px; font-weight: 500;">{{ subject.staff.name }} (Both)</span>
                             {% endif %}
                         </div>
                         <span style="font-size: 0.7rem; color: var(--text-muted);">Sem {{ subject.semester }}</span>

@@ -500,17 +500,29 @@
                                             <input type="hidden" name="action" value="assign_staff">
                                             <input type="hidden" name="subject_id" value="{{ subject.id }}">
 
-                                            <select name="staff_id" class="staff-select">
-                                                <option value="">-- Assign Staff --</option>
-                                                {% for staff in staff_members %}
-                                                <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id%}selected{% endif %}>
-                                                    {{ staff.name }}
-                                                </option>
+                                            <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px;">
+                                                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 0; display: block;">Batch A Staff (or Both):</label>
+                                                <select name="staff_id" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px;">
+                                                    <option value="">-- Unassigned --</option>
+                                                    {% for staff in staff_members %}
+                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                        {{ staff.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                                
+                                                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 0; display: block;">Batch B Staff:</label>
+                                                <select name="staff_batch_b_id" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px;">
+                                                    <option value="">-- Same as Batch A --</option>
+                                                    {% for staff in staff_members %}
+                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
+                                                        {{ staff.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
 
-                                                {% endfor %}
-                                            </select>
-
-                                            <button type="submit" class="btn-small">Update</button>
+                                            <button type="submit" class="btn-small" style="width: 100%;">Update</button>
                                         </form>
                                     </td>
                                     <td>

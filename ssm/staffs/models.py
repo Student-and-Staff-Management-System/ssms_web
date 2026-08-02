@@ -99,6 +99,13 @@ class Staff(models.Model):
     def is_staff_admin(self):
         return self.role == 'HOD' or self.is_admin
 
+    def get_teaching_subjects(self):
+        from .models import Subject
+        from django.db.models import Q
+        return Subject.objects.filter(
+            Q(staff=self) | Q(staff_batch_b=self)
+        ).distinct().order_by('semester', 'code')
+
     def clean(self):
         """Validate staff role assignments."""
         from django.core.exceptions import ValidationError
@@ -555,6 +562,19 @@ class Subject(models.Model):
     credits = models.IntegerField(default=3, help_text="Credit points for this subject")
     
     staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True, related_name='subjects')
+    staff_batch_b = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True, related_name='subjects_b')
+    
+    ASSIGNED_BATCH_CHOICES = [
+        ('A', 'Batch A'),
+        ('B', 'Batch B'),
+        ('Both', 'Both'),
+    ]
+    assigned_batch = models.CharField(
+        max_length=10, 
+        choices=ASSIGNED_BATCH_CHOICES, 
+        default='Both',
+        help_text="Designate if this course assignment applies to Batch A, Batch B, or Both."
+    )
     
     def __str__(self):
         return f"{self.code} - {self.name} (Sem {self.semester})"

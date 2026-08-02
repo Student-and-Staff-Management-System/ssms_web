@@ -8,7 +8,7 @@
     <title>{% block title %}Staff Portal | Annamalai University{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
-    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}?v=1.5">
     <style>
         /* Ensure sidebar sits above mobile backdrop overlay (cache-proof override) */
         .sidebar {
@@ -18,7 +18,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <!-- Theme Initializer (Blocking to prevent flash) -->
     <script>
         (function() {
@@ -30,14 +30,15 @@
     </script>
 
     <!-- Sidebar Drawer Backdrop overlay for Mobile -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar(false)"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
 
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar" id="appSidebar">
             <div class="brand">
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">☰</button>
                 <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo">
-                <h1>
+                <h1 class="nav-text">
                     {% if staff.role == 'HOD' %}Head of Dept{% else %}IT Portal{% endif %}
                 </h1>
             </div>
@@ -45,206 +46,226 @@
             <!-- Sidebar Navigation Links -->
             <div class="nav-section" style="flex: 1; overflow-y: auto; margin-bottom: 0;">
                 
-                <!-- Category 1: My Workspace (Always Visible) -->
+                <!-- Category Group: MAIN -->
+                <div class="sidebar-category-header">Main</div>
                 <div class="nav-group open" data-group-id="workspace">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">👤</span>
-                            <span>My Workspace</span>
+                            <span class="nav-text">My Workspace</span>
                         </div>
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content">
-                        <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item">
-                            <span class="nav-icon">📊</span> Dashboard
+                        <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item" data-tooltip="Dashboard">
+                            <span class="nav-icon">📊</span> <span class="nav-text">Dashboard</span>
                         </a>
-                        <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
-                            <span class="nav-icon">👤</span> Profile Overview
+                        <a href="{% url 'staffs:staff_profile' %}" class="nav-item" data-tooltip="Profile Overview">
+                            <span class="nav-icon">👤</span> <span class="nav-text">Profile Overview</span>
                         </a>
-                        <a href="{% url 'staffs:staff_portfolio' %}" class="nav-item">
-                            <span class="nav-icon">📄</span> My Portfolio
+                        <a href="{% url 'staffs:staff_portfolio' %}" class="nav-item" data-tooltip="My Portfolio">
+                            <span class="nav-icon">📄</span> <span class="nav-text">My Portfolio</span>
                         </a>
-                        <a href="{% url 'staffs:my_timetable' %}" class="nav-item">
-                            <span class="nav-icon">🗓️</span> My Timetable
+                        <a href="{% url 'staffs:my_timetable' %}" class="nav-item" data-tooltip="My Timetable">
+                            <span class="nav-icon">🗓️</span> <span class="nav-text">My Timetable</span>
                         </a>
-                        <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item">
-                            <span class="nav-icon">✈️</span> Apply for Leave
+                        <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item" data-tooltip="Apply for Leave">
+                            <span class="nav-icon">✈️</span> <span class="nav-text">Apply for Leave</span>
                         </a>
-                        <a href="{% url 'staffs:staff_leave_history' %}" class="nav-item">
-                            <span class="nav-icon">📜</span> Leave History
+                        <a href="{% url 'staffs:staff_leave_history' %}" class="nav-item" data-tooltip="Leave History">
+                            <span class="nav-icon">📜</span> <span class="nav-text">Leave History</span>
                         </a>
-                        <a href="{% url 'staffs:exam_schedule' %}" class="nav-item">
-                            <span class="nav-icon">📝</span> Exam Duties
+                        <a href="{% url 'staffs:exam_schedule' %}" class="nav-item" data-tooltip="Exam Duties">
+                            <span class="nav-icon">📝</span> <span class="nav-text">Exam Duties</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Category 2: Class Substitutions (All Faculty Roles except Office Staff) -->
+                <!-- Category Group: ACADEMICS -->
+                {% if staff.role != 'Office Staff' or staff.role == 'HOD' or staff.role == 'Class Incharge' or staff.role == 'Course Incharge' %}
+                <div class="sidebar-category-header">Academics</div>
+                
                 {% if staff.role != 'Office Staff' %}
                 <div class="nav-group" data-group-id="substitutions">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">🔄</span>
-                            <span>Substitutions</span>
+                            <span class="nav-text">Substitutions</span>
                         </div>
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content">
-                        <a href="{% url 'staffs:manage_substitutions' %}" class="nav-item">
-                            <span class="nav-icon">➕</span> Request Substitution
+                        <a href="{% url 'staffs:manage_substitutions' %}" class="nav-item" data-tooltip="Request Substitution">
+                            <span class="nav-icon">➕</span> <span class="nav-text">Request Substitution</span>
                         </a>
-                        <a href="{% url 'staffs:incoming_substitutions' %}" class="nav-item">
-                            <span class="nav-icon">📥</span> Incoming Requests
+                        <a href="{% url 'staffs:incoming_substitutions' %}" class="nav-item" data-tooltip="Incoming Requests">
+                            <span class="nav-icon">📥</span> <span class="nav-text">Incoming Requests</span>
                         </a>
-                        <a href="{% url 'staffs:assigned_substitutions' %}" class="nav-item">
-                            <span class="nav-icon">👩‍🏫</span> Assigned Classes
+                        <a href="{% url 'staffs:assigned_substitutions' %}" class="nav-item" data-tooltip="Assigned Classes">
+                            <span class="nav-icon">👩‍🏫</span> <span class="nav-text">Assigned Classes</span>
                         </a>
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Category 3: Student Management (HOD, Class/Course Incharge, Guides) -->
                 {% if staff.role == 'HOD' or staff.role == 'Class Incharge' or staff.role == 'Course Incharge' %}
                 <div class="nav-group" data-group-id="students">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">👨‍🎓</span>
-                            <span>Students</span>
+                            <span class="nav-text">Students</span>
                         </div>
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content">
-                        <a href="{% url 'staffs:student_list' %}" class="nav-item">
-                            <span class="nav-icon">📁</span> Database Directory
+                        <a href="{% url 'staffs:student_list' %}" class="nav-item" data-tooltip="Database Directory">
+                            <span class="nav-icon">📁</span> <span class="nav-text">Database Directory</span>
                         </a>
-                        <a href="{% url 'staffs:risk_students' %}" class="nav-item">
-                            <span class="nav-icon">⚠️</span> Risk Insights
+                        <a href="{% url 'staffs:risk_students' %}" class="nav-item" data-tooltip="Risk Insights">
+                            <span class="nav-icon">⚠️</span> <span class="nav-text">Risk Insights</span>
                         </a>
-                        <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item">
-                            <span class="nav-icon">📝</span> Student Leaves
+                        <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item" data-tooltip="Student Leaves">
+                            <span class="nav-icon">📝</span> 
+                            <span class="nav-text">Student Leaves</span>
                             {% if pending_leaves_count %}
                             <span class="badge-count">{{ pending_leaves_count }}</span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'staffs:remark_student_list' %}" class="nav-item">
-                            <span class="nav-icon">💬</span> Student Remarks
+                        <a href="{% url 'staffs:remark_student_list' %}" class="nav-item" data-tooltip="Student Remarks">
+                            <span class="nav-icon">💬</span> <span class="nav-text">Student Remarks</span>
                         </a>
-                        <a href="{% url 'staffs:attendance_deficit_list' %}" class="nav-item">
-                            <span class="nav-icon">📊</span> Deficit Mailer
+                        <a href="{% url 'staffs:attendance_deficit_list' %}" class="nav-item" data-tooltip="Deficit Mailer">
+                            <span class="nav-icon">📊</span> <span class="nav-text">Deficit Mailer</span>
                         </a>
-                        <a href="{% url 'staffs:assign_lab_batches' %}" class="nav-item">
-                            <span class="nav-icon">👥</span> Assign Lab Batches
+                        <a href="{% url 'staffs:assign_lab_batches' %}" class="nav-item" data-tooltip="Assign Lab Batches">
+                            <span class="nav-icon">👥</span> <span class="nav-text">Assign Lab Batches</span>
                         </a>
                     </div>
                 </div>
                 {% endif %}
+                {% endif %}
 
-                <!-- Category 4: Research Scholars (HOD or Guide) -->
+                <!-- Category Group: MANAGEMENT -->
+                {% if staff.role == 'HOD' or rs_count > 0 or staff.role == 'Office Staff' or staff.role == 'Scholarship Officer' %}
+                <div class="sidebar-category-header">Management</div>
+                
                 {% if staff.role == 'HOD' or rs_count > 0 %}
                 <div class="nav-group" data-group-id="scholars">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">🎓</span>
-                            <span>Research Scholars</span>
+                            <span class="nav-text">Research Scholars</span>
                         </div>
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content">
-                        <a href="{% url 'staffs:manage_scholar_attendance' %}" class="nav-item">
-                            <span class="nav-icon">🗓️</span> Attendance
+                        <a href="{% url 'staffs:manage_scholar_attendance' %}" class="nav-item" data-tooltip="Attendance">
+                            <span class="nav-icon">🗓️</span> 
+                            <span class="nav-text">Attendance</span>
                             {% if rs_pending_attendance %}
                             <span class="badge-count">{{ rs_pending_attendance }}</span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'staffs:manage_scholar_leave' %}" class="nav-item">
-                            <span class="nav-icon">✈️</span> Leave Requests
+                        <a href="{% url 'staffs:manage_scholar_leave' %}" class="nav-item" data-tooltip="Leave Requests">
+                            <span class="nav-icon">✈️</span> 
+                            <span class="nav-text">Leave Requests</span>
                             {% if rs_pending_leaves %}
                             <span class="badge-count">{{ rs_pending_leaves }}</span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'staffs:manage_phd_stages' %}" class="nav-item">
-                            <span class="nav-icon">📈</span> PhD Stages Tracker
+                        <a href="{% url 'staffs:manage_phd_stages' %}" class="nav-item" data-tooltip="PhD Stages Tracker">
+                            <span class="nav-icon">📈</span> <span class="nav-text">PhD Stages Tracker</span>
                         </a>
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Category 5: Department Administration (HOD, Office Staff) -->
                 {% if staff.role == 'HOD' or staff.role == 'Office Staff' %}
                 <div class="nav-group" data-group-id="admin">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">🏢</span>
-                            <span>Administration</span>
+                            <span class="nav-text">Administration</span>
                         </div>
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content">
-                        <a href="{% url 'staffs:staff_list' %}" class="nav-item">
-                            <span class="nav-icon">👨‍🏫</span> Faculty Directory
+                        <a href="{% url 'staffs:staff_list' %}" class="nav-item" data-tooltip="Faculty Directory">
+                            <span class="nav-icon">👨‍🏫</span> <span class="nav-text">Faculty Directory</span>
                         </a>
                         {% if staff.role == 'HOD' %}
-                        <a href="{% url 'staffs:hod_leave_dashboard' %}" class="nav-item">
-                            <span class="nav-icon">👔</span> Faculty Leaves
+                        <a href="{% url 'staffs:hod_leave_dashboard' %}" class="nav-item" data-tooltip="Faculty Leaves">
+                            <span class="nav-icon">👔</span> 
+                            <span class="nav-text">Faculty Leaves</span>
                             {% if pending_staff_leaves_count %}
                             <span class="badge-count">{{ pending_staff_leaves_count }}</span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="nav-item">
-                            <span class="nav-icon">✔️</span> Portfolio Approvals
+                        <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="nav-item" data-tooltip="Portfolio Approvals">
+                            <span class="nav-icon">✔️</span> 
+                            <span class="nav-text">Portfolio Approvals</span>
                             {% if pending_portfolio_count %}
                             <span class="badge-count">{{ pending_portfolio_count }}</span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item">
-                            <span class="nav-icon">🔬</span> Lab Mapping
+                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab Mapping">
+                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab Mapping</span>
                         </a>
-                        <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item">
-                            <span class="nav-icon">📢</span> Send Notification
+                        <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item" data-tooltip="Send Notification">
+                            <span class="nav-icon">📢</span> <span class="nav-text">Send Notification</span>
                         </a>
                         {% endif %}
-                        <a href="{% url 'staffs:hod_manage_bonafide' %}" class="nav-item">
-                            <span class="nav-icon">📜</span> Bonafide Requests
+                        <a href="{% url 'staffs:hod_manage_bonafide' %}" class="nav-item" data-tooltip="Bonafide Requests">
+                            <span class="nav-icon">📜</span> 
+                            <span class="nav-text">Bonafide Requests</span>
                             {% if pending_bonafide_count %}
                             <span class="badge-count">{{ pending_bonafide_count }}</span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'staffs:manage_semesters' %}" class="nav-item">
-                            <span class="nav-icon">📅</span> Manage Semesters
+                        <a href="{% url 'staffs:manage_semesters' %}" class="nav-item" data-tooltip="Manage Semesters">
+                            <span class="nav-icon">📅</span> <span class="nav-text">Manage Semesters</span>
                         </a>
-                        <a href="{% url 'staffs:manage_subjects' %}" class="nav-item">
-                            <span class="nav-icon">📚</span> Manage Subjects
+                        <a href="{% url 'staffs:manage_subjects' %}" class="nav-item" data-tooltip="Manage Subjects">
+                            <span class="nav-icon">📚</span> <span class="nav-text">Manage Subjects</span>
                         </a>
-                        <a href="{% url 'staffs:timetable' %}" class="nav-item">
-                            <span class="nav-icon">🕒</span> Master Timetables
+                        <a href="{% url 'staffs:timetable' %}" class="nav-item" data-tooltip="Master Timetables">
+                            <span class="nav-icon">🕒</span> <span class="nav-text">Master Timetables</span>
                         </a>
-                        <a href="{% url 'staffs:passed_out_batches' %}" class="nav-item">
-                            <span class="nav-icon">🗄️</span> Passed Out Batches
-                        </a>
-                        <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer">
-                            <span class="nav-icon">⚙️</span> Admin Portal
+                        <a href="{% url 'staffs:passed_out_batches' %}" class="nav-item" data-tooltip="Passed Out Batches">
+                            <span class="nav-icon">🗄️</span> <span class="nav-text">Passed Out Batches</span>
                         </a>
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Category 6: Scholarships (HOD, Scholarship Officer, Office Staff) -->
                 {% if staff.role == 'HOD' or staff.role == 'Scholarship Officer' or staff.role == 'Office Staff' %}
                 <div class="nav-group" data-group-id="scholarships">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">💰</span>
-                            <span>Scholarships</span>
+                            <span class="nav-text">Scholarships</span>
                         </div>
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content">
-                        <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item">
-                            <span class="nav-icon">🎓</span> Scholarship Manager
+                        <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item" data-tooltip="Scholarship Manager">
+                            <span class="nav-icon">🎓</span> <span class="nav-text">Scholarship Manager</span>
                         </a>
                     </div>
                 </div>
                 {% endif %}
+                {% endif %}
+
+                <!-- Category Group: SYSTEM -->
+                <div class="sidebar-category-header">System</div>
+                {% if staff.role == 'HOD' or staff.role == 'Office Staff' %}
+                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer" data-tooltip="Admin Portal">
+                    <span class="nav-icon">⚙️</span> <span class="nav-text">Admin Portal</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'staffs:staff_logout' %}" class="nav-item" data-tooltip="Logout" style="color: #ef4444;">
+                    <span class="nav-icon">🚪</span> <span class="nav-text">Logout</span>
+                </a>
 
             </div>
 
@@ -253,9 +274,9 @@
                 {% if staff.photo %}
                 <img src="{{ staff.photo.url }}" alt="Profile Photo">
                 {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=5a7d7c&color=fff" alt="Profile Name">
+                <div class="avatar-placeholder">{{ staff.name|slice:":1"|upper }}</div>
                 {% endif %}
-                <div style="flex: 1; min-width: 0;">
+                <div style="flex: 1; min-width: 0;" class="profile-mini-details">
                     <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
                         {{ staff.name }}
                     </div>
@@ -263,7 +284,7 @@
                         {{ staff.role }}
                     </div>
                 </div>
-                <a href="{% url 'staffs:staff_logout' %}" title="Logout" style="color: #ef4444; font-size: 0.9rem; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-left: auto;">
+                <a href="{% url 'staffs:staff_logout' %}" class="profile-mini-logout" title="Logout" style="color: #ef4444; font-size: 0.9rem; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-left: auto;">
                     🚪
                 </a>
             </div>
@@ -273,12 +294,28 @@
         <main class="main-content">
             <!-- Dynamic Top Header Bar -->
             <div class="top-bar">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button class="menu-toggle-btn" onclick="toggleMobileSidebar(true)" aria-label="Toggle Menu">☰</button>
-                    <div class="greeting">
-                        <h2>{% block page_title %}Welcome Back{% endblock %}</h2>
-                        <p>{% block page_subtitle %}IT Department Staff Portal{% endblock %}</p>
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;">
+                    <!-- Menu Toggle Hamburger Button (visible on mobile, and on dashboard portal on desktop) -->
+                    <button class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Menu">☰</button>
+                    
+                    <!-- Unified top navbar brand logo & name -->
+                    <div class="top-bar-brand">
+                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo" class="top-bar-logo">
+                        <span class="top-bar-title">AU IT</span>
                     </div>
+
+                    <!-- Dynamic Breadcrumbs -->
+                    <div class="breadcrumbs-container">
+                        {% block breadcrumbs %}
+                        <a href="{% url 'staffs:staff_dashboard' %}" class="breadcrumb-item">Dashboard</a>
+                        {% endblock %}
+                    </div>
+                </div>
+
+                <!-- Floating Search bar in top navigation -->
+                <div class="top-bar-search">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search students, staff or resources..." id="portalSearch" aria-label="Search students, staff or resources">
                 </div>
 
                 <!-- Action controls on the right side of header -->
@@ -293,6 +330,16 @@
                     <div class="clock-badge">
                         🕒 <span id="portalClock">12:00:00 PM</span>
                     </div>
+
+                    <!-- User Profile Quick Badge -->
+                    <a href="{% url 'staffs:staff_profile' %}" class="user-profile-badge" title="Go to Profile Overview">
+                        {% if staff.photo %}
+                        <img src="{{ staff.photo.url }}" alt="Avatar" class="avatar-img">
+                        {% else %}
+                        <div class="avatar-placeholder small-avatar">{{ staff.name|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <span class="user-profile-name">{{ staff.name }}</span>
+                    </a>
                 </div>
             </div>
 
@@ -306,6 +353,20 @@
         // Collapsible Sidebar Navigation Categories
         function toggleNavGroup(header) {
             const group = header.parentElement;
+            const sidebar = document.getElementById('appSidebar');
+            
+            // If the sidebar is collapsed on desktop, clicking a group should expand the sidebar first
+            const isCollapsed = !sidebar.classList.contains('expanded') && !document.body.classList.contains('dashboard-portal') && window.innerWidth > 992;
+            if (isCollapsed) {
+                toggleSidebar(true);
+                group.classList.add('open');
+                const groupId = group.getAttribute('data-group-id');
+                if (groupId) {
+                    localStorage.setItem(`nav_group_${groupId}`, 'open');
+                }
+                return;
+            }
+            
             group.classList.toggle('open');
             const groupId = group.getAttribute('data-group-id');
             if (groupId) {
@@ -341,20 +402,115 @@
             });
         });
 
-        // Toggle mobile sliding sidebar
-        function toggleMobileSidebar(open) {
+        // Toggle Sidebar Drawer (Desktop Overlay toggle / Mobile Offcanvas overlay)
+        function toggleSidebar(forceState) {
             const sidebar = document.getElementById('appSidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            if (sidebar && overlay) {
-                if (open) {
-                    sidebar.classList.add('open');
+            const container = document.querySelector('.app-container');
+            
+            const isMobile = window.innerWidth <= 992;
+            const isDashboardPortal = document.body.classList.contains('dashboard-portal');
+            
+            if (isMobile || isDashboardPortal) {
+                const willOpen = (typeof forceState === 'boolean') ? forceState : !sidebar.classList.contains('mobile-open');
+                if (willOpen) {
+                    sidebar.classList.add('mobile-open');
                     overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling background
+                    
+                    // A11y Focus trap inside mobile drawer
+                    trapFocus(sidebar);
                 } else {
-                    sidebar.classList.remove('open');
+                    sidebar.classList.remove('mobile-open');
                     overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            } else {
+                const willExpand = (typeof forceState === 'boolean') ? forceState : !sidebar.classList.contains('expanded');
+                if (willExpand) {
+                    sidebar.classList.add('expanded');
+                    container.classList.add('sidebar-expanded');
+                    localStorage.setItem('sidebar_state', 'expanded');
+                } else {
+                    sidebar.classList.remove('expanded');
+                    container.classList.remove('sidebar-expanded');
+                    localStorage.setItem('sidebar_state', 'collapsed');
                 }
             }
         }
+
+        // Focus Trap Logic for Mobile Offcanvas Accessibility
+        let focusTrapListener = null;
+        function trapFocus(element) {
+            const focusableElements = element.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+            if (focusableElements.length === 0) return;
+            const firstFocusable = focusableElements[0];
+            const lastFocusable = focusableElements[focusableElements.length - 1];
+            
+            if (focusTrapListener) {
+                element.removeEventListener('keydown', focusTrapListener);
+            }
+            
+            focusTrapListener = function(e) {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstFocusable) {
+                            lastFocusable.focus();
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (document.activeElement === lastFocusable) {
+                            firstFocusable.focus();
+                            e.preventDefault();
+                        }
+                    }
+                }
+            };
+            element.addEventListener('keydown', focusTrapListener);
+            firstFocusable.focus();
+        }
+
+        // Initialize state on DOM load (sidebar starts collapsed by default for clean UX)
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('appSidebar');
+            const container = document.querySelector('.app-container');
+            const isMobile = window.innerWidth <= 992;
+            
+            if (!isMobile) {
+                sidebar.classList.remove('expanded');
+                container.classList.remove('sidebar-expanded');
+            }
+
+            // Global ESC key event listener
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const sidebar = document.getElementById('appSidebar');
+                    if (sidebar.classList.contains('mobile-open')) {
+                        toggleSidebar(false);
+                    } else if (sidebar.classList.contains('expanded')) {
+                        toggleSidebar(false);
+                    }
+                }
+            });
+
+            // Global Click event listener to collapse sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('appSidebar');
+                if (!sidebar) return;
+                
+                const isExpanded = sidebar.classList.contains('expanded');
+                const isMobileOpen = sidebar.classList.contains('mobile-open');
+                
+                if (isExpanded || isMobileOpen) {
+                    const clickedInsideSidebar = sidebar.contains(e.target);
+                    const clickedToggleButton = e.target.closest('.sidebar-toggle-btn') || e.target.closest('.menu-toggle-btn');
+                    
+                    if (!clickedInsideSidebar && !clickedToggleButton) {
+                        toggleSidebar(false);
+                    }
+                }
+            });
+        });
 
         // Theme Toggle Dark/Light Logic
         function toggleTheme() {
