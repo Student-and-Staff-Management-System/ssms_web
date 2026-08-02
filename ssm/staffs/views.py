@@ -120,7 +120,7 @@ def staff_dashboard(request):
         # HOD sees requests waiting for sign
         pending_bonafide_count = BonafideRequest.objects.filter(status__in=['Pending HOD Approval', 'Waiting for HOD Sign']).count()
         from .models import StaffPastDesignation
-        pending_portfolio_count = StaffPastDesignation.objects.filter(approval_status='Pending', to_date__isnull=True).count()
+        pending_portfolio_count = StaffPastDesignation.objects.filter(approval_status='Pending').count()
     elif staff.role == 'Office Staff':
          # Office Staff sees all active requests not yet collected/rejected
          pending_bonafide_count = BonafideRequest.objects.filter(
@@ -183,19 +183,24 @@ def staff_dashboard(request):
 
 
     # ── Research Scholar (RS) data ──────────────────────────────────────────
-    from students.models import ResearchScholarProfile, ScholarAttendance, LeaveRequest
+    from students.models import ResearchScholarProfile, ScholarAttendance, LeaveRequest, PhDProgress
     
     if staff.role == 'HOD':
         # HOD sees all scholars and all pending requests
-        rs_scholars = Student.objects.filter(program_level='PHD').select_related('scholar_profile')
+        rs_scholars = Student.objects.filter(program_level='PHD').select_related('scholar_profile', 'phd_progress')
         rs_pending_leaves = LeaveRequest.objects.filter(student__program_level='PHD', status='Pending Guide').count()
         rs_pending_attendance = ScholarAttendance.objects.filter(scholar__program_level='PHD', status='Pending').count()
     else:
         # Other staff see only their assigned scholars
-        rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile')
+        rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile', 'phd_progress')
         rs_ids = rs_scholars.values_list('pk', flat=True)
         rs_pending_leaves = LeaveRequest.objects.filter(student_id__in=rs_ids, status='Pending Guide').count() if rs_scholars.exists() else 0
         rs_pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').count() if rs_scholars.exists() else 0
+
+    # Ensure phd_progress records exist for all scholars
+    for s in rs_scholars:
+        if not hasattr(s, 'phd_progress') or s.phd_progress is None:
+            PhDProgress.objects.get_or_create(scholar=s)
 
     rs_count = rs_scholars.count()
     assigned_labs = staff.assigned_labs.all()
@@ -217,6 +222,47 @@ def staff_dashboard(request):
         guided_success_rate = 0
     guided_offset = round(150.8 - (guided_success_rate / 100) * 150.8, 1)
     
+    # ── Today's Class Schedule ─────────────────────────────────────────────
+    import datetime
+    today_weekday = timezone.now().strftime('%A')  # 'Monday', 'Tuesday' etc.
+    today_schedule = []
+    if today_weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
+        today_tt_entries = Timetable.objects.filter(
+            staff=staff, day=today_weekday
+        ).select_related('subject').order_by('period')
+        # Define period time slots
+        PERIOD_TIMES = {
+            1: ('09:00', '09:50'),
+            2: ('09:50', '10:40'),
+            3: ('10:50', '11:40'),
+            4: ('11:40', '12:30'),
+            5: ('13:10', '14:00'),
+            6: ('14:00', '14:50'),
+            7: ('14:50', '15:40'),
+        }
+        now_time = timezone.now().time()
+        for entry in today_tt_entries:
+            times = PERIOD_TIMES.get(entry.period, ('--', '--'))
+            try:
+                start_t = datetime.time(int(times[0][:2]), int(times[0][3:]))
+                end_t   = datetime.time(int(times[1][:2]), int(times[1][3:]))
+                if now_time < start_t:
+                    status = 'upcoming'
+                elif start_t <= now_time <= end_t:
+                    status = 'ongoing'
+                else:
+                    status = 'done'
+            except Exception:
+                status = 'upcoming'
+            today_schedule.append({
+                'period': entry.period,
+                'subject': entry.subject,
+                'batch': entry.batch,
+                'start': times[0],
+                'end': times[1],
+                'status': status,
+            })
+
     # ────────────────────────────────────────────────────────────────────────
     return render(request, template_name, {
         'staff': staff, 
@@ -247,6 +293,9 @@ def staff_dashboard(request):
         'guided_students_list': guided_students_list,
         'guided_success_rate': guided_success_rate,
         'guided_offset': guided_offset,
+        # Today's Schedule
+        'today_schedule': today_schedule,
+        'today_weekday': today_weekday,
     })
 
 def get_staff_profile_completion_data(staff):
@@ -1804,7 +1853,7 @@ def edit_timetable(request, semester):
 
                         if not b_subject and not virtual_sub:
                             # If no subject and not virtual, delete if exists
-                            if batch_entry:
+                            if batch_entry and batch_entry.pk is not None:
                                 if batch_entry.staff:
                                     send_staff_notification(batch_entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
                                 batch_entry.delete()
@@ -1851,7 +1900,7 @@ def edit_timetable(request, semester):
 
                             # Delete any 'All' batch entries
                             for entry in entries:
-                                if entry.batch == 'All':
+                                if entry.batch == 'All' and entry.pk is not None:
                                     if entry.staff:
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
                                     entry.delete()
@@ -1861,7 +1910,7 @@ def edit_timetable(request, semester):
                         else:
                             # Theory or other virtual slots: Clean up 'A' and 'B' entries first
                             for entry in entries:
-                                if entry.batch in ['A', 'B']:
+                                if entry.batch in ['A', 'B'] and entry.pk is not None:
                                     if entry.staff:
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {entry.batch}).", url="/staffs/my-timetable/")
                                     entry.delete()
@@ -1869,9 +1918,10 @@ def edit_timetable(request, semester):
                             # Set everything as 'All' batch
                             if not sub_val:
                                 for entry in entries:
-                                    if entry.staff:
-                                        send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
-                                    entry.delete()
+                                    if entry.pk is not None:
+                                        if entry.staff:
+                                            send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
+                                        entry.delete()
                             else:
                                 virt_lbl = sub_val if sub_val in VIRTUAL_SLOTS else None
                                 subj_id_to_use = None if virt_lbl else sub_val
@@ -1882,7 +1932,7 @@ def edit_timetable(request, semester):
                         if not sub_val:
                             # Clear specific batch entry for this slot
                             for entry in entries:
-                                if entry.batch == current_batch:
+                                if entry.batch == current_batch and entry.pk is not None:
                                     if entry.staff:
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {current_batch}).", url="/staffs/my-timetable/")
                                     entry.delete()
@@ -2740,22 +2790,27 @@ def assigned_substitutions(request):
     })
 
 def _get_portfolio_summary_stats(staff):
+    import datetime
     # Dynamic Visual Stats Calculations
     all_confs = staff.conferences.all()
     conf_attended_national = all_confs.filter(participation_type='Attended', national_international='National').count()
     conf_attended_international = all_confs.filter(participation_type='Attended', national_international='International').count()
     conf_conducted_national = all_confs.filter(participation_type='Presented', national_international='National').count()
     conf_conducted_international = all_confs.filter(participation_type='Presented', national_international='International').count()
+    conf_total = all_confs.count()
 
     all_sems = staff.seminar_list.all()
     seminars_attended = all_sems.filter(event_type='Seminar', participation_role='Attended').exclude(title__icontains='symposi').count()
     seminars_conducted = all_sems.filter(event_type='Seminar', participation_role='Conducted').exclude(title__icontains='symposi').count()
+    seminars_total = seminars_attended + seminars_conducted
     
     symposia_attended = all_sems.filter(title__icontains='symposi', participation_role='Attended').count()
     symposia_conducted = all_sems.filter(title__icontains='symposi', participation_role='Conducted').count()
+    symposia_total = symposia_attended + symposia_conducted
     
     workshops_attended = all_sems.filter(event_type='Workshop', participation_role='Attended').count()
     workshops_conducted = all_sems.filter(event_type='Workshop', participation_role='Conducted').count()
+    workshops_total = workshops_attended + workshops_conducted
 
     students_guided = staff.student_guided_list.all()
     pg_completed = students_guided.filter(degree_type='PG', status='Completed').count()
@@ -2769,32 +2824,104 @@ def _get_portfolio_summary_stats(staff):
 
     # Calculate Guidance Percentages
     pg_total = pg_completed + pg_ongoing
-    pg_completed_pct = (pg_completed / pg_total * 100) if pg_total > 0 else 0
-    pg_ongoing_pct = (pg_ongoing / pg_total * 100) if pg_total > 0 else 0
+    pg_completed_pct = round((pg_completed / pg_total * 100)) if pg_total > 0 else 0
+    pg_ongoing_pct = round((pg_ongoing / pg_total * 100)) if pg_total > 0 else 0
     
     phd_total = phd_completed + phd_ongoing
-    phd_completed_pct = (phd_completed / phd_total * 100) if phd_total > 0 else 0
-    phd_ongoing_pct = (phd_ongoing / phd_total * 100) if phd_total > 0 else 0
+    phd_completed_pct = round((phd_completed / phd_total * 100)) if phd_total > 0 else 0
+    phd_ongoing_pct = round((phd_ongoing / phd_total * 100)) if phd_total > 0 else 0
+
+    # Publication & Indexing Stats
+    journals = staff.journals.all()
+    journals_count = journals.count()
+    scopus_count = journals.filter(is_scopus=True).count()
+    wos_count = journals.filter(is_wos=True).count()
+    sci_count = journals.filter(is_sci=True).count()
+    scie_count = journals.filter(is_scie=True).count()
+    ugc_count = journals.filter(is_ugc=True).count()
+
+    books_count = staff.books.count()
+    total_publications = journals_count + conf_conducted_national + conf_conducted_international + books_count
+
+    # Patents & Research Projects
+    patents = staff.patents.all()
+    patents_count = patents.count()
+    patents_granted = patents.filter(status='Granted').count()
+    patents_published = patents.filter(status='Published').count()
+    patents_applied = patents.filter(status='Applied').count()
+
+    research_projects = staff.research_projects.all()
+    projects_count = research_projects.count()
+    projects_active = research_projects.filter(status='Ongoing').count()
+    projects_completed = research_projects.filter(status='Completed').count()
+
+    # Academic & Professional Stats
+    qualifications_count = staff.qualifications.count()
+    highest_qual = staff.qualifications.order_by('-year_completed').first()
+    highest_degree_name = highest_qual.degree if highest_qual else "Faculty"
+
+    awards_count = staff.award_list.count()
+    memberships_count = staff.memberships.count()
+
+    # Calculated Service / Experience (Years & Months)
+    experience_years = 0
+    experience_months = 0
+    if staff.date_of_joining:
+        today = datetime.date.today()
+        total_months = (today.year - staff.date_of_joining.year) * 12 + (today.month - staff.date_of_joining.month)
+        experience_years = max(0, total_months // 12)
+        experience_months = max(0, total_months % 12)
+
+    _comp = get_staff_profile_completion_data(staff)
+    profile_completion_percentage = _comp['percentage']
 
     return {
+        'conf_total': conf_total,
         'conf_attended_national': conf_attended_national,
         'conf_attended_international': conf_attended_international,
         'conf_conducted_national': conf_conducted_national,
         'conf_conducted_international': conf_conducted_international,
+        'seminars_total': seminars_total,
         'seminars_attended': seminars_attended,
         'seminars_conducted': seminars_conducted,
+        'symposia_total': symposia_total,
         'symposia_attended': symposia_attended,
         'symposia_conducted': symposia_conducted,
+        'workshops_total': workshops_total,
         'workshops_attended': workshops_attended,
         'workshops_conducted': workshops_conducted,
         'pg_completed': pg_completed,
         'pg_ongoing': pg_ongoing,
+        'pg_total': pg_total,
         'phd_completed': phd_completed,
         'phd_ongoing': phd_ongoing,
+        'phd_total': phd_total,
         'pg_completed_pct': pg_completed_pct,
         'pg_ongoing_pct': pg_ongoing_pct,
         'phd_completed_pct': phd_completed_pct,
         'phd_ongoing_pct': phd_ongoing_pct,
+        'journals_count': journals_count,
+        'scopus_count': scopus_count,
+        'wos_count': wos_count,
+        'sci_count': sci_count,
+        'scie_count': scie_count,
+        'ugc_count': ugc_count,
+        'books_count': books_count,
+        'total_publications': total_publications,
+        'patents_count': patents_count,
+        'patents_granted': patents_granted,
+        'patents_published': patents_published,
+        'patents_applied': patents_applied,
+        'projects_count': projects_count,
+        'projects_active': projects_active,
+        'projects_completed': projects_completed,
+        'qualifications_count': qualifications_count,
+        'highest_degree_name': highest_degree_name,
+        'awards_count': awards_count,
+        'memberships_count': memberships_count,
+        'experience_years': experience_years,
+        'experience_months': experience_months,
+        'profile_completion_percentage': profile_completion_percentage,
     }
 
 def staff_profile(request):
@@ -2927,22 +3054,34 @@ def staff_portfolio(request):
     if not staff:
         return redirect('staffs:stafflogin')
 
-    publications = staff.publication_list.all()
-    awards = staff.award_list.all()
-    seminars = staff.seminar_list.all()
-    students_guided = staff.student_guided_list.all()
+    publications = staff.publication_list.all().order_by('-year', '-id')
+    awards = staff.award_list.all().order_by('-year', '-id')
+    students_guided = staff.student_guided_list.all().order_by('-year', '-id')
     
-    # New Models
+    # Combined Seminars, Workshops, Conferences & Symposia + FDP & Trainings
+    all_seminar_entries = list(staff.seminar_list.all().order_by('-date_from', '-year', '-id'))
+
+    academic_types = {'Conference', 'Seminar', 'Workshop', 'Symposia'}
+    training_types = {'FDP', 'STTP', 'Summer/Winter School', 'Orientation Programme', 'Refresher Course / Training', 'Summer/Winter Orientation'}
+
+    academic_events_attended = [e for e in all_seminar_entries if e.event_type in academic_types and e.participation_role == 'Attended']
+    academic_events_conducted = [e for e in all_seminar_entries if e.event_type in academic_types and e.participation_role == 'Conducted']
+
+    training_events_attended = [e for e in all_seminar_entries if e.event_type in training_types and e.participation_role == 'Attended']
+    training_events_conducted = [e for e in all_seminar_entries if e.event_type in training_types and e.participation_role == 'Conducted']
+
+    # Legacy models
     conferences = staff.conferences.filter(participation_type='Presented').order_by('-year_of_publication', '-created_at')
     attended_conferences = staff.conferences.filter(participation_type='Attended').order_by('-year_of_publication', '-created_at')
     journals = staff.journals.all().order_by('-published_year', '-created_at')
     books = staff.books.all().order_by('-year_of_publication', '-created_at')
     
-    qualifications = staff.qualifications.all().order_by('-year_completed')
-    designations = staff.past_designations.all()
-    memberships = staff.memberships.all()
+    qualifications = staff.qualifications.all().order_by('-year_completed', '-id')
+    designations = staff.past_designations.filter(is_additional=False).order_by('-from_date', '-id')
+    additional_posts = staff.past_designations.filter(is_additional=True).order_by('-from_date', '-id')
+    memberships = staff.memberships.all().order_by('-year', '-id')
     patents = staff.patents.all().order_by('-application_year', '-created_at')
-    research_projects = staff.research_projects.all()
+    research_projects = staff.research_projects.all().order_by('-start_date', '-id')
 
     # Dynamic PhD Scholar Guidance — auto-fetched from ResearchScholarProfile.supervisor FK
     from students.models import PhDProgress
@@ -2969,24 +3108,20 @@ def staff_portfolio(request):
         phd_scholars_data.append({
             'profile': profile,
             'student': student,
-            'roll_number': student.roll_number,
-            'name': student.student_name,
-            'scholar_type': profile.get_scholar_type_display() if hasattr(profile, 'get_scholar_type_display') else profile.scholar_type,
-            'admission_date': profile.admission_date,
-            'status': profile.status,
-            'completion_year': profile.completion_year or '—',
-            'current_stage_key': current_stage_key,
             'current_stage_label': current_stage_label,
-            'progress': progress,
-            'stats': stats,
-            'is_completed': current_stage_key == 'COMPLETED' or profile.status == 'Completed',
+            'overall_percent': stats.get('overall_percent', 0),
+            'is_completed': (current_stage_key == 'COMPLETED'),
         })
 
     ctx = {
         'staff': staff,
         'publications': publications,
         'awards': awards,
-        'seminars': seminars,
+        'seminars': all_seminar_entries,
+        'academic_events_attended': academic_events_attended,
+        'academic_events_conducted': academic_events_conducted,
+        'training_events_attended': training_events_attended,
+        'training_events_conducted': training_events_conducted,
         'students_guided': students_guided,
         'phd_scholars': phd_scholars_data,
         'conferences': conferences,
@@ -2995,6 +3130,7 @@ def staff_portfolio(request):
         'books': books,
         'qualifications': qualifications,
         'designations': designations,
+        'additional_posts': additional_posts,
         'memberships': memberships,
         'patents': patents,
         'research_projects': research_projects,
@@ -3208,6 +3344,9 @@ def portfolio_add_seminar(request):
             event_type=request.POST.get('event_type', 'Seminar'),
             venue_or_description=request.POST.get('venue_or_description', '').strip(),
             organized_by=request.POST.get('organized_by', '').strip(),
+            sponsoring_agency=request.POST.get('sponsoring_agency', '').strip(),
+            national_international=request.POST.get('national_international', 'National'),
+            proceedings_title=request.POST.get('proceedings_title', '').strip(),
             date_from=request.POST.get('date_from') or None,
             date_to=request.POST.get('date_to') or None,
             year=request.POST.get('year', '').strip(),
@@ -3232,16 +3371,108 @@ def portfolio_add_seminar(request):
         sem.staff.set(selected_staffs)
         
         from .utils import log_audit
-        log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', message='Added new seminar')
-        messages.success(request, "Seminar added.")
+        log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', message='Added new seminar/workshop/event entry')
+        messages.success(request, "Event entry added successfully.")
+        return redirect('staffs:staff_portfolio')
+        
+    all_staffs = Staff.objects.all().order_by('name')
+    initial_event_type = request.GET.get('event_type', 'Seminar')
+    return render(request, 'staff/portfolio_form.html', {
+        'staff': staff, 'form_type': 'seminar', 'item': None, 'title': 'Add Seminar / Workshop / Conference / Symposia / Training', 'all_staffs': all_staffs, 'initial_event_type': initial_event_type,
+    })
+
+
+def portfolio_edit_seminar(request, pk):
+    staff = _get_staff_for_portfolio(request)
+    if not staff:
+        return redirect('staffs:stafflogin')
+    sem = get_object_or_404(StaffSeminar, pk=pk)
+    if request.method == 'POST':
+        sem.title = request.POST.get('title', '').strip()
+        sem.event_type = request.POST.get('event_type', 'Seminar')
+        sem.venue_or_description = request.POST.get('venue_or_description', '').strip()
+        sem.organized_by = request.POST.get('organized_by', '').strip()
+        sem.sponsoring_agency = request.POST.get('sponsoring_agency', '').strip()
+        sem.national_international = request.POST.get('national_international', 'National')
+        sem.proceedings_title = request.POST.get('proceedings_title', '').strip()
+        sem.date_from = request.POST.get('date_from') or None
+        sem.date_to = request.POST.get('date_to') or None
+        sem.year = request.POST.get('year', '').strip()
+        sem.mode = request.POST.get('mode', 'Offline')
+        sem.participation_role = request.POST.get('participation_role', 'Attended')
+        
+        if 'supporting_document' in request.FILES:
+            sem.supporting_document = request.FILES['supporting_document']
+        if 'order_certificate' in request.FILES:
+            sem.order_certificate = request.FILES['order_certificate']
+            
+        sem.save()
+        
+        co_authors = request.POST.getlist('co_authors')
+        selected_staffs = [staff]
+        for cid in co_authors:
+            if cid != staff.staff_id:
+                try:
+                    co_staff = Staff.objects.get(staff_id=cid)
+                    selected_staffs.append(co_staff)
+                except Staff.DoesNotExist:
+                    pass
+        sem.staff.set(selected_staffs)
+        
+        from .utils import log_audit
+        log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='Seminar', object_id=str(sem.pk), message='Updated seminar/event entry')
+        messages.success(request, "Event entry updated successfully.")
         return redirect('staffs:staff_portfolio')
         
     all_staffs = Staff.objects.all().order_by('name')
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'seminar', 'item': None, 'title': 'Add Seminar / Workshop', 'all_staffs': all_staffs,
+        'staff': staff, 'form_type': 'seminar', 'item': sem, 'title': 'Edit Event Entry', 'all_staffs': all_staffs,
     })
 
 # --- New Portfolio Views (Conferences, Journals, Books) ---
+
+def _get_guided_scholars_for_staff(staff):
+    """
+    Helper to fetch ONLY students/scholars guided by this staff member (current PhD scholars & previous guided students).
+    Returns a list of dicts: [{'pk': student.pk, 'student_name': ..., 'roll_number': ..., 'type': ...}]
+    """
+    from students.models import Student
+    guided_scholars = []
+    seen_pks = set()
+
+    # 1. PhD Scholars supervised by this staff
+    for profile in staff.supervised_scholars.select_related('student').all():
+        student = profile.student
+        if student and student.pk not in seen_pks:
+            seen_pks.add(student.pk)
+            guided_scholars.append({
+                'pk': student.pk,
+                'student_name': student.student_name,
+                'roll_number': student.roll_number or '',
+                'type': f"PhD Scholar ({profile.status})",
+                'status': profile.status
+            })
+
+    # 2. Students guided by this staff (from StaffStudentGuided)
+    for g in staff.student_guided_list.all():
+        stu_match = None
+        if g.roll_number:
+            stu_match = Student.objects.filter(roll_number=g.roll_number).first()
+        if not stu_match and g.student_name:
+            stu_match = Student.objects.filter(student_name__iexact=g.student_name).first()
+
+        if stu_match and stu_match.pk not in seen_pks:
+            seen_pks.add(stu_match.pk)
+            spec_str = f" - {g.specialization}" if g.specialization else ""
+            guided_scholars.append({
+                'pk': stu_match.pk,
+                'student_name': stu_match.student_name,
+                'roll_number': stu_match.roll_number or g.roll_number or '',
+                'type': f"{g.degree_type}{spec_str} ({g.status})",
+                'status': g.status
+            })
+
+    return guided_scholars
 
 def portfolio_add_conference(request):
     staff = _get_staff_for_portfolio(request)
@@ -3264,11 +3495,13 @@ def portfolio_add_conference(request):
             publisher_proceedings=request.POST.get('publisher_proceedings', ''),
             supporting_document=request.FILES.get('supporting_document'),
         )
-        student_id = request.POST.get('student')
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
         if student_id:
             try:
+                from students.models import Student
                 item.student = Student.objects.get(pk=student_id)
-            except Student.DoesNotExist:
+            except (Student.DoesNotExist, ValueError):
                 pass
         item._temp_staff_id = staff.staff_id
         item.save()
@@ -3291,9 +3524,9 @@ def portfolio_add_conference(request):
         return redirect('staffs:staff_portfolio')
     
     all_staffs = Staff.objects.all().order_by('name')
-    phd_students = Student.objects.filter(program_level='PHD').order_by('student_name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'conference', 'item': None, 'title': 'Add Conference Participation', 'all_staffs': all_staffs, 'phd_students': phd_students,
+        'staff': staff, 'form_type': 'conference', 'item': None, 'title': 'Add Conference Participation', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 def portfolio_add_journal(request):
@@ -3320,11 +3553,13 @@ def portfolio_add_journal(request):
             is_ugc=request.POST.get('is_ugc') == 'on',
             supporting_document=request.FILES.get('supporting_document'),
         )
-        student_id = request.POST.get('student')
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
         if student_id:
             try:
+                from students.models import Student
                 item.student = Student.objects.get(pk=student_id)
-            except Student.DoesNotExist:
+            except (Student.DoesNotExist, ValueError):
                 pass
         item._temp_staff_id = staff.staff_id
         item.save()
@@ -3347,9 +3582,9 @@ def portfolio_add_journal(request):
         return redirect('staffs:staff_portfolio')
     
     all_staffs = Staff.objects.all().order_by('name')
-    phd_students = Student.objects.filter(program_level='PHD').order_by('student_name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'journal', 'item': None, 'title': 'Add Journal Publication', 'all_staffs': all_staffs, 'phd_students': phd_students,
+        'staff': staff, 'form_type': 'journal', 'item': None, 'title': 'Add Journal Publication', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 def portfolio_add_book(request):
@@ -3371,11 +3606,13 @@ def portfolio_add_book(request):
             url_address=request.POST.get('url_address') or None,
             supporting_document=request.FILES.get('supporting_document'),
         )
-        student_id = request.POST.get('student')
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
         if student_id:
             try:
+                from students.models import Student
                 item.student = Student.objects.get(pk=student_id)
-            except Student.DoesNotExist:
+            except (Student.DoesNotExist, ValueError):
                 pass
         item._temp_staff_id = staff.staff_id
         item.save()
@@ -3398,9 +3635,9 @@ def portfolio_add_book(request):
         return redirect('staffs:staff_portfolio')
     
     all_staffs = Staff.objects.all().order_by('name')
-    phd_students = Student.objects.filter(program_level='PHD').order_by('student_name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Popular Article', 'all_staffs': all_staffs, 'phd_students': phd_students,
+        'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Article', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 from .forms import StaffQualificationForm, StaffPastDesignationForm, StaffMembershipForm, StaffResearchProjectForm
@@ -3493,6 +3730,8 @@ def sync_staff_additional_designation(staff_member):
 
     if latest_present_primary:
         staff_member.designation = latest_present_primary.designation
+    else:
+        staff_member.designation = ''  # No approved present designation → clear it
 
     # 2. Sync Additional Designation (is_additional=True)
     latest_present_additional = staff_member.past_designations.filter(
@@ -3629,6 +3868,16 @@ def portfolio_add_patent(request):
 
     if request.method == 'POST':
         from .models import StaffPatent
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
+        linked_student = None
+        if student_id:
+            try:
+                from students.models import Student
+                linked_student = Student.objects.get(pk=student_id)
+            except (Student.DoesNotExist, ValueError):
+                linked_student = None
+
         item = StaffPatent(
             title=request.POST.get('title', '').strip(),
             application_number=request.POST.get('application_number', '').strip(),
@@ -3638,6 +3887,7 @@ def portfolio_add_patent(request):
             grant_year=request.POST.get('grant_year', '').strip(),
             funding_agency=request.POST.get('funding_agency', '').strip(),
             description=request.POST.get('description', '').strip(),
+            student=linked_student,
         )
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
@@ -3662,8 +3912,9 @@ def portfolio_add_patent(request):
         return redirect('staffs:staff_portfolio')
     
     all_staffs = Staff.objects.all().order_by('name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'patent', 'item': None, 'title': 'Add Patent', 'all_staffs': all_staffs,
+        'staff': staff, 'form_type': 'patent', 'item': None, 'title': 'Add Patent', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 
@@ -3683,6 +3934,18 @@ def portfolio_edit_patent(request, pk):
         item.grant_year = request.POST.get('grant_year', '').strip()
         item.funding_agency = request.POST.get('funding_agency', '').strip()
         item.description = request.POST.get('description', '').strip()
+
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
+        if student_id:
+            try:
+                from students.models import Student
+                item.student = Student.objects.get(pk=student_id)
+            except (Student.DoesNotExist, ValueError):
+                item.student = None
+        else:
+            item.student = None
+
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         item._temp_staff_id = staff.staff_id
@@ -3706,8 +3969,9 @@ def portfolio_edit_patent(request, pk):
         return redirect('staffs:staff_portfolio')
 
     all_staffs = Staff.objects.all().order_by('name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'patent', 'item': item, 'title': 'Edit Patent', 'all_staffs': all_staffs,
+        'staff': staff, 'form_type': 'patent', 'item': item, 'title': 'Edit Patent', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 
@@ -3736,11 +4000,13 @@ def portfolio_edit_conference(request, pk):
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         
-        student_id = request.POST.get('student')
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
         if student_id:
             try:
+                from students.models import Student
                 item.student = Student.objects.get(pk=student_id)
-            except Student.DoesNotExist:
+            except (Student.DoesNotExist, ValueError):
                 item.student = None
         else:
             item.student = None
@@ -3769,9 +4035,9 @@ def portfolio_edit_conference(request, pk):
         return redirect('staffs:staff_portfolio')
     
     all_staffs = Staff.objects.all().order_by('name')
-    phd_students = Student.objects.filter(program_level='PHD').order_by('student_name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'conference', 'item': item, 'title': 'Edit Conference Participation', 'all_staffs': all_staffs, 'phd_students': phd_students,
+        'staff': staff, 'form_type': 'conference', 'item': item, 'title': 'Edit Conference Participation', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 
@@ -3803,11 +4069,13 @@ def portfolio_edit_journal(request, pk):
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         
-        student_id = request.POST.get('student')
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
         if student_id:
             try:
+                from students.models import Student
                 item.student = Student.objects.get(pk=student_id)
-            except Student.DoesNotExist:
+            except (Student.DoesNotExist, ValueError):
                 item.student = None
         else:
             item.student = None
@@ -3836,9 +4104,9 @@ def portfolio_edit_journal(request, pk):
         return redirect('staffs:staff_portfolio')
     
     all_staffs = Staff.objects.all().order_by('name')
-    phd_students = Student.objects.filter(program_level='PHD').order_by('student_name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'journal', 'item': item, 'title': 'Edit Journal Publication', 'all_staffs': all_staffs, 'phd_students': phd_students,
+        'staff': staff, 'form_type': 'journal', 'item': item, 'title': 'Edit Journal Publication', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 
@@ -3865,11 +4133,13 @@ def portfolio_edit_book(request, pk):
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         
-        student_id = request.POST.get('student')
+        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
+        student_id = next((sid for sid in student_ids if sid), None)
         if student_id:
             try:
+                from students.models import Student
                 item.student = Student.objects.get(pk=student_id)
-            except Student.DoesNotExist:
+            except (Student.DoesNotExist, ValueError):
                 item.student = None
         else:
             item.student = None
@@ -3898,9 +4168,9 @@ def portfolio_edit_book(request, pk):
         return redirect('staffs:staff_portfolio')
     
     all_staffs = Staff.objects.all().order_by('name')
-    phd_students = Student.objects.filter(program_level='PHD').order_by('student_name')
+    guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'book', 'item': item, 'title': 'Edit Book / Popular Article', 'all_staffs': all_staffs, 'phd_students': phd_students,
+        'staff': staff, 'form_type': 'book', 'item': item, 'title': 'Edit Book / Popular Article', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
     })
 
 
@@ -3997,6 +4267,7 @@ def portfolio_add_student(request):
             viva_date=viva_date_str if viva_date_str else None,
             supporting_document=request.FILES.get('supporting_document'),
             department=request.POST.get('department', '').strip(),
+            specialization=request.POST.get('specialization', '').strip(),
             roll_number=request.POST.get('roll_number', '').strip(),
             thesis_title=request.POST.get('thesis_title', '').strip(),
             thesis_document=request.FILES.get('thesis_document'),
@@ -4024,6 +4295,7 @@ def portfolio_edit_student(request, pk):
         viva_date_str = request.POST.get('viva_date', '').strip()
         item.viva_date = viva_date_str if viva_date_str else None
         item.department = request.POST.get('department', '').strip()
+        item.specialization = request.POST.get('specialization', '').strip()
         item.roll_number = request.POST.get('roll_number', '').strip()
         item.thesis_title = request.POST.get('thesis_title', '').strip()
         if 'supporting_document' in request.FILES:
@@ -5211,13 +5483,15 @@ def hod_portfolio_approvals(request):
         return redirect('staffs:staff_dashboard')
     
     from .models import StaffPastDesignation
-    # Only show pending current designations (additional posts)
-    pending_desigs = StaffPastDesignation.objects.filter(approval_status='Pending', to_date__isnull=True).select_related('staff')
+    pending_designations = StaffPastDesignation.objects.filter(approval_status='Pending', is_additional=False).select_related('staff')
+    pending_additional_posts = StaffPastDesignation.objects.filter(approval_status='Pending', is_additional=True).select_related('staff')
     
     return render(request, 'staff/hod_portfolio_approvals.html', {
         'staff': staff,
         'pending_quals': [],
-        'pending_desigs': pending_desigs,
+        'pending_designations': pending_designations,
+        'pending_additional_posts': pending_additional_posts,
+        'pending_desigs': list(pending_designations) + list(pending_additional_posts),
     })
 
 def approve_qualification(request, pk):

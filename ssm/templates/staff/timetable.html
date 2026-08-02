@@ -145,10 +145,10 @@
       gap: 12px;
     }
 
-    /* 10-column layout: Day(1) + P1,P2(2) + Break(1) + P3,P4(2) + Lunch(1) + P5,P6,P7(3) */
+    /* 8-column layout: Day(1) + P1..P7(7) */
     .tt-row, .tt-header-row {
       display: grid;
-      grid-template-columns: 80px repeat(2, minmax(110px, 1fr)) 36px repeat(2, minmax(110px, 1fr)) 36px repeat(3, minmax(110px, 1fr));
+      grid-template-columns: 80px repeat(7, minmax(110px, 1fr));
       gap: 10px;
     }
 
@@ -165,29 +165,12 @@
       border-radius: var(--radius-sm);
     }
     .tt-header-cell.day-col { background: transparent; color: var(--gray-400); text-align: left; padding-left: 10px; }
-    .tt-header-cell.break-col { background: var(--gray-100); color: var(--gray-400); }
 
     /* --- Timetable Rows --- */
     .tt-day {
       display: flex; align-items: center; justify-content: flex-start;
       font-weight: 700; color: var(--gray-800); font-size: 0.95rem;
       padding-left: 10px;
-    }
-
-    .tt-break {
-      background: var(--gray-50);
-      border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      writing-mode: vertical-rl; transform: rotate(180deg);
-      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
-      color: var(--gray-400);
-    }
-    
-    /* When a lab bridges across a break */
-    .tt-break.bridged {
-      background: var(--teal-50);
-      color: var(--teal-600);
-      border: 1px dashed var(--teal-300);
     }
 
     /* --- Time Slots / Cards --- */
@@ -296,10 +279,8 @@
         <div class="tt-header-cell day-col">Day</div>
         <div class="tt-header-cell">08:30 – 09:30</div>
         <div class="tt-header-cell">09:30 – 10:30</div>
-        <div class="tt-header-cell break-col">BRK</div>
         <div class="tt-header-cell">10:40 – 11:40</div>
         <div class="tt-header-cell">11:40 – 12:40</div>
-        <div class="tt-header-cell break-col">LCH</div>
         <div class="tt-header-cell">13:30 – 14:30</div>
         <div class="tt-header-cell">14:30 – 15:30</div>
         <div class="tt-header-cell">15:30 – 16:30</div>
@@ -311,90 +292,16 @@
           
           <div class="tt-day">{{ day }}</div>
 
-          {% if p1 and p2 and p1.subject and p2.subject and p1.subject.id == p2.subject.id and not p1.is_batch and not p2.is_batch %}
-            <div class="tt-slot lab span-2" title="{{ p1.subject.name }}">
+          {# ── MORNING PERIODS: P1 P2 P3 P4 — check 3h merges first, then 2h #}
+
+          {# P1+P2+P3 — 3h morning lab (same subject all three, non-batch) #}
+          {% if p1 and p2 and p3 and p1.subject and p2.subject and p3.subject and p1.subject.id == p2.subject.id and p2.subject.id == p3.subject.id and not p1.is_batch and not p2.is_batch and not p3.is_batch %}
+            <div class="tt-slot lab span-3" title="{{ p1.subject.name }}">
               <span class="slot-code">{{ p1.subject.code }}</span>
               {% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}
-              <span class="slot-badge">2h Lab</span>
+              <span class="slot-badge">3h Lab</span>
             </div>
-          {% elif p1 and p2 and p1.is_batch and p2.is_batch and p1.A.subject and p2.A.subject and p1.A.subject.id == p2.A.subject.id and p1.B.subject and p2.B.subject and p1.B.subject.id == p2.B.subject.id %}
-            <div class="tt-slot lab span-2">
-              <div class="batch-container">
-                <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
-                <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
-              </div>
-              <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
-              <span class="slot-badge">2h Lab</span>
-            </div>
-          {% else %}
-            {% if p1 %}
-              <div class="tt-slot theory" title="{{ p1.subject.name|default:'' }}">
-                {% if p1.is_batch %}
-                  <div class="batch-container">
-                    <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
-                    <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
-                  </div>
-                  <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
-                {% else %}
-                  <span class="slot-code">{{ p1.subject.code }}</span>
-                  {% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}
-                {% endif %}
-              </div>
-            {% else %}<div class="tt-slot empty">—</div>{% endif %}
-
-            {% if p2 %}
-              <div class="tt-slot theory" title="{{ p2.subject.name|default:'' }}">
-                {% if p2.is_batch %}
-                  <div class="batch-container">
-                    <span class="batch-pill batch-a">A: {{ p2.A.subject.code|default:"-" }}</span>
-                    <span class="batch-pill batch-b">B: {{ p2.B.subject.code|default:"-" }}</span>
-                  </div>
-                  <span class="slot-staff">{{ p2.A.staff.name|default:"-" }} / {{ p2.B.staff.name|default:"-" }}</span>
-                {% else %}
-                  <span class="slot-code">{{ p2.subject.code }}</span>
-                  {% if p2.staff %}<span class="slot-staff">{{ p2.staff.name }}</span>{% endif %}
-                {% endif %}
-              </div>
-            {% else %}<div class="tt-slot empty">—</div>{% endif %}
-          {% endif %}
-
-          {% if p2 and p3 and p2.subject and p3.subject and p2.subject.id == p3.subject.id and not p2.is_batch and not p3.is_batch %}
-            <div class="tt-break bridged">BRK</div>
-          {% else %}
-            <div class="tt-break">BRK</div>
-          {% endif %}
-
-          {% if p3 and p4 and p3.subject and p4.subject and p3.subject.id == p4.subject.id and not p3.is_batch and not p4.is_batch %}
-            <div class="tt-slot lab span-2" title="{{ p3.subject.name }}">
-              <span class="slot-code">{{ p3.subject.code }}</span>
-              {% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}
-              <span class="slot-badge">2h Lab</span>
-            </div>
-          {% elif p3 and p4 and p3.is_batch and p4.is_batch and p3.A.subject and p4.A.subject and p3.A.subject.id == p4.A.subject.id and p3.B.subject and p4.B.subject and p3.B.subject.id == p4.B.subject.id %}
-            <div class="tt-slot lab span-2">
-              <div class="batch-container">
-                <span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span>
-                <span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span>
-              </div>
-              <span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
-              <span class="slot-badge">2h Lab</span>
-            </div>
-          {% else %}
-            {% if p3 %}
-              <div class="tt-slot theory" title="{{ p3.subject.name|default:'' }}">
-                {% if p3.is_batch %}
-                  <div class="batch-container">
-                    <span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span>
-                    <span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span>
-                  </div>
-                  <span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
-                {% else %}
-                  <span class="slot-code">{{ p3.subject.code }}</span>
-                  {% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}
-                {% endif %}
-              </div>
-            {% else %}<div class="tt-slot empty">—</div>{% endif %}
-
+            {# P4 rendered individually #}
             {% if p4 %}
               <div class="tt-slot theory" title="{{ p4.subject.name|default:'' }}">
                 {% if p4.is_batch %}
@@ -409,12 +316,176 @@
                 {% endif %}
               </div>
             {% else %}<div class="tt-slot empty">—</div>{% endif %}
-          {% endif %}
 
-          {% if p4 and p5 and p4.subject and p5.subject and p4.subject.id == p5.subject.id and not p4.is_batch and not p5.is_batch %}
-            <div class="tt-break bridged">LCH</div>
+          {# P1+P2+P3 batch 3h: A and B same subject across all three #}
+          {% elif p1 and p2 and p3 and p1.is_batch and p2.is_batch and p3.is_batch and p1.A.subject and p2.A.subject and p3.A.subject and p1.A.subject.id == p2.A.subject.id and p2.A.subject.id == p3.A.subject.id and p1.B.subject and p2.B.subject and p3.B.subject and p1.B.subject.id == p2.B.subject.id and p2.B.subject.id == p3.B.subject.id %}
+            <div class="tt-slot lab span-3">
+              <div class="batch-container">
+                <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
+                <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
+              </div>
+              <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
+              <span class="slot-badge">3h Lab</span>
+            </div>
+            {% if p4 %}
+              <div class="tt-slot theory" title="{{ p4.subject.name|default:'' }}">
+                {% if p4.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p4.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p4.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p4.A.staff.name|default:"-" }} / {{ p4.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p4.subject.code }}</span>
+                  {% if p4.staff %}<span class="slot-staff">{{ p4.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+
+          {# P2+P3+P4 — 3h morning lab starting at P2 (non-batch) #}
+          {% elif p2 and p3 and p4 and p2.subject and p3.subject and p4.subject and p2.subject.id == p3.subject.id and p3.subject.id == p4.subject.id and not p2.is_batch and not p3.is_batch and not p4.is_batch %}
+            {# P1 individual #}
+            {% if p1 %}
+              <div class="tt-slot theory" title="{{ p1.subject.name|default:'' }}">
+                {% if p1.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p1.subject.code }}</span>
+                  {% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+            <div class="tt-slot lab span-3" title="{{ p2.subject.name }}">
+              <span class="slot-code">{{ p2.subject.code }}</span>
+              {% if p2.staff %}<span class="slot-staff">{{ p2.staff.name }}</span>{% endif %}
+              <span class="slot-badge">3h Lab</span>
+            </div>
+
+          {# P2+P3+P4 batch 3h #}
+          {% elif p2 and p3 and p4 and p2.is_batch and p3.is_batch and p4.is_batch and p2.A.subject and p3.A.subject and p4.A.subject and p2.A.subject.id == p3.A.subject.id and p3.A.subject.id == p4.A.subject.id and p2.B.subject and p3.B.subject and p4.B.subject and p2.B.subject.id == p3.B.subject.id and p3.B.subject.id == p4.B.subject.id %}
+            {% if p1 %}
+              <div class="tt-slot theory" title="{{ p1.subject.name|default:'' }}">
+                {% if p1.is_batch %}
+                  <div class="batch-container">
+                    <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
+                    <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
+                  </div>
+                  <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
+                {% else %}
+                  <span class="slot-code">{{ p1.subject.code }}</span>
+                  {% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}
+                {% endif %}
+              </div>
+            {% else %}<div class="tt-slot empty">—</div>{% endif %}
+            <div class="tt-slot lab span-3">
+              <div class="batch-container">
+                <span class="batch-pill batch-a">A: {{ p2.A.subject.code|default:"-" }}</span>
+                <span class="batch-pill batch-b">B: {{ p2.B.subject.code|default:"-" }}</span>
+              </div>
+              <span class="slot-staff">{{ p2.A.staff.name|default:"-" }} / {{ p2.B.staff.name|default:"-" }}</span>
+              <span class="slot-badge">3h Lab</span>
+            </div>
+
+          {# P1+P2 — 2h lab (non-batch) #}
+          {% elif p1 and p2 and p1.subject and p2.subject and p1.subject.id == p2.subject.id and not p1.is_batch and not p2.is_batch %}
+            <div class="tt-slot lab span-2" title="{{ p1.subject.name }}">
+              <span class="slot-code">{{ p1.subject.code }}</span>
+              {% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}
+              <span class="slot-badge">2h Lab</span>
+            </div>
+            {# P3+P4 after a P1+P2 merge #}
+            {% if p3 and p4 and p3.subject and p4.subject and p3.subject.id == p4.subject.id and not p3.is_batch and not p4.is_batch %}
+              <div class="tt-slot lab span-2" title="{{ p3.subject.name }}">
+                <span class="slot-code">{{ p3.subject.code }}</span>
+                {% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}
+                <span class="slot-badge">2h Lab</span>
+              </div>
+            {% elif p3 and p4 and p3.is_batch and p4.is_batch and p3.A.subject and p4.A.subject and p3.A.subject.id == p4.A.subject.id and p3.B.subject and p4.B.subject and p3.B.subject.id == p4.B.subject.id %}
+              <div class="tt-slot lab span-2">
+                <div class="batch-container">
+                  <span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span>
+                  <span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span>
+                </div>
+                <span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
+                <span class="slot-badge">2h Lab</span>
+              </div>
+            {% else %}
+              {% if p3 %}<div class="tt-slot theory"><span class="slot-code">{{ p3.subject.code }}</span>{% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}</div>
+              {% else %}<div class="tt-slot empty">—</div>{% endif %}
+              {% if p4 %}<div class="tt-slot theory"><span class="slot-code">{{ p4.subject.code }}</span>{% if p4.staff %}<span class="slot-staff">{{ p4.staff.name }}</span>{% endif %}</div>
+              {% else %}<div class="tt-slot empty">—</div>{% endif %}
+            {% endif %}
+
+          {# P1+P2 batch 2h #}
+          {% elif p1 and p2 and p1.is_batch and p2.is_batch and p1.A.subject and p2.A.subject and p1.A.subject.id == p2.A.subject.id and p1.B.subject and p2.B.subject and p1.B.subject.id == p2.B.subject.id %}
+            <div class="tt-slot lab span-2">
+              <div class="batch-container">
+                <span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span>
+                <span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span>
+              </div>
+              <span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
+              <span class="slot-badge">2h Lab</span>
+            </div>
+            {# P3+P4 after P1+P2 batch merge #}
+            {% if p3 and p4 and p3.is_batch and p4.is_batch and p3.A.subject and p4.A.subject and p3.A.subject.id == p4.A.subject.id and p3.B.subject and p4.B.subject and p3.B.subject.id == p4.B.subject.id %}
+              <div class="tt-slot lab span-2">
+                <div class="batch-container">
+                  <span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span>
+                  <span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span>
+                </div>
+                <span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
+                <span class="slot-badge">2h Lab</span>
+              </div>
+            {% else %}
+              {% if p3 %}<div class="tt-slot theory">
+                {% if p3.is_batch %}<div class="batch-container"><span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span><span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span></div><span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
+                {% else %}<span class="slot-code">{{ p3.subject.code }}</span>{% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}{% endif %}
+              </div>{% else %}<div class="tt-slot empty">—</div>{% endif %}
+              {% if p4 %}<div class="tt-slot theory">
+                {% if p4.is_batch %}<div class="batch-container"><span class="batch-pill batch-a">A: {{ p4.A.subject.code|default:"-" }}</span><span class="batch-pill batch-b">B: {{ p4.B.subject.code|default:"-" }}</span></div><span class="slot-staff">{{ p4.A.staff.name|default:"-" }} / {{ p4.B.staff.name|default:"-" }}</span>
+                {% else %}<span class="slot-code">{{ p4.subject.code }}</span>{% if p4.staff %}<span class="slot-staff">{{ p4.staff.name }}</span>{% endif %}{% endif %}
+              </div>{% else %}<div class="tt-slot empty">—</div>{% endif %}
+            {% endif %}
+
+          {# No merges: P1..P4 all individual #}
           {% else %}
-            <div class="tt-break">LCH</div>
+            {% if p1 %}<div class="tt-slot theory" title="{{ p1.subject.name|default:'' }}">
+              {% if p1.is_batch %}<div class="batch-container"><span class="batch-pill batch-a">A: {{ p1.A.subject.code|default:"-" }}</span><span class="batch-pill batch-b">B: {{ p1.B.subject.code|default:"-" }}</span></div><span class="slot-staff">{{ p1.A.staff.name|default:"-" }} / {{ p1.B.staff.name|default:"-" }}</span>
+              {% else %}<span class="slot-code">{{ p1.subject.code }}</span>{% if p1.staff %}<span class="slot-staff">{{ p1.staff.name }}</span>{% endif %}{% endif %}
+            </div>{% else %}<div class="tt-slot empty">—</div>{% endif %}
+            {% if p2 %}<div class="tt-slot theory" title="{{ p2.subject.name|default:'' }}">
+              {% if p2.is_batch %}<div class="batch-container"><span class="batch-pill batch-a">A: {{ p2.A.subject.code|default:"-" }}</span><span class="batch-pill batch-b">B: {{ p2.B.subject.code|default:"-" }}</span></div><span class="slot-staff">{{ p2.A.staff.name|default:"-" }} / {{ p2.B.staff.name|default:"-" }}</span>
+              {% else %}<span class="slot-code">{{ p2.subject.code }}</span>{% if p2.staff %}<span class="slot-staff">{{ p2.staff.name }}</span>{% endif %}{% endif %}
+            </div>{% else %}<div class="tt-slot empty">—</div>{% endif %}
+            {% if p3 and p4 and p3.subject and p4.subject and p3.subject.id == p4.subject.id and not p3.is_batch and not p4.is_batch %}
+              <div class="tt-slot lab span-2" title="{{ p3.subject.name }}">
+                <span class="slot-code">{{ p3.subject.code }}</span>
+                {% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}
+                <span class="slot-badge">2h Lab</span>
+              </div>
+            {% elif p3 and p4 and p3.is_batch and p4.is_batch and p3.A.subject and p4.A.subject and p3.A.subject.id == p4.A.subject.id and p3.B.subject and p4.B.subject and p3.B.subject.id == p4.B.subject.id %}
+              <div class="tt-slot lab span-2">
+                <div class="batch-container">
+                  <span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span>
+                  <span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span>
+                </div>
+                <span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
+                <span class="slot-badge">2h Lab</span>
+              </div>
+            {% else %}
+              {% if p3 %}<div class="tt-slot theory" title="{{ p3.subject.name|default:'' }}">
+                {% if p3.is_batch %}<div class="batch-container"><span class="batch-pill batch-a">A: {{ p3.A.subject.code|default:"-" }}</span><span class="batch-pill batch-b">B: {{ p3.B.subject.code|default:"-" }}</span></div><span class="slot-staff">{{ p3.A.staff.name|default:"-" }} / {{ p3.B.staff.name|default:"-" }}</span>
+                {% else %}<span class="slot-code">{{ p3.subject.code }}</span>{% if p3.staff %}<span class="slot-staff">{{ p3.staff.name }}</span>{% endif %}{% endif %}
+              </div>{% else %}<div class="tt-slot empty">—</div>{% endif %}
+              {% if p4 %}<div class="tt-slot theory" title="{{ p4.subject.name|default:'' }}">
+                {% if p4.is_batch %}<div class="batch-container"><span class="batch-pill batch-a">A: {{ p4.A.subject.code|default:"-" }}</span><span class="batch-pill batch-b">B: {{ p4.B.subject.code|default:"-" }}</span></div><span class="slot-staff">{{ p4.A.staff.name|default:"-" }} / {{ p4.B.staff.name|default:"-" }}</span>
+                {% else %}<span class="slot-code">{{ p4.subject.code }}</span>{% if p4.staff %}<span class="slot-staff">{{ p4.staff.name }}</span>{% endif %}{% endif %}
+              </div>{% else %}<div class="tt-slot empty">—</div>{% endif %}
+            {% endif %}
           {% endif %}
 
           {% if p5 and p6 and p7 and p5.subject and p6.subject and p7.subject and p5.subject.id == p6.subject.id and p6.subject.id == p7.subject.id and not p5.is_batch and not p6.is_batch and not p7.is_batch %}

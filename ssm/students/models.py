@@ -147,6 +147,24 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.student_name} ({self.roll_number})"
 
+    @property
+    def phd_overall_percent(self):
+        try:
+            if hasattr(self, 'phd_progress') and self.phd_progress:
+                return self.phd_progress.progress_stats.get('overall_percent', 0)
+        except Exception:
+            pass
+        return 0
+
+    @property
+    def phd_stage_label(self):
+        try:
+            if hasattr(self, 'phd_progress') and self.phd_progress:
+                return self.phd_progress.get_current_stage_display()
+        except Exception:
+            pass
+        return "RAC REVIEW"
+
 class StudentGenerator(Student):
     class Meta:
         proxy = True

@@ -100,7 +100,7 @@
         /* ─── MAIN CONTENT ─── */
         .content-area {
             max-width: 1200px;
-            margin: -32px auto 0;
+            margin: 24px auto 0;
             padding: 0 20px 60px;
             position: relative;
             z-index: 1;
@@ -118,72 +118,132 @@
             font-weight: 500;
         }
 
-        /* ─── PILL TABS ─── */
+        /* ─── CREATIVE NON-SCROLLABLE 5x2 SEGMENTED TAB NAV ─── */
         .tab-scroll-wrapper {
             position: relative;
+            margin-top: 24px;
             margin-bottom: 28px;
+            width: 100%;
         }
-        @media (max-width: 1024px) {
-            .tab-scroll-wrapper::after {
-                content: '';
-                position: absolute;
-                right: 0; top: 0; bottom: 0;
-                width: 40px;
-                background: linear-gradient(to right, transparent, var(--bg-body));
-                pointer-events: none;
-                border-radius: 0 100px 100px 0;
-            }
-        }
+
         .tab-wrapper {
-            background: var(--surface, white);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            padding: 6px 12px;
-            display: flex;
-            gap: 4px;
-            box-shadow: var(--shadow-sm);
-            overflow-x: auto;
-            overflow-y: hidden;
-            white-space: nowrap;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-        .tab-wrapper::-webkit-scrollbar {
-            height: 4px;
-        }
-        .tab-wrapper::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .tab-wrapper::-webkit-scrollbar-thumb {
-            background: var(--primary-light, #eef2f2);
-            border-radius: 10px;
-        }
-        .tab-wrapper::-webkit-scrollbar-thumb:hover {
-            background: var(--primary, #5a7d7c);
+            background: var(--surface, #ffffff);
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 16px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.05);
+            overflow: visible !important;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .tab-btn {
             background: transparent;
-            border: none;
-            padding: 11px 16px;
+            border: 1px solid transparent;
+            padding: 9px 6px;
             font-family: 'Poppins', sans-serif;
-            font-size: 0.92rem;
+            font-size: 0.82rem;
             font-weight: 500;
-            color: var(--text-muted);
+            color: #475569;
             cursor: pointer;
-            border-radius: 100px;
+            border-radius: 10px;
             white-space: nowrap;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            flex-grow: 1;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             text-align: center;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .tab-btn:hover { color: var(--primary); background: var(--primary-light); }
+
+        .tab-btn .tab-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .tab-btn .tab-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary, #2d5e5d);
+            background: rgba(45, 94, 93, 0.07);
+            border-color: rgba(45, 94, 93, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .tab-btn:hover .tab-icon {
+            transform: scale(1.15);
+        }
+
         .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(90,125,124,0.35);
+            background: linear-gradient(135deg, var(--primary, #2d5e5d) 0%, var(--primary-dark, #1e403f) 100%);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(45, 94, 93, 0.3);
             font-weight: 600;
+        }
+
+        .tab-btn.active .tab-icon {
+            transform: scale(1.1);
+        }
+
+        /* Mobile Grid Adaptations (< 768px) */
+        @media (max-width: 768px) {
+            .tab-wrapper {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 3px;
+                padding: 5px;
+                border-radius: 14px;
+            }
+            .tab-btn {
+                flex-direction: column;
+                gap: 2px;
+                padding: 6px 1px;
+                font-size: 0.6rem;
+                border-radius: 8px;
+                line-height: 1.2;
+            }
+            .tab-btn .tab-icon {
+                font-size: 0.95rem;
+            }
+            .tab-btn .tab-label {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tab-wrapper {
+                gap: 2px;
+                padding: 3px;
+            }
+            .tab-btn {
+                font-size: 0.52rem;
+                padding: 5px 0px;
+                border-radius: 6px;
+            }
+            .tab-btn .tab-icon {
+                font-size: 0.88rem;
+            }
+            .tab-btn .tab-label {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+                display: block;
+            }
         }
 
         /* ─── TAB PANELS ─── */
@@ -543,6 +603,105 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ─── ANIMATED KPI HERO GRID ─── */
+        .overview-hero-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .kpi-stat-card {
+            background: var(--surface, white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+        .kpi-stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 12px 24px -6px rgba(90, 125, 124, 0.2);
+        }
+        .kpi-stat-card:hover .card-glow {
+            transform: scale(1.3);
+            opacity: 0.9;
+        }
+        .kpi-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .kpi-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        .kpi-num {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+        .kpi-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted, #6b7280);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        .kpi-subtext {
+            font-size: 0.78rem;
+            color: var(--primary-dark);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .indexing-bars-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 4px;
+        }
+        .indexing-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .indexing-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.84rem;
+        }
+        .indexing-label {
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .indexing-badge {
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
         /* ─── PORTFOLIO METRICS SUMMARY ─── */
         .portfolio-stats-grid {
             display: grid;
@@ -767,19 +926,49 @@
         </div>
         {% endif %}
 
-        <!-- Pill Tab Navigation -->
+        <!-- Pill Tab Navigation (Zero Scroll, Always Visible Grid) -->
         <div class="tab-scroll-wrapper">
             <div class="tab-wrapper">
-                <button class="tab-btn active" onclick="switchTab(event, 'tab-conferences')">🎤 Conferences</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-journals')">📰 Journals</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-books')">📚 Books</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-patents')">🔬 Patents</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-guidance')">🧑‍🏫 PhD Guidance</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-qualifications')">🎓 Qualifications</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-designations')">💼 Designations</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-memberships')">🏅 Memberships</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-research-projects')">🧪 Research Projects</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-awards')">🏆 Awards & More</button>
+                <button class="tab-btn active" onclick="switchTab(event, 'tab-conferences')">
+                    <span class="tab-icon">🎤</span>
+                    <span class="tab-label">Conferences</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-journals')">
+                    <span class="tab-icon">📰</span>
+                    <span class="tab-label">Journals</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-books')">
+                    <span class="tab-icon">📚</span>
+                    <span class="tab-label">Books</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-patents')">
+                    <span class="tab-icon">🔬</span>
+                    <span class="tab-label">Patents</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-guidance')">
+                    <span class="tab-icon">🧑‍🏫</span>
+                    <span class="tab-label">PhD Guidance</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-qualifications')">
+                    <span class="tab-icon">🎓</span>
+                    <span class="tab-label">Qualifications</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-designations')">
+                    <span class="tab-icon">💼</span>
+                    <span class="tab-label">Designations</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-memberships')">
+                    <span class="tab-icon">🏅</span>
+                    <span class="tab-label">Memberships</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-research-projects')">
+                    <span class="tab-icon">🧪</span>
+                    <span class="tab-label">Projects</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-awards')">
+                    <span class="tab-icon">🏆</span>
+                    <span class="tab-label">Awards & More</span>
+                </button>
             </div>
         </div>
 
@@ -968,6 +1157,9 @@
                                 {% if p.funding_agency %}<br><small style="color:var(--text-muted);">Funded by: {{ p.funding_agency }}</small>{% endif %}
                                 {% if p.description %}<br><small style="color:var(--text-muted);">{{ p.description|truncatechars:80 }}</small>{% endif %}
                                 {% if p.supporting_document %}<br><a href="{{ p.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); display:inline-block; margin-top:4px;">📄 View Document</a>{% endif %}
+                                {% if p.student %}
+                                <br><span style="font-size:0.82rem; color:var(--primary-dark); font-weight: 600;">🎓 Student Scholar: {{ p.student.student_name }} ({{ p.student.roll_number }})</span>
+                                {% endif %}
                             </td>
                             <td>{{ p.patent_type }}</td>
                             <td>{{ p.application_number|default:"-" }}</td>
@@ -1063,16 +1255,28 @@
             </div>
         </div>
 
-        <!-- ═══ DESIGNATIONS TAB ═══ -->
+        <!-- 🏷️ DESIGNATIONS TAB 🏷️ -->
         <div id="tab-designations" class="tab-panel">
-            <div class="section-card">
+
+            <!-- ── Section 1: Primary Designations ── -->
+            <div class="section-card" style="margin-bottom: 20px;">
                 <div class="section-head">
-                    <h3>💼 Designations & Additional Posts <span class="count-badge">{{ designations|length }}</span></h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}', 'Add Past Designation')">+ Add Past Designation</button>
-                        <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}?type=additional', 'Add Additional Post')" style="background-color: #2e7d32; border-color: #2e7d32;">+ Add Additional Post</button>
+                    <h3>🏷️ Designations <span class="count-badge">{{ designations|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}', 'Add Designation')">+ Add Designation</button>
+                </div>
+
+                {% with current_desig=designations|dictsortreversed:"from_date" %}
+                {% for d in current_desig %}{% if d.approval_status == 'Approved' and not d.to_date %}
+                <div style="background: linear-gradient(90deg,#d1fae5,#ecfdf5); border-left: 4px solid #10b981; border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.3rem;">✅</span>
+                    <div>
+                        <div style="font-weight:700; font-size:0.95rem; color:#065f46;">Current Approved Designation</div>
+                        <div style="font-size:0.88rem; color:#047857;">{{ d.designation }} &nbsp;·&nbsp; from {{ d.from_date|date:"d M Y" }}</div>
                     </div>
                 </div>
+                {% endif %}{% endfor %}
+                {% endwith %}
+
                 {% if designations %}
                 <div style="overflow-x:auto;">
                     <table class="data-table">
@@ -1089,7 +1293,7 @@
                             <td>
                                 <strong>{{ item.designation }}</strong>
                                 {% if item.order_img %}
-                                <br><a href="{{ item.order_img.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none;">📄 View Order Document</a>
+                                <br><a href="{{ item.order_img.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none;">🗂 View Order Document</a>
                                 {% endif %}
                             </td>
                             <td>{{ item.from_date|date:"d M Y"|default:"—" }}</td>
@@ -1116,12 +1320,82 @@
                 </div>
                 {% else %}
                 <div class="empty-state">
-                    <div class="empty-icon">💼</div>
-                    <p>No past designations added</p>
-                    <small>Record your professional roles and experience</small>
+                    <div class="empty-icon">🏷️</div>
+                    <p>No designations added</p>
+                    <small>Record your professional designation history</small>
                 </div>
                 {% endif %}
             </div>
+
+            <!-- ── Section 2: Additional Posts ── -->
+            <div class="section-card" style="margin-top: 20px;">
+                <div class="section-head">
+                    <h3>📋 Additional Posts <span class="count-badge">{{ additional_posts|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_designation" %}?type=additional', 'Add Additional Post')" style="background-color: #2e7d32; border-color: #2e7d32;">+ Add Additional Post</button>
+                </div>
+
+                {% with current_add=additional_posts|dictsortreversed:"from_date" %}
+                {% for d in current_add %}{% if d.approval_status == 'Approved' and not d.to_date %}
+                <div style="background: linear-gradient(90deg,#fef3c7,#fffbeb); border-left: 4px solid #f59e0b; border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.3rem;">⭐</span>
+                    <div>
+                        <div style="font-weight:700; font-size:0.95rem; color:#92400e;">Current Approved Additional Post</div>
+                        <div style="font-size:0.88rem; color:#b45309;">{{ d.designation }} &nbsp;·&nbsp; from {{ d.from_date|date:"d M Y" }}</div>
+                    </div>
+                </div>
+                {% endif %}{% endfor %}
+                {% endwith %}
+
+                {% if additional_posts %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th>Additional Post</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th style="width:130px; text-align:center;">Actions</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for item in additional_posts %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.designation }}</strong>
+                                {% if item.order_img %}
+                                <br><a href="{{ item.order_img.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none;">🗂 View Order Document</a>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.from_date|date:"d M Y"|default:"—" }}</td>
+                            <td>{% if item.to_date %}{{ item.to_date|date:"d M Y" }}{% else %}<span style="color:var(--primary);font-weight:600;">Present</span>{% endif %}</td>
+                            <td>
+                                {% if item.approval_status == 'Approved' %}
+                                    <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">✓ Approved</span>
+                                {% elif item.approval_status == 'Rejected' %}
+                                    <span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">✗ Rejected</span>
+                                {% else %}
+                                    <span style="background:#fffbeb; color:#d97706; padding:2px 8px; border-radius:100px; font-size:0.8rem; font-weight:600;">⏳ Pending</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="action-group" style="justify-content:center;">
+                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_designation" pk=item.pk %}', 'Edit Additional Post')">Edit</button>
+                                    <a href="{% url 'staffs:portfolio_delete_entry' model_name='designation' pk=item.pk %}" class="btn-delete" onclick="return confirm('Delete this additional post?')">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <p>No additional posts added</p>
+                    <small>Record any additional roles or administrative posts held</small>
+                </div>
+                {% endif %}
+            </div>
+
         </div>
 
         <!-- ═══ MEMBERSHIPS TAB ═══ -->
@@ -1291,138 +1565,229 @@
                 {% endif %}
             </div>
 
-            <!-- Seminars (Legacy) -->
-            <div class="section-card">
+            <!-- Seminars / Workshops / Conferences / Symposia -->
+            <div class="section-card" style="margin-top:20px;">
                 <div class="section-head">
-                    <h3>📋 Seminars / Workshops <span class="count-badge">{{ seminars|length }}</span></h3>
-                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_seminar" %}', 'Add Seminar / Workshop')">+ Add Seminar</button>
+                    <h3>🎤 Seminars / Workshops / Conferences / Symposia <span class="count-badge">{{ academic_events_attended|length|add:academic_events_conducted|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_seminar" %}?event_type=Seminar', 'Add Academic Event')">+ Add Event</button>
                 </div>
-                {% if seminars %}
-                <div style="overflow-x:auto;">
-                    <table class="data-table">
-                        <thead><tr>
-                            <th>Title & Role</th>
-                            <th>Type & Mode</th>
-                            <th>Organized By & Venue</th>
-                            <th>Date / Duration</th>
-                            <th>Documents</th>
-                            <th style="width:140px; text-align:center;">Actions</th>
-                        </tr></thead>
-                        <tbody>
-                        {% for s in seminars %}
-                        <tr>
-                            <td>
-                                <strong>{{ s.title }}</strong>
-                                <br>
-                                <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; 
-                                    {% if s.participation_role == 'Conducted' %}background-color:#e0f2fe; color:#0369a1;{% else %}background-color:#f0fdf4; color:#15803d;{% endif %}">
-                                    {{ s.participation_role }}
-                                </span>
-                            </td>
-                            <td>
-                                <div>{{ s.get_event_type_display }}</div>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">({{ s.mode }})</span>
-                            </td>
-                            <td>
-                                <div>{{ s.organized_by|default:"-" }}</div>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">Venue: {{ s.venue_or_description|default:"-" }}</span>
-                            </td>
-                            <td>
-                                {% if s.date_from %}
-                                    <div>{{ s.date_from|date:"d M Y" }}{% if s.date_to %} - {{ s.date_to|date:"d M Y" }}{% endif %}</div>
-                                    {% if s.total_days %}
-                                        <span style="font-size:0.8rem; font-weight:500; color:var(--primary-color);">{{ s.total_days }} day{{ s.total_days|pluralize }}</span>
-                                    {% endif %}
-                                {% else %}
-                                    {{ s.year|default:"-" }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div style="display:flex; flex-direction:column; gap:4px;">
-                                    {% if s.supporting_document %}
-                                        <a href="{{ s.supporting_document.url }}" class="btn-doc" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none; display:inline-block; text-align:center;">📄 Certificate</a>
-                                    {% endif %}
-                                    {% if s.order_certificate %}
-                                        <a href="{{ s.order_certificate.url }}" class="btn-doc" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none; display:inline-block; text-align:center; background: #e2e8f0; color: #475569;">📄 Order Copy</a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td style="text-align:center;">
-                                <div style="display:flex; gap:6px; justify-content:center; align-items:center;">
-                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_seminar" s.pk %}', 'Edit Seminar / Workshop / Conference')">Edit</button>
-                                    <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+
+                <!-- Attended Events -->
+                <div style="padding:16px 20px 8px;">
+                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:var(--primary-dark); font-weight:700;">Attended Events</h4>
+                    {% if academic_events_attended %}
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead><tr>
+                                <th>Title & Event Type</th>
+                                <th>Organized By & Venue</th>
+                                <th>Dates / Duration</th>
+                                <th>Mode</th>
+                                <th>Certificate</th>
+                                <th style="width:130px; text-align:center;">Actions</th>
+                            </tr></thead>
+                            <tbody>
+                            {% for s in academic_events_attended %}
+                            <tr>
+                                <td>
+                                    <strong>{{ s.title }}</strong>
+                                    {% if s.proceedings_title %}<div style="font-size:0.8rem; color:var(--text-muted);">{{ s.proceedings_title }}</div>{% endif %}
+                                    <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:100px; font-size:0.75rem; font-weight:600; background-color:#e0f2fe; color:#0369a1;">
+                                        {{ s.event_type }} {% if s.national_international %}({{ s.national_international }}){% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>{{ s.organized_by|default:"—" }}</div>
+                                    {% if s.venue_or_description %}<span style="font-size:0.8rem; color:var(--text-muted);">Venue: {{ s.venue_or_description }}</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if s.date_from %}
+                                        <div>{{ s.date_from|date:"d M Y" }}{% if s.date_to %} - {{ s.date_to|date:"d M Y" }}{% endif %}</div>
+                                        {% if s.total_days %}<span style="font-size:0.8rem; font-weight:600; color:var(--primary);">{{ s.total_days }} day{{ s.total_days|pluralize }}</span>{% endif %}
+                                    {% else %}{{ s.year|default:"—" }}{% endif %}
+                                </td>
+                                <td><span style="font-size:0.82rem; font-weight:500;">{{ s.mode }}</span></td>
+                                <td>{% if s.supporting_document %}<a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none; font-weight:600;">📄 View Certificate</a>{% else %}—{% endif %}</td>
+                                <td style="text-align:center;">
+                                    <div class="action-group" style="justify-content:center;">
+                                        <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_seminar" s.pk %}', 'Edit Event Entry')">Edit</button>
+                                        <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="font-size:0.85rem; color:var(--text-muted); padding:6px 0 12px;">No attended academic events recorded yet.</div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">📋</div>
-                    <p>No seminars recorded</p>
+
+                <!-- Conducted Events -->
+                <div style="padding:16px 20px 20px; border-top:1px solid var(--border);">
+                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:#2e7d32; font-weight:700;">Conducted / Organized Events</h4>
+                    {% if academic_events_conducted %}
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead><tr>
+                                <th>Title & Event Type</th>
+                                <th>Organized By & Venue</th>
+                                <th>Dates / Duration</th>
+                                <th>Mode</th>
+                                <th>Certificate</th>
+                                <th style="width:130px; text-align:center;">Actions</th>
+                            </tr></thead>
+                            <tbody>
+                            {% for s in academic_events_conducted %}
+                            <tr>
+                                <td>
+                                    <strong>{{ s.title }}</strong>
+                                    <br>
+                                    <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:100px; font-size:0.75rem; font-weight:600; background-color:#dcfce7; color:#166534;">
+                                        {{ s.event_type }} (Organized)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>{{ s.organized_by|default:"—" }}</div>
+                                    {% if s.venue_or_description %}<span style="font-size:0.8rem; color:var(--text-muted);">Venue: {{ s.venue_or_description }}</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if s.date_from %}
+                                        <div>{{ s.date_from|date:"d M Y" }}{% if s.date_to %} - {{ s.date_to|date:"d M Y" }}{% endif %}</div>
+                                        {% if s.total_days %}<span style="font-size:0.8rem; font-weight:600; color:var(--primary);">{{ s.total_days }} day{{ s.total_days|pluralize }}</span>{% endif %}
+                                    {% else %}{{ s.year|default:"—" }}{% endif %}
+                                </td>
+                                <td><span style="font-size:0.82rem; font-weight:500;">{{ s.mode }}</span></td>
+                                <td>{% if s.supporting_document %}<a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.82rem; color:var(--primary); text-decoration:none; font-weight:600;">📄 View Certificate</a>{% else %}—{% endif %}</td>
+                                <td style="text-align:center;">
+                                    <div class="action-group" style="justify-content:center;">
+                                        <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_seminar" s.pk %}', 'Edit Event Entry')">Edit</button>
+                                        <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="font-size:0.85rem; color:var(--text-muted); padding:6px 0;">No conducted/organized events recorded yet.</div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
 
-            <!-- Conferences Attended -->
-            <div class="section-card">
+            <!-- FDP, STTP & Training Programmes -->
+            <div class="section-card" style="margin-top:20px;">
                 <div class="section-head">
-                    <h3>🎤 Conferences Attended <span class="count-badge">{{ attended_conferences|length }}</span></h3>
-                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_conference" %}', 'Add Conference Participation')">+ Add Attended Conference</button>
+                    <h3>🏋️ FDP, STTP & Training Programmes <span class="count-badge">{{ training_events_attended|length|add:training_events_conducted|length }}</span></h3>
+                    <button class="btn-add" onclick="openModal('{% url "staffs:portfolio_add_seminar" %}?event_type=FDP', 'Add Training / FDP')">+ Add Training</button>
                 </div>
-                {% if attended_conferences %}
-                <div style="overflow-x:auto;">
-                    <table class="data-table">
-                        <thead><tr>
-                            <th>Conference / Proceedings</th>
-                            <th>Details & Location</th>
-                            <th>Date / Duration</th>
-                            <th>Certificate</th>
-                            <th style="width:130px; text-align:center;">Actions</th>
-                        </tr></thead>
-                        <tbody>
-                        {% for c in attended_conferences %}
-                        <tr>
-                            <td>
-                                <strong>{{ c.title_of_proceedings|default:c.title_of_paper }}</strong>
-                            </td>
-                            <td>
-                                <div>{{ c.national_international }} Conference</div>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">Location: {{ c.location|default:"-" }}</span>
-                            </td>
-                            <td>
-                                {% if c.date_from %}
-                                    {{ c.date_from|date:"d M Y" }}{% if c.date_to %} - {{ c.date_to|date:"d M Y" }}{% endif %}
-                                {% else %}
-                                    {{ c.year_of_publication|default:"-" }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if c.supporting_document %}
-                                    <a href="{{ c.supporting_document.url }}" class="btn-doc" target="_blank" style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none; display:inline-block; text-align:center;">📄 Certificate</a>
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </td>
-                            <td style="text-align:center;">
-                                <div class="action-group" style="justify-content:center; gap: 6px;">
-                                    <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_conference" c.pk %}', 'Edit Conference')">Edit</button>
-                                    <a href="{% url 'staffs:portfolio_delete_entry' 'conference' c.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+
+                <!-- Attended Training -->
+                <div style="padding:16px 20px 8px;">
+                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:var(--primary-dark); font-weight:700;">Attended Trainings & FDP</h4>
+                    {% if training_events_attended %}
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead><tr>
+                                <th>Programme Title & Type</th>
+                                <th>Conducting Agency & Sponsoring Body</th>
+                                <th>Dates / Duration</th>
+                                <th>Documents</th>
+                                <th style="width:130px; text-align:center;">Actions</th>
+                            </tr></thead>
+                            <tbody>
+                            {% for s in training_events_attended %}
+                            <tr>
+                                <td>
+                                    <strong>{{ s.title }}</strong>
+                                    <br>
+                                    <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:100px; font-size:0.75rem; font-weight:600; background-color:#fef3c7; color:#92400e;">
+                                        {{ s.event_type }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>{{ s.organized_by|default:"—" }}</div>
+                                    {% if s.sponsoring_agency %}<span style="font-size:0.8rem; color:var(--text-muted);">Sponsor: {{ s.sponsoring_agency }}</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if s.date_from %}
+                                        <div>{{ s.date_from|date:"d M Y" }}{% if s.date_to %} - {{ s.date_to|date:"d M Y" }}{% endif %}</div>
+                                        {% if s.total_days %}<span style="font-size:0.8rem; font-weight:600; color:var(--primary);">{{ s.total_days }} day{{ s.total_days|pluralize }}</span>{% endif %}
+                                    {% else %}{{ s.year|default:"—" }}{% endif %}
+                                </td>
+                                <td>
+                                    <div style="display:flex; flex-direction:column; gap:4px;">
+                                        {% if s.supporting_document %}<a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.8rem; color:var(--primary); text-decoration:none; font-weight:600;">📄 Certificate</a>{% endif %}
+                                        {% if s.order_certificate %}<a href="{{ s.order_certificate.url }}" target="_blank" style="font-size:0.8rem; color:#475569; text-decoration:none;">📄 Order Copy</a>{% endif %}
+                                    </div>
+                                </td>
+                                <td style="text-align:center;">
+                                    <div class="action-group" style="justify-content:center;">
+                                        <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_seminar" s.pk %}', 'Edit Training Entry')">Edit</button>
+                                        <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="font-size:0.85rem; color:var(--text-muted); padding:6px 0 12px;">No attended training/FDP programmes recorded yet.</div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">🎤</div>
-                    <p>No attended conferences recorded</p>
+
+                <!-- Conducted Training -->
+                <div style="padding:16px 20px 20px; border-top:1px solid var(--border);">
+                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:#2e7d32; font-weight:700;">Conducted / Organized Trainings & FDP</h4>
+                    {% if training_events_conducted %}
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead><tr>
+                                <th>Programme Title & Type</th>
+                                <th>Conducting Agency & Sponsoring Body</th>
+                                <th>Dates / Duration</th>
+                                <th>Documents</th>
+                                <th style="width:130px; text-align:center;">Actions</th>
+                            </tr></thead>
+                            <tbody>
+                            {% for s in training_events_conducted %}
+                            <tr>
+                                <td>
+                                    <strong>{{ s.title }}</strong>
+                                    <br>
+                                    <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:100px; font-size:0.75rem; font-weight:600; background-color:#dcfce7; color:#166534;">
+                                        {{ s.event_type }} (Organized)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>{{ s.organized_by|default:"—" }}</div>
+                                    {% if s.sponsoring_agency %}<span style="font-size:0.8rem; color:var(--text-muted);">Sponsor: {{ s.sponsoring_agency }}</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if s.date_from %}
+                                        <div>{{ s.date_from|date:"d M Y" }}{% if s.date_to %} - {{ s.date_to|date:"d M Y" }}{% endif %}</div>
+                                        {% if s.total_days %}<span style="font-size:0.8rem; font-weight:600; color:var(--primary);">{{ s.total_days }} day{{ s.total_days|pluralize }}</span>{% endif %}
+                                    {% else %}{{ s.year|default:"—" }}{% endif %}
+                                </td>
+                                <td>{% if s.supporting_document %}<a href="{{ s.supporting_document.url }}" target="_blank" style="font-size:0.8rem; color:var(--primary); text-decoration:none; font-weight:600;">📄 Certificate</a>{% else %}—{% endif %}</td>
+                                <td style="text-align:center;">
+                                    <div class="action-group" style="justify-content:center;">
+                                        <button class="btn-edit" onclick="openModal('{% url "staffs:portfolio_edit_seminar" s.pk %}', 'Edit Training Entry')">Edit</button>
+                                        <a href="{% url 'staffs:portfolio_delete_entry' 'seminar' s.pk %}" class="btn-delete" onclick="return confirm('Delete this entry?')">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="font-size:0.85rem; color:var(--text-muted); padding:6px 0;">No conducted training/FDP programmes recorded yet.</div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -1556,6 +1921,7 @@
                                 <strong>{{ s.student_name }}</strong>
                                 {% if s.roll_number %}<br><small style="color:var(--text-muted); font-weight:500;">Roll: {{ s.roll_number }}</small>{% endif %}
                                 {% if s.department %}<br><small style="color:var(--text-muted); font-weight:500;">Dept: {{ s.department }}</small>{% endif %}
+                                {% if s.specialization %}<br><small style="color:var(--primary); font-weight:500;">Specialization: {{ s.specialization }}</small>{% endif %}
                                 {% if s.viva_date %}<br><small style="color: #6366f1; font-weight:600;">🗓️ Viva Date: {{ s.viva_date|date:"d M Y" }}</small>{% endif %}
                                 {% if s.thesis_title %}<br><small style="font-style:italic;">Thesis: {{ s.thesis_title }}</small>{% endif %}
                                 <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap;">

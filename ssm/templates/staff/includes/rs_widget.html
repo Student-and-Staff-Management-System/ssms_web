@@ -90,35 +90,18 @@
 
             <!-- Middle Section: Active Stage & Progress Bar -->
             <div class="card-progress-section">
-                {% if student.is_password_changed %}
-                    <div class="stage-badge-row">
-                        <span class="stage-tag active" style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;">
-                            <i class='bx bx-target-lock' style="font-size: 11px;"></i>
-                            {% if student.phd_progress %}
-                                {{ student.phd_progress.get_current_stage_display }}
-                            {% else %}
-                                RAC REVIEW
-                            {% endif %}
-                        </span>
-                        <span class="percent-label" style="font-size: 11px; font-weight: 700; color: #0369a1;">
-                            Registered · {% if student.phd_progress %}{{ student.phd_progress.progress_stats.overall_percent }}{% else %}0{% endif %}%
-                        </span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar-fill" style="width: {% if student.phd_progress %}{{ student.phd_progress.progress_stats.overall_percent }}{% else %}0{% endif %}%;"></div>
-                    </div>
-                {% else %}
-                    <div class="stage-badge-row">
-                        <span class="stage-tag inactive" style="background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;">
-                            <i class='bx bx-x-circle' style="font-size: 11px;"></i>
-                            Not Registered
-                        </span>
-                        <span class="percent-label" style="font-size: 11px; font-weight: 700; color: #ef4444;">0%</span>
-                    </div>
-                    <div class="progress-bar-container" style="background: #fee2e2;">
-                        <div class="progress-bar-fill" style="width: 0%; background: #ef4444;"></div>
-                    </div>
-                {% endif %}
+                <div class="stage-badge-row">
+                    <span class="stage-tag active" style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;">
+                        <i class='bx bx-target-lock' style="font-size: 11px;"></i>
+                        {{ student.phd_stage_label }}
+                    </span>
+                    <span class="percent-label" style="font-size: 11px; font-weight: 700; color: #0369a1;">
+                        {{ student.phd_overall_percent }}%
+                    </span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: {{ student.phd_overall_percent }}%;"></div>
+                </div>
             </div>
 
             <!-- Bottom Section: View Details Action Button -->

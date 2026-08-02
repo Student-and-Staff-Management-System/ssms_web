@@ -1,0 +1,419 @@
+{% comment %}
+  Today's Class Schedule Widget
+  Include in dashboard overview tabs via: {% include 'staff/includes/today_schedule.html' %}
+  Requires: today_schedule (list of dicts), today_weekday (string)
+{% endcomment %}
+
+<div class="today-schedule-widget">
+    <!-- Header -->
+    <div class="tsw-header">
+        <div class="tsw-header-left">
+            <div class="tsw-icon-wrap">
+                <span class="tsw-icon">📅</span>
+            </div>
+            <div>
+                <h3 class="tsw-title">Today's Schedule</h3>
+                <p class="tsw-subtitle">{{ today_weekday }}</p>
+            </div>
+        </div>
+        <a href="{% url 'staffs:my_timetable' %}" class="tsw-view-all">
+            View Full Timetable →
+        </a>
+    </div>
+
+    {% if today_schedule %}
+    <!-- Timeline -->
+    <div class="tsw-timeline">
+        {% for slot in today_schedule %}
+        <div class="tsw-entry tsw-{{ slot.status }}">
+            <!-- Status indicator dot + line -->
+            <div class="tsw-dot-col">
+                <div class="tsw-dot">
+                    {% if slot.status == 'ongoing' %}
+                    <div class="tsw-pulse"></div>
+                    {% endif %}
+                </div>
+                {% if not forloop.last %}
+                <div class="tsw-line"></div>
+                {% endif %}
+            </div>
+
+            <!-- Card -->
+            <div class="tsw-card">
+                <div class="tsw-card-left">
+                    <div class="tsw-period-badge">P{{ slot.period }}</div>
+                    <div class="tsw-card-info">
+                        <div class="tsw-subject-name">
+                            {% if slot.subject %}{{ slot.subject.name }}{% else %}<span style="opacity:0.5">Free Period</span>{% endif %}
+                        </div>
+                        <div class="tsw-meta">
+                            {% if slot.subject %}<span class="tsw-code">{{ slot.subject.code }}</span>{% endif %}
+                            {% if slot.batch != 'All' %}<span class="tsw-batch">Batch {{ slot.batch }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="tsw-card-right">
+                    <div class="tsw-time">{{ slot.start }} – {{ slot.end }}</div>
+                    <div class="tsw-status-pill tsw-pill-{{ slot.status }}">
+                        {% if slot.status == 'ongoing' %}🟢 Now
+                        {% elif slot.status == 'done' %}✓ Done
+                        {% else %}⏳ Soon{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty / Weekend State -->
+    <div class="tsw-empty">
+        <div class="tsw-empty-icon">
+            {% if today_weekday == "Saturday" or today_weekday == "Sunday" %}🌅{% else %}📭{% endif %}
+        </div>
+        <div class="tsw-empty-content">
+            {% if today_weekday == "Saturday" or today_weekday == "Sunday" %}
+            <p class="tsw-empty-title">Enjoy your weekend!</p>
+            <p class="tsw-empty-sub">No classes scheduled on {{ today_weekday }}.</p>
+            {% else %}
+            <p class="tsw-empty-title">No classes today</p>
+            <p class="tsw-empty-sub">Your timetable for {{ today_weekday }} is clear.</p>
+            {% endif %}
+        </div>
+        <a href="{% url 'staffs:my_timetable' %}" class="tsw-setup-link">View Timetable</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* ─── TODAY SCHEDULE WIDGET ─── */
+.today-schedule-widget {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8edf3);
+    border-radius: 18px;
+    padding: 16px 20px 14px;
+    margin-bottom: 24px;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.today-schedule-widget::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary, #2d5e5d), #3ec6a8, var(--primary, #2d5e5d));
+    background-size: 200% auto;
+    animation: shimmer-bar 3s linear infinite;
+}
+
+@keyframes shimmer-bar {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+/* Header */
+.tsw-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tsw-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tsw-icon-wrap {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, rgba(45,94,93,0.12), rgba(62,198,168,0.1));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.tsw-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    margin: 0 0 2px;
+    line-height: 1.2;
+}
+
+.tsw-subtitle {
+    font-size: 0.77rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+    font-weight: 500;
+}
+
+.tsw-view-all {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--primary, #2d5e5d);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(45,94,93,0.07);
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+.tsw-view-all:hover {
+    background: rgba(45,94,93,0.15);
+    transform: translateX(2px);
+}
+
+/* Timeline */
+.tsw-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.tsw-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+/* Dot column */
+.tsw-dot-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    padding-top: 16px;
+}
+
+.tsw-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--border, #e2e8f0);
+    background: var(--bg-body, #f8fafc);
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.tsw-done .tsw-dot {
+    background: #10b981;
+    border-color: #10b981;
+}
+.tsw-ongoing .tsw-dot {
+    background: var(--primary, #2d5e5d);
+    border-color: var(--primary, #2d5e5d);
+}
+.tsw-upcoming .tsw-dot {
+    background: var(--surface, #fff);
+    border-color: var(--border, #e2e8f0);
+}
+
+/* Pulse ring on ongoing */
+.tsw-pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--primary, #2d5e5d);
+    animation: pulse-ring 1.8s ease-out infinite;
+}
+@keyframes pulse-ring {
+    0%   { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+.tsw-line {
+    width: 2px;
+    flex: 1;
+    min-height: 12px;
+    background: var(--border, #e2e8f0);
+    margin: 2px 0;
+}
+
+/* Card */
+.tsw-card {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--bg-body, #f8fafc);
+    border: 1px solid var(--border, #e8edf3);
+    border-radius: 12px;
+    padding: 11px 14px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.tsw-card:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+    transform: translateX(2px);
+}
+
+.tsw-ongoing .tsw-card {
+    background: linear-gradient(135deg, rgba(45,94,93,0.06), rgba(62,198,168,0.04));
+    border-color: rgba(45,94,93,0.25);
+    box-shadow: 0 0 0 1px rgba(45,94,93,0.1);
+}
+
+.tsw-done .tsw-card {
+    opacity: 0.55;
+}
+
+.tsw-card-left {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+.tsw-period-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--primary-light, rgba(45,94,93,0.1));
+    color: var(--primary, #2d5e5d);
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+}
+
+.tsw-subject-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-main, #0f172a);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.tsw-meta {
+    display: flex;
+    gap: 5px;
+    margin-top: 3px;
+    flex-wrap: wrap;
+}
+
+.tsw-code {
+    font-size: 0.67rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.tsw-batch {
+    font-size: 0.67rem;
+    font-weight: 600;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.tsw-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.tsw-time {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.tsw-status-pill {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+
+.tsw-pill-ongoing {
+    background: rgba(45,94,93,0.12);
+    color: var(--primary, #2d5e5d);
+}
+.tsw-pill-done {
+    background: #dcfce7;
+    color: #166534;
+}
+.tsw-pill-upcoming {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Empty state */
+.tsw-empty {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 4px 8px;
+}
+
+.tsw-empty-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.tsw-empty-content {
+    flex: 1;
+}
+
+.tsw-empty-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    margin: 0 0 2px;
+}
+
+.tsw-empty-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.tsw-setup-link {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary, #2d5e5d);
+    text-decoration: none;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--primary, #2d5e5d);
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+.tsw-setup-link:hover {
+    background: var(--primary, #2d5e5d);
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .today-schedule-widget {
+        padding: 16px;
+    }
+    .tsw-subject-name {
+        max-width: 110px;
+    }
+}
+</style>

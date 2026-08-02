@@ -401,21 +401,27 @@ class StaffAwardHonour(models.Model):
 
 
 class StaffSeminar(models.Model):
-    """Seminar, workshop, or conference entry."""
+    """Seminar, workshop, conference, symposia, FDP, STTP, training entry."""
     staff = models.ManyToManyField(Staff, related_name='seminar_list', blank=True)
     student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_seminars')
     title = models.CharField(max_length=400)
     EVENT_TYPE_CHOICES = [
+        ('Conference', 'Conference'),
         ('Seminar', 'Seminar'),
         ('Workshop', 'Workshop'),
-        ('Conference', 'Conference'),
+        ('Symposia', 'Symposia'),
         ('FDP', 'FDP'),
-        ('Summer/Winter Orientation', 'Summer/Winter Orientation'),
         ('STTP', 'STTP'),
+        ('Summer/Winter School', 'Summer/Winter School'),
+        ('Orientation Programme', 'Orientation Programme'),
+        ('Refresher Course / Training', 'Refresher Course / Training'),
     ]
-    event_type = models.CharField(max_length=40, choices=EVENT_TYPE_CHOICES, default='Seminar')
+    event_type = models.CharField(max_length=60, choices=EVENT_TYPE_CHOICES, default='Seminar')
     venue_or_description = models.CharField(max_length=300, blank=True)
     organized_by = models.CharField(max_length=300, blank=True)
+    sponsoring_agency = models.CharField(max_length=300, blank=True)
+    national_international = models.CharField(max_length=30, choices=[('National', 'National'), ('International', 'International')], default='National', blank=True)
+    proceedings_title = models.CharField(max_length=400, blank=True)
     date_from = models.DateField(null=True, blank=True)
     date_to = models.DateField(null=True, blank=True)
     total_days = models.PositiveIntegerField(null=True, blank=True)
@@ -447,7 +453,7 @@ class StaffSeminar(models.Model):
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['-order', '-year', 'title']
+        ordering = ['-date_from', '-year', '-order', 'title']
 
     def save(self, *args, **kwargs):
         import datetime
@@ -494,6 +500,7 @@ class StaffStudentGuided(models.Model):
         validators=[validate_file_size]
     )
     department = models.CharField(max_length=255, blank=True, default='')
+    specialization = models.CharField(max_length=255, blank=True, default='', help_text="Specialization / Area of Research")
     roll_number = models.CharField(max_length=100, blank=True, default='')
     thesis_title = models.CharField(max_length=500, blank=True, default='')
     thesis_document = models.FileField(
@@ -967,6 +974,7 @@ class StaffPatent(models.Model):
     ]
 
     staff = models.ManyToManyField(Staff, related_name='patents', blank=True)
+    student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_patents')
     title = models.CharField(max_length=500, verbose_name='Title of Invention')
     application_number = models.CharField(max_length=100, blank=True, verbose_name='Application Number')
     patent_type = models.CharField(max_length=20, choices=PATENT_TYPE_CHOICES, default='Indian', verbose_name='Patent Type')

@@ -146,49 +146,89 @@
             {% endif %}
 
             {% if form_type == 'seminar' %}
-            <div class="form-group">
-                <label>Title *</label>
-                <input type="text" name="title" value="{% if item %}{{ item.title }}{% endif %}" required placeholder="e.g. National Conference on AI">
-            </div>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label>Event Type</label>
-                    <select name="event_type">
-                        <option value="Seminar" {% if not item or item.event_type == 'Seminar' %}selected{% endif %}>Seminar</option>
-                        <option value="Workshop" {% if item and item.event_type == 'Workshop' %}selected{% endif %}>Workshop</option>
-                        <option value="Conference" {% if item and item.event_type == 'Conference' %}selected{% endif %}>Conference</option>
-                        <option value="FDP" {% if item and item.event_type == 'FDP' %}selected{% endif %}>FDP</option>
-                        <option value="Summer/Winter Orientation" {% if item and item.event_type == 'Summer/Winter Orientation' %}selected{% endif %}>Summer/Winter Orientation</option>
-                        <option value="STTP" {% if item and item.event_type == 'STTP' %}selected{% endif %}>STTP</option>
+                    <label for="id_event_type">Event / Programme Category *</label>
+                    <select name="event_type" id="id_event_type" onchange="handleEventTypeChange()">
+                        <optgroup label="Academic Events">
+                            <option value="Conference" {% if item and item.event_type == 'Conference' %}selected{% elif initial_event_type == 'Conference' %}selected{% endif %}>Conference</option>
+                            <option value="Seminar" {% if not item and not initial_event_type or item and item.event_type == 'Seminar' or initial_event_type == 'Seminar' %}selected{% endif %}>Seminar</option>
+                            <option value="Workshop" {% if item and item.event_type == 'Workshop' %}selected{% elif initial_event_type == 'Workshop' %}selected{% endif %}>Workshop</option>
+                            <option value="Symposia" {% if item and item.event_type == 'Symposia' %}selected{% elif initial_event_type == 'Symposia' %}selected{% endif %}>Symposia</option>
+                        </optgroup>
+                        <optgroup label="Trainings & FDP">
+                            <option value="FDP" {% if item and item.event_type == 'FDP' %}selected{% elif initial_event_type == 'FDP' %}selected{% endif %}>FDP (Faculty Development Programme)</option>
+                            <option value="STTP" {% if item and item.event_type == 'STTP' %}selected{% elif initial_event_type == 'STTP' %}selected{% endif %}>STTP (Short Term Training Programme)</option>
+                            <option value="Summer/Winter School" {% if item and item.event_type == 'Summer/Winter School' %}selected{% elif initial_event_type == 'Summer/Winter School' %}selected{% endif %}>Summer/Winter School</option>
+                            <option value="Orientation Programme" {% if item and item.event_type == 'Orientation Programme' %}selected{% elif initial_event_type == 'Orientation Programme' %}selected{% endif %}>Orientation Programme</option>
+                            <option value="Refresher Course / Training" {% if item and item.event_type == 'Refresher Course / Training' %}selected{% elif initial_event_type == 'Refresher Course / Training' %}selected{% endif %}>Refresher Course / Training</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Year</label>
-                    <input type="text" name="year" value="{% if item %}{{ item.year }}{% endif %}" placeholder="e.g. 2024">
+                    <label id="label_role">Participation Role *</label>
+                    <select name="participation_role" id="id_participation_role">
+                        <option value="Attended" {% if not item or item.participation_role == 'Attended' %}selected{% endif %}>Attended</option>
+                        <option value="Conducted" {% if item and item.participation_role == 'Conducted' %}selected{% endif %}>Conducted / Organized</option>
+                    </select>
                 </div>
             </div>
+
             <div class="form-group">
-                <label>Organized By</label>
-                <input type="text" name="organized_by" value="{% if item %}{{ item.organized_by }}{% endif %}" placeholder="e.g. Dept of IT, Annamalai University">
+                <label id="label_title">Title / Theme *</label>
+                <input type="text" name="title" id="id_title" value="{% if item %}{{ item.title }}{% endif %}" required placeholder="Title or theme of event">
             </div>
+
+            <!-- Conference Only Fields -->
+            <div id="field_group_conference" style="display: none;">
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Proceedings / Journal Name</label>
+                        <input type="text" name="proceedings_title" value="{% if item %}{{ item.proceedings_title }}{% endif %}" placeholder="e.g. IEEE Xplore Proceedings">
+                    </div>
+                    <div class="form-group">
+                        <label>Level</label>
+                        <select name="national_international">
+                            <option value="National" {% if not item or item.national_international == 'National' %}selected{% endif %}>National</option>
+                            <option value="International" {% if item and item.national_international == 'International' %}selected{% endif %}>International</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
-                <label>Venue / Description</label>
-                <input type="text" name="venue_or_description" value="{% if item %}{{ item.venue_or_description }}{% endif %}" placeholder="e.g. IIT Madras, Virtual">
+                <label id="label_organized_by">Organized By / Conducting Agency *</label>
+                <input type="text" name="organized_by" id="id_organized_by" value="{% if item %}{{ item.organized_by }}{% endif %}" placeholder="e.g. Dept of IT, Annamalai University / IIT Madras">
             </div>
-            <div class="form-grid-2">
+
+            <!-- Training / FDP Only Fields -->
+            <div id="field_group_training" style="display: none;">
+                <div class="form-group">
+                    <label>Sponsoring Agency <small style="color:var(--text-muted);">(Optional)</small></label>
+                    <input type="text" name="sponsoring_agency" value="{% if item %}{{ item.sponsoring_agency }}{% endif %}" placeholder="e.g. AICTE, UGC, DST, MHRD, ISTE">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Venue / Location</label>
+                <input type="text" name="venue_or_description" value="{% if item %}{{ item.venue_or_description }}{% endif %}" placeholder="e.g. Online / Annamalai University / Virtual">
+            </div>
+
+            <div class="form-grid-3">
                 <div class="form-group">
                     <label>From Date</label>
-                    <input type="date" name="date_from" id="id_date_from" value="{{ item.date_from|date:'Y-m-d' }}" onchange="if(typeof calculateTotalDays==='function')calculateTotalDays()">
+                    <input type="date" name="date_from" id="id_date_from" value="{{ item.date_from|date:'Y-m-d' }}" onchange="calculateTotalDays()">
                 </div>
                 <div class="form-group">
                     <label>To Date</label>
-                    <input type="date" name="date_to" id="id_date_to" value="{{ item.date_to|date:'Y-m-d' }}" onchange="if(typeof calculateTotalDays==='function')calculateTotalDays()">
+                    <input type="date" name="date_to" id="id_date_to" value="{{ item.date_to|date:'Y-m-d' }}" onchange="calculateTotalDays()">
+                </div>
+                <div class="form-group">
+                    <label>Total Days</label>
+                    <input type="number" name="total_days" id="id_total_days" value="{% if item %}{{ item.total_days }}{% endif %}" readonly placeholder="Days" style="background-color: #f1f5f9; cursor: not-allowed;">
                 </div>
             </div>
-            <div class="form-group">
-                <label>Total Days</label>
-                <input type="number" name="total_days" id="id_total_days" value="{% if item %}{{ item.total_days }}{% endif %}" readonly placeholder="Auto-calculated from dates" style="background-color: #f1f5f9; cursor: not-allowed;">
-            </div>
+
             <div class="form-grid-2">
                 <div class="form-group">
                     <label>Mode</label>
@@ -198,24 +238,31 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Participation Type</label>
-                    <select name="participation_role">
-                        <option value="Attended" {% if not item or item.participation_role == 'Attended' %}selected{% endif %}>Attended</option>
-                        <option value="Conducted" {% if item and item.participation_role == 'Conducted' %}selected{% endif %}>Conducted</option>
-                    </select>
+                    <label>Year</label>
+                    <input type="text" name="year" value="{% if item %}{{ item.year }}{% endif %}" placeholder="e.g. 2024">
                 </div>
             </div>
+
             <div class="form-group">
                 <label>Completion Certificate * <small style="color:var(--text-muted);">(Max: 100KB)</small></label>
                 {% if item.supporting_document %}
-                <div class="form-help">Currently: <a href="{{ item.supporting_document.url }}" target="_blank">View File</a></div>
+                <div class="form-help">Currently: <a href="{{ item.supporting_document.url }}" target="_blank">📄 View Certificate</a></div>
                 {% endif %}
                 <input type="file" name="supporting_document" {% if not item %}required{% endif %}>
             </div>
+
+            <!-- Deputation Order Copy (For Training / FDP) -->
+            <div class="form-group" id="field_order_copy" style="display: none;">
+                <label>Deputation Order Copy <small style="color:var(--text-muted);">(Optional, Max: 100KB)</small></label>
+                {% if item.order_certificate %}
+                <div class="form-help">Currently: <a href="{{ item.order_certificate.url }}" target="_blank">📄 View Order Document</a></div>
+                {% endif %}
+                <input type="file" name="order_certificate">
+            </div>
+
             <div class="form-group">
-                <label>Co-participants / Linked Faculty *</label>
+                <label>Co-participants / Linked Faculty</label>
                 <div class="scrollable-checklist">
-                    <!-- Me option -->
                     <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
                         <input type="checkbox" name="co_authors" value="{{ staff.staff_id }}" checked style="width: auto; margin: 0;"> 
                         Me ({{ staff.salutation }} {{ staff.name }})
@@ -230,8 +277,53 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-                <div class="form-help">Select all faculty co-participants. This entry will reflect in their portfolios too.</div>
             </div>
+
+            <script>
+            function calculateTotalDays() {
+                const df = document.getElementById('id_date_from').value;
+                const dt = document.getElementById('id_date_to').value;
+                if (df && dt) {
+                    const d1 = new Date(df);
+                    const d2 = new Date(dt);
+                    const diffTime = d2 - d1;
+                    if (diffTime >= 0) {
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        document.getElementById('id_total_days').value = diffDays;
+                    }
+                }
+            }
+
+            function handleEventTypeChange() {
+                const eventTypeSelect = document.getElementById('id_event_type');
+                if (!eventTypeSelect) return;
+                const val = eventTypeSelect.value;
+                
+                const isConference = (val === 'Conference');
+                const isTraining = ['FDP', 'STTP', 'Summer/Winter School', 'Orientation Programme', 'Refresher Course / Training', 'Summer/Winter Orientation'].includes(val);
+
+                document.getElementById('field_group_conference').style.display = isConference ? 'block' : 'none';
+                document.getElementById('field_group_training').style.display = isTraining ? 'block' : 'none';
+                document.getElementById('field_order_copy').style.display = isTraining ? 'block' : 'none';
+
+                const labelTitle = document.getElementById('label_title');
+                if (labelTitle) {
+                    if (isConference) labelTitle.innerHTML = 'Paper Title / Event Title *';
+                    else if (isTraining) labelTitle.innerHTML = 'Programme Title / Theme *';
+                    else labelTitle.innerHTML = 'Event Title *';
+                }
+
+                const labelOrganized = document.getElementById('label_organized_by');
+                if (labelOrganized) {
+                    if (isTraining) labelOrganized.innerHTML = 'Conducting Agency / Institution / University *';
+                    else labelOrganized.innerHTML = 'Organized By / Host Body *';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                handleEventTypeChange();
+            });
+            </script>
             {% endif %}
 
             {% if form_type == 'student' %}
@@ -248,6 +340,10 @@
                     <label>Department</label>
                     <input type="text" name="department" value="{% if item %}{{ item.department }}{% endif %}" placeholder="e.g. Information Technology">
                 </div>
+            </div>
+            <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" name="specialization" value="{% if item %}{{ item.specialization }}{% endif %}" placeholder="e.g. Artificial Intelligence, Data Science, etc.">
             </div>
             <div class="form-grid-2">
                 <div class="form-group">
@@ -339,8 +435,7 @@
             <div class="form-group">
                 <label>Participation Type</label>
                 <select name="participation_type">
-                    <option value="Presented" {% if not item or item.participation_type == 'Presented' %}selected{% endif %}>Presented Paper</option>
-                    <option value="Attended" {% if item and item.participation_type == 'Attended' %}selected{% endif %}>Attended Only</option>
+                    <option value="Presented" selected>Presented Paper</option>
                 </select>
             </div>
             <div class="form-group">
@@ -364,13 +459,25 @@
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
-                <label>Linked Student Scholar (Optional)</label>
-                <select name="student" style="width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Poppins', sans-serif;">
-                    <option value="">-- None --</option>
-                    {% for s in phd_students %}
-                        <option value="{{ s.pk }}" {% if item and item.student.pk == s.pk %}selected{% endif %}>{{ s.student_name }} ({{ s.roll_number }})</option>
-                    {% endfor %}
-                </select>
+                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <div class="scrollable-checklist">
+                    {% if guided_scholars %}
+                        {% for s in guided_scholars %}
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="student" value="{{ s.pk }}"
+                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                <span>
+                                    <strong>{{ s.student_name }}</strong> 
+                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
+                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    {% else %}
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                    {% endif %}
+                </div>
+                <div class="form-help">Select student scholar(s) from your guided list.</div>
             </div>
             <div class="form-group">
                 <label>Title of Paper</label>
@@ -456,13 +563,25 @@
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
-                <label>Linked Student Scholar (Optional)</label>
-                <select name="student" style="width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Poppins', sans-serif;">
-                    <option value="">-- None --</option>
-                    {% for s in phd_students %}
-                        <option value="{{ s.pk }}" {% if item and item.student.pk == s.pk %}selected{% endif %}>{{ s.student_name }} ({{ s.roll_number }})</option>
-                    {% endfor %}
-                </select>
+                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <div class="scrollable-checklist">
+                    {% if guided_scholars %}
+                        {% for s in guided_scholars %}
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="student" value="{{ s.pk }}"
+                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                <span>
+                                    <strong>{{ s.student_name }}</strong> 
+                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
+                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    {% else %}
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                    {% endif %}
+                </div>
+                <div class="form-help">Select student scholar(s) from your guided list.</div>
             </div>
             <div class="form-group">
                 <label>Title of Paper *</label>
@@ -562,13 +681,25 @@
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
-                <label>Linked Student Scholar (Optional)</label>
-                <select name="student" style="width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Poppins', sans-serif;">
-                    <option value="">-- None --</option>
-                    {% for s in phd_students %}
-                        <option value="{{ s.pk }}" {% if item and item.student.pk == s.pk %}selected{% endif %}>{{ s.student_name }} ({{ s.roll_number }})</option>
-                    {% endfor %}
-                </select>
+                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <div class="scrollable-checklist">
+                    {% if guided_scholars %}
+                        {% for s in guided_scholars %}
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="student" value="{{ s.pk }}"
+                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                <span>
+                                    <strong>{{ s.student_name }}</strong> 
+                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
+                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    {% else %}
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                    {% endif %}
+                </div>
+                <div class="form-help">Select student scholar(s) from your guided list.</div>
             </div>
             <div class="form-group">
                 <label>Title of Book / Article *</label>
@@ -639,6 +770,27 @@
                     {% endfor %}
                 </div>
                 <div class="form-help">Select all co-inventors. This will appear in their portfolios too.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <div class="scrollable-checklist">
+                    {% if guided_scholars %}
+                        {% for s in guided_scholars %}
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" name="student" value="{{ s.pk }}"
+                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
+                                <span>
+                                    <strong>{{ s.student_name }}</strong> 
+                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
+                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    {% else %}
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                    {% endif %}
+                </div>
+                <div class="form-help">Select student scholar(s) from your guided list.</div>
             </div>
             <div class="form-grid-2">
                 <div class="form-group">

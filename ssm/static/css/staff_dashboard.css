@@ -645,6 +645,13 @@ body.dark-theme .nav-item.active {
     border: 1.5px solid var(--primary);
 }
 
+.user-profile-initials {
+    font-size: 0.72rem;
+    font-weight: 500;
+    opacity: 0.6;
+    letter-spacing: 0.02em;
+}
+
 /* Top bar Brand element */
 .top-bar-brand {
     display: flex;
@@ -892,6 +899,7 @@ body.dark-theme .stat-icon.amber {
     background: transparent;
     border: none;
     padding: 12px 20px;
+    font-family: 'Poppins', sans-serif;
     font-size: 0.92rem;
     font-weight: 600;
     color: var(--text-muted);

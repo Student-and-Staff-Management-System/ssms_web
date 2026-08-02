@@ -10,9 +10,168 @@
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
     <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}?v=1.5">
     <style>
-        /* Ensure sidebar sits above mobile backdrop overlay (cache-proof override) */
+        /* Ensure sidebar sits above mobile backdrop overlay */
         .sidebar {
             z-index: 1050 !important;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
+        }
+
+        /* Clean Collapsed Sidebar Strip & Premium Hover Expansion (Desktop) */
+        @media (min-width: 993px) {
+            /* Collapsed State: Narrow icon strip */
+            .sidebar:not(.expanded) {
+                width: 74px !important;
+                overflow-x: hidden !important;
+            }
+
+            /* Hide sub-items completely when sidebar is collapsed & not hovered */
+            .sidebar:not(.expanded):not(:hover) .nav-group-content {
+                display: none !important;
+                height: 0 !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+            }
+
+            /* Center icons cleanly when collapsed */
+            .sidebar:not(.expanded):not(:hover) .nav-group-header {
+                justify-content: center !important;
+                padding: 10px 0 !important;
+                margin: 4px 8px !important;
+                border-radius: 12px !important;
+            }
+
+            .sidebar:not(.expanded):not(:hover) .nav-item {
+                display: none !important;
+            }
+
+            .sidebar:not(.expanded):not(:hover) .nav-icon {
+                margin: 0 !important;
+                font-size: 1.25rem !important;
+            }
+
+            /* Hide text labels, category headers, and chevrons when collapsed & not hovered */
+            .sidebar:not(.expanded):not(:hover) .nav-text,
+            .sidebar:not(.expanded):not(:hover) .profile-mini-details,
+            .sidebar:not(.expanded):not(:hover) .profile-mini-logout,
+            .sidebar:not(.expanded):not(:hover) .sidebar-category-header,
+            .sidebar:not(.expanded):not(:hover) .nav-group-chevron {
+                opacity: 0 !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                width: 0 !important;
+                overflow: hidden !important;
+            }
+
+            .sidebar:not(.expanded):not(:hover) .sidebar-category-header {
+                height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* === PREMIUM SMOOTH HOVER EXPANSION (MAIN MENU ONLY) === */
+            .sidebar:not(.expanded):hover {
+                width: 260px !important;
+                box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+                z-index: 1060 !important;
+            }
+
+            .sidebar:not(.expanded):hover .nav-group-header,
+            .sidebar:not(.expanded):hover .nav-item {
+                justify-content: flex-start !important;
+                padding: 10px 14px !important;
+                margin: 2px 10px !important;
+                border-radius: 10px !important;
+            }
+
+            .sidebar:not(.expanded):hover .nav-icon {
+                margin-right: 10px !important;
+                font-size: 1.1rem !important;
+            }
+
+            .sidebar:not(.expanded):hover .nav-text,
+            .sidebar:not(.expanded):hover .profile-mini-details,
+            .sidebar:not(.expanded):hover .profile-mini-logout,
+            .sidebar:not(.expanded):hover .sidebar-category-header,
+            .sidebar:not(.expanded):hover .nav-group-chevron {
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: auto !important;
+                width: auto !important;
+                transition: opacity 0.25s ease 0.05s !important;
+            }
+
+            .sidebar:not(.expanded):hover .sidebar-category-header {
+                height: 38px !important;
+                padding: 16px 16px 8px 16px !important;
+            }
+        }
+
+        /* Disable black tooltip box popups when sidebar is hovered or expanded */
+        .sidebar:hover .nav-item[data-tooltip]::after,
+        .sidebar:hover .nav-group-header[data-tooltip]::after,
+        .sidebar.expanded .nav-item[data-tooltip]::after,
+        .sidebar.expanded .nav-group-header[data-tooltip]::after {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        /* === NAV GROUP DROPDOWN ACCORDION DISPLAY STYLING === */
+        .nav-group-content {
+            display: none;
+            padding-left: 8px;
+            margin-top: 2px;
+            margin-bottom: 6px;
+        }
+
+        .nav-group.open .nav-group-content {
+            display: block !important;
+        }
+
+        .nav-group.open .nav-group-content .nav-item {
+            display: flex !important;
+        }
+
+        /* === DROPDOWN CHEVRON ARROW STYLING & ROTATION ANIMATION === */
+        .nav-group-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            cursor: pointer !important;
+        }
+
+        .nav-group-header-left {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+
+        .nav-group-chevron {
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            color: #64748b !important;
+            margin-left: auto !important;
+            margin-right: 4px !important;
+            transition: transform 0.25s ease, color 0.2s ease, opacity 0.2s ease !important;
+            display: inline-block !important;
+        }
+
+        .sidebar:hover .nav-group-chevron,
+        .sidebar.expanded .nav-group-chevron {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            display: inline-block !important;
+        }
+
+        .nav-group.open .nav-group-chevron {
+            transform: rotate(90deg) !important;
+            color: var(--primary, #5a7d7c) !important;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -48,8 +207,8 @@
                 
                 <!-- Category Group: MAIN -->
                 <div class="sidebar-category-header">Main</div>
-                <div class="nav-group open" data-group-id="workspace">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                <div class="nav-group" data-group-id="workspace">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="My Workspace">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">👤</span>
                             <span class="nav-text">My Workspace</span>
@@ -87,7 +246,7 @@
                 
                 {% if staff.role != 'Office Staff' %}
                 <div class="nav-group" data-group-id="substitutions">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Substitutions">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">🔄</span>
                             <span class="nav-text">Substitutions</span>
@@ -110,7 +269,7 @@
 
                 {% if staff.role == 'HOD' or staff.role == 'Class Incharge' or staff.role == 'Course Incharge' %}
                 <div class="nav-group" data-group-id="students">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Students">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">👨‍🎓</span>
                             <span class="nav-text">Students</span>
@@ -151,7 +310,7 @@
                 
                 {% if staff.role == 'HOD' or rs_count > 0 %}
                 <div class="nav-group" data-group-id="scholars">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Research Scholars">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">🎓</span>
                             <span class="nav-text">Research Scholars</span>
@@ -182,7 +341,7 @@
 
                 {% if staff.role == 'HOD' or staff.role == 'Office Staff' %}
                 <div class="nav-group" data-group-id="admin">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Administration">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">🏢</span>
                             <span class="nav-text">Administration</span>
@@ -240,7 +399,7 @@
 
                 {% if staff.role == 'HOD' or staff.role == 'Scholarship Officer' or staff.role == 'Office Staff' %}
                 <div class="nav-group" data-group-id="scholarships">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Scholarships">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">💰</span>
                             <span class="nav-text">Scholarships</span>
@@ -278,7 +437,7 @@
                 {% endif %}
                 <div style="flex: 1; min-width: 0;" class="profile-mini-details">
                     <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
-                        {{ staff.name }}
+                        {{ staff.name }} <span style="font-size:0.78rem; opacity:0.65; font-weight:500;">({% for word in staff.name.split %}{{ word|slice:":1"|upper }}{% endfor %})</span>
                     </div>
                     <div style="font-size: 0.72rem; color: var(--text-muted);">
                         {{ staff.role }}
@@ -338,7 +497,7 @@
                         {% else %}
                         <div class="avatar-placeholder small-avatar">{{ staff.name|slice:":1"|upper }}</div>
                         {% endif %}
-                        <span class="user-profile-name">{{ staff.name }}</span>
+                        <span class="user-profile-name">{{ staff.name }} <span class="user-profile-initials">({% for word in staff.name.split %}{{ word|slice:":1"|upper }}{% endfor %})</span></span>
                     </a>
                 </div>
             </div>
@@ -350,24 +509,29 @@
 
     <!-- Portal Base Layout Scripts -->
     <script>
-        // Collapsible Sidebar Navigation Categories
+        // Single Accordion Mode: Clicking a Category Dropdown opens ONLY that group and closes all others
         function toggleNavGroup(header) {
             const group = header.parentElement;
-            const sidebar = document.getElementById('appSidebar');
-            
-            // If the sidebar is collapsed on desktop, clicking a group should expand the sidebar first
-            const isCollapsed = !sidebar.classList.contains('expanded') && !document.body.classList.contains('dashboard-portal') && window.innerWidth > 992;
-            if (isCollapsed) {
-                toggleSidebar(true);
-                group.classList.add('open');
-                const groupId = group.getAttribute('data-group-id');
-                if (groupId) {
-                    localStorage.setItem(`nav_group_${groupId}`, 'open');
+            const wasOpen = group.classList.contains('open');
+
+            // Close all other nav-groups so only the clicked dropdown is open
+            document.querySelectorAll('.nav-group').forEach(function(g) {
+                if (g !== group) {
+                    g.classList.remove('open');
+                    const gid = g.getAttribute('data-group-id');
+                    if (gid) {
+                        localStorage.setItem(`nav_group_${gid}`, 'closed');
+                    }
                 }
-                return;
+            });
+
+            // Toggle the clicked group
+            if (wasOpen) {
+                group.classList.remove('open');
+            } else {
+                group.classList.add('open');
             }
-            
-            group.classList.toggle('open');
+
             const groupId = group.getAttribute('data-group-id');
             if (groupId) {
                 localStorage.setItem(`nav_group_${groupId}`, group.classList.contains('open') ? 'open' : 'closed');
@@ -376,30 +540,54 @@
 
         // Apply saved collapse configurations on reload
         document.addEventListener('DOMContentLoaded', function() {
+            // First, close all groups by default
             document.querySelectorAll('.nav-group').forEach(function(group) {
-                const groupId = group.getAttribute('data-group-id');
-                if (groupId) {
-                    const savedState = localStorage.getItem(`nav_group_${groupId}`);
-                    if (savedState === 'open') {
-                        group.classList.add('open');
-                    } else if (savedState === 'closed') {
-                        group.classList.remove('open');
+                group.classList.remove('open');
+            });
+
+            // Highlight Active Link based on exact window path and open ONLY its parent category
+            const currentUrl = window.location.pathname;
+            let activeFound = false;
+
+            document.querySelectorAll('.nav-item').forEach(function(link) {
+                const href = link.getAttribute('href');
+                if (href && !activeFound) {
+                    const isExactMatch = (currentUrl === href);
+                    const isSubPathMatch = (href !== '/staffs/' && href !== '/staffs' && currentUrl.startsWith(href));
+                    
+                    if (isExactMatch || isSubPathMatch) {
+                        link.classList.add('active');
+                        activeFound = true;
+                        // Open ONLY the parent category group of the active link
+                        const parentGroup = link.closest('.nav-group');
+                        if (parentGroup) {
+                            parentGroup.classList.add('open');
+                        }
                     }
                 }
             });
 
-            // Highlight Active Link based on window path
-            const currentUrl = window.location.pathname;
-            document.querySelectorAll('.nav-item').forEach(function(link) {
-                if (link.getAttribute('href') && currentUrl.includes(link.getAttribute('href'))) {
-                    link.classList.add('active');
-                    // Ensure the parent category is open
-                    const parentGroup = link.closest('.nav-group');
-                    if (parentGroup && !parentGroup.classList.contains('open')) {
-                        parentGroup.classList.add('open');
+            // If no active sub-link matches, check localStorage for last opened group
+            if (!activeFound) {
+                document.querySelectorAll('.nav-group').forEach(function(group) {
+                    const groupId = group.getAttribute('data-group-id');
+                    if (groupId && localStorage.getItem(`nav_group_${groupId}`) === 'open') {
+                        group.classList.add('open');
                     }
-                }
-            });
+                });
+            }
+
+            // Auto-close open dropdowns when mouse leaves collapsed sidebar on desktop
+            const sidebar = document.getElementById('appSidebar');
+            if (sidebar) {
+                sidebar.addEventListener('mouseleave', function() {
+                    if (!sidebar.classList.contains('expanded') && window.innerWidth > 992) {
+                        document.querySelectorAll('.nav-group').forEach(function(group) {
+                            group.classList.remove('open');
+                        });
+                    }
+                });
+            }
         });
 
         // Toggle Sidebar Drawer (Desktop Overlay toggle / Mobile Offcanvas overlay)

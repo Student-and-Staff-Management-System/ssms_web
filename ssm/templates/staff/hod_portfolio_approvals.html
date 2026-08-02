@@ -1,9 +1,9 @@
 {% extends 'staff/staff_base.html' %}
 {% load static %}
 
-{% block title %}Additional Post Approvals | HOD Dashboard{% endblock %}
+{% block title %}Designation & Additional Post Approvals | HOD Dashboard{% endblock %}
 
-{% block page_title %}Additional Post Approvals{% endblock %}
+{% block page_title %}Designation & Additional Post Approvals{% endblock %}
 
 {% block extra_css %}
     <style>
@@ -223,7 +223,7 @@
 
         .empty-state {
             background: var(--card-bg);
-            padding: 40px;
+            padding: 35px;
             text-align: center;
             border-radius: var(--radius);
             color: var(--text-muted);
@@ -242,49 +242,32 @@
 {% endblock %}
 
 {% block content %}
-<!-- Header -->
-        
+<div class="approvals-container" style="max-width: 1100px; margin: 0 auto; padding: 10px 0;">
+    {% if messages %}
+        {% for message in messages %}
+        <div style="background: #d1fae5; color: #065f46; padding: 12px 20px; border-radius: 8px; border-left: 4px solid #10b981; margin-bottom: 25px; font-weight: 500;">
+            ✓ {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
 
-        <!-- Sidebar -->
-        <aside class="profile-sidebar-legacy">
-            {% if staff.photo %}
-            <img src="{{ staff.photo.url }}" class="profile-img" alt="Profile">
-            {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ staff.name }}" class="profile-img" alt="Profile">
-            {% endif %}
-            <div class="profile-name">{{ staff.name }}</div>
-            <div class="profile-role">Head of Department</div>
-            <div class="profile-meta">Department of IT</div>
-        </aside>
-
-        <!-- Main Workspace -->
-        <main class="workspace">
-            
-            {% if messages %}
-                {% for message in messages %}
-                <div style="background: #d1fae5; color: #065f46; padding: 12px 20px; border-radius: 8px; border-left: 4px solid #10b981; margin-bottom: 25px; font-weight: 500;">
-                    ✓ {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-
-            <!-- additional post approvals -->
+            <!-- Section 1: Designation Approvals -->
             <section class="approval-section">
-                <h2 class="section-title">💼 Additional Post (Designation Fixation) Verification ({{ pending_desigs|length }})</h2>
+                <h2 class="section-title">🏷️ Designation Verification ({{ pending_designations|length }})</h2>
                 
-                {% for desig in pending_desigs %}
-                <div class="approval-card">
+                {% for desig in pending_designations %}
+                <div class="approval-card" style="border-left-color: #3b82f6;">
                     <div class="approval-header">
                         <div class="staff-name">{{ desig.staff.name }}</div>
-                        <span style="background: #fffbeb; color: #b45309; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; text-transform: uppercase;">Pending Verification</span>
+                        <span style="background: #eff6ff; color: #1d4ed8; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; text-transform: uppercase;">Pending Designation Verification</span>
                     </div>
                     <div class="item-details">
-                        <p><strong>Designation/Additional Post:</strong> {{ desig.designation }}</p>
-                        <p><strong>Effective From:</strong> {{ desig.from_date|date:"d M Y" }}</p>
+                        <p><strong>Designation:</strong> {{ desig.designation }}</p>
+                        <p><strong>Effective From:</strong> {{ desig.from_date|date:"d M Y"|default:"Not specified" }}</p>
                     </div>
                     <div class="btn-group">
-                        <a href="{% url 'staffs:approve_designation' desig.pk %}" class="btn-approve" onclick="return confirm('Approve this additional post?')">Approve</a>
-                        <a href="{% url 'staffs:reject_designation' desig.pk %}" class="btn-reject" onclick="return confirm('Reject this additional post?')">Reject</a>
+                        <a href="{% url 'staffs:approve_designation' desig.pk %}" class="btn-approve" onclick="return confirm('Approve designation {{ desig.designation|escapejs }} for {{ desig.staff.name|escapejs }}?')">Approve</a>
+                        <a href="{% url 'staffs:reject_designation' desig.pk %}" class="btn-reject" onclick="return confirm('Reject designation {{ desig.designation|escapejs }}?')">Reject</a>
                         {% if desig.order_img %}
                         <a href="{{ desig.order_img.url }}" class="btn-doc" target="_blank">📄 View Order Document</a>
                         {% else %}
@@ -294,8 +277,40 @@
                 </div>
                 {% empty %}
                 <div class="empty-state">
-                    <p style="font-size: 1.1rem; margin: 0;">No pending additional post approvals to verify.</p>
+                    <p style="font-size: 1.05rem; margin: 0;">No pending designation approvals to verify.</p>
                 </div>
                 {% endfor %}
             </section>
+
+            <!-- Section 2: Additional Post Approvals -->
+            <section class="approval-section">
+                <h2 class="section-title">💼 Additional Post Verification ({{ pending_additional_posts|length }})</h2>
+                
+                {% for desig in pending_additional_posts %}
+                <div class="approval-card" style="border-left-color: #f59e0b;">
+                    <div class="approval-header">
+                        <div class="staff-name">{{ desig.staff.name }}</div>
+                        <span style="background: #fffbeb; color: #b45309; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; text-transform: uppercase;">Pending Additional Post Verification</span>
+                    </div>
+                    <div class="item-details">
+                        <p><strong>Additional Post:</strong> {{ desig.designation }}</p>
+                        <p><strong>Effective From:</strong> {{ desig.from_date|date:"d M Y"|default:"Not specified" }}</p>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{% url 'staffs:approve_designation' desig.pk %}" class="btn-approve" onclick="return confirm('Approve additional post {{ desig.designation|escapejs }} for {{ desig.staff.name|escapejs }}?')">Approve</a>
+                        <a href="{% url 'staffs:reject_designation' desig.pk %}" class="btn-reject" onclick="return confirm('Reject additional post {{ desig.designation|escapejs }}?')">Reject</a>
+                        {% if desig.order_img %}
+                        <a href="{{ desig.order_img.url }}" class="btn-doc" target="_blank">📄 View Order Document</a>
+                        {% else %}
+                        <span style="color:var(--danger-color); font-size:0.9rem; display:inline-flex; align-items:center;">⚠️ No Order Document Uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p style="font-size: 1.05rem; margin: 0;">No pending additional post approvals to verify.</p>
+                </div>
+                {% endfor %}
+            </section>
+</div>
 {% endblock %}

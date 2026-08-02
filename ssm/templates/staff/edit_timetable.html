@@ -12,7 +12,6 @@
             --bg:#f0f4f3; --card:#fff; --text:#2c3e50;
             --muted:#7f8c8d; --border:#dde4e4;
             --radius:12px; --shadow:0 4px 24px rgba(0,0,0,.07);
-            --break-bg:#e8f0ef;
         }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
@@ -80,12 +79,6 @@
             border-right:3px solid var(--primary);
             box-shadow:2px 0 5px rgba(0,0,0,.06);
         }
-        td.brcol,th.brcol{
-            background:var(--break-bg);width:32px;min-width:32px;text-align:center;vertical-align:middle;
-            font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:1px;
-            writing-mode:vertical-rl;padding:5px 2px;
-        }
-        th.brcol{color:var(--muted)!important;background:var(--break-bg)!important;}
 
         /* PERIOD CELL */
         .pc{padding:7px 6px;position:relative;min-width:120px;}
@@ -238,10 +231,8 @@
                             <th>Day \ Time</th>
                             <th>P1<br>08:30–09:30</th>
                             <th>P2<br>09:30–10:30</th>
-                            <th class="brcol">BREAK</th>
                             <th>P3<br>10:40–11:40</th>
                             <th>P4<br>11:40–12:40</th>
-                            <th class="brcol">LUNCH</th>
                             <th>P5<br>01:30–02:30</th>
                             <th>P6<br>02:30–03:30</th>
                             <th>P7<br>03:30–04:30</th>
@@ -300,8 +291,6 @@
                             <div class="merged-label" id="ml-{{ day }}-2"></div>
                         </td>
 
-                        <td class="brcol" id="break-{{ day }}">BREAK</td>
-
                         <td id="td-{{ day }}-3">
                             <div class="pc-normal">
                                 <div class="pc">
@@ -351,8 +340,6 @@
                             <div class="merged-label" id="ml-{{ day }}-4"></div>
                             <div class="lab-cont-label" id="lc-{{ day }}-4"></div>
                         </td>
-
-                        <td class="brcol">LUNCH</td>
 
                         <td id="td-{{ day }}-5">
                             <div class="pc-normal">
@@ -539,21 +526,18 @@ function doMerge(day, startP, val){
     const isMorningLab = (want === 3 && (startP === 1 || startP === 2));
 
     if (isMorningLab && startP === 1) {
-        // P1 lab: single horizontal merge across P1 + P2 + BREAK + P3
+        // P1 lab: merge across P1 + P2 + P3
         const mp = [1, 2, 3];
         const sl = new Set();
         mp.forEach(p=>{ const ex=MRG[day+'-'+p]; if(ex&&!sl.has(ex.leader)){sl.add(ex.leader);unmerge(day,ex.leader);} });
         mp.forEach(p=>MRG[day+'-'+p]={leader:1, periods:mp, morningLab:true, hiddenP:2, contP:3, contColSpan:1, mergedAcrossBreak:true});
 
         const leaderTd = document.getElementById('td-'+day+'-1');
-        leaderTd.colSpan = 4;               // P1 spans P1 + P2 + BREAK + P3
+        leaderTd.colSpan = 3;               // P1 spans P1 + P2 + P3
         leaderTd.classList.add('merged-active');
 
         const td2=document.getElementById('td-'+day+'-2'); td2.style.display='none';
         const sel2=document.getElementById('sel-'+day+'-2'); sel2.value=val;
-
-        const brk=document.getElementById('break-'+day);
-        if(brk){ brk.classList.add('lab-break'); brk.textContent='\u2697'; brk.style.display='none'; }
 
         const td3=document.getElementById('td-'+day+'-3');
         const sel3=document.getElementById('sel-'+day+'-3');
@@ -563,23 +547,20 @@ function doMerge(day, startP, val){
         if(SPECIAL_INFO[val]){ bg=SPECIAL_INFO[val].bg; bdr=SPECIAL_INFO[val].bdr; }
         else { const col=colorMap[parseInt(val)]; if(col){bg=col.bg;bdr=col.bdr;} }
         if(bg){ leaderTd.style.background=bg; leaderTd.style.borderLeft='4px solid '+bdr; }
-        _buildMergedLabel(leaderTd, day, startP, val, 'Morning \u00b7 P1\u2013BREAK\u2013P3');
+        _buildMergedLabel(leaderTd, day, startP, val, 'Morning \u00b7 P1\u2013P3');
         return;
     }
 
     if (isMorningLab && startP === 2) {
-        // P2 lab: single horizontal merge across P2 + BREAK + P3 + P4
+        // P2 lab: merge across P2 + P3 + P4
         const mp = [2, 3, 4];
         const sl = new Set();
         mp.forEach(p=>{ const ex=MRG[day+'-'+p]; if(ex&&!sl.has(ex.leader)){sl.add(ex.leader);unmerge(day,ex.leader);} });
         mp.forEach(p=>MRG[day+'-'+p]={leader:2, periods:mp, morningLab:true, hiddenP:4, contP:3, contColSpan:2, mergedAcrossBreak:true});
 
         const leaderTd2 = document.getElementById('td-'+day+'-2');
-        leaderTd2.colSpan = 4;              // P2 spans P2 + BREAK + P3 + P4
+        leaderTd2.colSpan = 3;              // P2 spans P2 + P3 + P4
         leaderTd2.classList.add('merged-active');
-
-        const brk2=document.getElementById('break-'+day);
-        if(brk2){ brk2.classList.add('lab-break'); brk2.textContent='\u2697'; brk2.style.display='none'; }
 
         // Hide absorbed continuation cells
         const td3c=document.getElementById('td-'+day+'-3');
@@ -595,7 +576,7 @@ function doMerge(day, startP, val){
         if(SPECIAL_INFO[val]){ bg2=SPECIAL_INFO[val].bg; bdr2=SPECIAL_INFO[val].bdr; }
         else { const col=colorMap[parseInt(val)]; if(col){bg2=col.bg;bdr2=col.bdr;} }
         if(bg2){ leaderTd2.style.background=bg2; leaderTd2.style.borderLeft='4px solid '+bdr2; }
-        _buildMergedLabel(leaderTd2, day, startP, val, 'Morning \u00b7 P2\u2013BREAK\u2013P4');
+        _buildMergedLabel(leaderTd2, day, startP, val, 'Morning \u00b7 P2\u2013P4');
         return;
     }
 
@@ -619,8 +600,8 @@ function doMerge(day, startP, val){
     leaderTd.colSpan = actual;
     leaderTd.classList.add('merged-active');
 
-    const periodLabel = (startP===1&&actual===3) ? 'Morning · P1–BREAK–P3'
-                      : (startP===5&&actual===3) ? 'Afternoon · P5–P6–P7'
+    const periodLabel = (startP===1&&actual===3) ? 'Morning · P1–P3'
+                      : (startP===5&&actual===3) ? 'Afternoon · P5–P7'
                       : `${actual} periods`;
     _buildMergedLabel(leaderTd, day, startP, val, periodLabel);
 
@@ -709,10 +690,6 @@ function unmerge(day, period){
         if(tdH){ tdH.style.display=''; tdH.colSpan=1; }
         const selH=document.getElementById('sel-'+day+'-'+hiddenP); if(selH) selH.value='';
         applyNormal(day, hiddenP, '');
-
-        // Remove BREAK highlight and show break cell again if it was absorbed
-        const brk=document.getElementById('break-'+day);
-        if(brk){ brk.classList.remove('lab-break'); brk.textContent='BREAK'; brk.style.display=''; }
 
         // Remove continuation cell styling and reset its colSpan
         const tdC=document.getElementById('td-'+day+'-'+contP);

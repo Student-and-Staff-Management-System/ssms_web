@@ -56,6 +56,10 @@
 
     <!-- ================= TAB 1: OVERVIEW ================= -->
     <div id="tab-overview" class="dash-tab-content active">
+
+        <!-- Today's Schedule Widget -->
+        {% include 'staff/includes/today_schedule.html' %}
+
         <div class="dashboard-grid">
             <!-- News Widget -->
             <div class="news-section">
@@ -84,13 +88,13 @@
                     </div>
                 </a>
 
-                <!-- Additional Post Approvals Stats -->
+                <!-- Designation & Additional Post Approvals Stats -->
                 <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="stat-card">
                     {% if pending_portfolio_count > 0 %} <div class="pulse-ring"></div> {% endif %}
                     <div class="stat-icon" style="background: #eef6f6; color: var(--primary);">💼</div>
                     <div class="stat-info">
                         <h3>{{ pending_portfolio_count }}</h3>
-                        <span>Additional Post Approvals</span>
+                        <span>Designation & Post Approvals</span>
                     </div>
                 </a>
 

@@ -28,8 +28,48 @@
             align-items: center;
             gap: 8px;
         }
+        details.collapsible-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+        details.collapsible-card summary {
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            list-style: none;
+            user-select: none;
+        }
+        details.collapsible-card summary::-webkit-details-marker {
+            display: none;
+        }
+        details.collapsible-card summary .chevron-icon {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: transform 0.25s ease;
+        }
+        details.collapsible-card[open] summary .chevron-icon {
+            transform: rotate(180deg);
+        }
+        details.collapsible-card summary:hover {
+            color: var(--primary-dark);
+        }
+        details.collapsible-card .collapsible-content {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
         @media print {
             .no-print { display: none !important; }
+            details.collapsible-card { display: block !important; }
+            details.collapsible-card .collapsible-content { display: block !important; }
         }
     </style>
 </head>
@@ -57,8 +97,22 @@
             <div class="profile-meta">Reg No: {{ student.register_number }}</div>
             {% endif %}
             <div class="profile-meta">Research Scholar ({{ profile.scholar_type }})</div>
+
+            <!-- Profile / PhD Completion Progress Box -->
+            <div style="margin-top: 15px; background: rgba(90, 125, 124, 0.08); padding: 12px; border-radius: 10px; border: 1px solid rgba(90, 125, 124, 0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary-color);">PhD Completion</span>
+                    <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary-color);">{{ phd_stats.overall_percent|default:"0" }}%</span>
+                </div>
+                <div style="height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                    <div style="height: 100%; width: {{ phd_stats.overall_percent|default:'0' }}%; background: var(--primary-color); border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 6px; font-weight: 600; text-transform: uppercase;">
+                    Stage: {{ phd_progress.get_current_stage_display|default:"RAC REVIEW" }}
+                </div>
+            </div>
             
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                 <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">Quick Info</div>
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 0.7rem; color: var(--text-muted);">Admission Date</label>
@@ -73,112 +127,137 @@
 
         <main class="main-content">
             <div class="content-grid">
-                <!-- Personal Info -->
-                <div class="card">
-                    <h2 class="card-title">👤 Personal Information</h2>
-                    <div class="details-grid">
-                        <div class="detail-item"><strong>Email</strong><span>{{student.student_email|default:"-"}}</span></div>
-                        <div class="detail-item"><strong>Mobile</strong><span>{{personalinfo.student_mobile|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>DOB</strong><span>{{personalinfo.date_of_birth|date:"d M Y"|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Gender</strong><span>{{personalinfo.get_gender_display|default:"-" }}</span></div>
-                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Present Address</strong><span>{{personalinfo.present_address|default:"-" }}</span></div>
-                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Permanent Address</strong><span>{{personalinfo.permanent_address|default:"-" }}</span></div>
-                    </div>
-                </div>
-
-                <!-- Academic Info -->
-                <div class="card">
-                    <h2 class="card-title">🎓 Academic & Admission Details</h2>
-                    <div class="details-grid" style="margin-bottom: 16px;">
-                        <div class="detail-item"><strong>Scholar Type</strong><span>{{ profile.scholar_type|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Admission Date</strong><span>{{ profile.admission_date|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Supervisor</strong><span>{% if profile.supervisor %}{{ profile.supervisor.name }} {{ profile.supervisor.initial|default:"" }} ({{ profile.supervisor.department }}){% else %}-{% endif %}</span></div>
-                        <div class="detail-item"><strong>Visvesvaraya Scheme</strong><span>{% if profile.is_visvesvaraya_scheme %}Yes{% else %}No{% endif %}</span></div>
-                    </div>
-                    
-                    {% if ug %}
-                    <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
-                        <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">UG Details</h4>
+                <!-- Personal Info Collapsible -->
+                <details class="card collapsible-card">
+                    <summary>
+                        <span>👤 Personal Information</span>
+                        <span class="chevron-icon">▼</span>
+                    </summary>
+                    <div class="collapsible-content">
                         <div class="details-grid">
-                            <div class="detail-item"><strong>Course</strong><span>{{ ug.ug_course|default:"-" }}</span></div>
-                            <div class="detail-item"><strong>University</strong><span>{{ ug.ug_university|default:"-" }}</span></div>
-                            <div class="detail-item"><strong>Year</strong><span>{{ ug.ug_year_of_passing|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Email</strong><span>{{student.student_email|default:"-"}}</span></div>
+                            <div class="detail-item"><strong>Mobile</strong><span>{{personalinfo.student_mobile|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>DOB</strong><span>{{personalinfo.date_of_birth|date:"d M Y"|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Gender</strong><span>{{personalinfo.get_gender_display|default:"-" }}</span></div>
+                            <div class="detail-item" style="grid-column: 1 / -1;"><strong>Present Address</strong><span>{{personalinfo.present_address|default:"-" }}</span></div>
+                            <div class="detail-item" style="grid-column: 1 / -1;"><strong>Permanent Address</strong><span>{{personalinfo.permanent_address|default:"-" }}</span></div>
                         </div>
                     </div>
-                    {% endif %}
-                    
-                    {% if pg %}
-                    <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
-                        <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">PG Details</h4>
-                        <div class="details-grid">
-                            <div class="detail-item"><strong>Course</strong><span>{{ pg.pg_course|default:"-" }}</span></div>
-                            <div class="detail-item"><strong>University</strong><span>{{ pg.pg_university|default:"-" }}</span></div>
-                            <div class="detail-item"><strong>Year</strong><span>{{ pg.pg_year_of_passing|default:"-" }}</span></div>
+                </details>
+
+                <!-- Academic Info Collapsible -->
+                <details class="card collapsible-card">
+                    <summary>
+                        <span>🎓 Academic & Admission Details</span>
+                        <span class="chevron-icon">▼</span>
+                    </summary>
+                    <div class="collapsible-content">
+                        <div class="details-grid" style="margin-bottom: 16px;">
+                            <div class="detail-item"><strong>Scholar Type</strong><span>{{ profile.scholar_type|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Admission Date</strong><span>{{ profile.admission_date|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Supervisor</strong><span>{% if profile.supervisor %}{{ profile.supervisor.name }} {{ profile.supervisor.initial|default:"" }} ({{ profile.supervisor.department }}){% else %}-{% endif %}</span></div>
+                            <div class="detail-item"><strong>Visvesvaraya Scheme</strong><span>{% if profile.is_visvesvaraya_scheme %}Yes{% else %}No{% endif %}</span></div>
                         </div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Parent Info -->
-                <div class="card">
-                    <h2 class="card-title">👨‍👩‍👦 Parent Details</h2>
-                    <div class="details-grid">
-                        <div class="detail-item"><strong>Father</strong><span>{{personalinfo.father_name|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>F. Mobile</strong><span>{{personalinfo.father_mobile|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>Mother</strong><span>{{personalinfo.mother_name|default:"-" }}</span></div>
-                        <div class="detail-item"><strong>M. Mobile</strong><span>{{personalinfo.mother_mobile|default:"-" }}</span></div>
-                    </div>
-                </div>
-
-                <!-- RAC Members -->
-                <div class="card">
-                    <h2 class="card-title">🤝 RAC Members</h2>
-                    {% if rac_members %}
-                        <div class="details-grid">
-                        {% for member in rac_members %}
-                            <div class="detail-item" style="grid-column: 1 / -1; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px; margin-bottom: 8px;">
-                                <strong style="color: var(--primary-color);">{{ member.get_member_type_display }}</strong>
-                                <span>
-                                    {% if member.member_type == 'Internal' %}
-                                        {{ member.staff.name }} ({{ member.staff.department }})
-                                    {% else %}
-                                        {{ member.external_name }} - {{ member.external_designation }} ({{ member.external_department }})
-                                    {% endif %}
-                                </span>
+                        
+                        {% if ug %}
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                            <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">UG Details</h4>
+                            <div class="details-grid">
+                                <div class="detail-item"><strong>Course</strong><span>{{ ug.ug_course|default:"-" }}</span></div>
+                                <div class="detail-item"><strong>University</strong><span>{{ ug.ug_university|default:"-" }}</span></div>
+                                <div class="detail-item"><strong>Year</strong><span>{{ ug.ug_year_of_passing|default:"-" }}</span></div>
                             </div>
-                        {% endfor %}
                         </div>
-                    {% else %}
-                        <p style="color: var(--text-muted); font-size: 0.9rem;">No RAC members assigned yet.</p>
-                    {% endif %}
-                </div>
-
-                <!-- Zeroth Review -->
-                <div class="card">
-                    <h2 class="card-title">📝 Zeroth Review</h2>
-                    {% if zeroth_review %}
-                        <div class="details-grid">
-                            <div class="detail-item" style="grid-column: 1 / -1;">
-                                <strong>Tentative Title</strong>
-                                <span style="font-style: italic;">"{{ zeroth_review.tentative_title|default:'Not set' }}"</span>
+                        {% endif %}
+                        
+                        {% if pg %}
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                            <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9em; text-transform: uppercase;">PG Details</h4>
+                            <div class="details-grid">
+                                <div class="detail-item"><strong>Course</strong><span>{{ pg.pg_course|default:"-" }}</span></div>
+                                <div class="detail-item"><strong>University</strong><span>{{ pg.pg_university|default:"-" }}</span></div>
+                                <div class="detail-item"><strong>Year</strong><span>{{ pg.pg_year_of_passing|default:"-" }}</span></div>
                             </div>
-                            <div class="detail-item"><strong>RCW001</strong><span>{{ zeroth_review.rcw001_subject|default:'-' }}</span></div>
-                            <div class="detail-item"><strong>RCW002</strong><span>{{ zeroth_review.rcw002_subject|default:'-' }}</span></div>
-                            <div class="detail-item"><strong>RCW003</strong><span>{{ zeroth_review.rcw003_subject|default:'-' }}</span></div>
-                            <div class="detail-item"><strong>RCW004</strong><span>{{ zeroth_review.rcw004_subject|default:'-' }}</span></div>
                         </div>
-                        <div style="margin-top: 15px; display: flex; gap: 10px;">
-                            {% if zeroth_review.exam1_marksheet %}
-                                <a href="{{ zeroth_review.exam1_marksheet.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; font-size: 0.75rem;">📄 RCW 1/2 Marksheet</a>
-                            {% endif %}
-                            {% if zeroth_review.exam2_marksheet %}
-                                <a href="{{ zeroth_review.exam2_marksheet.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; font-size: 0.75rem;">📄 RCW 3/4 Marksheet</a>
-                            {% endif %}
+                        {% endif %}
+                    </div>
+                </details>
+
+                <!-- Parent Info Collapsible -->
+                <details class="card collapsible-card">
+                    <summary>
+                        <span>👨‍👩‍👦 Parent Details</span>
+                        <span class="chevron-icon">▼</span>
+                    </summary>
+                    <div class="collapsible-content">
+                        <div class="details-grid">
+                            <div class="detail-item"><strong>Father</strong><span>{{personalinfo.father_name|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>F. Mobile</strong><span>{{personalinfo.father_mobile|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>Mother</strong><span>{{personalinfo.mother_name|default:"-" }}</span></div>
+                            <div class="detail-item"><strong>M. Mobile</strong><span>{{personalinfo.mother_mobile|default:"-" }}</span></div>
                         </div>
-                    {% else %}
-                        <p style="color: var(--text-muted); font-size: 0.9rem;">Zeroth review details not available.</p>
-                    {% endif %}
-                </div>
+                    </div>
+                </details>
+
+                <!-- RAC Members Collapsible -->
+                <details class="card collapsible-card">
+                    <summary>
+                        <span>🤝 RAC Members</span>
+                        <span class="chevron-icon">▼</span>
+                    </summary>
+                    <div class="collapsible-content">
+                        {% if rac_members %}
+                            <div class="details-grid">
+                            {% for member in rac_members %}
+                                <div class="detail-item" style="grid-column: 1 / -1; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px; margin-bottom: 8px;">
+                                    <strong style="color: var(--primary-color);">{{ member.get_member_type_display }}</strong>
+                                    <span>
+                                        {% if member.member_type == 'Internal' %}
+                                            {{ member.staff.name }} ({{ member.staff.department }})
+                                        {% else %}
+                                            {{ member.external_name }} - {{ member.external_designation }} ({{ member.external_department }})
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">No RAC members assigned yet.</p>
+                        {% endif %}
+                    </div>
+                </details>
+
+                <!-- Zeroth Review Collapsible -->
+                <details class="card collapsible-card">
+                    <summary>
+                        <span>📝 Zeroth Review & Coursework</span>
+                        <span class="chevron-icon">▼</span>
+                    </summary>
+                    <div class="collapsible-content">
+                        {% if zeroth_review %}
+                            <div class="details-grid">
+                                <div class="detail-item" style="grid-column: 1 / -1;">
+                                    <strong>Tentative Title</strong>
+                                    <span style="font-style: italic;">"{{ zeroth_review.tentative_title|default:'Not set' }}"</span>
+                                </div>
+                                <div class="detail-item"><strong>RCW001</strong><span>{{ zeroth_review.rcw001_subject|default:'-' }}</span></div>
+                                <div class="detail-item"><strong>RCW002</strong><span>{{ zeroth_review.rcw002_subject|default:'-' }}</span></div>
+                                <div class="detail-item"><strong>RCW003</strong><span>{{ zeroth_review.rcw003_subject|default:'-' }}</span></div>
+                                <div class="detail-item"><strong>RCW004</strong><span>{{ zeroth_review.rcw004_subject|default:'-' }}</span></div>
+                            </div>
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                {% if zeroth_review.exam1_marksheet %}
+                                    <a href="{{ zeroth_review.exam1_marksheet.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; font-size: 0.75rem;">📄 RCW 1/2 Marksheet</a>
+                                {% endif %}
+                                {% if zeroth_review.exam2_marksheet %}
+                                    <a href="{{ zeroth_review.exam2_marksheet.url }}" target="_blank" class="action-btn" style="text-decoration: none; background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; font-size: 0.75rem;">📄 RCW 3/4 Marksheet</a>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Zeroth review details not available.</p>
+                        {% endif %}
+                    </div>
+                </details>
 
                 <!-- PhD Progress Stage Tracker -->
                 <div class="card" style="grid-column: 1 / -1;">
