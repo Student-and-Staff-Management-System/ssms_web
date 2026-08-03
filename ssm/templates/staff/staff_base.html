@@ -246,16 +246,16 @@
                 
                 {% if staff.role != 'Office Staff' %}
                 <div class="nav-group" data-group-id="substitutions">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Substitutions">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Alternates">
                         <div class="nav-group-header-left">
                             <span class="nav-icon">🔄</span>
-                            <span class="nav-text">Substitutions</span>
+                            <span class="nav-text">Alternates</span>
                         </div>
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content">
-                        <a href="{% url 'staffs:manage_substitutions' %}" class="nav-item" data-tooltip="Request Substitution">
-                            <span class="nav-icon">➕</span> <span class="nav-text">Request Substitution</span>
+                        <a href="{% url 'staffs:manage_substitutions' %}" class="nav-item" data-tooltip="Request Alternate">
+                            <span class="nav-icon">➕</span> <span class="nav-text">Request Alternate</span>
                         </a>
                         <a href="{% url 'staffs:incoming_substitutions' %}" class="nav-item" data-tooltip="Incoming Requests">
                             <span class="nav-icon">📥</span> <span class="nav-text">Incoming Requests</span>

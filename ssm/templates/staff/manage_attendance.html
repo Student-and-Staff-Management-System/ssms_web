@@ -5,688 +5,664 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance | {{ subject.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+    <title>Attendance Console | {{ subject.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    
     <style>
         :root {
-            --primary-color: #5a7d7c;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #2c3e50;
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --primary-light: #eef2f2;
+            --bg-body: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --success-light: #dcfce7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --accent-gold: #f59e0b;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 3px rgba(15,23,42,0.04);
+            --shadow-md: 0 4px 14px rgba(15,23,42,0.06);
+            --shadow-lg: 0 10px 25px rgba(15,23,42,0.08);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: var(--bg-color);
+            background: var(--bg-body);
             color: var(--text-main);
-            margin: 0;
+            min-height: 100vh;
             padding: 20px;
         }
 
-        /* Container & Layout */
         .container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
-
-        .header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            margin: 0;
-            color: var(--primary-color);
-            font-size: 1.5rem;
-        }
-
-        .btn-back {
-            text-decoration: none;
-            color: white;
-            background: var(--primary-color);
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            display: inline-block;
-        }
-
-        .btn-back:hover {
-            opacity: 0.9;
-        }
-
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            flex-direction: column;
             gap: 20px;
         }
 
-        /* Calendar Section */
+        /* ─── HEADER BAR ─── */
+        .att-header {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .att-header-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .att-header-icon {
+            width: 46px; height: 46px;
+            background: var(--primary-light);
+            border: 1px solid rgba(90, 125, 124, 0.2);
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .att-title-group h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .att-sub-tags {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tag-pill {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .tag-code {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: 1px solid rgba(90,125,124,0.2);
+        }
+
+        .tag-sem {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .att-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-report {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: 1px solid rgba(90,125,124,0.25);
+        }
+        .btn-report:hover {
+            background: var(--primary);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .btn-dashboard {
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-dashboard:hover {
+            background: var(--text-main);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* ─── MESSAGES ─── */
+        .messages {
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.88rem;
+            font-weight: 600;
+            animation: fadeIn 0.3s ease;
+        }
+        .messages.success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .messages.error { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── MAIN DUAL LAYOUT ─── */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* ─── LEFT: CALENDAR PANEL ─── */
         .calendar-section {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            box-shadow: var(--shadow-sm);
         }
 
         .calendar-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            margin-bottom: 14px;
         }
 
         .calendar-header h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
             margin: 0;
-            color: var(--primary-color);
         }
 
         .nav-arrow {
-            text-decoration: none;
-            background: #eee;
-            color: #333;
-            width: 30px;
-            height: 30px;
+            width: 32px; height: 32px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none;
             font-weight: bold;
+            font-size: 0.9rem;
+            transition: var(--transition);
         }
-
         .nav-arrow:hover {
-            background: #ddd;
+            background: var(--primary);
+            color: #ffffff;
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
+            gap: 5px;
         }
 
         .weekday {
             text-align: center;
-            font-weight: 600;
-            color: #7f8c8d;
-            padding-bottom: 5px;
-            font-size: 0.85rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-bottom: 6px;
         }
 
         .day-cell {
-            border: 1px solid #eee;
-            border-radius: 6px;
-            min-height: 80px;
-            background: #fff;
-            padding: 5px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            height: 58px;
+            background: var(--surface);
+            padding: 4px 5px;
             text-decoration: none;
             color: inherit;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .day-cell:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            border-color: var(--primary-color);
-        }
-
-        .day-cell.selected {
-            border: 2px solid var(--primary-color);
-            background: #eef2f2;
-        }
-
-        .day-cell.today {
-            background: #fffbeb;
-        }
-
-        .day-cell.other-month {
-            opacity: 0.4;
-            background: #f9f9f9;
-        }
-
-        .day-num {
-            font-weight: 600;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        /* Status Colors */
-        .day-cell.recorded {
-            border-left: 4px solid #2ecc71;
-        }
-
-        .day-cell.pending {
-            border-left: 4px solid #f39c12;
-        }
-
-        .day-cell.future {
-            border-left: 4px solid #bdc3c7;
-        }
-
-        .day-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .class-badge {
-            background: #eef2f3;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-size: 0.7rem;
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-        }
-
-        .day-cell.recorded .class-badge {
-            background: #e8f8f5;
-            color: #0b5345;
-        }
-
-        .day-cell.pending .class-badge {
-            background: #fef9e7;
-            color: #7d6608;
-        }
-
-        .time {
-            font-size: 0.65rem;
-            color: #666;
-        }
-
-        .period-num {
-            font-weight: 600;
-        }
-
-        .legend {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-            font-size: 0.85rem;
-            justify-content: flex-end;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: block;
-        }
-
-        .dot.recorded {
-            background: #2ecc71;
-        }
-
-        .dot.pending {
-            background: #f39c12;
-        }
-
-        .dot.future {
-            background: #bdc3c7;
-        }
-
-        /* Form Section */
-        .form-section {
-            background: #fff;
-        }
-
-        .selected-date-header {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        /* Student Grid Styles */
-        .student-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 8px;
-            margin-top: 10px;
-            max-height: 600px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .student-card {
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
+            transition: var(--transition);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            background: #fff;
-            min-height: 60px;
             position: relative;
             overflow: hidden;
         }
 
-        .student-card:hover {
+        .day-cell:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
         }
 
-        /* Present State */
-        .student-card.present {
-            background-color: #f0fdf4;
-            border-color: #22c55e;
-            border-left-width: 5px;
+        .day-cell.other-month { opacity: 0.35; }
+        
+        .day-cell.selected {
+            border: 2px solid var(--primary);
+            background: var(--primary-light);
         }
 
-        .student-card.present .st-text {
+        .day-cell.today {
+            border-color: var(--accent-gold);
+            background: #fffdf5;
+        }
+
+        .day-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .day-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            align-content: flex-start;
+            overflow: hidden;
+        }
+
+        .class-badge {
+            font-size: 0.55rem;
+            font-weight: 800;
+            background: var(--primary-light, #eef2f2);
+            color: var(--primary-dark, #4a6b69);
+            border: 1px solid rgba(90, 125, 124, 0.2);
+            padding: 1px 3.5px;
+            border-radius: 3px;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 600; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot.recorded { background: var(--success); }
+        .dot.pending { background: var(--accent-gold); }
+        .dot.future { background: var(--border); }
+
+
+        /* ─── RIGHT: ATTENDANCE RECORDING CONSOLE ─── */
+        .form-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .session-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .session-date-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .session-date-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        /* Bulk Action Buttons */
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .btn-bulk {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 9px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .btn-bulk-present {
             color: #15803d;
-            font-weight: bold;
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+        }
+        .btn-bulk-present:hover {
+            background: #10b981;
+            color: #ffffff;
+            border-color: #10b981;
+            transform: translateY(-1px);
         }
 
-        /* Absent State */
-        .student-card.absent {
-            background-color: #fef2f2;
-            border-color: #ef4444;
-            border-left-width: 5px;
-        }
-
-        .student-card.absent .st-text {
+        .btn-bulk-absent {
             color: #b91c1c;
-            font-weight: bold;
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+        .btn-bulk-absent:hover {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+            transform: translateY(-1px);
         }
 
-        .card-info {
+        /* Live Progress Bar & Stats Counter */
+        .stats-container {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            margin-bottom: 16px;
+        }
+
+        .stats-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .stat-present { color: #15803d; }
+        .stat-absent { color: #b91c1c; }
+        .stat-ratio { color: var(--text-muted); }
+
+        .progress-track {
+            height: 6px;
+            background: #fee2e2;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 99px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ─── STUDENT INTERACTIVE GRID ─── */
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* Custom Scrollbar */
+        .student-grid::-webkit-scrollbar { width: 5px; }
+        .student-grid::-webkit-scrollbar-track { background: var(--bg-body); }
+        .student-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* Student Card Tile */
+        .student-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
             display: flex;
             flex-direction: column;
-            gap: 2px;
-            overflow: hidden;
+            justify-content: space-between;
+            min-height: 72px;
+            position: relative;
+            user-select: none;
+        }
+
+        .student-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(90, 125, 124, 0.4);
+        }
+
+        .student-card:active {
+            transform: scale(0.96);
+        }
+
+        .card-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
         }
 
         .st-name {
-            font-weight: 600;
             font-size: 0.8rem;
-            line-height: 1.2;
+            font-weight: 700;
+            color: var(--text-main);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100%;
+            line-height: 1.2;
         }
 
         .st-roll {
-            font-size: 0.75rem;
-            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 2px;
         }
 
-        .status-indicator {
-            margin-top: 5px;
-            font-size: 0.75rem;
-            text-align: right;
+        .status-badge {
+            font-size: 0.64rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 12px;
+            align-self: flex-start;
+            margin-top: 6px;
+            transition: var(--transition);
         }
 
-        .status-radio {
+        /* Card Present State */
+        .student-card.present {
+            background: linear-gradient(135deg, rgba(220, 252, 231, 0.6), rgba(240, 253, 244, 0.9));
+            border-color: #10b981;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.12);
+        }
+        .student-card.present .status-badge {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        /* Card Absent State */
+        .student-card.absent {
+            background: linear-gradient(135deg, rgba(254, 226, 226, 0.6), rgba(255, 241, 241, 0.9));
+            border-color: #ef4444;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.12);
+        }
+        .student-card.absent .status-badge {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        /* Unmarked State */
+        .student-card.unmarked .status-badge {
+            background: var(--surface-hover);
+            color: var(--text-muted);
+        }
+
+        /* ─── BOTTOM SAVE TOOLBAR ─── */
+        .save-toolbar {
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
             display: flex;
-            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
         }
 
-        /* Buttons & Utility */
-        .btn-save {
-            background: var(--primary-color);
-            color: white;
+        .time-inputs-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-body);
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .extra-class-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        .time-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .time-picker {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            background: var(--surface);
+        }
+
+        .btn-save-att {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #ffffff;
+            padding: 10px 22px;
+            border-radius: var(--radius-sm);
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
             cursor: pointer;
-            font-size: 1rem;
-            margin-top: 20px;
+            box-shadow: 0 4px 14px rgba(90, 125, 124, 0.3);
+            transition: var(--transition);
+        }
+        .btn-save-att:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(90, 125, 124, 0.4);
         }
 
-        .btn-save:hover {
-            opacity: 0.9;
-        }
-
-        .messages {
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 6px;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .btn-outline:hover {
-            background: #eef2f2;
-        }
-
-        /* ========== MOBILE OPTIMIZATIONS ========== */
-        @media (max-width: 900px) {
+        /* ─── MOBILE RESPONSIVE DESIGN ─── */
+        @media (max-width: 1024px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
+            .calendar-section {
+                order: 2;
+            }
+            .form-section {
+                order: 1;
+            }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             body {
-                padding: 8px;
+                padding: 10px;
             }
-
-            .container {
-                padding: 12px;
-                border-radius: 8px;
+            .att-header {
+                padding: 14px;
             }
-
-            /* Header Mobile */
-            .header {
+            .student-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                max-height: 400px;
+            }
+            .student-card {
+                padding: 8px 10px;
+                min-height: 66px;
+            }
+            .save-toolbar {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 12px;
-                margin-bottom: 15px;
             }
-
-            h1 {
-                font-size: 1.25rem;
-            }
-
-            .header p {
-                font-size: 0.85rem;
-                margin: 3px 0 0 !important;
-            }
-
-            .header>div:last-child {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-
-            .btn-back {
-                padding: 8px 12px;
-                font-size: 0.85rem;
-                text-align: center;
-                flex: 1;
-                min-width: 120px;
-            }
-
-            /* Calendar Mobile */
-            .calendar-section {
-                padding: 12px;
-            }
-
-            .calendar-header h2 {
-                font-size: 1.1rem;
-            }
-
-            .calendar-grid {
-                gap: 2px;
-            }
-
-            .weekday {
-                font-size: 0.7rem;
-                padding-bottom: 3px;
-            }
-
-            .day-cell {
-                min-height: 55px;
-                padding: 3px;
-                border-radius: 4px;
-            }
-
-            .day-num {
-                font-size: 0.75rem;
-                margin-bottom: 2px;
-            }
-
-            .class-badge {
-                padding: 1px 2px;
-                font-size: 0.6rem;
-            }
-
-            .time {
-                font-size: 0.55rem;
-            }
-
-            .legend {
-                flex-wrap: wrap;
-                gap: 10px;
-                font-size: 0.75rem;
-                justify-content: center;
-                margin-top: 10px;
-            }
-
-            .dot {
-                width: 8px;
-                height: 8px;
-            }
-
-            /* Form Section Mobile */
-            .form-section {
-                padding: 12px;
-                background: #fff;
-                border-radius: 8px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            }
-
-            .selected-date-header h3 {
-                font-size: 1rem;
-                margin: 0;
-            }
-
-            /* Action Buttons Mobile */
-            .form-section>form>div:first-of-type {
-                flex-direction: column !important;
-                gap: 8px !important;
-            }
-
-            .form-section button[onclick^="markAll"] {
+            .btn-save-att {
                 width: 100%;
-                padding: 10px;
-                font-size: 0.9rem;
-                border-radius: 6px;
-                border: 1px solid #ddd;
-                background: white;
-                cursor: pointer;
-                font-weight: 500;
+                justify-content: center;
+                padding: 12px;
             }
-
-            /* Student Grid Mobile */
-            .student-grid {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-                gap: 6px;
-                max-height: none;
-                padding-right: 0;
-            }
-
-            .student-card {
-                min-height: 70px;
-                padding: 6px;
-                border-radius: 5px;
-            }
-
-            .st-name {
-                font-size: 0.75rem;
-            }
-
-            .st-roll {
-                font-size: 0.7rem;
-            }
-
-            .status-indicator {
-                font-size: 0.7rem;
-                margin-top: 3px;
-            }
-
-            /* Stats Mobile */
-            .form-section>form>div:nth-last-child(2) {
-                font-size: 0.85rem !important;
-                padding: 10px;
-                background: #f8fafc;
-                border-radius: 6px;
-                margin-top: 12px !important;
-            }
-
-            /* Extra Class Section Mobile */
-            .form-section>form>div:last-child>div {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 12px !important;
-            }
-
-            #time_input_container {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 10px !important;
-                padding: 10px !important;
-            }
-
-            #time_input_container>div {
+            .time-inputs-wrap {
                 width: 100%;
                 justify-content: space-between;
-            }
-
-            #time_input_container input[type="time"] {
-                flex: 1;
-                min-width: 0;
-            }
-
-            .btn-save {
-                width: 100%;
-                padding: 12px;
-                font-size: 1rem;
-                margin-top: 0 !important;
-            }
-
-            /* Messages Mobile */
-            .messages {
-                font-size: 0.85rem;
-                padding: 10px;
-                margin-bottom: 12px;
-            }
-        }
-
-        /* Extra Small Mobile (< 400px) */
-        @media (max-width: 400px) {
-            body {
-                padding: 5px;
-            }
-
-            .container {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 1.1rem;
-            }
-
-            .student-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                gap: 5px;
-            }
-
-            .student-card {
-                min-height: 65px;
-                padding: 5px;
-            }
-
-            .st-name {
-                font-size: 0.7rem;
-            }
-
-            .st-roll {
-                font-size: 0.65rem;
-            }
-
-            .day-cell {
-                min-height: 45px;
-                padding: 2px;
-            }
-
-            .day-num {
-                font-size: 0.7rem;
-            }
-
-            .class-badge {
-                font-size: 0.55rem;
-            }
-        }
-
-        /* Landscape Mobile */
-        @media (max-width: 900px) and (orientation: landscape) {
-            .student-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                max-height: 300px;
-                overflow-y: auto;
-            }
-
-            .calendar-grid {
-                gap: 3px;
-            }
-
-            .day-cell {
-                min-height: 50px;
-            }
-        }
-
-        /* Touch Improvements */
-        @media (hover: none) and (pointer: coarse) {
-            .student-card:active {
-                transform: scale(0.98);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-            }
-
-            .day-cell:active {
-                transform: scale(0.98);
-            }
-
-            .btn-back:active,
-            .btn-save:active,
-            button:active {
-                transform: scale(0.97);
-            }
-
-            .nav-arrow:active {
-                background: #ccc;
-            }
-
-            /* Larger tap targets */
-            .student-card {
-                min-height: 75px;
-            }
-
-            .nav-arrow {
-                width: 36px;
-                height: 36px;
-            }
-
-            button[onclick^="markAll"] {
-                min-height: 44px;
             }
         }
     </style>
@@ -694,15 +670,22 @@
 
 <body>
     <div class="container">
-        <div class="header">
-            <div>
-                <h1>Manage Attendance</h1>
-                <p style="margin: 5px 0 0; color: #7f8c8d;">{{ subject.name }} ({{ subject.code }})</p>
+        <!-- ─── HEADER BAR ─── -->
+        <div class="att-header">
+            <div class="att-header-info">
+                <div class="att-header-icon">📋</div>
+                <div class="att-title-group">
+                    <h1>Manage Attendance</h1>
+                    <div class="att-sub-tags">
+                        <span class="tag-pill tag-code">{{ subject.name }} ({{ subject.code }})</span>
+                        <span class="tag-pill tag-sem">Semester {{ subject.semester }}</span>
+                    </div>
+                </div>
             </div>
-            <div>
-                <a href="{% url 'staffs:attendance_report' subject.id %}" class="btn-back"
-                    style="margin-right: 10px; background: #3498db;">View Report</a>
-                <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">Back to Dashboard</a>
+
+            <div class="att-header-actions">
+                <a href="{% url 'staffs:attendance_report' subject.id %}" class="btn-action btn-report">View Report 📊</a>
+                <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-dashboard">Dashboard ↩</a>
             </div>
         </div>
 
@@ -712,8 +695,10 @@
         {% endfor %}
         {% endif %}
 
+        <!-- ─── DUAL LAYOUT ─── -->
         <div class="main-layout">
-            <!-- LEFT: CALENDAR -->
+            
+            <!-- LEFT: CALENDAR PANEL -->
             <div class="calendar-section">
                 <div class="calendar-header">
                     <a href="{{ prev_month_url }}" class="nav-arrow">&lt;</a>
@@ -739,8 +724,7 @@
                             {% if day.classes %}
                             {% for cls in day.classes %}
                             <div class="class-badge">
-                                <span class="period-num">P{{ cls.period }}</span>
-                                <span class="time">{{ cls.time }}</span>
+                                <span>P{{ cls.period }}</span>
                             </div>
                             {% endfor %}
                             {% endif %}
@@ -757,34 +741,48 @@
                 </div>
             </div>
 
-            <!-- RIGHT: RECORDING FORM -->
+            <!-- RIGHT: RECORDING CONSOLE -->
             <div class="form-section">
-                <div class="selected-date-header">
-                    <h3>Recording for {{ current_date }}</h3>
+                <div class="session-banner">
+                    <div class="session-date-info">
+                        <span style="font-size: 1.1rem;">📅</span>
+                        <h3 class="session-date-title">Recording for {{ current_date }}</h3>
+                    </div>
                 </div>
 
                 <form method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="attendance_date" value="{{ current_date }}">
 
-                    <!-- ACTIONS BAR -->
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <button type="button" class="btn-outline" onclick="markAll('Present')">✅ All Present</button>
-                        <button type="button" class="btn-outline" style="border-color: #ef4444; color: #ef4444;"
-                            onclick="markAll('Absent')">❌ All Absent</button>
+                    <!-- BULK ACTIONS BAR -->
+                    <div class="bulk-actions">
+                        <button type="button" class="btn-bulk btn-bulk-present" onclick="markAll('Present')">✅ Mark All Present</button>
+                        <button type="button" class="btn-bulk btn-bulk-absent" onclick="markAll('Absent')">❌ Mark All Absent</button>
                     </div>
 
-                    <!-- STUDENT GRID -->
+                    <!-- LIVE PROGRESS TRACKER -->
+                    <div class="stats-container">
+                        <div class="stats-info">
+                            <span class="stat-present" id="present-count">Present: 0</span>
+                            <span class="stat-absent" id="absent-count">Absent: 0</span>
+                            <span class="stat-ratio" id="ratio-count">0 / {{ students|length }} (0%)</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <!-- STUDENT INTERACTIVE GRID -->
                     <div class="student-grid">
                         {% for student in students %}
                         {% with status=attendance_map|get_item:student.roll_number|default:'' %}
-                        <div class="student-card {% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% endif %}"
-                            id="card_{{ student.roll_number }}" onclick="toggleAttendance('{{ student.roll_number }}')">
+                        <div class="student-card {% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% else %}unmarked{% endif %}"
+                             id="card_{{ student.roll_number }}" 
+                             onclick="toggleAttendance('{{ student.roll_number }}')">
 
-                            <div class="card-info">
-                                <span class="st-name">{{ student.student_name }}</span>
-                                <span class="st-roll">{{ student.roll_number }}</span>
+                            <div>
+                                <div class="st-name">{{ student.student_name }}</div>
+                                <div class="st-roll">{{ student.roll_number }}</div>
                             </div>
 
                             <!-- Hidden Inputs -->
@@ -795,55 +793,39 @@
                                 id="radio_absent_{{ student.roll_number }}" {% if status == 'Absent' %}checked{% endif%}
                                 style="display:none;">
 
-                            <div class="status-indicator">
-                                <span class="st-text">{% if status == 'Present' %}Present{% elif status == 'Absent'
-                                    %}Absent{% else %}-{% endif %}</span>
+                            <div class="status-badge" id="badge_{{ student.roll_number }}">
+                                {% if status == 'Present' %}✅ Present{% elif status == 'Absent' %}❌ Absent{% else %}⚪ Unmarked{% endif %}
                             </div>
                         </div>
                         {% endwith %}
                         {% endfor %}
                     </div>
 
-                    <!-- SUMMARY -->
-                    <div
-                        style="margin-top: 15px; display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 500; color: #555;">
-                        <span id="present-count" style="color: #15803d;">Present: 0</span>
-                        <span id="absent-count" style="color: #b91c1c;">Absent: 0</span>
-                    </div>
-
+                    <!-- BOTTOM TOOLBAR -->
                     {% if not is_readonly %}
-                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                        <div
-                            style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: flex-end;">
-
-                            <!-- Extra Class Option -->
-                            <label
-                                style="cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--text-main);">
-                                <input type="checkbox" name="is_extra_class" value="true" id="extra_class_check"
-                                    onchange="toggleTimeInput()">
+                    <div class="save-toolbar">
+                        <div class="time-inputs-wrap">
+                            <label class="extra-class-label">
+                                <input type="checkbox" name="is_extra_class" value="true" id="extra_class_check" onchange="toggleTimeInput()">
                                 <span>Extra / Special Class</span>
                             </label>
 
-                            <!-- Time Inputs -->
-                            <div id="time_input_container"
-                                style="display: flex; align-items: center; gap: 15px; opacity: 0.5; pointer-events: none; transition: all 0.3s; background: #f8fafc; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                                <div style="display: flex; align-items: center; gap: 5px;">
-                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">From:</span>
-                                    <input type="time" name="class_time" class="time-picker"
-                                        style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; color: #334155;">
+                            <div id="time_input_container" style="display: flex; align-items: center; gap: 10px; opacity: 0.5; pointer-events: none; transition: all 0.3s;">
+                                <div class="time-group">
+                                    <span>From:</span>
+                                    <input type="time" name="class_time" value="{{ prefill_time|default:'' }}" class="time-picker">
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 5px;">
-                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">To:</span>
-                                    <input type="time" name="end_time" class="time-picker"
-                                        style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; color: #334155;">
+                                <div class="time-group">
+                                    <span>To:</span>
+                                    <input type="time" name="end_time" value="{{ prefill_end_time|default:'' }}" class="time-picker">
                                 </div>
                             </div>
-
-                            <button type="submit" class="btn-save" style="margin-top: 0;">Save Attendance</button>
                         </div>
+
+                        <button type="submit" class="btn-save-att">Save Attendance 💾</button>
                     </div>
                     {% else %}
-                    <div style="margin-top: 20px; text-align: right; color: var(--danger-color); font-style: italic;">
+                    <div style="margin-top: 15px; text-align: right; color: var(--danger); font-style: italic; font-size: 0.82rem;">
                         * Read-only view (You are not the assigned staff)
                     </div>
                     {% endif %}
@@ -853,46 +835,52 @@
     </div>
 
     <script>
+        const totalStudents = {{ students|length }};
+
         function toggleAttendance(roll) {
             if ("{{ is_readonly }}" === "True") return;
             const card = document.getElementById('card_' + roll);
             const radioPresent = document.getElementById('radio_present_' + roll);
             const radioAbsent = document.getElementById('radio_absent_' + roll);
-            const statusText = card.querySelector('.st-text');
+            const badge = document.getElementById('badge_' + roll);
 
             if (card.classList.contains('present')) {
                 card.classList.remove('present');
                 card.classList.add('absent');
+                radioPresent.checked = false;
                 radioAbsent.checked = true;
-                statusText.innerText = "Absent";
+                badge.innerHTML = '❌ Absent';
             } else {
-                card.classList.remove('absent');
+                card.classList.remove('absent', 'unmarked');
                 card.classList.add('present');
                 radioPresent.checked = true;
-                statusText.innerText = "Present";
+                radioAbsent.checked = false;
+                badge.innerHTML = '✅ Present';
             }
+
             updateStats();
         }
 
         function markAll(status) {
             if ("{{ is_readonly }}" === "True") return;
-            const students = document.querySelectorAll('.student-card');
-            students.forEach(card => {
+            const cards = document.querySelectorAll('.student-card');
+            cards.forEach(card => {
                 const roll = card.id.replace('card_', '');
                 const radioPresent = document.getElementById('radio_present_' + roll);
                 const radioAbsent = document.getElementById('radio_absent_' + roll);
-                const statusText = card.querySelector('.st-text');
+                const badge = document.getElementById('badge_' + roll);
 
+                card.classList.remove('present', 'absent', 'unmarked');
                 if (status === 'Present') {
-                    card.classList.remove('absent');
                     card.classList.add('present');
                     radioPresent.checked = true;
-                    statusText.innerText = "Present";
+                    radioAbsent.checked = false;
+                    badge.innerHTML = '✅ Present';
                 } else {
-                    card.classList.remove('present');
                     card.classList.add('absent');
+                    radioPresent.checked = false;
                     radioAbsent.checked = true;
-                    statusText.innerText = "Absent";
+                    badge.innerHTML = '❌ Absent';
                 }
             });
             updateStats();
@@ -901,8 +889,17 @@
         function updateStats() {
             const present = document.querySelectorAll('input[value="Present"]:checked').length;
             const absent = document.querySelectorAll('input[value="Absent"]:checked').length;
+            
             document.getElementById('present-count').innerText = "Present: " + present;
             document.getElementById('absent-count').innerText = "Absent: " + absent;
+            
+            const pct = totalStudents > 0 ? Math.round((present / totalStudents) * 100) : 0;
+            document.getElementById('ratio-count').innerText = present + " / " + totalStudents + " (" + pct + "%)";
+            
+            const progressBar = document.getElementById('progress-bar');
+            if (progressBar) {
+                progressBar.style.width = pct + "%";
+            }
         }
 
         function toggleTimeInput() {
@@ -919,9 +916,16 @@
             }
         }
 
-        // Initial Calculation
+        // On Load
         document.addEventListener('DOMContentLoaded', () => {
             updateStats();
+            if ("{{ prefill_time }}" !== "") {
+                const container = document.getElementById('time_input_container');
+                if (container) {
+                    container.style.opacity = '1';
+                    container.style.pointerEvents = 'auto';
+                }
+            }
         });
     </script>
 </body>

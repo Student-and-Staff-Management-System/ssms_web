@@ -1,9 +1,9 @@
 {% extends 'staff/staff_base.html' %}
 {% load static %}
 
-{% block title %}Manage Substitutions | {{ staff.name }}{% endblock %}
+{% block title %}Manage Alternates | {{ staff.name }}{% endblock %}
 
-{% block page_title %}Manage Substitutions{% endblock %}
+{% block page_title %}Manage Alternates{% endblock %}
 
 {% block extra_css %}
     <style>
@@ -163,8 +163,8 @@
 <div class="container">
         <div class="page-header">
             <div>
-                <h1>🔄 Manage Substitutions</h1>
-                <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Request colleagues to substitute your classes</div>
+                <h1>🔄 Manage Alternates</h1>
+                <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Request colleagues to handle alternate classes</div>
             </div>
             <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
         </div>
@@ -197,7 +197,7 @@
                         <tr>
                             <th>Period</th>
                             <th>Subject</th>
-                            <th>Substitute Status</th>
+                            <th>Alternate Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -211,19 +211,19 @@
                             </td>
                             <td>
                                 {% if data.request %}
-                                    <div style="margin-bottom: 5px;">{{ data.request.substitute.name }}</div>
+                                    <div style="margin-bottom: 5px;">{{ data.request.alternate.name }}</div>
                                     <span class="badge badge-{{ data.request.status|lower }}">{{ data.request.status }}</span>
                                     {% if data.request.status == 'Rejected' %}
                                         <div style="font-size:0.8rem; color:var(--danger); margin-top:4px;">Reason: {{ data.request.rejection_reason }}</div>
                                     {% endif %}
                                 {% else %}
-                                    <span style="color:var(--muted)">No substitute requested</span>
+                                    <span style="color:var(--muted)">No alternate requested</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if data.request %}
                                     {% if data.request.status == 'Pending' or data.request.status == 'Rejected' %}
-                                    <form method="POST" onsubmit="return confirm('Cancel this substitution request?');">
+                                    <form method="POST" onsubmit="return confirm('Cancel this alternate request?');">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="cancel_request">
                                         <input type="hidden" name="request_id" value="{{ data.request.id }}">
@@ -235,10 +235,10 @@
                                 {% else %}
                                     <form method="POST" style="display: flex; gap: 8px;">
                                         {% csrf_token %}
-                                        <input type="hidden" name="action" value="request_substitute">
+                                        <input type="hidden" name="action" value="request_alternate">
                                         <input type="hidden" name="period" value="{{ data.period }}">
                                         <input type="hidden" name="subject_id" value="{{ data.subject.id }}">
-                                        <select name="substitute_id" class="form-control" style="padding: 6px; font-size: 0.85rem; width: 150px;" required>
+                                        <select name="alternate_id" class="form-control" style="padding: 6px; font-size: 0.85rem; width: 150px;" required>
                                             <option value="">Select Staff...</option>
                                             {% for s in other_staff %}
                                             <option value="{{ s.staff_id }}">{{ s.name }}</option>

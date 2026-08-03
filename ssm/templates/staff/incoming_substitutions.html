@@ -1,9 +1,9 @@
 {% extends 'staff/staff_base.html' %}
 {% load static %}
 
-{% block title %}Incoming Substitutions | {{ staff.name }}{% endblock %}
+{% block title %}Incoming Alternates | {{ staff.name }}{% endblock %}
 
-{% block page_title %}Incoming Substitutions{% endblock %}
+{% block page_title %}Incoming Alternates{% endblock %}
 
 {% block extra_css %}
     <style>
@@ -143,7 +143,7 @@
 <div class="container">
         <div class="page-header">
             <div>
-                <h1>📥 Incoming Substitutions</h1>
+                <h1>📥 Incoming Alternates</h1>
                 <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Classes assigned to you by colleagues</div>
             </div>
             <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
@@ -163,7 +163,7 @@
             {% for req in incoming_requests %}
             <div class="req-card" style="border-left-color: #f39c12;">
                 <div class="req-header">
-                    <div class="req-title">{{ req.requester.name }} requested a substitute</div>
+                    <div class="req-title">{{ req.requester.name }} requested an alternate</div>
                     <div class="req-date">🗓️ {{ req.date|date:"l, M d, Y" }}</div>
                 </div>
                 
@@ -203,7 +203,7 @@
         {% else %}
             <div style="text-align: center; padding: 40px; background: white; border-radius: var(--radius); color: var(--muted); margin-bottom: 30px;">
                 <div style="font-size: 2rem; margin-bottom: 10px;">☕</div>
-                <p>You have no pending substitution requests.</p>
+                <p>You have no pending alternate requests.</p>
             </div>
         {% endif %}
 

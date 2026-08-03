@@ -1,9 +1,9 @@
 {% extends 'staff/staff_base.html' %}
 {% load static %}
 
-{% block title %}Assigned Substitutions | {{ staff.name }}{% endblock %}
+{% block title %}Assigned Alternates | {{ staff.name }}{% endblock %}
 
-{% block page_title %}Assigned Substitutions{% endblock %}
+{% block page_title %}Assigned Alternates{% endblock %}
 
 {% block extra_css %}
     <style>
@@ -156,7 +156,7 @@
 <div class="container">
         <div class="page-header">
             <div>
-                <h1>👩‍🏫 Assigned Substitutions</h1>
+                <h1>👩‍🏫 Assigned Alternates</h1>
                 <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Classes you have agreed to cover</div>
             </div>
             <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
@@ -197,7 +197,7 @@
         <div style="text-align: center; padding: 60px 20px; background: white; border-radius: var(--radius); box-shadow: var(--shadow);">
             <div style="font-size: 3rem; margin-bottom: 15px;">☕</div>
             <h3 style="color: var(--primary); margin-bottom: 8px;">No Assigned Classes</h3>
-            <p style="color: var(--muted);">You haven't been assigned to substitute any classes yet.</p>
+            <p style="color: var(--muted);">You haven't been assigned as an alternate for any classes yet.</p>
         </div>
         {% endif %}
 {% endblock %}

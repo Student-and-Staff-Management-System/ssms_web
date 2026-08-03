@@ -224,24 +224,29 @@ def staff_dashboard(request):
     
     # ── Today's Class Schedule ─────────────────────────────────────────────
     import datetime
+    today_date = timezone.now().strftime('%Y-%m-%d')
     today_weekday = timezone.now().strftime('%A')  # 'Monday', 'Tuesday' etc.
     today_schedule = []
     if today_weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
         today_tt_entries = Timetable.objects.filter(
             staff=staff, day=today_weekday
         ).select_related('subject').order_by('period')
-        # Define period time slots
+        # Define period time slots matching official system timetable
         PERIOD_TIMES = {
-            1: ('09:00', '09:50'),
-            2: ('09:50', '10:40'),
-            3: ('10:50', '11:40'),
-            4: ('11:40', '12:30'),
-            5: ('13:10', '14:00'),
-            6: ('14:00', '14:50'),
-            7: ('14:50', '15:40'),
+            1: ('08:30', '09:30'),
+            2: ('09:30', '10:30'),
+            3: ('10:40', '11:40'),
+            4: ('11:40', '12:40'),
+            5: ('13:30', '14:30'),
+            6: ('14:30', '15:30'),
+            7: ('15:30', '16:30'),
         }
         now_time = timezone.now().time()
+        seen_periods = set()
         for entry in today_tt_entries:
+            if entry.period in seen_periods:
+                continue
+            seen_periods.add(entry.period)
             times = PERIOD_TIMES.get(entry.period, ('--', '--'))
             try:
                 start_t = datetime.time(int(times[0][:2]), int(times[0][3:]))
@@ -258,10 +263,75 @@ def staff_dashboard(request):
                 'period': entry.period,
                 'subject': entry.subject,
                 'batch': entry.batch,
+                'semester': entry.semester,
                 'start': times[0],
                 'end': times[1],
                 'status': status,
             })
+
+    # Dynamic Sarcastic / Emotional Mood Text Generator based on Class Count & Day
+    import random
+    class_count = len(today_schedule)
+    if today_weekday in ['Saturday', 'Sunday']:
+        schedule_mood_text = random.choice([
+            "Weekend vibes! Zero classes, zero stress 🌅",
+            "It's the weekend! Time to recharge 🔋",
+            "No alarm clocks needed today ☕"
+        ])
+    elif class_count == 0:
+        schedule_mood_text = random.choice([
+            "Zero classes today! Time to pretend you're working on research ☕",
+            "No classes today! Your vocal cords send their regards 💃",
+            "Empty schedule! Enjoy the quiet before the storm 🌴",
+            "No teaching today! Catch up on coffee & grading ☕"
+        ])
+    elif class_count == 1:
+        schedule_mood_text = random.choice([
+            "Just 1 class! Barely a warm-up, grab another coffee ☕",
+            "Only 1 hour today! Easy money 🚀",
+            "1 class on duty. Light work, heavy relaxation 🎧",
+            "Just 1 class! Smooth sailing today ⛵"
+        ])
+    elif class_count == 2:
+        schedule_mood_text = random.choice([
+            "2 classes today. Perfectly balanced, as all things should be ⚖️",
+            "2 hours today. Light work, max energy ⚡",
+            "2 classes on deck. A piece of cake 🍰"
+        ])
+    elif class_count == 3:
+        schedule_mood_text = random.choice([
+            "3 classes today. Solid shift! Stay hydrated 💧",
+            "3 hours on duty. Moderate effort, maximum impact 🔥",
+            "3 classes lined up. In the zone today 🎯"
+        ])
+    elif class_count == 4:
+        schedule_mood_text = random.choice([
+            "4 classes today! Throat lozenges required by 3 PM 🗣️",
+            "4 hours of teaching... Stay strong, soldier! 🫡",
+            "4 classes today. Coffee level: Emergency ☕⚡",
+            "4 classes on deck! Deep breath, you got this 💪"
+        ])
+    else:  # 5+ classes
+        if today_weekday == 'Monday':
+            schedule_mood_text = random.choice([
+                "Monday AND 5 classes?! Someone's testing your patience 😭",
+                "5 classes on a Monday?! Heavy marathon day 🏃‍♂️💨",
+                "5 hours straight on Monday... Coffee level: CRITICAL ☕🔥"
+            ])
+        elif today_weekday == 'Friday':
+            schedule_mood_text = random.choice([
+                "5 classes on a Friday?! Absolute cruelty! 😮‍💨",
+                "5 classes today, but weekend is right after! Finish strong 🏁",
+                "5 hours today... Friday boss battle unlocked 🎮"
+            ])
+        else:
+            schedule_mood_text = random.choice([
+                "5 classes?! Who scheduled this marathon?! 🏃‍♂️💨",
+                "5 hours today... May the caffeine be with you 🦸",
+                "5 classes today. Survival mode: ACTIVATED 🚨",
+                "5 hours straight... Press F for your vocal cords 🫡",
+                "5 classes today! Heavy duty shift in progress 🏋️"
+            ])
 
     # ────────────────────────────────────────────────────────────────────────
     return render(request, template_name, {
@@ -296,6 +366,8 @@ def staff_dashboard(request):
         # Today's Schedule
         'today_schedule': today_schedule,
         'today_weekday': today_weekday,
+        'today_date': today_date,
+        'schedule_mood_text': schedule_mood_text,
     })
 
 def get_staff_profile_completion_data(staff):
@@ -1317,12 +1389,17 @@ def manage_attendance(request, subject_id):
     attendance_entries = StudentAttendance.objects.filter(subject=subject, date=date_obj, student__in=students)
     attendance_map = {entry.student.roll_number: entry.status for entry in attendance_entries}
 
+    prefill_time = request.GET.get('time', '')
+    prefill_end_time = request.GET.get('end_time', '')
+
     return render(request, 'staff/manage_attendance.html', {
         'subject': subject,
         'students': students,
         'attendance_map': attendance_map,
         'current_date': formatted_date,
         'is_readonly': is_readonly,
+        'prefill_time': prefill_time,
+        'prefill_end_time': prefill_end_time,
         # Calendar Context
         'calendar_rows': calendar_rows,
         'month_name': calendar.month_name[cal_month],
@@ -2692,14 +2769,18 @@ def manage_substitutions(request):
                     'status': 'Pending'
                 }
             )
-            messages.success(request, f"Substitution request sent to {substitute.name}.")
+            from django.conf import settings
+            from django.core.mail import send_mail
+            messages.success(request, f"Alternate request sent to {substitute.name}.")
             # Notify Substitute
-            from .utils import send_staff_notification, send_staff_email_notification
-            send_staff_notification(substitute, "📅 Substitution Request", f"{staff.name} requested you to substitute for Period {period} on {selected_date}.", url="/staffs/substitutions/incoming/")
-            send_staff_email_notification(
-                substitute,
-                "Class Substitution Request",
-                f"Hello {substitute.name},\n\n{staff.name} has requested you to substitute for their class on {selected_date}, Period {period}.\n\nPlease log in to the staff portal to accept or reject this request."
+            from .utils import send_staff_notification
+            send_staff_notification(substitute, "📅 Alternate Request", f"{staff.name} requested you to act as alternate for Period {period} on {selected_date}.", url="/staffs/substitutions/incoming/")
+            send_mail(
+                "Class Alternate Request",
+                f"Hello {substitute.name},\n\n{staff.name} has requested you to cover their class on {selected_date}, Period {period}.\n\nPlease log in to accept or reject this request.\n\nLink: http://127.0.0.1:8000/staffs/substitutions/incoming/",
+                settings.DEFAULT_FROM_EMAIL,
+                [substitute.email],
+                fail_silently=True
             )
             
             return redirect(f'/staffs/substitutions/manage/?date={selected_date}')
@@ -2708,7 +2789,7 @@ def manage_substitutions(request):
             req_id = request.POST.get('request_id')
             req = get_object_or_404(ClassSubstitutionRequest, id=req_id, requester=staff)
             req.delete()
-            messages.success(request, "Substitution request cancelled.")
+            messages.success(request, "Alternate request cancelled.")
             return redirect(f'/staffs/substitutions/manage/?date={selected_date}')
             
     return render(request, 'staff/manage_substitutions.html', {
@@ -2734,29 +2815,35 @@ def incoming_substitutions(request):
         req_id = request.POST.get('request_id')
         req = get_object_or_404(ClassSubstitutionRequest, id=req_id, substitute=staff)
         
-        from .utils import send_staff_notification, send_staff_email_notification
+        from .utils import send_staff_notification
+        from django.conf import settings
+        from django.core.mail import send_mail
         
         if action == 'accept':
             req.status = 'Approved'
             req.save()
-            messages.success(request, f"You have accepted the substitution request for Period {req.period} on {req.date}.")
-            send_staff_notification(req.requester, "✅ Substitution Accepted", f"{staff.name} accepted your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
-            send_staff_email_notification(
-                req.requester,
-                "Substitution Request Accepted",
-                f"Hello {req.requester.name},\n\n{staff.name} has accepted your substitution request for {req.date}, Period {req.period}."
+            messages.success(request, f"You have accepted the alternate request for Period {req.period} on {req.date}.")
+            send_staff_notification(req.requester, "✅ Alternate Accepted", f"{staff.name} accepted your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
+            send_mail(
+                "Alternate Request Accepted",
+                f"Hello {req.requester.name},\n\n{staff.name} has accepted your alternate request for {req.date}, Period {req.period}.",
+                settings.DEFAULT_FROM_EMAIL,
+                [req.requester.email],
+                fail_silently=True
             )
 
         elif action == 'reject':
             req.status = 'Rejected'
             req.rejection_reason = request.POST.get('rejection_reason', '')
             req.save()
-            messages.success(request, f"You have rejected the substitution request for Period {req.period} on {req.date}.")
-            send_staff_notification(req.requester, "❌ Substitution Rejected", f"{staff.name} rejected your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
-            send_staff_email_notification(
-                req.requester,
-                "Substitution Request Rejected",
-                f"Hello {req.requester.name},\n\n{staff.name} has rejected your substitution request for {req.date}, Period {req.period}.\nReason: {req.rejection_reason}\n\nPlease request another staff member."
+            messages.success(request, f"You have rejected the alternate request for Period {req.period} on {req.date}.")
+            send_staff_notification(req.requester, "❌ Alternate Rejected", f"{staff.name} rejected your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
+            send_mail(
+                "Alternate Request Rejected",
+                f"Hello {req.requester.name},\n\n{staff.name} has rejected your alternate request for {req.date}, Period {req.period}.\nReason: {req.rejection_reason}\n\nPlease request another staff member.",
+                settings.DEFAULT_FROM_EMAIL,
+                [req.requester.email],
+                fail_silently=True
             )
             
         return redirect('staffs:incoming_substitutions')
