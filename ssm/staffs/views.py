@@ -224,13 +224,30 @@ def staff_dashboard(request):
     
     # ── Today's Class Schedule ─────────────────────────────────────────────
     import datetime
-    today_date = timezone.now().strftime('%Y-%m-%d')
-    today_weekday = timezone.now().strftime('%A')  # 'Monday', 'Tuesday' etc.
+    from students.models import StudentAttendance
+
+    today_date_obj = timezone.now().date()
+    today_date = today_date_obj.strftime('%Y-%m-%d')
+    today_weekday = today_date_obj.strftime('%A')  # 'Monday', 'Tuesday' etc.
     today_schedule = []
+    unmarked_done_count = 0
+
     if today_weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
         today_tt_entries = Timetable.objects.filter(
             staff=staff, day=today_weekday
         ).select_related('subject').order_by('period')
+        
+        # Pre-fetch attendance records for today to check status per subject & period
+        subject_ids = [e.subject.id for e in today_tt_entries if e.subject]
+        attendance_records = StudentAttendance.objects.filter(
+            date=today_date_obj,
+            subject_id__in=subject_ids
+        ).values('subject_id', 'time')
+        
+        attendance_set = set()
+        for rec in attendance_records:
+            attendance_set.add((rec['subject_id'], rec['time']))
+
         # Define period time slots matching official system timetable
         PERIOD_TIMES = {
             1: ('08:30', '09:30'),
@@ -248,6 +265,7 @@ def staff_dashboard(request):
                 continue
             seen_periods.add(entry.period)
             times = PERIOD_TIMES.get(entry.period, ('--', '--'))
+            start_t = None
             try:
                 start_t = datetime.time(int(times[0][:2]), int(times[0][3:]))
                 end_t   = datetime.time(int(times[1][:2]), int(times[1][3:]))
@@ -259,6 +277,20 @@ def staff_dashboard(request):
                     status = 'done'
             except Exception:
                 status = 'upcoming'
+
+            # Check if attendance has been marked for this slot/subject
+            is_marked = False
+            if entry.subject:
+                if (entry.subject.id, start_t) in attendance_set:
+                    is_marked = True
+                elif (entry.subject.id, None) in attendance_set:
+                    is_marked = True
+                elif any(rec_s_id == entry.subject.id for (rec_s_id, rec_time) in attendance_set if rec_time is None):
+                    is_marked = True
+
+            if status == 'done' and not is_marked:
+                unmarked_done_count += 1
+
             today_schedule.append({
                 'period': entry.period,
                 'subject': entry.subject,
@@ -267,7 +299,10 @@ def staff_dashboard(request):
                 'start': times[0],
                 'end': times[1],
                 'status': status,
+                'is_marked': is_marked,
             })
+
+    has_unmarked_done = (unmarked_done_count > 0)
 
     # Dynamic Sarcastic / Emotional Mood Text Generator based on Class Count & Day
     import random
@@ -334,7 +369,7 @@ def staff_dashboard(request):
             ])
 
     # ────────────────────────────────────────────────────────────────────────
-    return render(request, template_name, {
+    dashboard_context = {
         'staff': staff, 
         'student_count': student_count,
         'subjects': assigned_subjects,
@@ -368,7 +403,11 @@ def staff_dashboard(request):
         'today_weekday': today_weekday,
         'today_date': today_date,
         'schedule_mood_text': schedule_mood_text,
-    })
+        'unmarked_done_count': unmarked_done_count,
+        'has_unmarked_done': has_unmarked_done,
+    }
+    dashboard_context.update(_get_portfolio_summary_stats(staff))
+    return render(request, template_name, dashboard_context)
 
 def get_staff_profile_completion_data(staff):
     """
@@ -1235,9 +1274,19 @@ def manage_attendance(request, subject_id):
         is_readonly = True
 
     # --- POST Handler (Saving Attendance) ---
+    today_date = datetime.date.today()
+    now_time = datetime.datetime.now().time()
+
+    is_upcoming = False
+    upcoming_reason = ""
+    if date_obj > today_date:
+        is_upcoming = True
+        upcoming_reason = f"Attendance cannot be marked for future date ({date_obj.strftime('%d-%b-%Y')})."
+
     if request.method == 'POST':
-        if is_readonly:
-             messages.error(request, "Read-only access: Cannot save attendance.")
+        if is_readonly or is_upcoming:
+             reason = upcoming_reason if is_upcoming else "Read-only access: Cannot save attendance."
+             messages.error(request, reason)
              return redirect(request.path + f"?date={formatted_date}")
 
         post_date_str = request.POST.get('attendance_date')
@@ -1248,6 +1297,11 @@ def manage_attendance(request, subject_id):
                 save_date = date_obj
         else:
             save_date = date_obj
+
+        # Additional check on post save_date
+        if save_date > today_date:
+            messages.error(request, f"Attendance cannot be marked for future date ({save_date.strftime('%d-%b-%Y')}).")
+            return redirect(request.path + f"?date={save_date.strftime('%Y-%m-%d')}")
 
         # VALIDATION: Check Timetable
         day_name = save_date.strftime('%A')
@@ -1278,9 +1332,10 @@ def manage_attendance(request, subject_id):
                 end_time = None
 
         count_present = 0
+        count_absent = 0
         for student in students:
             status = request.POST.get(f'status_{student.roll_number}')
-            if status:
+            if status in ['Present', 'Absent']:
                 StudentAttendance.objects.update_or_create(
                     student=student, 
                     subject=subject, 
@@ -1292,6 +1347,15 @@ def manage_attendance(request, subject_id):
                     }
                 )
                 if status == 'Present': count_present += 1
+                elif status == 'Absent': count_absent += 1
+            else:
+                # If unmarked or cleared, delete existing attendance record for this student/date/time
+                StudentAttendance.objects.filter(
+                    student=student,
+                    subject=subject,
+                    date=save_date,
+                    time=class_time
+                ).delete()
         
         time_msg = ""
         if class_time:
@@ -1299,98 +1363,125 @@ def manage_attendance(request, subject_id):
             if end_time:
                 time_msg += f" - {end_time.strftime('%I:%M %p')}"
 
-        messages.success(request, f"Attendance saved for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}. {count_present}/{len(students)} Present.")
-        return redirect(reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={save_date.strftime('%Y-%m-%d')}")
-
-    # --- CALENDAR GENERATION ---
-    
-    # 1. Setup Month/Year nav
-    cal_year = date_obj.year
-    cal_month = date_obj.month
-    
-    cal = calendar.Calendar(firstweekday=0) # 0 = Monday
-    month_days = cal.monthdatescalendar(cal_year, cal_month) # List of weeks, each week is list of date objects
-    
-    # 2. Key Data Mappings
-    PERIOD_TIMES = {
-        1: "08:30 - 09:30",
-        2: "09:30 - 10:30",
-        3: "10:40 - 11:40",
-        4: "11:40 - 12:40",
-        5: "01:30 - 02:30",
-        6: "02:30 - 03:30",
-        7: "03:30 - 04:30",
-    }
-
-    # 3. Fetch Timetable for this Subject
-    # We need to know which DAYS have classes.
-    # Structure: {'Monday': [ {period: 1, time: ...}, ... ], ...}
-    timetable_entries = Timetable.objects.filter(subject=subject)
-    timetable_map = {}
-    for entry in timetable_entries:
-        if entry.day not in timetable_map:
-            timetable_map[entry.day] = []
-        timetable_map[entry.day].append({
-            'period': entry.period,
-            'time': PERIOD_TIMES.get(entry.period, f"Period {entry.period}")
-        })
-    
-    # 4. Fetch Existing Attendance for this Month
-    # We want to color code days.
-    # Valid Dates with attendance:
-    attendance_dates = set(
-        StudentAttendance.objects.filter(
-            subject=subject, 
-            date__year=cal_year, 
-            date__month=cal_month
-        ).values_list('date', flat=True)
-    )
-
-    # 5. Build Calendar Data Structure
-    calendar_rows = []
-    
-    for week in month_days:
-        week_data = []
-        for day in week:
-            is_current_month = (day.month == cal_month)
-            day_classes = []
-            status_class = "" # 'recorded', 'pending', 'empty'
-            
-            # Identify classes for this day
-            day_name = day.strftime('%A')
-            if day_name in timetable_map:
-                day_classes = timetable_map[day_name]
-                day_classes.sort(key=lambda x: x['period'])
-            
-            # Determine Status
-            if day in attendance_dates:
-                status_class = "recorded" # Activity done
-            elif day_classes and day <= datetime.date.today():
-                status_class = "pending" # Should have been done
-            elif day_classes:
-                status_class = "future" # Upcoming
-            else:
-                status_class = "empty" # No class
-                
-            week_data.append({
-                'date': day,
-                'day_num': day.day,
-                'is_current_month': is_current_month,
-                'is_selected': (day == date_obj),
-                'is_today': (day == datetime.date.today()),
-                'classes': day_classes,
-                'status_class': status_class,
-                'url': reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={day.strftime('%Y-%m-%d')}"
-            })
-        calendar_rows.append(week_data)
+        if count_present == 0 and count_absent == 0:
+            messages.success(request, f"Attendance cleared for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}.")
+        else:
+            messages.success(request, f"Attendance saved for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}. {count_present} Present, {count_absent} Absent.")
+        
+        redirect_url = reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={save_date.strftime('%Y-%m-%d')}"
+        if class_time_str:
+            redirect_url += f"&time={class_time_str}"
+        if end_time_str:
+            redirect_url += f"&end_time={end_time_str}"
+        return redirect(redirect_url)
 
     # --- Fetch Data for List View (Selected Date) ---
-    attendance_map = {}
-    attendance_entries = StudentAttendance.objects.filter(subject=subject, date=date_obj, student__in=students)
-    attendance_map = {entry.student.roll_number: entry.status for entry in attendance_entries}
-
     prefill_time = request.GET.get('time', '')
     prefill_end_time = request.GET.get('end_time', '')
+
+    # Determine Timetable period for this subject on date_obj's weekday
+    day_name = date_obj.strftime('%A')
+    PERIOD_TIMES = {
+        1: ('08:30', '09:30'),
+        2: ('09:30', '10:30'),
+        3: ('10:40', '11:40'),
+        4: ('11:40', '12:40'),
+        5: ('13:30', '14:30'),
+        6: ('14:30', '15:30'),
+        7: ('15:30', '16:30'),
+    }
+    tt_entries = Timetable.objects.filter(subject=subject, day=day_name).order_by('period')
+    today_periods = []
+    current_period = None
+
+    for entry in tt_entries:
+        times = PERIOD_TIMES.get(entry.period, ('--', '--'))
+        start_str, end_str = times
+        try:
+            start_t = datetime.datetime.strptime(start_str, '%H:%M').time()
+        except ValueError:
+            start_t = None
+
+        is_p_marked = False
+        if start_t:
+            is_p_marked = StudentAttendance.objects.filter(subject=subject, date=date_obj, time=start_t).exists()
+        if not is_p_marked:
+            is_p_marked = StudentAttendance.objects.filter(subject=subject, date=date_obj, time__isnull=True).exists()
+
+        is_p_future_date = (date_obj > today_date)
+        if is_p_marked:
+            p_badge = "✓ Marked"
+            p_class = "marked"
+        elif is_p_future_date:
+            p_badge = "🔒 Upcoming"
+            p_class = "upcoming"
+        elif date_obj == today_date and start_t and start_t > now_time:
+            p_badge = "🕒 Scheduled"
+            p_class = "unmarked"
+        else:
+            p_badge = "⚠️ Unmarked"
+            p_class = "unmarked"
+
+        is_sel = (prefill_time == start_str)
+        p_info = {
+            'period': entry.period,
+            'badge': f"P{entry.period}",
+            'label': f"P{entry.period} ({start_str}–{end_str})",
+            'start': start_str,
+            'end': end_str,
+            'is_selected': is_sel,
+            'status_badge': p_badge,
+            'status_class': p_class,
+            'url': f"?date={formatted_date}&time={start_str}&end_time={end_str}"
+        }
+        today_periods.append(p_info)
+        if is_sel:
+            current_period = p_info
+
+    if not current_period and prefill_time:
+        for p in today_periods:
+            if p['start'] == prefill_time:
+                p['is_selected'] = True
+                current_period = p
+                break
+        if not current_period:
+            current_period = {
+                'period': None,
+                'badge': 'Extra',
+                'label': f"Extra Class ({prefill_time}–{prefill_end_time or '--'})",
+                'start': prefill_time,
+                'end': prefill_end_time or '--',
+                'is_selected': True,
+                'status_badge': '',
+                'status_class': ''
+            }
+    elif not current_period and today_periods:
+        today_periods[0]['is_selected'] = True
+        current_period = today_periods[0]
+        prefill_time = current_period['start']
+        prefill_end_time = current_period['end']
+
+    if is_upcoming:
+        is_readonly = True
+
+    # Fetch Attendance Records
+    attendance_map = {}
+    class_time_obj = None
+    if prefill_time:
+        try:
+            class_time_obj = datetime.datetime.strptime(prefill_time, '%H:%M').time()
+        except ValueError:
+            class_time_obj = None
+
+    attendance_qs = StudentAttendance.objects.filter(subject=subject, date=date_obj, student__in=students)
+    if class_time_obj:
+        attendance_qs = attendance_qs.filter(Q(time=class_time_obj) | Q(time__isnull=True))
+
+    attendance_map = {entry.student.roll_number: entry.status for entry in attendance_qs}
+
+    prev_day = (date_obj - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    next_day = (date_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    today_date_str = datetime.date.today().strftime('%Y-%m-%d')
 
     return render(request, 'staff/manage_attendance.html', {
         'subject': subject,
@@ -1398,15 +1489,359 @@ def manage_attendance(request, subject_id):
         'attendance_map': attendance_map,
         'current_date': formatted_date,
         'is_readonly': is_readonly,
+        'is_upcoming': is_upcoming,
+        'upcoming_reason': upcoming_reason,
         'prefill_time': prefill_time,
         'prefill_end_time': prefill_end_time,
-        # Calendar Context
+        'current_period': current_period,
+        'today_periods': today_periods,
+        'day_name': day_name,
+        'prev_day': prev_day,
+        'next_day': next_day,
+        'today_date': today_date_str,
+    })
+
+
+def attendance_calendar(request, subject_id):
+    """Separate dedicated view for the Monthly Attendance Calendar."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    
+    from .models import Subject, Timetable, ClassSubstitutionRequest
+    from students.models import StudentAttendance
+    import datetime
+    import calendar
+    from django.urls import reverse
+
+    subject = get_object_or_404(Subject, id=subject_id)
+    current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+
+    # Access Control
+    is_substitute = ClassSubstitutionRequest.objects.filter(
+        substitute=current_staff,
+        subject=subject,
+        status='Approved'
+    ).exists()
+
+    if current_staff.role != 'HOD' and subject.staff != current_staff and not is_substitute:
+        messages.error(request, "Access Denied: You are not assigned to this subject.")
+        return redirect('staffs:staff_dashboard')
+
+    date_str = request.GET.get('date')
+    if date_str:
+        try:
+            date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            date_obj = datetime.date.today()
+    else:
+        date_obj = datetime.date.today()
+
+    cal_year = date_obj.year
+    cal_month = date_obj.month
+    today_date = datetime.date.today()
+    now_time = datetime.datetime.now().time()
+    
+    cal = calendar.Calendar(firstweekday=0) # 0 = Monday
+    month_days = cal.monthdatescalendar(cal_year, cal_month)
+    
+    PERIOD_TIMES = {
+        1: ('08:30', '09:30'),
+        2: ('09:30', '10:30'),
+        3: ('10:40', '11:40'),
+        4: ('11:40', '12:40'),
+        5: ('13:30', '14:30'),
+        6: ('14:30', '15:30'),
+        7: ('15:30', '16:30'),
+    }
+
+    timetable_entries = Timetable.objects.filter(subject=subject).order_by('period')
+    timetable_map = {}
+    for entry in timetable_entries:
+        if entry.day not in timetable_map:
+            timetable_map[entry.day] = []
+        timetable_map[entry.day].append(entry.period)
+    
+    # Fetch all Attendance records for this month with date and time
+    attendance_records = StudentAttendance.objects.filter(
+        subject=subject, 
+        date__year=cal_year, 
+        date__month=cal_month
+    ).values('date', 'time').distinct()
+
+    marked_slots = set()
+    marked_dates = set()
+    for rec in attendance_records:
+        marked_dates.add(rec['date'])
+        marked_slots.add((rec['date'], rec['time']))
+
+    calendar_rows = []
+    for week in month_days:
+        week_data = []
+        for day in week:
+            is_current_month = (day.month == cal_month)
+            day_classes = []
+            day_has_unmarked = False
+            day_has_marked = False
+            
+            day_name = day.strftime('%A')
+            if day_name in timetable_map:
+                for period_num in timetable_map[day_name]:
+                    times = PERIOD_TIMES.get(period_num, ('--', '--'))
+                    start_str, end_str = times
+                    
+                    try:
+                        start_t = datetime.time(int(start_str[:2]), int(start_str[3:]))
+                        end_t   = datetime.time(int(end_str[:2]), int(end_str[3:]))
+                    except Exception:
+                        start_t = None
+                        end_t   = None
+
+                    is_marked = False
+                    if (day, start_t) in marked_slots or (day, None) in marked_slots:
+                        is_marked = True
+
+                    if is_marked:
+                        p_status = 'marked'
+                        p_title = f'Period {period_num}: Attendance Recorded'
+                        day_has_marked = True
+                    elif day < today_date or (day == today_date and end_t and now_time > end_t):
+                        p_status = 'unmarked'
+                        p_title = f'Period {period_num}: Class Done • Attendance Not Marked'
+                        day_has_unmarked = True
+                    else:
+                        p_status = 'future'
+                        p_title = f'Period {period_num}: Scheduled Class'
+
+                    day_classes.append({
+                        'period': period_num,
+                        'start': start_str,
+                        'end': end_str,
+                        'status_class': p_status,
+                        'status_title': p_title,
+                        'url': reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={day.strftime('%Y-%m-%d')}&time={start_str}&end_time={end_str}"
+                    })
+
+            # Overall day status indicator dot
+            if day_has_unmarked:
+                status_class = "pending" # Needs attention
+            elif day_has_marked:
+                status_class = "recorded" # All marked
+            elif day_classes:
+                status_class = "future"
+            else:
+                status_class = "empty"
+
+            week_data.append({
+                'date': day,
+                'day_num': day.day,
+                'is_current_month': is_current_month,
+                'is_selected': (day == date_obj),
+                'is_today': (day == today_date),
+                'classes': day_classes,
+                'status_class': status_class,
+                'url': reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={day.strftime('%Y-%m-%d')}"
+            })
+        calendar_rows.append(week_data)
+
+    if cal_month == 1:
+        prev_date = datetime.date(cal_year - 1, 12, 1)
+    else:
+        prev_date = datetime.date(cal_year, cal_month - 1, 1)
+
+    if cal_month == 12:
+        next_date = datetime.date(cal_year + 1, 1, 1)
+    else:
+        next_date = datetime.date(cal_year, cal_month + 1, 1)
+
+    return render(request, 'staff/attendance_calendar.html', {
+        'subject': subject,
         'calendar_rows': calendar_rows,
         'month_name': calendar.month_name[cal_month],
         'year': cal_year,
-        'prev_month_url': f"?date={(date_obj.replace(day=1) - datetime.timedelta(days=1)).strftime('%Y-%m-%d')}",
-        # Calculate next month strictly
-        'next_month_url': f"?date={( (date_obj.replace(day=28) + datetime.timedelta(days=4)).replace(day=1) ).strftime('%Y-%m-%d')}", 
+        'prev_month_url': f"?date={prev_date.strftime('%Y-%m-%d')}",
+        'next_month_url': f"?date={next_date.strftime('%Y-%m-%d')}",
+        'current_date': date_obj.strftime('%Y-%m-%d'),
+    })
+
+
+def overall_attendance_calendar(request):
+    """Monthly Overall Attendance Calendar showing all assigned subjects for the logged-in staff."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    from .models import Subject, Timetable, ClassSubstitutionRequest
+    from students.models import StudentAttendance
+    import datetime
+    import calendar
+    from django.urls import reverse
+
+    current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    assigned_subjects = current_staff.get_teaching_subjects()
+
+    selected_subject_id = request.GET.get('subject_id')
+    selected_subject = None
+    if selected_subject_id and selected_subject_id != 'all':
+        try:
+            selected_subject = Subject.objects.get(id=selected_subject_id)
+            if selected_subject not in assigned_subjects and current_staff.role != 'HOD':
+                selected_subject = None
+        except (Subject.DoesNotExist, ValueError):
+            selected_subject = None
+
+    subjects_to_include = [selected_subject] if selected_subject else list(assigned_subjects)
+
+    date_str = request.GET.get('date')
+    if date_str:
+        try:
+            date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            date_obj = datetime.date.today()
+    else:
+        date_obj = datetime.date.today()
+
+    cal_year = date_obj.year
+    cal_month = date_obj.month
+    today_date = datetime.date.today()
+    now_time = datetime.datetime.now().time()
+
+    cal = calendar.Calendar(firstweekday=0) # 0 = Monday
+    month_days = cal.monthdatescalendar(cal_year, cal_month)
+
+    PERIOD_TIMES = {
+        1: ('08:30', '09:30'),
+        2: ('09:30', '10:30'),
+        3: ('10:40', '11:40'),
+        4: ('11:40', '12:40'),
+        5: ('13:30', '14:30'),
+        6: ('14:30', '15:30'),
+        7: ('15:30', '16:30'),
+    }
+
+    timetable_entries = Timetable.objects.filter(subject__in=subjects_to_include).select_related('subject').order_by('day', 'period')
+    timetable_map = {}
+    for entry in timetable_entries:
+        if entry.day not in timetable_map:
+            timetable_map[entry.day] = []
+        if not any(item['period'] == entry.period and item['subject'].id == entry.subject.id for item in timetable_map[entry.day]):
+            timetable_map[entry.day].append({
+                'period': entry.period,
+                'subject': entry.subject,
+                'batch': entry.batch,
+            })
+
+    attendance_records = StudentAttendance.objects.filter(
+        subject__in=subjects_to_include,
+        date__year=cal_year,
+        date__month=cal_month
+    ).values('subject_id', 'date', 'time').distinct()
+
+    marked_slots = set()
+    for rec in attendance_records:
+        marked_slots.add((rec['subject_id'], rec['date'], rec['time']))
+
+    calendar_rows = []
+    for week in month_days:
+        week_data = []
+        for day in week:
+            is_current_month = (day.month == cal_month)
+            day_classes = []
+            day_has_unmarked = False
+            day_has_marked = False
+
+            day_name = day.strftime('%A')
+            if day_name in timetable_map:
+                sorted_entries = sorted(timetable_map[day_name], key=lambda x: x['period'])
+                for item in sorted_entries:
+                    period_num = item['period']
+                    subj = item['subject']
+                    times = PERIOD_TIMES.get(period_num, ('--', '--'))
+                    start_str, end_str = times
+
+                    try:
+                        start_t = datetime.time(int(start_str[:2]), int(start_str[3:]))
+                        end_t   = datetime.time(int(end_str[:2]), int(end_str[3:]))
+                    except Exception:
+                        start_t = None
+                        end_t   = None
+
+                    is_marked = False
+                    if (subj.id, day, start_t) in marked_slots or (subj.id, day, None) in marked_slots:
+                        is_marked = True
+
+                    subj_badge = subj.code or subj.name[:6]
+
+                    if is_marked:
+                        p_status = 'marked'
+                        p_title = f'Period {period_num} ({subj.name}): Attendance Recorded'
+                        day_has_marked = True
+                    elif day < today_date or (day == today_date and end_t and now_time > end_t):
+                        p_status = 'unmarked'
+                        p_title = f'Period {period_num} ({subj.name}): Class Done • Attendance Not Marked'
+                        day_has_unmarked = True
+                    else:
+                        p_status = 'future'
+                        p_title = f'Period {period_num} ({subj.name}): Scheduled Class'
+
+                    day_classes.append({
+                        'period': period_num,
+                        'subject_id': subj.id,
+                        'subject_badge': subj_badge,
+                        'subject_name': subj.name,
+                        'start': start_str,
+                        'end': end_str,
+                        'status_class': p_status,
+                        'status_title': p_title,
+                        'url': reverse('staffs:manage_attendance', kwargs={'subject_id': subj.id}) + f"?date={day.strftime('%Y-%m-%d')}&time={start_str}&end_time={end_str}"
+                    })
+
+            if day_has_unmarked:
+                status_class = "pending"
+            elif day_has_marked:
+                status_class = "recorded"
+            elif day_classes:
+                status_class = "future"
+            else:
+                status_class = "empty"
+
+            first_class_url = day_classes[0]['url'] if day_classes else (
+                reverse('staffs:manage_attendance', kwargs={'subject_id': subjects_to_include[0].id}) + f"?date={day.strftime('%Y-%m-%d')}"
+                if subjects_to_include else reverse('staffs:staff_dashboard')
+            )
+
+            week_data.append({
+                'date': day,
+                'day_num': day.day,
+                'is_current_month': is_current_month,
+                'is_selected': (day == date_obj),
+                'is_today': (day == today_date),
+                'classes': day_classes,
+                'status_class': status_class,
+                'url': first_class_url
+            })
+        calendar_rows.append(week_data)
+
+    if cal_month == 1:
+        prev_date = datetime.date(cal_year - 1, 12, 1)
+    else:
+        prev_date = datetime.date(cal_year, cal_month - 1, 1)
+
+    if cal_month == 12:
+        next_date = datetime.date(cal_year + 1, 1, 1)
+    else:
+        next_date = datetime.date(cal_year, cal_month + 1, 1)
+
+    subj_param = f"&subject_id={selected_subject.id}" if selected_subject else "&subject_id=all"
+
+    return render(request, 'staff/overall_attendance_calendar.html', {
+        'assigned_subjects': assigned_subjects,
+        'selected_subject': selected_subject,
+        'calendar_rows': calendar_rows,
+        'month_name': calendar.month_name[cal_month],
+        'year': cal_year,
+        'prev_month_url': f"?date={prev_date.strftime('%Y-%m-%d')}{subj_param}",
+        'next_month_url': f"?date={next_date.strftime('%Y-%m-%d')}{subj_param}",
+        'current_date': date_obj.strftime('%Y-%m-%d'),
+        'is_overall': True,
     })
 
 def attendance_report(request, subject_id):
@@ -2968,6 +3403,8 @@ def _get_portfolio_summary_stats(staff):
         'conf_attended_international': conf_attended_international,
         'conf_conducted_national': conf_conducted_national,
         'conf_conducted_international': conf_conducted_international,
+        'conf_attended_total': conf_attended_national + conf_attended_international,
+        'conf_conducted_total': conf_conducted_national + conf_conducted_international,
         'seminars_total': seminars_total,
         'seminars_attended': seminars_attended,
         'seminars_conducted': seminars_conducted,
@@ -2983,6 +3420,9 @@ def _get_portfolio_summary_stats(staff):
         'phd_completed': phd_completed,
         'phd_ongoing': phd_ongoing,
         'phd_total': phd_total,
+        'scholars_guided_total': phd_total + pg_total,
+        'scholars_completed_total': phd_completed + pg_completed,
+        'scholars_ongoing_total': phd_ongoing + pg_ongoing,
         'pg_completed_pct': pg_completed_pct,
         'pg_ongoing_pct': pg_ongoing_pct,
         'phd_completed_pct': phd_completed_pct,
@@ -2992,6 +3432,7 @@ def _get_portfolio_summary_stats(staff):
         'wos_count': wos_count,
         'sci_count': sci_count,
         'scie_count': scie_count,
+        'sci_scie_total': sci_count + scie_count,
         'ugc_count': ugc_count,
         'books_count': books_count,
         'total_publications': total_publications,
@@ -3157,6 +3598,33 @@ def staff_portfolio(request):
     training_events_attended = [e for e in all_seminar_entries if e.event_type in training_types and e.participation_role == 'Attended']
     training_events_conducted = [e for e in all_seminar_entries if e.event_type in training_types and e.participation_role == 'Conducted']
 
+    # Segregated breakdown counts for Academic & Training events
+    academic_attended_counts = {
+        'seminars': sum(1 for e in academic_events_attended if e.event_type == 'Seminar'),
+        'workshops': sum(1 for e in academic_events_attended if e.event_type == 'Workshop'),
+        'conferences': sum(1 for e in academic_events_attended if e.event_type == 'Conference'),
+        'symposia': sum(1 for e in academic_events_attended if e.event_type == 'Symposia'),
+    }
+    academic_conducted_counts = {
+        'seminars': sum(1 for e in academic_events_conducted if e.event_type == 'Seminar'),
+        'workshops': sum(1 for e in academic_events_conducted if e.event_type == 'Workshop'),
+        'conferences': sum(1 for e in academic_events_conducted if e.event_type == 'Conference'),
+        'symposia': sum(1 for e in academic_events_conducted if e.event_type == 'Symposia'),
+    }
+
+    training_attended_counts = {
+        'fdp': sum(1 for e in training_events_attended if e.event_type == 'FDP'),
+        'sttp': sum(1 for e in training_events_attended if e.event_type == 'STTP'),
+        'school': sum(1 for e in training_events_attended if 'School' in e.event_type),
+        'orientation_refresher': sum(1 for e in training_events_attended if any(k in e.event_type for k in ['Orientation', 'Refresher'])),
+    }
+    training_conducted_counts = {
+        'fdp': sum(1 for e in training_events_conducted if e.event_type == 'FDP'),
+        'sttp': sum(1 for e in training_events_conducted if e.event_type == 'STTP'),
+        'school': sum(1 for e in training_events_conducted if 'School' in e.event_type),
+        'orientation_refresher': sum(1 for e in training_events_conducted if any(k in e.event_type for k in ['Orientation', 'Refresher'])),
+    }
+
     # Legacy models
     conferences = staff.conferences.filter(participation_type='Presented').order_by('-year_of_publication', '-created_at')
     attended_conferences = staff.conferences.filter(participation_type='Attended').order_by('-year_of_publication', '-created_at')
@@ -3209,6 +3677,10 @@ def staff_portfolio(request):
         'academic_events_conducted': academic_events_conducted,
         'training_events_attended': training_events_attended,
         'training_events_conducted': training_events_conducted,
+        'academic_attended_counts': academic_attended_counts,
+        'academic_conducted_counts': academic_conducted_counts,
+        'training_attended_counts': training_attended_counts,
+        'training_conducted_counts': training_conducted_counts,
         'students_guided': students_guided,
         'phd_scholars': phd_scholars_data,
         'conferences': conferences,
@@ -3520,8 +3992,10 @@ def portfolio_edit_seminar(request, pk):
 
 def _get_guided_scholars_for_staff(staff):
     """
-    Helper to fetch ONLY students/scholars guided by this staff member (current PhD scholars & previous guided students).
-    Returns a list of dicts: [{'pk': student.pk, 'student_name': ..., 'roll_number': ..., 'type': ...}]
+    Helper to fetch ALL students/scholars guided by this staff member:
+    1. Current PhD Scholars supervised by staff (PhDProfile).
+    2. All Guided Students recorded in StaffStudentGuided (both Previous and Current PG/PhD).
+    Ensures every guided student has a linkable Student instance.
     """
     from students.models import Student
     guided_scholars = []
@@ -3540,13 +4014,25 @@ def _get_guided_scholars_for_staff(staff):
                 'status': profile.status
             })
 
-    # 2. Students guided by this staff (from StaffStudentGuided)
+    # 2. Students guided by this staff (from StaffStudentGuided - Previous & Current)
     for g in staff.student_guided_list.all():
         stu_match = None
-        if g.roll_number:
-            stu_match = Student.objects.filter(roll_number=g.roll_number).first()
-        if not stu_match and g.student_name:
-            stu_match = Student.objects.filter(student_name__iexact=g.student_name).first()
+        if g.roll_number and g.roll_number.strip():
+            stu_match = Student.objects.filter(roll_number__iexact=g.roll_number.strip()).first()
+        if not stu_match and g.student_name and g.student_name.strip():
+            stu_match = Student.objects.filter(student_name__iexact=g.student_name.strip()).first()
+
+        # If no Student object exists yet for this guided student, get or create a lightweight Student record
+        if not stu_match:
+            roll_val = g.roll_number.strip() if (g.roll_number and g.roll_number.strip()) else f"GS{g.pk:04d}"
+            stu_match, _ = Student.objects.get_or_create(
+                roll_number=roll_val,
+                defaults={
+                    'student_name': g.student_name.strip() if g.student_name else 'Guided Student',
+                    'current_semester': 8 if g.degree_type == 'PG' else 10,
+                    'program_level': g.degree_type or 'PG',
+                }
+            )
 
         if stu_match and stu_match.pk not in seen_pks:
             seen_pks.add(stu_match.pk)

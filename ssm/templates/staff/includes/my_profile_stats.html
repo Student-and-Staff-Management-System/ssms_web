@@ -1,0 +1,680 @@
+{% load staff_extras %}
+
+<style>
+    /* ─── MY PROFILE STATS COMPONENT STYLES ─── */
+    .overview-hero-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .kpi-stat-card {
+        background: var(--surface, white);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 16px;
+        padding: 18px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+    .kpi-stat-card:hover {
+        transform: translateY(-4px) scale(1.01);
+        border-color: var(--primary, #5a7d7c);
+        box-shadow: 0 12px 24px -6px rgba(90, 125, 124, 0.2);
+    }
+    .card-glow {
+        position: absolute;
+        top: -50%; right: -50%;
+        width: 150px; height: 150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--accent-glow, rgba(90,125,124,0.15)) 0%, transparent 70%);
+        opacity: 0.6;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+    .kpi-stat-card:hover .card-glow {
+        transform: scale(1.3);
+        opacity: 0.9;
+    }
+    .kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .kpi-icon-wrap {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    .kpi-num {
+        font-size: 2.1rem;
+        font-weight: 800;
+        color: var(--text-main, #0f172a);
+        line-height: 1;
+        letter-spacing: -0.5px;
+    }
+    .kpi-title {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-muted, #64748b);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 4px;
+    }
+    .kpi-subtext {
+        font-size: 0.78rem;
+        color: var(--primary-dark, #4a6b69);
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    .portfolio-stats-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+    @media (max-width: 1024px) {
+        .portfolio-stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .stats-summary-card {
+        background: var(--surface, white);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+    .stats-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text-main, #0f172a);
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border, #e2e8f0);
+        padding-bottom: 12px;
+    }
+    .fresh-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        flex-grow: 1;
+    }
+    @media (max-width: 640px) {
+        .fresh-stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .fresh-stat-card {
+        background: var(--surface, white);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 20px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-sizing: border-box;
+    }
+    .fresh-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.08);
+        border-color: var(--primary-light, #eef2f2);
+    }
+    .card-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    .category-icon {
+        font-size: 1.2rem;
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .category-icon.conferences { background: #e0e7ff; color: #4f46e5; }
+    .category-icon.seminars { background: #d1fae5; color: #059669; }
+    .category-icon.symposia { background: #fef3c7; color: #d97706; }
+    .category-icon.workshops { background: #ffe4e6; color: #e11d48; }
+
+    .fresh-stat-card h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-main, #0f172a);
+    }
+    .card-total {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 14px;
+    }
+    .total-number {
+        font-size: 1.85rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        line-height: 1;
+    }
+    .total-label {
+        font-size: 0.76rem;
+        color: var(--text-muted, #64748b);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .card-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        border-top: 1px dashed var(--border, #e2e8f0);
+        padding-top: 12px;
+    }
+    .detail-block {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .block-header {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--text-muted, #64748b);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .block-header .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .attended .dot { background: #3b82f6; }
+    .conducted .dot { background: #10b981; }
+
+    .block-val {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+    }
+    .block-split {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        font-size: 0.68rem;
+        color: var(--text-muted, #64748b);
+        margin-top: 2px;
+    }
+    .block-split span strong {
+        color: var(--text-main, #0f172a);
+    }
+
+    .guidance-visual-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        flex-grow: 1;
+        justify-content: center;
+    }
+    .guidance-card {
+        background: var(--bg-body, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+    .guidance-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+    .guidance-header .icon {
+        font-size: 1.35rem;
+        background: var(--surface, white);
+        border: 1px solid var(--border, #e2e8f0);
+        padding: 6px 10px;
+        border-radius: 10px;
+    }
+    .guidance-header .desc-info h4 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--text-main, #0f172a);
+    }
+    .guidance-header .desc-info p {
+        margin: 2px 0 0;
+        font-size: 0.78rem;
+        color: var(--text-muted, #64748b);
+    }
+    .guidance-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .metric-progress-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .metric-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+    }
+    .metric-meta .label {
+        color: var(--text-muted, #64748b);
+    }
+    .metric-meta .val {
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+    }
+    .progress-bar-track {
+        height: 7px;
+        background: var(--border, #e2e8f0);
+        border-radius: 100px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 100px;
+    }
+    .indexing-bars-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 4px;
+    }
+    .indexing-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .indexing-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.84rem;
+    }
+    .indexing-label {
+        font-weight: 600;
+        color: var(--text-main, #0f172a);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .indexing-badge {
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+</style>
+
+<!-- ══ TOP HERO ANIMATED KPI METRICS ROW ══ -->
+<div class="overview-hero-kpi-grid">
+    <!-- KPI 1: Total Publications -->
+    <div class="kpi-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-journals'">
+        <div class="card-glow" style="--accent-glow: rgba(90,125,124,0.25)"></div>
+        <div class="kpi-top">
+            <div class="kpi-icon-wrap" style="background: #e0f2fe; color: #0284c7;">📚</div>
+            <div class="kpi-num">{{ total_publications|default:staff.publication_count }}</div>
+        </div>
+        <div class="kpi-title">Total Publications</div>
+        <div class="kpi-subtext">Journals, Conferences & Books</div>
+    </div>
+
+    <!-- KPI 2: Journal Papers -->
+    <div class="kpi-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-journals'">
+        <div class="card-glow" style="--accent-glow: rgba(79, 70, 229, 0.25)"></div>
+        <div class="kpi-top">
+            <div class="kpi-icon-wrap" style="background: #e0e7ff; color: #4f46e5;">📰</div>
+            <div class="kpi-num">{{ journals_count }}</div>
+        </div>
+        <div class="kpi-title">Journal Papers</div>
+        <div class="kpi-subtext">
+            {% if scopus_count %}<span style="color:#0284c7; font-weight:700;">{{ scopus_count }} Scopus</span>{% endif %}
+            {% if wos_count %}<span style="color:#7c3aed; font-weight:700;"> · {{ wos_count }} WoS</span>{% endif %}
+            {% if not scopus_count and not wos_count %}Peer-Reviewed Papers{% endif %}
+        </div>
+    </div>
+
+    <!-- KPI 3: Research Guidance -->
+    <div class="kpi-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-guidance'">
+        <div class="card-glow" style="--accent-glow: rgba(16, 185, 129, 0.25)"></div>
+        <div class="kpi-top">
+            <div class="kpi-icon-wrap" style="background: #d1fae5; color: #059669;">🧑‍🏫</div>
+            <div class="kpi-num">{{ scholars_guided_total|default:0 }}</div>
+        </div>
+        <div class="kpi-title">Scholars Guided</div>
+        <div class="kpi-subtext">
+            <strong>{{ scholars_completed_total|default:0 }}</strong> Completed · <strong>{{ scholars_ongoing_total|default:0 }}</strong> Ongoing
+        </div>
+    </div>
+
+    <!-- KPI 4: Patents & Grants -->
+    <div class="kpi-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-patents'">
+        <div class="card-glow" style="--accent-glow: rgba(245, 158, 11, 0.25)"></div>
+        <div class="kpi-top">
+            <div class="kpi-icon-wrap" style="background: #fef3c7; color: #d97706;">🔬</div>
+            <div class="kpi-num">{{ patents_count }}</div>
+        </div>
+        <div class="kpi-title">Patents & Grants</div>
+        <div class="kpi-subtext">
+            {% if patents_granted %}<span style="color:#166534; font-weight:700;">{{ patents_granted }} Granted</span> · {% endif %}
+            {{ projects_count }} Research Project{{ projects_count|pluralize }}
+        </div>
+    </div>
+
+    <!-- KPI 5: Academic Service & Experience -->
+    <div class="kpi-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}'">
+        <div class="card-glow" style="--accent-glow: rgba(236, 72, 153, 0.25)"></div>
+        <div class="kpi-top">
+            <div class="kpi-icon-wrap" style="background: #fce7f3; color: #db2777;">⏳</div>
+            <div class="kpi-num">
+                {% if experience_years %}{{ experience_years }}<span style="font-size:1.1rem; font-weight:700;">Yrs</span>{% else %}1<span style="font-size:1.1rem; font-weight:700;">Yr</span>{% endif %}
+            </div>
+        </div>
+        <div class="kpi-title">Academic Service</div>
+        <div class="kpi-subtext">Since {{ staff.date_of_joining|date:"Y"|default:"Joining" }}</div>
+    </div>
+
+    <!-- KPI 6: Recognitions & Memberships -->
+    <div class="kpi-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-awards'">
+        <div class="card-glow" style="--accent-glow: rgba(139, 92, 246, 0.25)"></div>
+        <div class="kpi-top">
+            <div class="kpi-icon-wrap" style="background: #f3e8ff; color: #9333ea;">🏆</div>
+            <div class="kpi-num">{{ awards_count }}</div>
+        </div>
+        <div class="kpi-title">Awards & Honours</div>
+        <div class="kpi-subtext">{{ memberships_count }} Professional Membership{{ memberships_count|pluralize }}</div>
+    </div>
+</div>
+
+<!-- ══ MAIN VISUAL DASHBOARD MATRIX ══ -->
+<div class="portfolio-stats-grid">
+    
+    <!-- Left Column: Events Matrix & Journal Indexing Breakdown -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        
+        <!-- 2x2 Events Matrix Grid -->
+        <div class="fresh-stats-grid">
+            
+            <!-- Conferences Card -->
+            <div class="fresh-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-conferences'">
+                <div class="card-glow" style="--accent-glow: rgba(79, 70, 229, 0.15)"></div>
+                <div class="card-top">
+                    <div class="category-icon conferences">🎤</div>
+                    <h3>Conferences</h3>
+                </div>
+                <div class="card-total">
+                    <span class="total-number">{{ conf_total }}</span>
+                    <span class="total-label">Total</span>
+                </div>
+                <div class="card-details">
+                    <div class="detail-block attended">
+                        <div class="block-header"><span class="dot"></span> Attended</div>
+                        <div class="block-val">{{ conf_attended_total|default:0 }}</div>
+                        <div class="block-split">
+                            <span>Nat: <strong>{{ conf_attended_national }}</strong></span>
+                            <span>Int: <strong>{{ conf_attended_international }}</strong></span>
+                        </div>
+                    </div>
+                    <div class="detail-block conducted">
+                        <div class="block-header"><span class="dot"></span> Conducted / Presented</div>
+                        <div class="block-val">{{ conf_conducted_total|default:0 }}</div>
+                        <div class="block-split">
+                            <span>Nat: <strong>{{ conf_conducted_national }}</strong></span>
+                            <span>Int: <strong>{{ conf_conducted_international }}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seminars Card -->
+            <div class="fresh-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-awards'">
+                <div class="card-glow" style="--accent-glow: rgba(16, 185, 129, 0.15)"></div>
+                <div class="card-top">
+                    <div class="category-icon seminars">📰</div>
+                    <h3>Seminars</h3>
+                </div>
+                <div class="card-total">
+                    <span class="total-number">{{ seminars_total }}</span>
+                    <span class="total-label">Total</span>
+                </div>
+                <div class="card-details">
+                    <div class="detail-block attended">
+                        <div class="block-header"><span class="dot"></span> Attended</div>
+                        <div class="block-val">{{ seminars_attended }}</div>
+                    </div>
+                    <div class="detail-block conducted">
+                        <div class="block-header"><span class="dot"></span> Conducted</div>
+                        <div class="block-val">{{ seminars_conducted }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Symposia Card -->
+            <div class="fresh-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-awards'">
+                <div class="card-glow" style="--accent-glow: rgba(245, 158, 11, 0.15)"></div>
+                <div class="card-top">
+                    <div class="category-icon symposia">🏛️</div>
+                    <h3>Symposia</h3>
+                </div>
+                <div class="card-total">
+                    <span class="total-number">{{ symposia_total }}</span>
+                    <span class="total-label">Total</span>
+                </div>
+                <div class="card-details">
+                    <div class="detail-block attended">
+                        <div class="block-header"><span class="dot"></span> Attended</div>
+                        <div class="block-val">{{ symposia_attended }}</div>
+                    </div>
+                    <div class="detail-block conducted">
+                        <div class="block-header"><span class="dot"></span> Conducted</div>
+                        <div class="block-val">{{ symposia_conducted }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workshops Card -->
+            <div class="fresh-stat-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-awards'">
+                <div class="card-glow" style="--accent-glow: rgba(244, 63, 94, 0.15)"></div>
+                <div class="card-top">
+                    <div class="category-icon workshops">⚙️</div>
+                    <h3>Workshops</h3>
+                </div>
+                <div class="card-total">
+                    <span class="total-number">{{ workshops_total }}</span>
+                    <span class="total-label">Total</span>
+                </div>
+                <div class="card-details">
+                    <div class="detail-block attended">
+                        <div class="block-header"><span class="dot"></span> Attended</div>
+                        <div class="block-val">{{ workshops_attended }}</div>
+                    </div>
+                    <div class="detail-block conducted">
+                        <div class="block-header"><span class="dot"></span> Conducted</div>
+                        <div class="block-val">{{ workshops_conducted }}</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Journal Indexing Visual Breakdown Card -->
+        <div class="stats-summary-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-journals'">
+            <div class="stats-card-title">
+                <span>📊 Journal Indexing & Impact Breakdown</span>
+                <span style="font-size:0.8rem; font-weight: normal; color:var(--text-muted); margin-left:auto;">{{ journals_count }} Journal Paper{{ journals_count|pluralize }}</span>
+            </div>
+            <div class="indexing-bars-grid">
+                <!-- Scopus Bar -->
+                <div class="indexing-item">
+                    <div class="indexing-meta">
+                        <span class="indexing-label"><span class="indexing-badge" style="background:#e0f2fe; color:#0369a1;">SCOPUS</span> Scopus Indexed</span>
+                        <span class="val"><strong>{{ scopus_count }}</strong></span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill animated" style="width: {% if journals_count %}{% widthratio scopus_count journals_count 100 %}{% else %}0{% endif %}%; background: #0284c7;"></div>
+                    </div>
+                </div>
+
+                <!-- WoS Bar -->
+                <div class="indexing-item">
+                    <div class="indexing-meta">
+                        <span class="indexing-label"><span class="indexing-badge" style="background:#f3e8ff; color:#7e22ce;">WoS</span> Web of Science (WoS)</span>
+                        <span class="val"><strong>{{ wos_count }}</strong></span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill animated" style="width: {% if journals_count %}{% widthratio wos_count journals_count 100 %}{% else %}0{% endif %}%; background: #9333ea;"></div>
+                    </div>
+                </div>
+
+                <!-- SCI / SCIE Bar -->
+                <div class="indexing-item">
+                    <div class="indexing-meta">
+                        <span class="indexing-label"><span class="indexing-badge" style="background:#dcfce7; color:#15803d;">SCI / SCIE</span> SCI & SCIE Journals</span>
+                        <span class="val"><strong>{{ sci_scie_total|default:0 }}</strong></span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill animated" style="width: {% if journals_count %}{% widthratio sci_scie_total|default:0 journals_count 100 %}{% else %}0{% endif %}%; background: #16a34a;"></div>
+                    </div>
+                </div>
+
+                <!-- UGC Care Bar -->
+                <div class="indexing-item">
+                    <div class="indexing-meta">
+                        <span class="indexing-label"><span class="indexing-badge" style="background:#fef3c7; color:#b45309;">UGC</span> UGC Care List</span>
+                        <span class="val"><strong>{{ ugc_count }}</strong></span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill animated" style="width: {% if journals_count %}{% widthratio ugc_count journals_count 100 %}{% else %}0{% endif %}%; background: #d97706;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Column: Research Guidance & Innovation/Projects Spot -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        
+        <!-- Research Guidance Summary Card -->
+        <div class="stats-summary-card" style="cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-guidance'">
+            <div class="stats-card-title">
+                <span>🧑‍🏫 Research Guidance Summary</span>
+            </div>
+            <div class="guidance-visual-grid">
+                <!-- PG Guidance -->
+                <div class="guidance-card pg">
+                    <div class="guidance-header">
+                        <span class="icon">🎓</span>
+                        <div class="desc-info">
+                            <h4>M.Phil / M.E. / M.Sc. (PG)</h4>
+                            <p>Postgraduate Research</p>
+                        </div>
+                    </div>
+                    <div class="guidance-metrics">
+                        <div class="metric-progress-item">
+                            <div class="metric-meta">
+                                <span class="label">Awarded (Completed)</span>
+                                <span class="val">{{ pg_completed }}</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill completed animated" style="width: {{ pg_completed_pct }}%; background: #10b981;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-progress-item">
+                            <div class="metric-meta">
+                                <span class="label">Ongoing Guidance</span>
+                                <span class="val">{{ pg_ongoing }}</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill ongoing animated" style="width: {{ pg_ongoing_pct }}%; background: #3b82f6;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PhD Guidance -->
+                <div class="guidance-card phd">
+                    <div class="guidance-header">
+                        <span class="icon">🔬</span>
+                        <div class="desc-info">
+                            <h4>Doctor of Philosophy (Ph.D.)</h4>
+                            <p>Doctoral Research</p>
+                        </div>
+                    </div>
+                    <div class="guidance-metrics">
+                        <div class="metric-progress-item">
+                            <div class="metric-meta">
+                                <span class="label">Awarded (Completed)</span>
+                                <span class="val">{{ phd_completed }}</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill completed animated" style="width: {{ phd_completed_pct }}%; background: #059669;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-progress-item">
+                            <div class="metric-meta">
+                                <span class="label">Ongoing Guidance</span>
+                                <span class="val">{{ phd_ongoing }}</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill ongoing animated" style="width: {{ phd_ongoing_pct }}%; background: #6366f1;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patents & Research Projects Overview Card -->
+        <div class="stats-summary-card">
+            <div class="stats-card-title">
+                <span>💡 Innovation & Funded Research</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-patents'">
+                    <div style="font-size:1.5rem; font-weight:800; color:#d97706;">{{ patents_count }}</div>
+                    <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Patents</div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">
+                        <span style="color:#166534; font-weight:700;">{{ patents_granted }} Granted</span> · {{ patents_published }} Pub · {{ patents_applied }} App
+                    </div>
+                </div>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; cursor: pointer;" onclick="window.location.href='{% url "staffs:staff_portfolio" %}#tab-research-projects'">
+                    <div style="font-size:1.5rem; font-weight:800; color:#2563eb;">{{ projects_count }}</div>
+                    <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Research Projects</div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">
+                        <span style="color:#2563eb; font-weight:700;">{{ projects_active }} Active</span> · {{ projects_completed }} Done
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

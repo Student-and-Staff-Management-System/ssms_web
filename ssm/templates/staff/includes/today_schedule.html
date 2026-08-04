@@ -21,6 +21,11 @@
                         LIVE NOW
                     </span>
                     {% endif %}{% endfor %}
+                    {% if has_unmarked_done %}
+                    <span class="tsw-unmarked-alert-tag">
+                        ⚠️ {{ unmarked_done_count }} Unmarked
+                    </span>
+                    {% endif %}
                 </div>
                 <div class="tsw-sub-meta-row">
                     <p class="tsw-subtitle">{{ today_weekday }}{% if today_schedule %} • {{ today_schedule|length }} Class{{ today_schedule|length|pluralize:"es" }}{% endif %}</p>
@@ -44,9 +49,9 @@
     <div class="tsw-grid">
         {% for slot in today_schedule %}
         <a href="{% if slot.subject %}{% url 'staffs:manage_attendance' slot.subject.id %}?date={{ today_date }}&time={{ slot.start }}&end_time={{ slot.end }}{% else %}javascript:void(0);{% endif %}" 
-           class="tsw-card tsw-{{ slot.status }}" 
+           class="tsw-card tsw-{{ slot.status }}{% if slot.status == 'done' and not slot.is_marked %} tsw-unmarked{% elif slot.is_marked %} tsw-marked{% endif %}" 
            style="--i: {{ forloop.counter0 }}; text-decoration: none;"
-           {% if slot.subject %}title="Click to mark attendance for {{ slot.subject.name }} (P{{ slot.period }})"{% endif %}>
+           {% if slot.subject %}title="{% if slot.status == 'done' and not slot.is_marked %}⚠️ Attendance not marked for {{ slot.subject.name }} (P{{ slot.period }}). Click to mark!{% else %}Click to manage attendance for {{ slot.subject.name }} (P{{ slot.period }}){% endif %}"{% endif %}>
             
             <div class="tsw-card-top">
                 <div class="tsw-badges-left">
@@ -55,11 +60,18 @@
                     <span class="tsw-sem-badge">Sem {{ slot.semester }}</span>
                     {% endif %}
                 </div>
-                <span class="tsw-status-pill tsw-pill-{{ slot.status }}">
+                <span class="tsw-status-pill {% if slot.status == 'ongoing' %}tsw-pill-ongoing{% elif slot.status == 'done' %}{% if slot.is_marked %}tsw-pill-done{% else %}tsw-pill-unmarked{% endif %}{% else %}tsw-pill-upcoming{% endif %}">
                     {% if slot.status == 'ongoing' %}
-                    <span class="tsw-pulse-dot"></span>Now
-                    {% elif slot.status == 'done' %}✓ Done
-                    {% else %}⏳ Soon{% endif %}
+                        <span class="tsw-pulse-dot"></span>Now
+                    {% elif slot.status == 'done' %}
+                        {% if slot.is_marked %}
+                            ✓ Marked
+                        {% else %}
+                            ⚠️ Unmarked
+                        {% endif %}
+                    {% else %}
+                        ⏳ Soon
+                    {% endif %}
                 </span>
             </div>
 
@@ -76,7 +88,13 @@
             <div class="tsw-card-bottom">
                 <span class="tsw-time">⏰ {{ slot.start }}–{{ slot.end }}</span>
                 {% if slot.subject %}
-                <span class="tsw-mark-link">Mark 📝</span>
+                <span class="tsw-mark-link {% if slot.status == 'done' and not slot.is_marked %}tsw-mark-pending{% elif slot.is_marked %}tsw-mark-done{% endif %}">
+                    {% if slot.is_marked %}
+                        Marked ✓
+                    {% else %}
+                        Mark 📝
+                    {% endif %}
+                </span>
                 {% endif %}
             </div>
         </a>
@@ -471,6 +489,85 @@
     background: #ecfdf5;
     color: #047857;
     border: 1px solid #a7f3d0;
+}
+
+.tsw-pill-unmarked {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    font-weight: 800;
+}
+
+.tsw-unmarked-alert-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.63rem;
+    font-weight: 800;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+    animation: tswAlertPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes tswAlertPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+    100% { transform: scale(1.04); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); }
+}
+
+.tsw-card.tsw-unmarked::before {
+    background: linear-gradient(180deg, #ef4444, #f59e0b) !important;
+}
+
+.tsw-card.tsw-unmarked {
+    opacity: 0.95 !important;
+    background: #fffdfa;
+    border: 1.5px solid rgba(239, 68, 68, 0.4);
+}
+
+.tsw-card.tsw-unmarked:hover {
+    border-color: #ef4444;
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.18);
+}
+
+.tsw-card.tsw-marked::before {
+    background: #10b981 !important;
+}
+
+.tsw-mark-link.tsw-mark-pending {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fca5a5;
+    font-weight: 800;
+}
+
+.tsw-mark-link.tsw-mark-done {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #a7f3d0;
+}
+
+.tsw-mood-warning {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1)) !important;
+    border-left: 3px solid #ef4444 !important;
+}
+
+.tsw-unmarked-notice {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px dashed rgba(239, 68, 68, 0.3);
+    padding: 3px 6px;
+    border-radius: 6px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: -0.01em;
 }
 
 .tsw-pill-upcoming {

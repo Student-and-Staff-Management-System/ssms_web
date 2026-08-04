@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+{% load staff_extras %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overall Attendance Calendar | Staff Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    
+    <style>
+        :root {
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --primary-light: #eef2f2;
+            --bg-body: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --success-light: #dcfce7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --accent-gold: #f59e0b;
+            
+            --radius-sm: 8px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 1px 3px rgba(15,23,42,0.04);
+            --shadow-md: 0 4px 14px rgba(15,23,42,0.06);
+            --transition: all 0.2s ease;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        body {
+            padding: 12px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ─── COMPACT HEADER BAR ─── */
+        .att-header {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .att-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .att-header-icon {
+            width: 38px; height: 38px;
+            background: var(--primary-light);
+            border: 1px solid rgba(90, 125, 124, 0.2);
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .att-title-group h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .att-sub-tags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+        }
+
+        .subject-select-picker {
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--primary);
+            background: var(--surface);
+            color: var(--primary-dark);
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .subject-select-picker:hover {
+            background: var(--primary-light);
+        }
+
+        .att-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-dashboard {
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-dashboard:hover {
+            background: var(--text-main);
+            color: #ffffff;
+        }
+
+        /* ─── FULL-SCREEN CALENDAR CARD ─── */
+        .calendar-card {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 14px 18px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .calendar-nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .calendar-nav-bar h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .nav-arrow {
+            width: 32px; height: 32px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .nav-arrow:hover {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        /* ─── CALENDAR GRID ─── */
+        .calendar-grid-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .weekday-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .calendar-grid-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(5, minmax(0, 1fr));
+            gap: 6px;
+            min-height: 0;
+        }
+
+        /* Date Cell Box */
+        .day-box {
+            background: var(--bg-body);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 5px 7px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 4px;
+            position: relative;
+            min-height: 0;
+            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .day-box:hover {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: var(--shadow-md);
+        }
+
+        .day-box.other-month {
+            opacity: 0.35;
+            background: #f1f5f9;
+        }
+
+        /* PROMINENT TODAY HIGHLIGHT */
+        .day-box.today {
+            border: 2.5px solid #10b981 !important;
+            background: #f0fdf4 !important;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.18);
+        }
+
+        .day-box.selected {
+            border: 2px solid var(--accent-gold);
+        }
+
+        .day-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            line-height: 1;
+        }
+
+        .day-number {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .today-badge {
+            font-size: 0.55rem;
+            font-weight: 800;
+            background: #10b981;
+            color: #ffffff;
+            padding: 1px 5px;
+            border-radius: 4px;
+            letter-spacing: 0.03em;
+        }
+
+        .status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+        }
+        .status-dot.recorded { background: var(--success); }
+        .status-dot.pending { background: var(--danger); }
+        .status-dot.future { background: var(--border); }
+
+        .day-classes-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            align-items: center;
+            align-content: flex-start;
+            overflow: hidden;
+        }
+
+        /* FIXED COMPACT PERIOD CHIPS WITH SUBJECT BADGE */
+        .period-chip {
+            height: 20px;
+            font-size: 0.61rem;
+            font-weight: 800;
+            padding: 0 6px;
+            border-radius: 4px;
+            line-height: 20px;
+            text-decoration: none;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .period-chip.marked {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+        .period-chip.marked:hover {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .period-chip.unmarked {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+        .period-chip.unmarked:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .period-chip.future {
+            background: var(--surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .period-chip.future:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        /* ─── LEGEND FOOTER ─── */
+        .calendar-legend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
+            flex-shrink: 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            html, body {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+
+            body {
+                padding: 10px 8px;
+            }
+
+            .att-header {
+                padding: 12px 14px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .att-header-actions {
+                width: 100%;
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 6px;
+                padding-bottom: 2px;
+                scrollbar-width: none;
+            }
+
+            .btn-action {
+                flex-shrink: 0;
+                font-size: 0.72rem;
+                padding: 6px 10px;
+            }
+
+            .subject-select-picker {
+                width: 100%;
+                font-size: 0.72rem;
+            }
+
+            .calendar-card {
+                padding: 10px 10px;
+            }
+
+            .calendar-grid-body {
+                gap: 4px;
+            }
+
+            .day-box {
+                padding: 4px 4px;
+                min-height: 70px;
+            }
+
+            .day-number {
+                font-size: 0.74rem;
+            }
+
+            .period-chip {
+                height: 18px;
+                font-size: 0.56rem;
+                padding: 0 3px;
+                line-height: 18px;
+            }
+
+            .calendar-legend {
+                flex-wrap: wrap;
+                gap: 8px;
+                font-size: 0.68rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- HEADER BAR -->
+        <div class="att-header">
+            <div class="att-header-info">
+                <div class="att-header-icon">📅</div>
+                <div class="att-title-group">
+                    <h1>Overall Attendance Calendar</h1>
+                    <div class="att-sub-tags">
+                        <span style="font-size: 0.74rem; color: var(--text-muted); font-weight: 600;">Subject View:</span>
+                        <select onchange="window.location.href='?date={{ current_date }}&subject_id=' + this.value" class="subject-select-picker">
+                            <option value="all" {% if not selected_subject %}selected{% endif %}>🌐 All Assigned Subjects (Overall)</option>
+                            {% for subj in assigned_subjects %}
+                            <option value="{{ subj.id }}" {% if selected_subject.id == subj.id %}selected{% endif %}>
+                                {{ subj.name }} ({{ subj.code }}) • Sem {{ subj.semester }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="att-header-actions">
+                {% if selected_subject %}
+                <a href="{% url 'staffs:attendance_calendar' selected_subject.id %}" class="btn-action btn-dashboard">Subject View 📖</a>
+                {% endif %}
+                <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-dashboard">Dashboard ↩</a>
+            </div>
+        </div>
+
+        <!-- FULL PAGE CALENDAR CARD -->
+        <div class="calendar-card">
+            <div class="calendar-nav-bar">
+                <a href="{{ prev_month_url }}" class="nav-arrow" title="Previous Month">&lt;</a>
+                <h2>{{ month_name }} {{ year }}</h2>
+                <a href="{{ next_month_url }}" class="nav-arrow" title="Next Month">&gt;</a>
+            </div>
+
+            <div class="calendar-grid-header">
+                <div class="weekday-name">Mon</div>
+                <div class="weekday-name">Tue</div>
+                <div class="weekday-name">Wed</div>
+                <div class="weekday-name">Thu</div>
+                <div class="weekday-name">Fri</div>
+                <div class="weekday-name">Sat</div>
+                <div class="weekday-name">Sun</div>
+            </div>
+
+            <div class="calendar-grid-body">
+                {% for week in calendar_rows %}
+                {% for day in week %}
+                <div class="day-box {% if not day.is_current_month %}other-month{% endif %} {% if day.is_today %}today{% endif %} {% if day.is_selected %}selected{% endif %}"
+                     onclick="if(!event.target.closest('.period-chip')) window.location.href='{{ day.url }}';">
+                    
+                    <div class="day-top-row">
+                        <a href="{{ day.url }}" class="day-number" title="Go to {{ day.date|date:'M d, Y' }}">{{ day.day_num }}</a>
+                        {% if day.is_today %}
+                        <span class="today-badge">TODAY</span>
+                        {% elif day.status_class %}
+                        <span class="status-dot {{ day.status_class }}"></span>
+                        {% endif %}
+                    </div>
+
+                    {% if day.classes %}
+                    <div class="day-classes-list">
+                        {% for cls in day.classes %}
+                        <a href="{{ cls.url }}" class="period-chip {{ cls.status_class }}" title="{{ cls.status_title }} ({{ cls.start }}–{{ cls.end }})">
+                            {% if cls.status_class == 'marked' %}✓ P{{ cls.period }}{% elif cls.status_class == 'unmarked' %}⚠️ P{{ cls.period }}{% else %}P{{ cls.period }}{% endif %}&nbsp;({{ cls.subject_badge }})
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+
+            <div class="calendar-legend">
+                <div class="legend-item"><span class="period-chip marked">✓ P1 (CODE)</span> Attendance Recorded</div>
+                <div class="legend-item"><span class="period-chip unmarked">⚠️ P1 (CODE)</span> Class Done • Unmarked</div>
+                <div class="legend-item"><span class="period-chip future">P1 (CODE)</span> Scheduled Class</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -49,8 +49,14 @@
     <!-- Tabbed Dashboard Navigation -->
     <div class="dash-tabs">
         <button class="dash-tab-btn active" onclick="switchDashboardTab('tab-overview')">📊 Overview</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('tab-profile-stats')">📈 My Profile Stats</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('tab-academics')">📖 Academics</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('tab-scholarships')">💰 Scholarships</button>
+    </div>
+
+    <!-- ================= TAB: MY PROFILE STATS ================= -->
+    <div id="tab-profile-stats" class="dash-tab-content">
+        {% include 'staff/includes/my_profile_stats.html' %}
     </div>
 
     <!-- ================= TAB 1: OVERVIEW ================= -->

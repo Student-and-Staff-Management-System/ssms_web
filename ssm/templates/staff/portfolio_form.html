@@ -37,30 +37,56 @@
         
         .scrollable-checklist {
             display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            gap: 6px 12px;
-            padding: 10px 12px;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px;
             border: 1.5px solid var(--border);
-            border-radius: 9px;
-            height: 150px;
-            overflow-y: scroll;
-            overflow-x: hidden;
-            background: white;
+            border-radius: 10px;
+            max-height: 230px;
+            overflow-y: auto;
+            background: #f8fafc;
             box-sizing: border-box;
         }
-        .scrollable-checklist label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.85rem;
+
+        .scholar-select-card {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 12px;
+            padding: 8px 12px !important;
+            border-radius: 8px !important;
+            background: #ffffff !important;
+            border: 1.5px solid #e2e8f0 !important;
             cursor: pointer;
-            width: calc(50% - 6px);
-            min-width: 140px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            transition: all 0.2s ease;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
+
+        .scholar-select-card:hover {
+            border-color: var(--primary) !important;
+            background: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+            transform: translateY(-1px);
+        }
+
+        .scholar-select-card:has(input:checked) {
+            background: #f0fdf4 !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 2px rgba(16,185,129,0.18);
+        }
+
+        .scholar-type-badge {
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #eef4f4;
+            color: var(--primary-dark);
+            border: 1px solid rgba(90,125,124,0.25);
+            white-space: nowrap;
+        }
+
         .scrollable-checklist::-webkit-scrollbar {
             width: 7px;
         }
@@ -461,20 +487,30 @@
             <div class="form-group">
                 <label>Linked Student Scholar (Guided Scholars & Students)</label>
                 <div class="scrollable-checklist">
+                    <label class="scholar-select-card">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
+                        </div>
+                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
-                                <input type="checkbox" name="student" value="{{ s.pk }}"
-                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
-                                <span>
-                                    <strong>{{ s.student_name }}</strong> 
-                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
-                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
-                                </span>
+                            <label class="scholar-select-card">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" name="student" value="{{ s.pk }}"
+                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                                    <div>
+                                        <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
+                                        {% if s.roll_number %}
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <span class="scholar-type-badge">{{ s.type }}</span>
                             </label>
                         {% endfor %}
                     {% else %}
-                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 10px; text-align: center;">No guided students or scholars recorded for your profile.</div>
                     {% endif %}
                 </div>
                 <div class="form-help">Select student scholar(s) from your guided list.</div>
@@ -565,20 +601,30 @@
             <div class="form-group">
                 <label>Linked Student Scholar (Guided Scholars & Students)</label>
                 <div class="scrollable-checklist">
+                    <label class="scholar-select-card">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
+                        </div>
+                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
-                                <input type="checkbox" name="student" value="{{ s.pk }}"
-                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
-                                <span>
-                                    <strong>{{ s.student_name }}</strong> 
-                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
-                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
-                                </span>
+                            <label class="scholar-select-card">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" name="student" value="{{ s.pk }}"
+                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                                    <div>
+                                        <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
+                                        {% if s.roll_number %}
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <span class="scholar-type-badge">{{ s.type }}</span>
                             </label>
                         {% endfor %}
                     {% else %}
-                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 10px; text-align: center;">No guided students or scholars recorded for your profile.</div>
                     {% endif %}
                 </div>
                 <div class="form-help">Select student scholar(s) from your guided list.</div>
@@ -683,20 +729,30 @@
             <div class="form-group">
                 <label>Linked Student Scholar (Guided Scholars & Students)</label>
                 <div class="scrollable-checklist">
+                    <label class="scholar-select-card">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
+                        </div>
+                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
-                                <input type="checkbox" name="student" value="{{ s.pk }}"
-                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
-                                <span>
-                                    <strong>{{ s.student_name }}</strong> 
-                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
-                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
-                                </span>
+                            <label class="scholar-select-card">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" name="student" value="{{ s.pk }}"
+                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                                    <div>
+                                        <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
+                                        {% if s.roll_number %}
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <span class="scholar-type-badge">{{ s.type }}</span>
                             </label>
                         {% endfor %}
                     {% else %}
-                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 10px; text-align: center;">No guided students or scholars recorded for your profile.</div>
                     {% endif %}
                 </div>
                 <div class="form-help">Select student scholar(s) from your guided list.</div>
@@ -774,20 +830,30 @@
             <div class="form-group">
                 <label>Linked Student Scholar (Guided Scholars & Students)</label>
                 <div class="scrollable-checklist">
+                    <label class="scholar-select-card">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
+                        </div>
+                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 0.85rem; cursor: pointer; user-select: none;">
-                                <input type="checkbox" name="student" value="{{ s.pk }}"
-                                    {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0;"> 
-                                <span>
-                                    <strong>{{ s.student_name }}</strong> 
-                                    {% if s.roll_number %}<small style="color:var(--text-muted);">({{ s.roll_number }})</small>{% endif %} 
-                                    <em style="color:var(--primary); font-size:0.78rem;">— {{ s.type }}</em>
-                                </span>
+                            <label class="scholar-select-card">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="radio" name="student" value="{{ s.pk }}"
+                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
+                                    <div>
+                                        <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
+                                        {% if s.roll_number %}
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <span class="scholar-type-badge">{{ s.type }}</span>
                             </label>
                         {% endfor %}
                     {% else %}
-                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 4px 0;">No guided students or scholars recorded for your profile.</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); padding: 10px; text-align: center;">No guided students or scholars recorded for your profile.</div>
                     {% endif %}
                 </div>
                 <div class="form-help">Select student scholar(s) from your guided list.</div>

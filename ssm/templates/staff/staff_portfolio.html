@@ -702,6 +702,370 @@
             font-weight: 700;
         }
 
+        /* ─── ANIMATED CREATIVE SEGMENTED FILTER BAR ─── */
+        .event-filter-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px;
+            background: rgba(241, 245, 249, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.04);
+            flex-wrap: wrap;
+        }
+
+        .event-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #64748b;
+            background: transparent;
+            border: 1px solid transparent !important;
+            outline: none !important;
+            box-shadow: none !important;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-family: inherit;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+
+        .event-filter-btn:focus,
+        .event-filter-btn:focus-visible,
+        .event-filter-btn:active {
+            outline: none !important;
+            box-shadow: none !important;
+            border: 1px solid transparent !important;
+        }
+
+        .event-filter-btn:hover {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.7);
+            transform: translateY(-1px);
+        }
+
+        .event-filter-btn.active {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            font-weight: 700;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+            transform: translateY(-1px) scale(1.03);
+        }
+
+        .event-filter-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 7px;
+            border-radius: 12px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #475569;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .event-filter-btn.active .event-filter-badge {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+            transform: scale(1.08);
+        }
+
+        .event-filter-btn[data-cat="Seminar"].active .event-filter-badge {
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+        .event-filter-btn[data-cat="Workshop"].active .event-filter-badge {
+            background: linear-gradient(135deg, #c084fc, #9333ea);
+            box-shadow: 0 2px 6px rgba(147, 51, 234, 0.35);
+        }
+        .event-filter-btn[data-cat="Conference"].active .event-filter-badge {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+        }
+        .event-filter-btn[data-cat="Symposia"].active .event-filter-badge {
+            background: linear-gradient(135deg, #818cf8, #4f46e5);
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.35);
+        }
+
+        .event-filter-btn[data-cat="FDP"].active .event-filter-badge {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+        }
+        .event-filter-btn[data-cat="STTP"].active .event-filter-badge {
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+        .event-filter-btn[data-cat="School"].active .event-filter-badge {
+            background: linear-gradient(135deg, #4ade80, #16a34a);
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+        }
+        .event-filter-btn[data-cat="Orientation_Refresher"].active .event-filter-badge {
+            background: linear-gradient(135deg, #c084fc, #9333ea);
+            box-shadow: 0 2px 6px rgba(147, 51, 234, 0.35);
+        }
+
+        /* ─── DARK THEME COMPREHENSIVE OVERRIDES ─── */
+        body.dark-theme {
+            background-color: #0b0f19 !important;
+            color: #f8fafc !important;
+        }
+
+        body.dark-theme .section-card,
+        body.dark-theme .stats-summary-card,
+        body.dark-theme .info-card,
+        body.dark-theme .profile-stats-card,
+        body.dark-theme .kpi-stat-card {
+            background: #111827 !important;
+            border-color: #1f2937 !important;
+            color: #f8fafc !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        body.dark-theme .section-head {
+            background: linear-gradient(90deg, #1e293b 0%, #111827 100%) !important;
+            border-bottom-color: #1f2937 !important;
+        }
+
+        body.dark-theme .section-head h3,
+        body.dark-theme .stats-card-title,
+        body.dark-theme .kpi-num {
+            color: #f8fafc !important;
+        }
+
+        body.dark-theme .kpi-title {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-theme .section-card h4,
+        body.dark-theme .info-card h4,
+        body.dark-theme .stats-summary-card h4 {
+            color: #cbd5e1 !important;
+        }
+
+        /* Approved Designation & Post Banners in Dark Mode */
+        body.dark-theme .current-designation-card {
+            background: rgba(16, 185, 129, 0.12) !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+            color: #34d399 !important;
+        }
+        body.dark-theme .current-designation-card strong,
+        body.dark-theme .current-designation-card span {
+            color: #6ee7b7 !important;
+        }
+
+        body.dark-theme .current-post-card {
+            background: rgba(245, 158, 11, 0.12) !important;
+            border-color: rgba(245, 158, 11, 0.3) !important;
+            color: #fbbf24 !important;
+        }
+        body.dark-theme .current-post-card strong,
+        body.dark-theme .current-post-card span {
+            color: #fde047 !important;
+        }
+
+        /* Segmented Filter Bar in Dark Mode */
+        body.dark-theme .event-filter-bar {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border-color: #1e293b !important;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+        }
+
+        body.dark-theme .event-filter-btn {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-theme .event-filter-btn:hover {
+            color: #f8fafc !important;
+            background: rgba(30, 41, 59, 0.7) !important;
+        }
+
+        body.dark-theme .event-filter-btn.active {
+            background: #1e293b !important;
+            color: #ffffff !important;
+            border-color: #334155 !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        body.dark-theme .event-filter-badge {
+            background: #334155 !important;
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-theme .sub-category-empty-msg {
+            background: #1e293b !important;
+            color: #94a3b8 !important;
+            border-color: #334155 !important;
+        }
+
+        /* Data Tables in Dark Mode */
+        body.dark-theme .data-table thead tr {
+            background: #0b0f19 !important;
+        }
+
+        body.dark-theme .data-table th {
+            background: #1e293b !important;
+            color: #94a3b8 !important;
+            border-bottom-color: #334155 !important;
+        }
+
+        body.dark-theme .data-table td {
+            border-bottom-color: #1f2937 !important;
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-theme .data-table td strong {
+            color: #f8fafc !important;
+        }
+
+        body.dark-theme .data-table tr:hover td {
+            background: #1e293b !important;
+        }
+
+        body.dark-theme .empty-state {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-theme .empty-state p {
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-theme .empty-state small {
+            color: #94a3b8 !important;
+        }
+
+        /* Modals in Dark Mode */
+        body.dark-theme .d-modal-box {
+            background: #111827 !important;
+            border: 1px solid #1f2937 !important;
+            color: #f8fafc !important;
+        }
+
+        body.dark-theme .d-modal-header {
+            background: linear-gradient(90deg, #1e293b 0%, #111827 100%) !important;
+            border-bottom-color: #1f2937 !important;
+        }
+
+        body.dark-theme .d-modal-title {
+            color: #f8fafc !important;
+        }
+
+        body.dark-theme .d-modal-close {
+            background: #1e293b !important;
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-theme .d-modal-close:hover {
+            background: #334155 !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-theme .d-modal-body .form-group label {
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-theme .d-modal-body .form-group input,
+        body.dark-theme .d-modal-body .form-group select,
+        body.dark-theme .d-modal-body .form-group textarea,
+        body.dark-theme .scrollable-checklist {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+        }
+
+        body.dark-theme .d-modal-body .btn-cancel {
+            color: #94a3b8 !important;
+        }
+
+        /* ─── RESEARCH SCHOLAR CARDS ─── */
+        .phd-legend-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .scholar-card {
+            border-radius: 14px;
+            padding: 18px;
+            position: relative;
+            transition: all 0.25s ease;
+            overflow: hidden;
+            border: 1.5px solid var(--border);
+        }
+
+        .scholar-card.ongoing {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-color: var(--border);
+        }
+
+        .scholar-card.completed {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #86efac;
+        }
+
+        .scholar-detail-box {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+        }
+
+        .scholar-progress-track {
+            background: #e2e8f0;
+            border-radius: 100px;
+            height: 7px;
+            overflow: hidden;
+        }
+
+        /* ─── DARK THEME OVERRIDES FOR RESEARCH SCHOLARS ─── */
+        body.dark-theme .phd-legend-bar {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border-color: #1e293b !important;
+        }
+
+        body.dark-theme .scholar-card.ongoing {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+            border-color: #334155 !important;
+        }
+
+        body.dark-theme .scholar-card.completed {
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.4) 0%, rgba(6, 95, 70, 0.25) 100%) !important;
+            border-color: rgba(16, 185, 129, 0.4) !important;
+        }
+
+        body.dark-theme .scholar-detail-box {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+        }
+
+        body.dark-theme .scholar-detail-box div {
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-theme .scholar-detail-box .detail-label {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-theme .scholar-progress-track {
+            background: #334155 !important;
+        }
+
         /* ─── PORTFOLIO METRICS SUMMARY ─── */
         .portfolio-stats-grid {
             display: grid;
@@ -1573,8 +1937,32 @@
                 </div>
 
                 <!-- Attended Events -->
-                <div style="padding:16px 20px 8px;">
-                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:var(--primary-dark); font-weight:700;">Attended Events</h4>
+                <div style="padding:16px 20px 8px;" id="acad_attended_wrap">
+                    <div style="margin-bottom:14px;">
+                        <h4 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--primary-dark); font-weight:700;">Attended Events</h4>
+                        <div class="event-filter-bar">
+                            <button type="button" class="event-filter-btn active" data-cat="ALL" onclick="filterEventSubCategory('acad_attended_wrap', 'ALL', this)">
+                                <span>🌐 All</span>
+                                <span class="event-filter-badge">{{ academic_events_attended|length }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Seminar" onclick="filterEventSubCategory('acad_attended_wrap', 'Seminar', this)">
+                                <span>🎤 Seminars</span>
+                                <span class="event-filter-badge">{{ academic_attended_counts.seminars }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Workshop" onclick="filterEventSubCategory('acad_attended_wrap', 'Workshop', this)">
+                                <span>🛠️ Workshops</span>
+                                <span class="event-filter-badge">{{ academic_attended_counts.workshops }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Conference" onclick="filterEventSubCategory('acad_attended_wrap', 'Conference', this)">
+                                <span>📜 Conferences</span>
+                                <span class="event-filter-badge">{{ academic_attended_counts.conferences }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Symposia" onclick="filterEventSubCategory('acad_attended_wrap', 'Symposia', this)">
+                                <span>🏛️ Symposia</span>
+                                <span class="event-filter-badge">{{ academic_attended_counts.symposia }}</span>
+                            </button>
+                        </div>
+                    </div>
                     {% if academic_events_attended %}
                     <div style="overflow-x:auto;">
                         <table class="data-table">
@@ -1588,7 +1976,7 @@
                             </tr></thead>
                             <tbody>
                             {% for s in academic_events_attended %}
-                            <tr>
+                            <tr data-event-type="{{ s.event_type }}">
                                 <td>
                                     <strong>{{ s.title }}</strong>
                                     {% if s.proceedings_title %}<div style="font-size:0.8rem; color:var(--text-muted);">{{ s.proceedings_title }}</div>{% endif %}
@@ -1625,8 +2013,32 @@
                 </div>
 
                 <!-- Conducted Events -->
-                <div style="padding:16px 20px 20px; border-top:1px solid var(--border);">
-                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:#2e7d32; font-weight:700;">Conducted / Organized Events</h4>
+                <div style="padding:16px 20px 20px; border-top:1px solid var(--border);" id="acad_conducted_wrap">
+                    <div style="margin-bottom:14px;">
+                        <h4 style="margin:0 0 10px 0; font-size:0.95rem; color:#2e7d32; font-weight:700;">Conducted / Organized Events</h4>
+                        <div class="event-filter-bar">
+                            <button type="button" class="event-filter-btn active" data-cat="ALL" onclick="filterEventSubCategory('acad_conducted_wrap', 'ALL', this)">
+                                <span>🌐 All</span>
+                                <span class="event-filter-badge">{{ academic_events_conducted|length }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Seminar" onclick="filterEventSubCategory('acad_conducted_wrap', 'Seminar', this)">
+                                <span>🎤 Seminars</span>
+                                <span class="event-filter-badge">{{ academic_conducted_counts.seminars }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Workshop" onclick="filterEventSubCategory('acad_conducted_wrap', 'Workshop', this)">
+                                <span>🛠️ Workshops</span>
+                                <span class="event-filter-badge">{{ academic_conducted_counts.workshops }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Conference" onclick="filterEventSubCategory('acad_conducted_wrap', 'Conference', this)">
+                                <span>📜 Conferences</span>
+                                <span class="event-filter-badge">{{ academic_conducted_counts.conferences }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Symposia" onclick="filterEventSubCategory('acad_conducted_wrap', 'Symposia', this)">
+                                <span>🏛️ Symposia</span>
+                                <span class="event-filter-badge">{{ academic_conducted_counts.symposia }}</span>
+                            </button>
+                        </div>
+                    </div>
                     {% if academic_events_conducted %}
                     <div style="overflow-x:auto;">
                         <table class="data-table">
@@ -1640,7 +2052,7 @@
                             </tr></thead>
                             <tbody>
                             {% for s in academic_events_conducted %}
-                            <tr>
+                            <tr data-event-type="{{ s.event_type }}">
                                 <td>
                                     <strong>{{ s.title }}</strong>
                                     <br>
@@ -1685,8 +2097,32 @@
                 </div>
 
                 <!-- Attended Training -->
-                <div style="padding:16px 20px 8px;">
-                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:var(--primary-dark); font-weight:700;">Attended Trainings & FDP</h4>
+                <div style="padding:16px 20px 8px;" id="train_attended_wrap">
+                    <div style="margin-bottom:14px;">
+                        <h4 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--primary-dark); font-weight:700;">Attended Trainings & FDP</h4>
+                        <div class="event-filter-bar">
+                            <button type="button" class="event-filter-btn active" data-cat="ALL" onclick="filterEventSubCategory('train_attended_wrap', 'ALL', this)">
+                                <span>🌐 All</span>
+                                <span class="event-filter-badge">{{ training_events_attended|length }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="FDP" onclick="filterEventSubCategory('train_attended_wrap', 'FDP', this)">
+                                <span>⚡ FDP</span>
+                                <span class="event-filter-badge">{{ training_attended_counts.fdp }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="STTP" onclick="filterEventSubCategory('train_attended_wrap', 'STTP', this)">
+                                <span>🛠️ STTP</span>
+                                <span class="event-filter-badge">{{ training_attended_counts.sttp }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="School" onclick="filterEventSubCategory('train_attended_wrap', 'School', this)">
+                                <span>🎓 Summer/Winter School</span>
+                                <span class="event-filter-badge">{{ training_attended_counts.school }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Orientation_Refresher" onclick="filterEventSubCategory('train_attended_wrap', 'Orientation_Refresher', this)">
+                                <span>📖 Orientation & Refresher</span>
+                                <span class="event-filter-badge">{{ training_attended_counts.orientation_refresher }}</span>
+                            </button>
+                        </div>
+                    </div>
                     {% if training_events_attended %}
                     <div style="overflow-x:auto;">
                         <table class="data-table">
@@ -1699,7 +2135,7 @@
                             </tr></thead>
                             <tbody>
                             {% for s in training_events_attended %}
-                            <tr>
+                            <tr data-event-type="{{ s.event_type }}">
                                 <td>
                                     <strong>{{ s.title }}</strong>
                                     <br>
@@ -1740,8 +2176,32 @@
                 </div>
 
                 <!-- Conducted Training -->
-                <div style="padding:16px 20px 20px; border-top:1px solid var(--border);">
-                    <h4 style="margin:0 0 10px; font-size:0.92rem; color:#2e7d32; font-weight:700;">Conducted / Organized Trainings & FDP</h4>
+                <div style="padding:16px 20px 20px; border-top:1px solid var(--border);" id="train_conducted_wrap">
+                    <div style="margin-bottom:14px;">
+                        <h4 style="margin:0 0 10px 0; font-size:0.95rem; color:#2e7d32; font-weight:700;">Conducted / Organized Trainings & FDP</h4>
+                        <div class="event-filter-bar">
+                            <button type="button" class="event-filter-btn active" data-cat="ALL" onclick="filterEventSubCategory('train_conducted_wrap', 'ALL', this)">
+                                <span>🌐 All</span>
+                                <span class="event-filter-badge">{{ training_events_conducted|length }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="FDP" onclick="filterEventSubCategory('train_conducted_wrap', 'FDP', this)">
+                                <span>⚡ FDP</span>
+                                <span class="event-filter-badge">{{ training_conducted_counts.fdp }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="STTP" onclick="filterEventSubCategory('train_conducted_wrap', 'STTP', this)">
+                                <span>🛠️ STTP</span>
+                                <span class="event-filter-badge">{{ training_conducted_counts.sttp }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="School" onclick="filterEventSubCategory('train_conducted_wrap', 'School', this)">
+                                <span>🎓 Summer/Winter School</span>
+                                <span class="event-filter-badge">{{ training_conducted_counts.school }}</span>
+                            </button>
+                            <button type="button" class="event-filter-btn" data-cat="Orientation_Refresher" onclick="filterEventSubCategory('train_conducted_wrap', 'Orientation_Refresher', this)">
+                                <span>📖 Orientation & Refresher</span>
+                                <span class="event-filter-badge">{{ training_conducted_counts.orientation_refresher }}</span>
+                            </button>
+                        </div>
+                    </div>
                     {% if training_events_conducted %}
                     <div style="overflow-x:auto;">
                         <table class="data-table">
@@ -1754,7 +2214,7 @@
                             </tr></thead>
                             <tbody>
                             {% for s in training_events_conducted %}
-                            <tr>
+                            <tr data-event-type="{{ s.event_type }}">
                                 <td>
                                     <strong>{{ s.title }}</strong>
                                     <br>
@@ -1805,7 +2265,7 @@
 
                 {% if phd_scholars %}
                 <!-- Stage Legend -->
-                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; padding:12px; background:#f8fafc; border-radius:10px; border:1px solid var(--border);">
+                <div class="phd-legend-bar">
                     <span style="font-size:0.78rem; font-weight:700; color:var(--text-muted); align-self:center; margin-right:4px;">STAGES:</span>
                     {% for sc in phd_scholars %}{% if not sc.is_completed %}
                     <span style="font-size:0.75rem; padding:2px 8px; border-radius:6px; background:#e0f2fe; color:#0369a1; font-weight:600;">{{ sc.current_stage_label }}</span>
@@ -1815,7 +2275,7 @@
 
                 <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px;">
                 {% for sc in phd_scholars %}
-                <div style="background:{% if sc.is_completed %}linear-gradient(135deg,#f0fdf4,#dcfce7){% else %}linear-gradient(135deg,#f8fafc,#f0f4f4){% endif %}; border:1.5px solid {% if sc.is_completed %}#86efac{% else %}var(--border){% endif %}; border-radius:14px; padding:18px; position:relative; transition:box-shadow 0.2s; overflow:hidden;"
+                <div class="scholar-card {% if sc.is_completed %}completed{% else %}ongoing{% endif %}"
                      onmouseenter="this.style.boxShadow='0 4px 20px rgba(90,125,124,0.15)'"
                      onmouseleave="this.style.boxShadow='none'">
 
@@ -1841,22 +2301,22 @@
 
                     <!-- Details Grid -->
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
-                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
-                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Scholar Type</div>
+                        <div class="scholar-detail-box">
+                            <div class="detail-label" style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Scholar Type</div>
                             <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">{{ sc.scholar_type }}</div>
                         </div>
-                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
-                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Admitted</div>
+                        <div class="scholar-detail-box">
+                            <div class="detail-label" style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Admitted</div>
                             <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">{{ sc.admission_date|date:"d M Y" }}</div>
                         </div>
-                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
-                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Current Stage</div>
+                        <div class="scholar-detail-box">
+                            <div class="detail-label" style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">Current Stage</div>
                             <div style="font-size:0.85rem; font-weight:600; color:{% if sc.is_completed %}#065f46{% else %}var(--primary-dark){% endif %};">
                                 {% if sc.is_completed %}🏆 Completed{% else %}📍 {{ sc.current_stage_label }}{% endif %}
                             </div>
                         </div>
-                        <div style="background:white; border-radius:8px; padding:8px 10px; border:1px solid var(--border);">
-                            <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">
+                        <div class="scholar-detail-box">
+                            <div class="detail-label" style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:2px;">
                                 {% if sc.is_completed %}Completion Year{% else %}Stages Done{% endif %}
                             </div>
                             <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">
@@ -1872,7 +2332,7 @@
                             <span>PhD Progress</span>
                             <span>{{ sc.stats.percentage|default:"0" }}%</span>
                         </div>
-                        <div style="background:#e2e8f0; border-radius:100px; height:7px; overflow:hidden;">
+                        <div class="scholar-progress-track">
                             <div style="height:100%; width:{{ sc.stats.percentage|default:0 }}%; background:linear-gradient(90deg, var(--primary), #7ba8a7); border-radius:100px; transition:width 0.4s;"></div>
                         </div>
                     </div>
@@ -2176,5 +2636,59 @@
         }
 
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        function filterEventSubCategory(containerId, category, btn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Highlight active button in segmented bar seamlessly
+            const parentGroup = btn.parentElement;
+            if (parentGroup) {
+                const buttons = parentGroup.querySelectorAll('.event-filter-btn');
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            const rows = container.querySelectorAll('tbody tr[data-event-type]');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const evType = row.getAttribute('data-event-type') || '';
+                let match = false;
+
+                if (category === 'ALL') {
+                    match = true;
+                } else if (category === 'School') {
+                    match = evType.includes('School');
+                } else if (category === 'Orientation_Refresher') {
+                    match = evType.includes('Orientation') || evType.includes('Refresher');
+                } else {
+                    match = (evType === category);
+                }
+
+                if (match) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Smooth animated empty notification row
+            let emptyMsgRow = container.querySelector('.sub-category-empty-msg');
+            if (visibleCount === 0) {
+                if (!emptyMsgRow) {
+                    emptyMsgRow = document.createElement('div');
+                    emptyMsgRow.className = 'sub-category-empty-msg';
+                    emptyMsgRow.style.cssText = 'font-size:0.86rem; color:var(--text-muted); padding:16px; text-align:center; background:#f8fafc; border-radius:10px; margin-top:10px; border:1px dashed #cbd5e1; font-weight:500;';
+                    container.appendChild(emptyMsgRow);
+                }
+                const categoryName = (category === 'ALL') ? 'event' : category.replace('_', ' & ');
+                emptyMsgRow.innerText = `No ${categoryName} entries recorded in this sub-category.`;
+                emptyMsgRow.style.display = 'block';
+            } else if (emptyMsgRow) {
+                emptyMsgRow.style.display = 'none';
+            }
+        }
     </script>
 {% endblock %}

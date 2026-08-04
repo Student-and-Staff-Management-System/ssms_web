@@ -33,7 +33,7 @@
             --shadow-sm: 0 1px 3px rgba(15,23,42,0.04);
             --shadow-md: 0 4px 14px rgba(15,23,42,0.06);
             --shadow-lg: 0 10px 25px rgba(15,23,42,0.08);
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         *, *::before, *::after {
@@ -47,15 +47,15 @@
             background: var(--bg-body);
             color: var(--text-main);
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px 20px 80px;
         }
 
         .container {
-            max-width: 1440px;
+            max-width: 1400px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
         /* ─── HEADER BAR ─── */
@@ -63,11 +63,11 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            padding: 18px 24px;
+            padding: 16px 22px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 14px;
             flex-wrap: wrap;
             box-shadow: var(--shadow-sm);
         }
@@ -79,7 +79,7 @@
         }
 
         .att-header-icon {
-            width: 46px; height: 46px;
+            width: 44px; height: 44px;
             background: var(--primary-light);
             border: 1px solid rgba(90, 125, 124, 0.2);
             border-radius: var(--radius-md);
@@ -89,18 +89,17 @@
         }
 
         .att-title-group h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: var(--text-main);
-            margin: 0;
+            margin: 0 0 3px;
             line-height: 1.2;
         }
 
         .att-sub-tags {
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-top: 4px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
@@ -109,46 +108,55 @@
             font-weight: 600;
             padding: 2px 8px;
             border-radius: 6px;
+            letter-spacing: 0.01em;
         }
 
         .tag-code {
             background: var(--primary-light);
             color: var(--primary-dark);
-            border: 1px solid rgba(90,125,124,0.2);
+            border: 1px solid rgba(90, 125, 124, 0.2);
         }
 
         .tag-sem {
-            background: #e0e7ff;
-            color: #3730a3;
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .tag-period {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            font-weight: 700;
         }
 
         .att-header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .btn-action {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 0.82rem;
+            gap: 5px;
+            font-family: inherit;
+            font-size: 0.8rem;
             font-weight: 600;
-            padding: 9px 16px;
+            padding: 8px 14px;
             border-radius: var(--radius-sm);
             text-decoration: none;
             transition: var(--transition);
-            cursor: pointer;
-            border: none;
+            white-space: nowrap;
         }
 
-        .btn-report {
+        .btn-calendar, .btn-report {
             background: var(--primary-light);
             color: var(--primary-dark);
             border: 1px solid rgba(90,125,124,0.25);
         }
-        .btn-report:hover {
+        .btn-calendar:hover, .btn-report:hover {
             background: var(--primary);
             color: #ffffff;
             transform: translateY(-1px);
@@ -165,192 +173,80 @@
             transform: translateY(-1px);
         }
 
-        /* ─── MESSAGES ─── */
+        /* ─── MESSAGES & NOTICES ─── */
         .messages {
-            padding: 12px 18px;
+            padding: 10px 16px;
             border-radius: var(--radius-md);
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 600;
             animation: fadeIn 0.3s ease;
         }
         .messages.success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .messages.error { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .messages.upcoming-notice { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; display: flex; align-items: center; gap: 8px; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ─── MAIN DUAL LAYOUT ─── */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 420px 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-
-        /* ─── LEFT: CALENDAR PANEL ─── */
-        .calendar-section {
+        /* ─── SESSION & PERIOD BAR ─── */
+        .session-bar {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            padding: 18px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .calendar-header {
+            padding: 14px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .calendar-header h2 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin: 0;
-        }
-
-        .nav-arrow {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            background: var(--surface-hover);
-            color: var(--text-secondary);
-            display: flex; align-items: center; justify-content: center;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-        .nav-arrow:hover {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-        }
-
-        .weekday {
-            text-align: center;
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding-bottom: 6px;
-        }
-
-        .day-cell {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            height: 58px;
-            background: var(--surface);
-            padding: 4px 5px;
-            text-decoration: none;
-            color: inherit;
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .day-cell:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary);
-        }
-
-        .day-cell.other-month { opacity: 0.35; }
-        
-        .day-cell.selected {
-            border: 2px solid var(--primary);
-            background: var(--primary-light);
-        }
-
-        .day-cell.today {
-            border-color: var(--accent-gold);
-            background: #fffdf5;
-        }
-
-        .day-num {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--text-main);
-            line-height: 1;
-            margin-bottom: 2px;
-        }
-
-        .day-content {
-            display: flex;
+            gap: 14px;
             flex-wrap: wrap;
-            gap: 2px;
-            align-content: flex-start;
-            overflow: hidden;
-        }
-
-        .class-badge {
-            font-size: 0.55rem;
-            font-weight: 800;
-            background: var(--primary-light, #eef2f2);
-            color: var(--primary-dark, #4a6b69);
-            border: 1px solid rgba(90, 125, 124, 0.2);
-            padding: 1px 3.5px;
-            border-radius: 3px;
-            line-height: 1.1;
-            white-space: nowrap;
-        }
-
-        .legend {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px dashed var(--border);
-            font-size: 0.72rem;
-            color: var(--text-muted);
-        }
-
-        .legend-item { display: flex; align-items: center; gap: 5px; font-weight: 600; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .dot.recorded { background: var(--success); }
-        .dot.pending { background: var(--accent-gold); }
-        .dot.future { background: var(--border); }
-
-
-        /* ─── RIGHT: ATTENDANCE RECORDING CONSOLE ─── */
-        .form-section {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
             box-shadow: var(--shadow-sm);
         }
 
-        .session-banner {
+        .period-quick-bar {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            width: 100%;
+        }
+
+        .period-tab-chip {
+            font-size: 0.73rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: var(--transition);
+            border: 1px solid var(--border);
             background: var(--bg-body);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .period-tab-chip.marked {
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #86efac;
+        }
+
+        .period-tab-chip.unmarked {
+            background: #fee2e2;
+            color: #b91c1c;
+            border-color: #fca5a5;
+        }
+
+        .period-tab-chip.upcoming {
+            background: #f1f5f9;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+
+        .period-tab-chip.active {
+            box-shadow: 0 0 0 2px var(--primary);
         }
 
         .session-date-info {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .session-date-title {
@@ -360,309 +256,633 @@
             margin: 0;
         }
 
-        /* Bulk Action Buttons */
-        .bulk-actions {
+        .period-selector-row {
             display: flex;
-            gap: 10px;
-            margin-bottom: 14px;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
-        .btn-bulk {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-family: inherit;
-            font-size: 0.8rem;
+        .period-tab {
+            font-size: 0.76rem;
             font-weight: 700;
-            padding: 9px 14px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--bg-body);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .period-tab:hover, .period-tab.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .date-nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-date-nav {
+            font-size: 0.76rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-body);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .btn-date-nav:hover, .btn-date-nav.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .date-input-picker {
+            padding: 3px 7px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--text-main);
+            background: var(--surface);
+            cursor: pointer;
+        }
+
+        /* ─── STICKY SEARCH & FILTER TOOLBAR ─── */
+        .sticky-toolbar {
+            position: sticky;
+            top: 10px;
+            z-index: 90;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 12px 18px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-box-wrap {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 34px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-main);
+            background: var(--bg-body);
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15);
+        }
+
+        .search-icon-inside {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .filter-tabs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab-btn {
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-body);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-tab-btn:hover {
+            background: var(--surface-hover);
+        }
+
+        .filter-tab-btn.active {
+            background: var(--text-main);
+            color: #ffffff;
+            border-color: var(--text-main);
+        }
+
+        .filter-tab-btn.tab-pres.active {
+            background: #10b981;
+            color: #ffffff;
+            border-color: #10b981;
+        }
+
+        .filter-tab-btn.tab-abs.active {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+        }
+
+        .bulk-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-bulk-fast {
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 6px 12px;
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: var(--transition);
             border: 1px solid var(--border);
-            background: var(--surface);
         }
 
-        .btn-bulk-present {
+        .btn-bulk-pres {
             color: #15803d;
-            border-color: #bbf7d0;
             background: #f0fdf4;
+            border-color: #bbf7d0;
         }
-        .btn-bulk-present:hover {
+        .btn-bulk-pres:hover {
             background: #10b981;
             color: #ffffff;
-            border-color: #10b981;
-            transform: translateY(-1px);
         }
 
-        .btn-bulk-absent {
+        .btn-bulk-abs {
             color: #b91c1c;
-            border-color: #fca5a5;
             background: #fef2f2;
+            border-color: #fca5a5;
         }
-        .btn-bulk-absent:hover {
+        .btn-bulk-abs:hover {
             background: #ef4444;
             color: #ffffff;
-            border-color: #ef4444;
-            transform: translateY(-1px);
         }
 
-        /* Live Progress Bar & Stats Counter */
-        .stats-container {
-            background: var(--bg-body);
+        .btn-bulk-clear {
+            color: var(--text-secondary);
+            background: var(--surface-hover);
+            border-color: var(--border);
+        }
+        .btn-bulk-clear:hover {
+            background: var(--text-main);
+            color: #ffffff;
+        }
+
+        /* ─── HIGH DENSITY OPTIMIZED STUDENT GRID (For 100+ Students) ─── */
+        .student-grid-container {
+            background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 10px 14px;
-            margin-bottom: 16px;
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
         }
 
-        .stats-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .stat-present { color: #15803d; }
-        .stat-absent { color: #b91c1c; }
-        .stat-ratio { color: var(--text-muted); }
-
-        .progress-track {
-            height: 6px;
-            background: #fee2e2;
-            border-radius: 99px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #10b981, #059669);
-            border-radius: 99px;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* ─── STUDENT INTERACTIVE GRID ─── */
         .student-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
             gap: 10px;
-            margin-bottom: 20px;
-            max-height: 480px;
-            overflow-y: auto;
-            padding-right: 4px;
         }
 
-        /* Custom Scrollbar */
-        .student-grid::-webkit-scrollbar { width: 5px; }
-        .student-grid::-webkit-scrollbar-track { background: var(--bg-body); }
-        .student-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-        /* Student Card Tile */
         .student-card {
-            background: var(--surface);
+            background: var(--bg-body);
             border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 10px 12px;
+            padding: 10px 11px;
             cursor: pointer;
-            transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+            user-select: none;
+            transition: var(--transition);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 72px;
-            position: relative;
-            user-select: none;
+            gap: 4px;
+            min-height: 64px;
         }
 
         .student-card:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
-            border-color: rgba(90, 125, 124, 0.4);
-        }
-
-        .student-card:active {
-            transform: scale(0.96);
-        }
-
-        .card-top-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 4px;
-        }
-
-        .st-name {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-main);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.2;
+            border-color: var(--primary);
         }
 
         .st-roll {
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-top: 2px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 0.02em;
+            line-height: 1.1;
         }
 
-        .status-badge {
+        .st-name {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-pill-badge {
             font-size: 0.64rem;
             font-weight: 800;
             padding: 2px 7px;
-            border-radius: 12px;
+            border-radius: 4px;
             align-self: flex-start;
-            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
             transition: var(--transition);
         }
 
         /* Card Present State */
         .student-card.present {
-            background: linear-gradient(135deg, rgba(220, 252, 231, 0.6), rgba(240, 253, 244, 0.9));
-            border-color: #10b981;
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.12);
+            background: #f0fdf4;
+            border-color: #86efac;
         }
-        .student-card.present .status-badge {
+        .student-card.present .status-pill-badge {
             background: #10b981;
             color: #ffffff;
+        }
+        .student-card.present .st-roll {
+            color: #14532d;
         }
 
         /* Card Absent State */
         .student-card.absent {
-            background: linear-gradient(135deg, rgba(254, 226, 226, 0.6), rgba(255, 241, 241, 0.9));
-            border-color: #ef4444;
-            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.12);
+            background: #fef2f2;
+            border-color: #fca5a5;
         }
-        .student-card.absent .status-badge {
+        .student-card.absent .status-pill-badge {
             background: #ef4444;
             color: #ffffff;
         }
-
-        /* Unmarked State */
-        .student-card.unmarked .status-badge {
-            background: var(--surface-hover);
-            color: var(--text-muted);
+        .student-card.absent .st-roll {
+            color: #7f1d1d;
         }
 
-        /* ─── BOTTOM SAVE TOOLBAR ─── */
-        .save-toolbar {
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
+        /* Card Unmarked State */
+        .student-card.unmarked .status-pill-badge {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        /* ─── STICKY FLOATING BOTTOM TOOLBAR ─── */
+        .sticky-bottom-bar {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 1400px;
+            z-index: 100;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 10px 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 14px;
             flex-wrap: wrap;
+            backdrop-filter: blur(8px);
+        }
+
+        .bottom-stats-group {
+            display: flex;
+            align-items: center;
             gap: 14px;
         }
 
-        .time-inputs-wrap {
+        .stat-badge-chip {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+        .chip-pres { background: #dcfce7; color: #15803d; }
+        .chip-abs { background: #fee2e2; color: #b91c1c; }
+        .chip-total { background: #f1f5f9; color: var(--text-main); }
+
+        .time-inputs-inline {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             background: var(--bg-body);
-            padding: 8px 12px;
+            padding: 4px 10px;
             border-radius: var(--radius-md);
             border: 1px solid var(--border);
-            flex-wrap: wrap;
         }
 
-        .extra-class-label {
+        .extra-label {
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-main);
-            user-select: none;
-        }
-
-        .time-group {
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .time-picker {
-            padding: 4px 8px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.76rem;
+            font-weight: 700;
             color: var(--text-main);
-            background: var(--surface);
         }
 
-        .btn-save-att {
+        .time-input-sm {
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.74rem;
+            font-weight: 600;
+        }
+
+        .btn-save-sticky {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 9px 22px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 14px rgba(90, 125, 124, 0.35);
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-family: inherit;
-            font-size: 0.88rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #ffffff;
-            padding: 10px 22px;
-            border-radius: var(--radius-sm);
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(90, 125, 124, 0.3);
-            transition: var(--transition);
-        }
-        .btn-save-att:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(90, 125, 124, 0.4);
+            white-space: nowrap;
         }
 
-        /* ─── MOBILE RESPONSIVE DESIGN ─── */
-        @media (max-width: 1024px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-            .calendar-section {
-                order: 2;
-            }
-            .form-section {
-                order: 1;
-            }
+        .btn-save-sticky:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(90, 125, 124, 0.45);
         }
 
-        @media (max-width: 600px) {
+        /* ─── COMPREHENSIVE MOBILE OPTIMIZATIONS ─── */
+        @media (max-width: 768px) {
             body {
-                padding: 10px;
+                padding: 10px 10px 110px;
             }
+
+            .container {
+                gap: 10px;
+            }
+
+            /* Header Bar Mobile */
             .att-header {
-                padding: 14px;
+                padding: 12px 14px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
             }
-            .student-grid {
-                grid-template-columns: repeat(2, 1fr);
+
+            .att-header-info {
+                gap: 10px;
+            }
+
+            .att-header-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1.1rem;
+            }
+
+            .att-title-group h1 {
+                font-size: 1.05rem;
+            }
+
+            .att-sub-tags {
+                gap: 4px;
+            }
+
+            .tag-pill {
+                font-size: 0.68rem;
+                padding: 2px 6px;
+            }
+
+            .att-header-actions {
+                width: 100%;
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 6px;
+                padding-bottom: 2px;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            .att-header-actions::-webkit-scrollbar {
+                display: none;
+            }
+
+            .btn-action {
+                flex-shrink: 0;
+                font-size: 0.74rem;
+                padding: 6px 10px;
+            }
+
+            /* Session & Period Bar Mobile */
+            .session-bar {
+                padding: 12px 14px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .session-date-title {
+                font-size: 0.88rem;
+            }
+
+            .period-quick-bar {
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 5px;
+                padding-bottom: 3px;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            .period-quick-bar::-webkit-scrollbar {
+                display: none;
+            }
+
+            .period-tab-chip {
+                flex-shrink: 0;
+                font-size: 0.7rem;
+                padding: 3px 8px;
+            }
+
+            .date-nav-controls {
+                width: 100%;
+                justify-content: space-between;
+                gap: 4px;
+            }
+
+            .btn-date-nav {
+                font-size: 0.72rem;
+                padding: 4px 8px;
+            }
+
+            .date-input-picker {
+                font-size: 0.72rem;
+                padding: 3px 5px;
+            }
+
+            /* Sticky Search & Filter Toolbar Mobile */
+            .sticky-toolbar {
+                top: 0;
+                padding: 10px 12px;
                 gap: 8px;
-                max-height: 400px;
-            }
-            .student-card {
-                padding: 8px 10px;
-                min-height: 66px;
-            }
-            .save-toolbar {
                 flex-direction: column;
                 align-items: stretch;
             }
-            .btn-save-att {
+
+            .search-box-wrap {
                 width: 100%;
-                justify-content: center;
-                padding: 12px;
+                min-width: 0;
             }
-            .time-inputs-wrap {
+
+            .search-input {
+                font-size: 0.78rem;
+                padding: 7px 10px 7px 32px;
+            }
+
+            .filter-tabs {
+                width: 100%;
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 4px;
+                padding-bottom: 2px;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            .filter-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .filter-tab-btn {
+                flex-shrink: 0;
+                font-size: 0.7rem;
+                padding: 5px 10px;
+            }
+
+            .bulk-actions-group {
+                width: 100%;
+                display: flex;
+                gap: 4px;
+                justify-content: space-between;
+            }
+
+            .btn-bulk-fast {
+                flex: 1;
+                text-align: center;
+                justify-content: center;
+                font-size: 0.68rem;
+                padding: 6px 3px;
+                white-space: nowrap;
+            }
+
+            /* High Density Student Grid Mobile */
+            .student-grid-container {
+                padding: 10px;
+            }
+
+            .student-grid {
+                grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+                gap: 6px;
+            }
+
+            .student-card {
+                padding: 8px 8px;
+                min-height: 58px;
+                border-radius: var(--radius-sm);
+            }
+
+            .student-card:active {
+                transform: scale(0.96);
+            }
+
+            .st-roll {
+                font-size: 0.74rem;
+            }
+
+            .st-name {
+                font-size: 0.66rem;
+            }
+
+            .status-pill-badge {
+                font-size: 0.6rem;
+                padding: 1px 5px;
+            }
+
+            /* Floating Save Bar Mobile */
+            .sticky-bottom-bar {
+                left: 8px;
+                transform: none;
+                width: calc(100% - 16px);
+                padding: 8px 12px;
+                gap: 8px;
+                bottom: 8px;
+                border-radius: var(--radius-md);
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .bottom-stats-group {
                 width: 100%;
                 justify-content: space-between;
+                gap: 4px;
+            }
+
+            .stat-badge-chip {
+                font-size: 0.72rem;
+                padding: 2px 7px;
+            }
+
+            .time-inputs-inline {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .btn-save-sticky {
+                width: 100%;
+                justify-content: center;
+                padding: 10px;
+                font-size: 0.88rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .student-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -670,7 +890,7 @@
 
 <body>
     <div class="container">
-        <!-- ─── HEADER BAR ─── -->
+        <!-- HEADER BAR -->
         <div class="att-header">
             <div class="att-header-info">
                 <div class="att-header-icon">📋</div>
@@ -679,11 +899,16 @@
                     <div class="att-sub-tags">
                         <span class="tag-pill tag-code">{{ subject.name }} ({{ subject.code }})</span>
                         <span class="tag-pill tag-sem">Semester {{ subject.semester }}</span>
+                        {% if current_period %}
+                        <span class="tag-pill tag-period">Period {{ current_period.badge }} ({{ current_period.start }}–{{ current_period.end }})</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
             <div class="att-header-actions">
+                <a href="{% url 'staffs:attendance_calendar' subject.id %}" class="btn-action btn-calendar">Calendar 📅</a>
+                <a href="{% url 'staffs:overall_attendance_calendar' %}?subject_id={{ subject.id }}" class="btn-action btn-report">Overall Calendar 🌐</a>
                 <a href="{% url 'staffs:attendance_report' subject.id %}" class="btn-action btn-report">View Report 📊</a>
                 <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-dashboard">Dashboard ↩</a>
             </div>
@@ -695,235 +920,302 @@
         {% endfor %}
         {% endif %}
 
-        <!-- ─── DUAL LAYOUT ─── -->
-        <div class="main-layout">
-            
-            <!-- LEFT: CALENDAR PANEL -->
-            <div class="calendar-section">
-                <div class="calendar-header">
-                    <a href="{{ prev_month_url }}" class="nav-arrow">&lt;</a>
-                    <h2>{{ month_name }} {{ year }}</h2>
-                    <a href="{{ next_month_url }}" class="nav-arrow">&gt;</a>
+        {% if is_upcoming %}
+        <div class="messages upcoming-notice">
+            <span>🔒 <strong>Upcoming Class:</strong> {{ upcoming_reason }} Attendance recording is disabled until class time starts.</span>
+        </div>
+        {% endif %}
+
+        <!-- SESSION BAR -->
+        <div class="session-bar">
+            <div class="session-date-info">
+                <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                    <span style="font-size: 1.1rem;">📅</span>
+                    <h3 class="session-date-title">Recording for {{ current_date }}{% if current_period %} • {{ current_period.label }}{% endif %}</h3>
                 </div>
 
-                <div class="calendar-grid">
-                    <div class="weekday">Mon</div>
-                    <div class="weekday">Tue</div>
-                    <div class="weekday">Wed</div>
-                    <div class="weekday">Thu</div>
-                    <div class="weekday">Fri</div>
-                    <div class="weekday">Sat</div>
-                    <div class="weekday">Sun</div>
-
-                    {% for week in calendar_rows %}
-                    {% for day in week %}
-                    <a href="{{ day.url }}"
-                        class="day-cell {{ day.status_class }} {% if not day.is_current_month %}other-month{% endif %} {% if day.is_selected %}selected{% endif %} {% if day.is_today %}today{% endif %}">
-                        <div class="day-num">{{ day.day_num }}</div>
-                        <div class="day-content">
-                            {% if day.classes %}
-                            {% for cls in day.classes %}
-                            <div class="class-badge">
-                                <span>P{{ cls.period }}</span>
-                            </div>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
+                {% if today_periods %}
+                <div class="period-quick-bar">
+                    <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Today's Periods:</span>
+                    {% for p in today_periods %}
+                    <a href="{{ p.url }}" class="period-tab-chip {{ p.status_class }} {% if p.is_selected %}active{% endif %}" title="{{ p.label }}">
+                        {{ p.badge }} ({{ p.start }}–{{ p.end }}) • {{ p.status_badge }}
                     </a>
                     {% endfor %}
-                    {% endfor %}
                 </div>
-
-                <div class="legend">
-                    <div class="legend-item"><span class="dot recorded"></span>Recorded</div>
-                    <div class="legend-item"><span class="dot pending"></span>Pending</div>
-                    <div class="legend-item"><span class="dot future"></span>Scheduled</div>
-                </div>
+                {% endif %}
             </div>
 
-            <!-- RIGHT: RECORDING CONSOLE -->
-            <div class="form-section">
-                <div class="session-banner">
-                    <div class="session-date-info">
-                        <span style="font-size: 1.1rem;">📅</span>
-                        <h3 class="session-date-title">Recording for {{ current_date }}</h3>
-                    </div>
-                </div>
-
-                <form method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="attendance_date" value="{{ current_date }}">
-
-                    <!-- BULK ACTIONS BAR -->
-                    <div class="bulk-actions">
-                        <button type="button" class="btn-bulk btn-bulk-present" onclick="markAll('Present')">✅ Mark All Present</button>
-                        <button type="button" class="btn-bulk btn-bulk-absent" onclick="markAll('Absent')">❌ Mark All Absent</button>
-                    </div>
-
-                    <!-- LIVE PROGRESS TRACKER -->
-                    <div class="stats-container">
-                        <div class="stats-info">
-                            <span class="stat-present" id="present-count">Present: 0</span>
-                            <span class="stat-absent" id="absent-count">Absent: 0</span>
-                            <span class="stat-ratio" id="ratio-count">0 / {{ students|length }} (0%)</span>
-                        </div>
-                        <div class="progress-track">
-                            <div class="progress-fill" id="progress-bar"></div>
-                        </div>
-                    </div>
-
-                    <!-- STUDENT INTERACTIVE GRID -->
-                    <div class="student-grid">
-                        {% for student in students %}
-                        {% with status=attendance_map|get_item:student.roll_number|default:'' %}
-                        <div class="student-card {% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% else %}unmarked{% endif %}"
-                             id="card_{{ student.roll_number }}" 
-                             onclick="toggleAttendance('{{ student.roll_number }}')">
-
-                            <div>
-                                <div class="st-name">{{ student.student_name }}</div>
-                                <div class="st-roll">{{ student.roll_number }}</div>
-                            </div>
-
-                            <!-- Hidden Inputs -->
-                            <input type="radio" name="status_{{ student.roll_number }}" value="Present"
-                                id="radio_present_{{ student.roll_number }}" {% if status == 'Present' %}checked{% endif%}
-                                style="display:none;">
-                            <input type="radio" name="status_{{ student.roll_number }}" value="Absent"
-                                id="radio_absent_{{ student.roll_number }}" {% if status == 'Absent' %}checked{% endif%}
-                                style="display:none;">
-
-                            <div class="status-badge" id="badge_{{ student.roll_number }}">
-                                {% if status == 'Present' %}✅ Present{% elif status == 'Absent' %}❌ Absent{% else %}⚪ Unmarked{% endif %}
-                            </div>
-                        </div>
-                        {% endwith %}
-                        {% endfor %}
-                    </div>
-
-                    <!-- BOTTOM TOOLBAR -->
-                    {% if not is_readonly %}
-                    <div class="save-toolbar">
-                        <div class="time-inputs-wrap">
-                            <label class="extra-class-label">
-                                <input type="checkbox" name="is_extra_class" value="true" id="extra_class_check" onchange="toggleTimeInput()">
-                                <span>Extra / Special Class</span>
-                            </label>
-
-                            <div id="time_input_container" style="display: flex; align-items: center; gap: 10px; opacity: 0.5; pointer-events: none; transition: all 0.3s;">
-                                <div class="time-group">
-                                    <span>From:</span>
-                                    <input type="time" name="class_time" value="{{ prefill_time|default:'' }}" class="time-picker">
-                                </div>
-                                <div class="time-group">
-                                    <span>To:</span>
-                                    <input type="time" name="end_time" value="{{ prefill_end_time|default:'' }}" class="time-picker">
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-save-att">Save Attendance 💾</button>
-                    </div>
-                    {% else %}
-                    <div style="margin-top: 15px; text-align: right; color: var(--danger); font-style: italic; font-size: 0.82rem;">
-                        * Read-only view (You are not the assigned staff)
-                    </div>
-                    {% endif %}
+            <div class="date-nav-controls">
+                <a href="?date={{ prev_day }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}" class="btn-date-nav" title="Previous Day">&lt; Prev Day</a>
+                <a href="?date={{ today_date }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}" class="btn-date-nav {% if current_date == today_date %}active{% endif %}" title="Today">Today</a>
+                <a href="?date={{ next_day }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}" class="btn-date-nav" title="Next Day">Next Day &gt;</a>
+                <form method="GET" style="display:inline-flex; align-items:center; gap:4px; margin-left:4px;">
+                    {% if prefill_time %}<input type="hidden" name="time" value="{{ prefill_time }}">{% endif %}
+                    {% if prefill_end_time %}<input type="hidden" name="end_time" value="{{ prefill_end_time }}">{% endif %}
+                    <input type="date" name="date" value="{{ current_date }}" onchange="this.form.submit()" class="date-input-picker" title="Pick Date">
                 </form>
             </div>
         </div>
+
+        <!-- MAIN RECORDING FORM -->
+        <form method="POST" id="attendanceForm">
+            {% csrf_token %}
+            <input type="hidden" name="attendance_date" value="{{ current_date }}">
+            {% if prefill_time %}<input type="hidden" name="class_time" value="{{ prefill_time }}">{% endif %}
+            {% if prefill_end_time %}<input type="hidden" name="end_time" value="{{ prefill_end_time }}">{% endif %}
+
+            <!-- STICKY SEARCH & BULK TOOLBAR -->
+            <div class="sticky-toolbar">
+                <div class="search-box-wrap">
+                    <span class="search-icon-inside">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search by name or roll number (Press / to search)..." onkeyup="filterStudents()">
+                </div>
+
+                <div class="filter-tabs">
+                    <button type="button" class="filter-tab-btn active" id="tab-all" onclick="setFilter('all', this)">All (<span id="cnt-all">{{ students|length }}</span>)</button>
+                    <button type="button" class="filter-tab-btn tab-pres" id="tab-pres" onclick="setFilter('present', this)">✅ Present (<span id="cnt-pres">0</span>)</button>
+                    <button type="button" class="filter-tab-btn tab-abs" id="tab-abs" onclick="setFilter('absent', this)">❌ Absent (<span id="cnt-abs">0</span>)</button>
+                    <button type="button" class="filter-tab-btn" id="tab-unm" onclick="setFilter('unmarked', this)">⚪ Unmarked (<span id="cnt-unm">0</span>)</button>
+                </div>
+
+                <div class="bulk-actions-group">
+                    <button type="button" class="btn-bulk-fast btn-bulk-pres" onclick="markAllVisible('Present')" title="Mark visible students as Present">✅ Mark All Present</button>
+                    <button type="button" class="btn-bulk-fast btn-bulk-abs" onclick="markAllVisible('Absent')" title="Mark visible students as Absent">❌ Mark All Absent</button>
+                    <button type="button" class="btn-bulk-fast btn-bulk-clear" onclick="clearAllVisible()" title="Clear attendance selections for visible students">🧹 Clear Attendance</button>
+                </div>
+            </div>
+
+            <!-- HIGH-DENSITY STUDENT GRID -->
+            <div class="student-grid-container" style="margin-top: 12px;">
+                <div class="student-grid" id="studentGrid">
+                    {% for student in students %}
+                    {% with status=attendance_map|get_item:student.roll_number|default:'' %}
+                    <div class="student-card {% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% else %}unmarked{% endif %}"
+                         id="card_{{ student.roll_number }}"
+                         data-roll="{{ student.roll_number|lower }}"
+                         data-name="{{ student.student_name|lower }}"
+                         data-status="{% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% else %}unmarked{% endif %}"
+                         onclick="toggleAttendance('{{ student.roll_number }}')">
+
+                        <div class="st-roll">{{ student.roll_number }}</div>
+                        <div class="st-name" title="{{ student.student_name }}">{{ student.student_name }}</div>
+
+                        <!-- Hidden Radio Inputs -->
+                        <input type="radio" name="status_{{ student.roll_number }}" value="Present"
+                            id="radio_present_{{ student.roll_number }}" {% if status == 'Present' %}checked{% endif%}
+                            style="display:none;">
+                        <input type="radio" name="status_{{ student.roll_number }}" value="Absent"
+                            id="radio_absent_{{ student.roll_number }}" {% if status == 'Absent' %}checked{% endif%}
+                            style="display:none;">
+
+                        <div class="status-pill-badge" id="badge_{{ student.roll_number }}">
+                            {% if status == 'Present' %}✅ Present{% elif status == 'Absent' %}❌ Absent{% else %}⚪ Unmarked{% endif %}
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- STICKY FLOATING BOTTOM SAVE BAR -->
+            <div class="sticky-bottom-bar">
+                <div class="bottom-stats-group">
+                    <span class="stat-badge-chip chip-pres" id="chip-present">Present: 0</span>
+                    <span class="stat-badge-chip chip-abs" id="chip-absent">Absent: 0</span>
+                    <span class="stat-badge-chip chip-total" id="chip-total">0 / {{ students|length }} (0%)</span>
+                </div>
+
+                {% if is_upcoming %}
+                <div style="color: #475569; font-weight: 700; font-size: 0.8rem; background: #f1f5f9; padding: 6px 14px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    🔒 Upcoming Class (Attendance Locked)
+                </div>
+                {% elif not is_readonly %}
+                <div class="time-inputs-inline">
+                    <label class="extra-label">
+                        <input type="checkbox" name="is_extra_class" value="true" id="extra_check" onchange="toggleExtraTime()">
+                        <span>Extra Class</span>
+                    </label>
+
+                    <div id="extra_time_wrap" style="display: flex; align-items: center; gap: 6px; opacity: 0.5; pointer-events: none;">
+                        <input type="time" name="class_time" value="{{ prefill_time|default:'' }}" class="time-input-sm">
+                        <span style="font-size: 0.72rem;">to</span>
+                        <input type="time" name="end_time" value="{{ prefill_end_time|default:'' }}" class="time-input-sm">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save-sticky">Save Attendance 💾</button>
+                {% else %}
+                <div style="color: var(--danger); font-weight: 700; font-size: 0.8rem;">Read-only mode</div>
+                {% endif %}
+            </div>
+        </form>
     </div>
 
     <script>
         const totalStudents = {{ students|length }};
+        let currentFilter = 'all';
 
         function toggleAttendance(roll) {
-            if ("{{ is_readonly }}" === "True") return;
+            if ("{{ is_readonly }}" === "True" || "{{ is_upcoming }}" === "True") return;
             const card = document.getElementById('card_' + roll);
             const radioPresent = document.getElementById('radio_present_' + roll);
             const radioAbsent = document.getElementById('radio_absent_' + roll);
             const badge = document.getElementById('badge_' + roll);
 
             if (card.classList.contains('present')) {
-                card.classList.remove('present');
+                card.classList.remove('present', 'unmarked');
                 card.classList.add('absent');
+                card.setAttribute('data-status', 'absent');
                 radioPresent.checked = false;
                 radioAbsent.checked = true;
                 badge.innerHTML = '❌ Absent';
             } else {
                 card.classList.remove('absent', 'unmarked');
                 card.classList.add('present');
+                card.setAttribute('data-status', 'present');
                 radioPresent.checked = true;
                 radioAbsent.checked = false;
                 badge.innerHTML = '✅ Present';
             }
 
             updateStats();
+            filterStudents();
         }
 
-        function markAll(status) {
-            if ("{{ is_readonly }}" === "True") return;
+        function markAllVisible(status) {
+            if ("{{ is_readonly }}" === "True" || "{{ is_upcoming }}" === "True") return;
             const cards = document.querySelectorAll('.student-card');
             cards.forEach(card => {
-                const roll = card.id.replace('card_', '');
-                const radioPresent = document.getElementById('radio_present_' + roll);
-                const radioAbsent = document.getElementById('radio_absent_' + roll);
-                const badge = document.getElementById('badge_' + roll);
+                if (card.style.display !== 'none') {
+                    const roll = card.id.replace('card_', '');
+                    const radioPresent = document.getElementById('radio_present_' + roll);
+                    const radioAbsent = document.getElementById('radio_absent_' + roll);
+                    const badge = document.getElementById('badge_' + roll);
 
-                card.classList.remove('present', 'absent', 'unmarked');
-                if (status === 'Present') {
-                    card.classList.add('present');
-                    radioPresent.checked = true;
-                    radioAbsent.checked = false;
-                    badge.innerHTML = '✅ Present';
-                } else {
-                    card.classList.add('absent');
-                    radioPresent.checked = false;
-                    radioAbsent.checked = true;
-                    badge.innerHTML = '❌ Absent';
+                    card.classList.remove('present', 'absent', 'unmarked');
+                    if (status === 'Present') {
+                        card.classList.add('present');
+                        card.setAttribute('data-status', 'present');
+                        radioPresent.checked = true;
+                        radioAbsent.checked = false;
+                        badge.innerHTML = '✅ Present';
+                    } else {
+                        card.classList.add('absent');
+                        card.setAttribute('data-status', 'absent');
+                        radioPresent.checked = false;
+                        radioAbsent.checked = true;
+                        badge.innerHTML = '❌ Absent';
+                    }
                 }
             });
             updateStats();
+            filterStudents();
+        }
+
+        function clearAllVisible() {
+            if ("{{ is_readonly }}" === "True" || "{{ is_upcoming }}" === "True") return;
+            const cards = document.querySelectorAll('.student-card');
+            cards.forEach(card => {
+                if (card.style.display !== 'none') {
+                    const roll = card.id.replace('card_', '');
+                    const radioPresent = document.getElementById('radio_present_' + roll);
+                    const radioAbsent = document.getElementById('radio_absent_' + roll);
+                    const badge = document.getElementById('badge_' + roll);
+
+                    card.classList.remove('present', 'absent');
+                    card.classList.add('unmarked');
+                    card.setAttribute('data-status', 'unmarked');
+                    if (radioPresent) radioPresent.checked = false;
+                    if (radioAbsent) radioAbsent.checked = false;
+                    if (badge) badge.innerHTML = '⚪ Unmarked';
+                }
+            });
+            updateStats();
+            filterStudents();
+        }
+
+        function setFilter(filterType, btnElem) {
+            currentFilter = filterType;
+            document.querySelectorAll('.filter-tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElem) btnElem.classList.add('active');
+            filterStudents();
+        }
+
+        function filterStudents() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.student-card');
+
+            cards.forEach(card => {
+                const roll = card.getAttribute('data-roll');
+                const name = card.getAttribute('data-name');
+                const status = card.getAttribute('data-status');
+
+                const matchesQuery = !query || roll.includes(query) || name.includes(query);
+                const matchesFilter = (currentFilter === 'all') || (status === currentFilter);
+
+                if (matchesQuery && matchesFilter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         }
 
         function updateStats() {
             const present = document.querySelectorAll('input[value="Present"]:checked').length;
             const absent = document.querySelectorAll('input[value="Absent"]:checked').length;
-            
-            document.getElementById('present-count').innerText = "Present: " + present;
-            document.getElementById('absent-count').innerText = "Absent: " + absent;
+            const unmarked = totalStudents - (present + absent);
+
+            document.getElementById('chip-present').innerText = "Present: " + present;
+            document.getElementById('chip-absent').innerText = "Absent: " + absent;
             
             const pct = totalStudents > 0 ? Math.round((present / totalStudents) * 100) : 0;
-            document.getElementById('ratio-count').innerText = present + " / " + totalStudents + " (" + pct + "%)";
-            
-            const progressBar = document.getElementById('progress-bar');
-            if (progressBar) {
-                progressBar.style.width = pct + "%";
-            }
+            document.getElementById('chip-total').innerText = present + " / " + totalStudents + " (" + pct + "%)";
+
+            // Update tab counts
+            document.getElementById('cnt-all').innerText = totalStudents;
+            document.getElementById('cnt-pres').innerText = present;
+            document.getElementById('cnt-abs').innerText = absent;
+            document.getElementById('cnt-unm').innerText = unmarked;
         }
 
-        function toggleTimeInput() {
-            const check = document.getElementById('extra_class_check');
-            const container = document.getElementById('time_input_container');
-            if (check && container) {
+        function toggleExtraTime() {
+            const check = document.getElementById('extra_check');
+            const wrap = document.getElementById('extra_time_wrap');
+            if (check && wrap) {
                 if (check.checked) {
-                    container.style.opacity = '1';
-                    container.style.pointerEvents = 'auto';
+                    wrap.style.opacity = '1';
+                    wrap.style.pointerEvents = 'auto';
                 } else {
-                    container.style.opacity = '0.5';
-                    container.style.pointerEvents = 'none';
+                    wrap.style.opacity = '0.5';
+                    wrap.style.pointerEvents = 'none';
                 }
             }
         }
 
-        // On Load
+        // Global hotkey shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Press '/' to focus search input
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            // Ctrl+S to save attendance
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                const form = document.getElementById('attendanceForm');
+                if (form) form.submit();
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             updateStats();
             if ("{{ prefill_time }}" !== "") {
-                const container = document.getElementById('time_input_container');
-                if (container) {
-                    container.style.opacity = '1';
-                    container.style.pointerEvents = 'auto';
+                const wrap = document.getElementById('extra_time_wrap');
+                if (wrap) {
+                    wrap.style.opacity = '1';
+                    wrap.style.pointerEvents = 'auto';
                 }
             }
         });
