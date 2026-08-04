@@ -3660,12 +3660,24 @@ def staff_portfolio(request):
             current_stage_label = 'RAC Review'
             stats = {}
 
+        photo = None
+        if hasattr(student, 'studentdocuments') and student.studentdocuments and student.studentdocuments.student_photo:
+            photo = student.studentdocuments.student_photo
+
         phd_scholars_data.append({
             'profile': profile,
             'student': student,
+            'name': student.student_name,
+            'roll_number': student.roll_number,
+            'photo': photo,
+            'scholar_type': profile.scholar_type or 'PhD Scholar',
+            'admission_date': profile.admission_date,
+            'completion_year': profile.completion_year,
+            'status': profile.status,
             'current_stage_label': current_stage_label,
+            'stats': stats,
             'overall_percent': stats.get('overall_percent', 0),
-            'is_completed': (current_stage_key == 'COMPLETED'),
+            'is_completed': (current_stage_key == 'COMPLETED' or profile.status == 'Completed'),
         })
 
     ctx = {
@@ -4022,6 +4034,11 @@ def _get_guided_scholars_for_staff(staff):
         if not stu_match and g.student_name and g.student_name.strip():
             stu_match = Student.objects.filter(student_name__iexact=g.student_name.strip()).first()
 
+        if stu_match and g.roll_number and g.roll_number.strip() and stu_match.roll_number != g.roll_number.strip():
+            if not Student.objects.filter(roll_number__iexact=g.roll_number.strip()).exclude(pk=stu_match.pk).exists():
+                stu_match.roll_number = g.roll_number.strip()
+                stu_match.save()
+
         # If no Student object exists yet for this guided student, get or create a lightweight Student record
         if not stu_match:
             roll_val = g.roll_number.strip() if (g.roll_number and g.roll_number.strip()) else f"GS{g.pk:04d}"
@@ -4040,7 +4057,7 @@ def _get_guided_scholars_for_staff(staff):
             guided_scholars.append({
                 'pk': stu_match.pk,
                 'student_name': stu_match.student_name,
-                'roll_number': stu_match.roll_number or g.roll_number or '',
+                'roll_number': g.roll_number.strip() if (g.roll_number and g.roll_number.strip()) else (stu_match.roll_number or ''),
                 'type': f"{g.degree_type}{spec_str} ({g.status})",
                 'status': g.status
             })
@@ -4831,9 +4848,12 @@ def portfolio_add_student(request):
         return redirect('staffs:stafflogin')
     if request.method == 'POST':
         viva_date_str = request.POST.get('viva_date', '').strip()
-        StaffStudentGuided.objects.create(
+        new_name = request.POST.get('student_name', '').strip()
+        new_roll = request.POST.get('roll_number', '').strip()
+
+        g = StaffStudentGuided.objects.create(
             staff=staff,
-            student_name=request.POST.get('student_name', '').strip(),
+            student_name=new_name,
             degree_type=request.POST.get('degree_type', 'PG'),
             status=request.POST.get('status', 'Ongoing'),
             year=request.POST.get('year', '').strip(),
@@ -4841,11 +4861,41 @@ def portfolio_add_student(request):
             supporting_document=request.FILES.get('supporting_document'),
             department=request.POST.get('department', '').strip(),
             specialization=request.POST.get('specialization', '').strip(),
-            roll_number=request.POST.get('roll_number', '').strip(),
+            roll_number=new_roll,
             thesis_title=request.POST.get('thesis_title', '').strip(),
             thesis_document=request.FILES.get('thesis_document'),
             papers_pdf=request.FILES.get('papers_pdf'),
         )
+
+        from students.models import Student
+        stu = None
+        if new_roll:
+            stu = Student.objects.filter(roll_number__iexact=new_roll).first()
+        if not stu and new_name:
+            stu = Student.objects.filter(student_name__iexact=new_name).first()
+
+        if stu:
+            updated = False
+            if new_roll and stu.roll_number != new_roll:
+                if not Student.objects.filter(roll_number__iexact=new_roll).exclude(pk=stu.pk).exists():
+                    stu.roll_number = new_roll
+                    updated = True
+            if new_name and stu.student_name != new_name:
+                stu.student_name = new_name
+                updated = True
+            if updated:
+                stu.save()
+        else:
+            roll_val = new_roll if new_roll else f"GS{g.pk:04d}"
+            Student.objects.get_or_create(
+                roll_number=roll_val,
+                defaults={
+                    'student_name': new_name if new_name else 'Guided Student',
+                    'current_semester': 8 if g.degree_type == 'PG' else 10,
+                    'program_level': g.degree_type or 'PG',
+                }
+            )
+
         from .utils import log_audit
         log_audit(request, 'create', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='StudentGuided', message='Added new student guidance')
         messages.success(request, "Student added.")
@@ -4861,7 +4911,13 @@ def portfolio_edit_student(request, pk):
         return redirect('staffs:stafflogin')
     item = get_object_or_404(StaffStudentGuided, pk=pk, staff=staff)
     if request.method == 'POST':
-        item.student_name = request.POST.get('student_name', '').strip()
+        old_roll = (item.roll_number or '').strip()
+        old_name = (item.student_name or '').strip()
+
+        new_name = request.POST.get('student_name', '').strip()
+        new_roll = request.POST.get('roll_number', '').strip()
+
+        item.student_name = new_name
         item.degree_type = request.POST.get('degree_type', 'PG')
         item.status = request.POST.get('status', 'Ongoing')
         item.year = request.POST.get('year', '').strip()
@@ -4869,7 +4925,7 @@ def portfolio_edit_student(request, pk):
         item.viva_date = viva_date_str if viva_date_str else None
         item.department = request.POST.get('department', '').strip()
         item.specialization = request.POST.get('specialization', '').strip()
-        item.roll_number = request.POST.get('roll_number', '').strip()
+        item.roll_number = new_roll
         item.thesis_title = request.POST.get('thesis_title', '').strip()
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
@@ -4878,6 +4934,31 @@ def portfolio_edit_student(request, pk):
         if 'papers_pdf' in request.FILES:
             item.papers_pdf = request.FILES['papers_pdf']
         item.save()
+
+        # Keep Student model object roll_number & student_name in sync
+        from students.models import Student
+        stu = None
+        if old_roll:
+            stu = Student.objects.filter(roll_number__iexact=old_roll).first()
+        if not stu and old_name:
+            stu = Student.objects.filter(student_name__iexact=old_name).first()
+        if not stu and new_roll:
+            stu = Student.objects.filter(roll_number__iexact=new_roll).first()
+        if not stu and new_name:
+            stu = Student.objects.filter(student_name__iexact=new_name).first()
+
+        if stu:
+            updated = False
+            if new_roll and stu.roll_number != new_roll:
+                if not Student.objects.filter(roll_number__iexact=new_roll).exclude(pk=stu.pk).exists():
+                    stu.roll_number = new_roll
+                    updated = True
+            if new_name and stu.student_name != new_name:
+                stu.student_name = new_name
+                updated = True
+            if updated:
+                stu.save()
+
         from .utils import log_audit
         log_audit(request, 'update', actor_type='staff', actor_id=staff.staff_id, actor_name=staff.name, object_type='StudentGuided', object_id=str(item.pk), message='Updated student guidance')
         messages.success(request, "Student entry updated.")
