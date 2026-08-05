@@ -285,6 +285,99 @@
     .tracker-btn:active {
       transform: translateY(0);
     }
+
+    /* Progress Fill & Timeline utilities */
+    .progress-fill-overall {
+      height: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+    .progress-fill-stage {
+      height: 100%;
+      background: var(--secondary);
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+
+    .step-item {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      opacity: 0.45;
+    }
+    .step-item.is-active,
+    .step-item.is-completed {
+      opacity: 1;
+    }
+
+    .step-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      background: #f1f5f9;
+      color: #94a3b8;
+      border: 2px solid #cbd5e1;
+      box-shadow: none;
+    }
+    .step-circle.completed {
+      background: #d1fae5;
+      color: #059669;
+      border-color: #10b981;
+    }
+    .step-circle.active {
+      background: #eff6f6;
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(90, 125, 124, 0.15);
+    }
+
+    .step-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .step-label.active {
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .deadline-banner {
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border-left: 4px solid #10b981;
+      background: #ecfdf5;
+    }
+    .deadline-banner.danger {
+      border-left-color: #ef4444;
+      background: #fef2f2;
+    }
+    .deadline-banner.warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .deadline-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #065f46;
+    }
+    .deadline-banner.danger .deadline-title {
+      color: #991b1b;
+    }
+    .deadline-banner.warning .deadline-title {
+      color: #92400e;
+    }
   </style>
 </head>
 <body>
@@ -347,7 +440,7 @@
               <span style="font-size: 13px; font-weight: 700; color: var(--primary-dark);">{{ phd_stats.overall_percent }}%</span>
             </div>
             <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-              <div style="width: {{ phd_stats.overall_percent }}%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 4px;"></div>
+              <div class="progress-fill-overall" data-percent="{{ phd_stats.overall_percent }}" style="width: 0%;"></div>
             </div>
           </div>
           {% if phd_progress.current_stage != 'COMPLETED' %}
@@ -357,7 +450,7 @@
               <span style="font-size: 12px; font-weight: 700; color: var(--secondary);">{{ phd_stats.stage_percent }}%</span>
             </div>
             <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-              <div style="width: {{ phd_stats.stage_percent }}%; height: 100%; background: var(--secondary); border-radius: 3px;"></div>
+              <div class="progress-fill-stage" data-percent="{{ phd_stats.stage_percent }}" style="width: 0%;"></div>
             </div>
           </div>
           {% endif %}
@@ -375,15 +468,10 @@
             
             {% for choice, label in phd_progress.CURRENT_STAGE_CHOICES %}
             {% if choice != 'COMPLETED' %}
-            <div class="step-item" style="position: relative; z-index: 2; display: flex; align-items: flex-start; gap: 16px; opacity: {% if phd_progress.current_stage == choice or choice in phd_stats.completion_dates %}1{% else %}0.45{% endif %};">
+            <div class="step-item {% if phd_progress.current_stage == choice or choice in phd_stats.completion_dates %}is-active{% endif %}">
               
               <!-- Icon/Dot representing status -->
-              <div class="step-circle" style="
-                width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;
-                background: {% if choice in phd_stats.completion_dates %}#d1fae5{% elif phd_progress.current_stage == choice %}#eff6f6{% else %}#f1f5f9{% endif %};
-                color: {% if choice in phd_stats.completion_dates %}#059669{% elif phd_progress.current_stage == choice %}var(--primary){% else %}#94a3b8{% endif %};
-                border: 2px solid {% if choice in phd_stats.completion_dates %}#10b981{% elif phd_progress.current_stage == choice %}var(--primary){% else %}#cbd5e1{% endif %};
-                box-shadow: {% if phd_progress.current_stage == choice %}0 0 0 4px rgba(90, 125, 124, 0.15){% else %}none{% endif %};">
+              <div class="step-circle {% if choice in phd_stats.completion_dates %}completed{% elif phd_progress.current_stage == choice %}active{% endif %}">
                 {% if choice in phd_stats.completion_dates %}
                   ✓
                 {% else %}
@@ -392,7 +480,7 @@
               </div>
               
               <div style="flex: 1; padding-top: 3px;">
-                <div style="font-size: 13px; font-weight: {% if phd_progress.current_stage == choice %}700{% else %}500{% endif %}; color: {% if phd_progress.current_stage == choice %}var(--dark){% else %}var(--text){% endif %};">
+                <div class="step-label {% if phd_progress.current_stage == choice %}active{% endif %}">
                   {{ label }}
                 </div>
                 {% if choice in phd_stats.completion_dates %}
@@ -426,14 +514,14 @@
 
           <!-- Deadline Display -->
           {% if phd_deadline_info.has_deadline %}
-          <div style="margin-bottom: 20px; padding: 12px 16px; border-radius: 8px; border-left: 4px solid {% if phd_deadline_info.status_class == 'danger' %}#ef4444{% elif phd_deadline_info.status_class == 'warning' %}#f59e0b{% else %}#10b981{% endif %}; background: {% if phd_deadline_info.status_class == 'danger' %}#fef2f2{% elif phd_deadline_info.status_class == 'warning' %}#fffbeb{% else %}#ecfdf5{% endif %};">
+          <div class="deadline-banner {{ phd_deadline_info.status_class }}">
             <div style="display: flex; align-items: center; justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 18px;">
                   {% if phd_deadline_info.status_class == 'danger' %}🚨{% elif phd_deadline_info.status_class == 'warning' %}⚠️{% else %}⏰{% endif %}
                 </span>
                 <div>
-                  <div style="font-weight: 600; font-size: 13px; color: {% if phd_deadline_info.status_class == 'danger' %}#991b1b{% elif phd_deadline_info.status_class == 'warning' %}#92400e{% else %}#065f46{% endif %};">
+                  <div class="deadline-title">
                     {% if phd_deadline_info.is_expired %}
                       Deadline Expired by {{ phd_deadline_info.days_remaining }} Days!
                     {% else %}
@@ -961,5 +1049,12 @@
 
   </div>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('[data-percent]').forEach(function(el) {
+        el.style.width = el.getAttribute('data-percent') + '%';
+      });
+    });
+  </script>
 </body>
 </html>

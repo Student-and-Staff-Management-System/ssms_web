@@ -257,7 +257,13 @@
   
 
   <form method="GET" class="filter-bar">
-    <span class="filter-label">Semester</span>
+    <span class="filter-label">Academic Year</span>
+    <select name="academic_year" id="academic_year" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--gray-300);">
+      {% for yr in available_academic_years %}
+        <option value="{{ yr }}" {% if yr == selected_academic_year %}selected{% endif %}>Year {{ yr }}</option>
+      {% endfor %}
+    </select>
+    <span class="filter-label" style="margin-left: 10px;">Semester</span>
     <select name="semester" id="semester">
       {% for sem in semesters %}
         <option value="{{ sem }}" {% if sem == selected_semester %}selected{% endif %}>Semester {{ sem }}</option>
@@ -267,7 +273,8 @@
 
     {% if staff.role == 'HOD' or staff.is_timetable_incharge %}
       <div style="width: 1px; height: 24px; background: var(--gray-200); margin: 0 4px;"></div>
-      <a href="{% url 'staffs:edit_timetable' selected_semester %}" class="btn btn-outline">Edit Timetable</a>
+      <a href="{% url 'staffs:edit_timetable' selected_semester %}?academic_year={{ selected_academic_year }}" class="btn btn-outline">Edit Timetable</a>
+      <a href="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}" class="btn btn-primary" style="background: var(--teal-600); color: white;">Published Timetables View</a>
       <a href="{% url 'staffs:assign_lab_batches' %}?semester={{ selected_semester }}" class="btn btn-warning">Assign Batches</a>
     {% endif %}
   </form>

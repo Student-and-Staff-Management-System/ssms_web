@@ -5,286 +5,195 @@
 
 {% block page_title %}Student Remarks{% endblock %}
 
+{% block breadcrumbs %}
+<a href="{% url 'staffs:staff_dashboard' %}" class="breadcrumb-item">Dashboard</a>
+<span class="breadcrumb-separator">/</span>
+<span class="breadcrumb-item active">Student Remarks</span>
+{% endblock %}
+
 {% block extra_css %}
     <style>
-/* ================= DESKTOP (UNCHANGED) ================= */
+        .remarks-header-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: var(--surface, #ffffff);
+            padding: 20px 24px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border, #e2e8f0);
+        }
+
+        .remarks-header-card h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main, #0f172a);
+            margin: 0;
+        }
+
+        .remarks-header-card p {
+            font-size: 0.92rem;
+            color: var(--text-muted, #64748b);
+            margin: 4px 0 0 0;
+        }
+
+        .back-btn-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: var(--primary, #5a7d7c);
+            font-weight: 600;
+            font-size: 0.92rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: var(--primary-light, #eef2f2);
+            transition: all 0.2s ease;
+        }
+
+        .back-btn-link:hover {
+            background: var(--primary, #5a7d7c);
+            color: #ffffff;
+        }
 
         .table-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            background: var(--surface, #ffffff);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border, #e2e8f0);
             padding: 20px;
             overflow-x: auto;
         }
 
-        table {
+        .remarks-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        th,
-        td {
+        .remarks-table th,
+        .remarks-table td {
             text-align: left;
-            padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            font-size: 0.92rem;
+            color: var(--text-main, #1e293b);
         }
 
-        th {
-            background-color: #f8fafc;
-            color: #64748b;
+        .remarks-table th {
+            background-color: var(--bg-body, #f8fafc);
+            color: var(--text-muted, #64748b);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        tr:hover {
-            background-color: #f8fafc;
+        .remarks-table tbody tr:hover {
+            background-color: rgba(90, 125, 124, 0.04);
         }
 
         .action-btn {
-            background-color: var(--primary);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background-color: var(--primary, #5a7d7c);
+            color: #ffffff !important;
+            padding: 8px 16px;
+            border-radius: 8px;
             font-size: 0.85rem;
             text-decoration: none;
             font-weight: 500;
-            transition: background 0.2s;
+            white-space: nowrap !important;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .action-btn:hover {
-            background-color: var(--primary-dark);
+            background-color: var(--primary-dark, #4a6b69);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .count-badge {
+            display: inline-block;
             background: #f1f5f9;
             color: #475569;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 600;
         }
 
-        /* ================= MOBILE FIXED VERSION ================= */
-
         @media (max-width: 768px) {
-
-            body {
-                background: #f1f5f9;
-            }
-
-            .app-container {
-                display: block !important;
-            }
-
-            .profile-sidebar-legacy {
-                display: none !important;
-            }
-
-            .main-content {
-                width: 100% !important;
-                padding: 16px !important;
-            }
-
-            .top-bar {
+            .remarks-header-card {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 8px;
             }
 
             .table-container {
-                padding: 0;
-                background: transparent;
-                box-shadow: none;
-            }
-
-            table thead {
-                display: none;
-            }
-
-            table,
-            tbody,
-            tr,
-            td {
-                display: block;
-                width: 100%;
-            }
-
-            tr {
-                background: #ffffff;
-                margin-bottom: 16px;
-                border-radius: 14px;
-                padding: 16px;
-                border: 1px solid #e2e8f0;
-                box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
-                position: relative;
-            }
-
-            /* Accent strip */
-            tr::before {
-                content: "";
-                position: absolute;
-                left: 0;
-                top: 0;
-                height: 100%;
-                width: 4px;
-                background: linear-gradient(180deg, var(--primary), var(--primary-dark));
-                border-top-left-radius: 14px;
-                border-bottom-left-radius: 14px;
-            }
-
-            td {
-                padding: 6px 0;
-                border: none;
-                font-size: 0.92rem;
-                color: #334155;
-            }
-
-            td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                display: block;
-                font-size: 0.72rem;
-                color: #64748b;
-                margin-bottom: 3px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .action-btn {
-                display: inline-block;
-                margin-top: 10px;
-                padding: 8px 16px;
-                border-radius: 8px;
-                font-size: 0.85rem;
-            }
-
-            .count-badge {
-                font-size: 0.75rem;
+                padding: 12px;
             }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<div class="app-container">
+<div class="remarks-header-card">
+    <div>
+        <h2>Student Remarks</h2>
+        <p>Manage remarks for Semester {{ staff.assigned_semester|default:"-" }}</p>
+    </div>
+    <div>
+        <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn-link">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
 
-        <!-- Sidebar -->
-        <aside class="profile-sidebar-legacy">
-            <div class="brand">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-                    alt="Logo">
-                <h1>Class<br>Incharge</h1>
-            </div>
-
-            <nav class="nav-section">
-                <div class="nav-label">Menu</div>
-
-                <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
-                    <span class="nav-icon">👤</span> My Profile
-                </a>
-                <a href="{% url 'staffs:staff_portfolio' %}" class="nav-item">
-                    <span class="nav-icon">📄</span> Publications & Accomplishments
-                </a>
-                <a href="{% url 'staffs:risk_students' %}" class="nav-item">
-                    <span class="nav-icon">⚠️</span> Risk Students
-                </a>
-                <a href="{% url 'staffs:student_list' %}" class="nav-item">
-                    <span class="nav-icon">👨‍🎓</span> My Students
-                </a>
-                <a href="{% url 'staffs:remark_student_list' %}" class="nav-item active"
-                    style="background: rgba(255,255,255,0.1); color: white;">
-                    <span class="nav-icon">💬</span> Student Remarks
-                </a>
-                <a href="{% url 'staffs:timetable' %}" class="nav-item">
-                    <span class="nav-icon">🗓️</span> My Timetable
-                </a>
-                <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item">
-                    <span class="nav-icon">📝</span> Review Leaves
-                </a>
-                <a href="{% url 'staffs:exam_schedule' %}" class="nav-item">
-                    <span class="nav-icon">📅</span> Exam Duties
-                </a>
-                <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item">
-                    <span class="nav-icon">✈️</span> Apply Leave
-                </a>
-            </nav>
-
-            <div class="profile-mini">
-                {% if staff.photo %}
-                <img src="{{ staff.photo.url }}" alt="Profile">
-                {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile">
-                {% endif %}
-                <div style="flex:1; min-width:0;">
-                    <div
-                        style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:0.9rem;">
-                        {{ staff.name }}
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">
-                        Class Incharge
-                    </div>
-                </div>
-                <a href="{% url 'staffs:staff_logout' %}"
-                    style="color:#ef4444; font-size:1.1rem; text-decoration:none;">⏻</a>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        
-            <div class="top-bar">
-                <div>
-                    <h2>Student Remarks</h2>
-                    <p style="font-size:1rem; color:var(--text-muted); margin-top:4px;">
-                        Manage remarks for Semester {{ staff.assigned_semester }}
-                    </p>
-                </div>
-                <div>
-                    <a href="{% url 'staffs:staff_dashboard' %}"
-                        style="text-decoration:none; color:var(--primary); font-weight:600;">
-                        ← Back to Dashboard
+<div class="table-container">
+    <table class="remarks-table">
+        <thead>
+            <tr>
+                <th>Roll Number</th>
+                <th>Name</th>
+                <th>Register Number</th>
+                <th>Total Remarks</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td data-label="Roll Number"><strong>{{ student.roll_number }}</strong></td>
+                <td data-label="Name">{{ student.student_name }}</td>
+                <td data-label="Register Number">
+                    {{ student.register_number|default:"-" }}
+                </td>
+                <td data-label="Total Remarks">
+                    {% if student.remarks.count > 0 %}
+                    <span class="count-badge">{{ student.remarks.count }}</span>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td data-label="Action">
+                    <a href="{% url 'staffs:remark_history' student.roll_number %}" class="action-btn">
+                        Manage Remarks
                     </a>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Roll Number</th>
-                            <th>Name</th>
-                            <th>Register Number</th>
-                            <th>Total Remarks</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in students %}
-                        <tr>
-                            <td data-label="Roll Number">{{ student.roll_number }}</td>
-                            <td data-label="Name">{{ student.student_name }}</td>
-                            <td data-label="Register Number">
-                                {{ student.register_number|default:"-" }}
-                            </td>
-                            <td data-label="Total Remarks">
-                                {% if student.remarks.count > 0 %}
-                                <span class="count-badge">{{ student.remarks.count }}</span>
-                                {% else %}
-                                -
-                                {% endif %}
-                            </td>
-                            <td data-label="Action">
-                                <a href="{% url 'staffs:remark_history' student.roll_number %}" class="action-btn">
-                                    Manage Remarks
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">
-                                No students found for this semester.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px 20px; color: var(--text-muted, #64748b);">
+                    No students found for this semester.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
+

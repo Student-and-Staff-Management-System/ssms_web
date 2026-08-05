@@ -505,6 +505,7 @@ class BonafideRequest(models.Model):
         ('Signed', 'Signed'),
         ('Ready for Collection', 'Ready for Collection'), # Legacy
         ('Collected', 'Collected'),
+        ('Unclaimed', 'Unclaimed / Not Collected'),
         ('Rejected', 'Rejected')
     ]
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='bonafide_requests')

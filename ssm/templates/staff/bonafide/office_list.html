@@ -1,754 +1,823 @@
-{% extends 'staff/staffdash_office.html' %}
+{% extends 'staff/staff_base.html' %}
 {% load static %}
 
+{% block title %}Bonafide Certificate Hub | Annamalai University{% endblock %}
+
+{% block body_class %}dashboard-portal{% endblock %}
+
+{% block page_title %}
+    📜 Bonafide Certificate Command Center
+{% endblock %}
+
+{% block page_subtitle %}Process student applications, execute batch printing for HOD signature, and track collections.{% endblock %}
+
 {% block content %}
-<div class="main-content" style="padding: 20px;">
-    <div class="header" style="margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 15px;">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <a href="{% url 'staffs:staff_dashboard' %}"
-                style="text-decoration: none; color: #95a5a6; font-size: 1.5rem; line-height: 1; transition: color 0.2s;"
-                onmouseover="this.style.color='#2c3e50'" onmouseout="this.style.color='#95a5a6'"
-                title="Back to Dashboard">
-                &larr;
-            </a>
-            <h1 style="color: #2c3e50; font-size: 1.8rem; margin: 0;">Bonafide Requests (Office)</h1>
-        </div>
-        <p style="color: #7f8c8d; margin-top: 5px; margin-left: 35px;">Process approved requests and print certificates.
-        </p>
-    </div>
+<style>
+    /* Premium Styling System */
+    .bonafide-container {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
 
-    <style>
-        /* Action Button Container */
-        .action-btn-group {
-            display: flex;
-            gap: 5px;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-        }
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
 
-        /* Base Button Style */
-        .office-action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px 12px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 0.8rem;
-            height: 32px;
-            white-space: nowrap;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-            color: white;
-            font-weight: 500;
-        }
+    .kpi-card {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    }
 
-        /* Button Colors */
-        .btn-print {
-            background-color: #34495e;
-        }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
 
-        .btn-sign {
-            background-color: #9b59b6;
-        }
+    .kpi-info h3 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        line-height: 1.2;
+    }
 
-        .btn-handover {
-            background-color: #27ae60;
-        }
+    .kpi-info span {
+        font-size: 0.82rem;
+        color: var(--text-muted, #64748b);
+        font-weight: 500;
+    }
 
-        .btn-print:hover {
-            background-color: #2c3e50;
-        }
+    /* Filter & Search Bar */
+    .toolbar-card {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
 
-        .btn-sign:hover {
-            background-color: #8e44ad;
-        }
+    .search-box {
+        position: relative;
+        flex: 1;
+        min-width: 260px;
+    }
+    .search-box input {
+        width: 100%;
+        padding: 10px 16px 10px 42px;
+        border: 1px solid var(--border, #cbd5e1);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        outline: none;
+        background: var(--bg-body, #f8fafc);
+        color: var(--text-main, #0f172a);
+        transition: all 0.2s;
+    }
+    .search-box input:focus {
+        border-color: var(--primary, #0284c7);
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+    }
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #94a3b8;
+    }
 
-        .btn-handover:hover {
-            background-color: #219150;
-        }
+    /* Navigation Tabs */
+    .nav-tabs-container {
+        display: flex;
+        gap: 8px;
+        border-bottom: 2px solid var(--border, #e2e8f0);
+        margin-bottom: 24px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
 
-        /* Text Toggling */
-        .text-desktop {
-            display: none;
-        }
+    .tab-btn {
+        padding: 12px 20px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-muted, #64748b);
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        transition: all 0.2s;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    .tab-btn:hover {
+        color: var(--primary, #0284c7);
+        background: rgba(2, 132, 199, 0.04);
+    }
+    .tab-btn.active {
+        color: var(--primary, #0284c7);
+        border-bottom-color: var(--primary, #0284c7);
+        background: rgba(2, 132, 199, 0.08);
+    }
 
-        .text-mobile {
-            display: inline;
-        }
+    .badge-pill {
+        background: var(--border, #e2e8f0);
+        color: var(--text-main, #334155);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .tab-btn.active .badge-pill {
+        background: var(--primary, #0284c7);
+        color: #ffffff;
+    }
 
-        /* Hide mobile views by default */
-        .mobile-card-view {
-            display: none;
-        }
+    /* Tab Content Panes */
+    .tab-pane {
+        display: none;
+    }
+    .tab-pane.active {
+        display: block;
+        animation: fadeIn 0.25s ease-in-out;
+    }
 
-        /* Desktop View (Large Screens) */
-        @media (min-width: 992px) {
-            .action-btn-group {
-                flex-wrap: nowrap;
-            }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-            .office-action-btn {
-                font-size: 0.9rem;
-                height: auto;
-                padding: 8px 16px;
-            }
+    /* Data Tables */
+    .table-card {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
 
-            .text-desktop {
-                display: inline;
-            }
+    .bonafide-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
 
-            .text-mobile {
-                display: none;
-            }
-        }
+    .bonafide-table th {
+        background: var(--bg-body, #f8fafc);
+        padding: 14px 18px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted, #64748b);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border, #e2e8f0);
+    }
 
-        /* MOBILE OPTIMIZATIONS */
-        @media (max-width: 768px) {
-            /* Hide desktop tables */
-            .desktop-table-view {
-                display: none !important;
-            }
+    .bonafide-table td {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border, #f1f5f9);
+        font-size: 0.88rem;
+        color: var(--text-main, #1e293b);
+        vertical-align: middle;
+    }
 
-            /* Show mobile card views */
-            .mobile-card-view {
-                display: block !important;
-            }
+    .bonafide-table tr:last-child td {
+        border-bottom: none;
+    }
 
-            /* Header adjustments */
-            .header h1 {
-                font-size: 1.3rem !important;
-            }
+    .bonafide-table tr:hover {
+        background: var(--bg-body, #f8fafc);
+    }
 
-            .header p {
-                font-size: 0.85rem !important;
-                margin-left: 0 !important;
-            }
+    /* Student Badge Avatar */
+    .student-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
-            /* Section headers */
-            h2 {
-                font-size: 1.1rem !important;
-                margin-bottom: 12px !important;
-            }
+    .student-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e0f2fe;
+        color: #0284c7;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+        border: 1.5px solid #bae6fd;
+    }
 
-            /* Pending approval cards - keep grid but make mobile-friendly */
-            .pending-grid {
-                grid-template-columns: 1fr !important;
-                gap: 12px !important;
-            }
+    /* Custom Action Buttons */
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
 
-            /* Mobile card styles for table replacements */
-            .mobile-request-card {
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-                padding: 16px;
-                margin-bottom: 12px;
-                border-left: 4px solid #3498db;
-            }
+    .btn-approve {
+        background: #16a34a;
+        color: white;
+    }
+    .btn-approve:hover { background: #15803d; }
 
-            .mobile-card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 12px;
-                gap: 12px;
-            }
+    .btn-reject {
+        background: #ef4444;
+        color: white;
+    }
+    .btn-reject:hover { background: #dc2626; }
 
-            .mobile-student-info {
-                flex: 1;
-                min-width: 0;
-            }
+    .btn-print {
+        background: #0284c7;
+        color: white;
+    }
+    .btn-print:hover { background: #0369a1; }
 
-            .mobile-student-name {
-                font-size: 1rem;
-                font-weight: 600;
-                color: #2c3e50;
-                margin-bottom: 4px;
-            }
+    .btn-sign {
+        background: #9333ea;
+        color: white;
+    }
+    .btn-sign:hover { background: #7e22ce; }
 
-            .mobile-student-roll {
-                font-size: 0.85rem;
-                color: #95a5a6;
-            }
+    .btn-handover {
+        background: #059669;
+        color: white;
+    }
+    .btn-handover:hover { background: #047857; }
 
-            .mobile-reason {
-                background: #f8f9fa;
-                padding: 10px;
-                border-radius: 6px;
-                margin-bottom: 10px;
-                font-size: 0.85rem;
-                color: #555;
-            }
+    /* Pending Approval Cards Grid */
+    .pending-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 20px;
+    }
 
-            .mobile-reason strong {
-                display: block;
-                color: #7f8c8d;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                margin-bottom: 4px;
-                letter-spacing: 0.5px;
-            }
+    .request-card {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 16px;
+        border-top: 4px solid var(--primary, #0284c7);
+    }
 
-            .mobile-date {
-                font-size: 0.8rem;
-                color: #95a5a6;
-                margin-bottom: 12px;
-            }
+    .card-reason-box {
+        background: var(--bg-body, #f8fafc);
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 0.85rem;
+        color: var(--text-main, #334155);
+        border-left: 3px solid #0284c7;
+    }
 
-            .mobile-actions {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
+    /* Modal for Rejection */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
 
-            .mobile-actions .office-action-btn {
-                flex: 1;
-                min-width: calc(50% - 4px);
-                height: 38px;
-                font-size: 0.85rem;
-            }
+    .modal-card {
+        background: var(--surface, #ffffff);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 480px;
+        padding: 24px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border, #e2e8f0);
+    }
+</style>
 
-            /* Bulk print button mobile */
-            .bulk-print-btn {
-                width: 100%;
-                padding: 12px !important;
-                margin-bottom: 12px;
-            }
-
-            /* Status badges mobile */
-            .mobile-status-badge {
-                background: #fff3cd;
-                color: #856404;
-                padding: 4px 10px;
-                border-radius: 15px;
-                font-size: 0.75rem;
-                font-weight: 600;
-                white-space: nowrap;
-            }
-
-            .status-ready {
-                background: #d4edda;
-                color: #155724;
-            }
-
-            .status-rejected {
-                background: #f8d7da;
-                color: #721c24;
-            }
-
-            /* Section header with count */
-            .mobile-section-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 12px;
-            }
-
-            /* Empty states */
-            .mobile-empty-state {
-                text-align: center;
-                padding: 40px 20px;
-                background: white;
-                border-radius: 10px;
-                color: #95a5a6;
-                margin-bottom: 24px;
-            }
-
-            .mobile-empty-icon {
-                font-size: 2.5rem;
-                margin-bottom: 12px;
-                opacity: 0.5;
-            }
-
-            /* Messages mobile */
-            .messages-container > div {
-                padding: 12px !important;
-                font-size: 0.85rem !important;
-            }
-
-            /* Rejection reason colors */
-            .mobile-rejection-reason {
-                background: #fff5f5;
-                border-left: 3px solid #e74c3c;
-                padding: 10px;
-                margin-top: 10px;
-                border-radius: 6px;
-                font-size: 0.85rem;
-                color: #c0392b;
-                font-weight: 500;
-            }
-
-            /* Main content padding */
-            .main-content {
-                padding: 12px !important;
-            }
-        }
-
-        /* Very small mobile devices */
-        @media (max-width: 375px) {
-            .mobile-request-card {
-                padding: 14px;
-            }
-
-            .mobile-student-name {
-                font-size: 0.95rem;
-            }
-
-            .mobile-actions .office-action-btn {
-                min-width: 100%;
-                font-size: 0.8rem;
-            }
-        }
-    </style>
-
+<div class="bonafide-container">
+    <!-- Messages Notification Bar -->
     {% if messages %}
-    <div class="messages-container" style="margin-bottom: 20px;">
+    <div style="margin-bottom: 20px;">
         {% for message in messages %}
-        <div style="padding: 15px; border-radius: 8px; margin-bottom: 10px; 
-            {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
-            {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-            {% else %}background: #fff3cd; color: #856404; border: 1px solid #ffeeba;{% endif %}">
-            {{ message }}
+        <div style="padding: 14px 18px; border-radius: 8px; font-weight: 500; font-size: 0.88rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+            {% if message.tags == 'success' %}background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+            {% elif message.tags == 'warning' or message.tags == 'error' %}background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+            {% else %}background: #e0f2fe; color: #075985; border: 1px solid #bae6fd;{% endif %}">
+            <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; cursor:pointer; font-size:16px; color:inherit;">✕</button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- 1. PENDING APPROVAL -->
-    <h2
-        style="font-size: 1.4rem; color: #34495e; margin-bottom: 15px; border-left: 5px solid #f39c12; padding-left: 10px;">
-        Pending Approval ({{ pending_requests.count }})
-    </h2>
-
-    {% if pending_requests %}
-    <div class="pending-grid"
-        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-bottom: 40px;">
-        {% for req in pending_requests %}
-        <div
-            style="background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eee;">
-            <div style="padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                    <div>
-                        <h3 style="margin: 0; font-size: 1.2rem; color: #2c3e50;">{{ req.student.student_name }}</h3>
-                        <p style="margin: 2px 0; color: #7f8c8d; font-size: 0.9rem;">{{ req.student.roll_number }}</p>
-                    </div>
-                    <span
-                        style="background: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">
-                        Pending Office
-                    </span>
-                </div>
-
-                <div style="margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 6px;">
-                    <strong
-                        style="display: block; font-size: 0.85rem; color: #95a5a6; margin-bottom: 3px;">Reason:</strong>
-                    {{ req.reason }}
-                </div>
-
-                <div style="font-size: 0.85rem; color: #95a5a6; margin-bottom: 15px;">
-                    Requested on: {{ req.created_at|date:"d M Y, h:i A" }}
-                </div>
-
-                <form method="post" action="{% url 'staffs:office_manage_bonafide' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="request_id" value="{{ req.id }}">
-
-                    <div style="display: flex; gap: 10px;">
-                        <button type="submit" name="action" value="approve"
-                            style="flex: 1; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                            Approve
-                        </button>
-                        <button type="button"
-                            onclick="document.getElementById('reject-{{ req.id }}').style.display='block'"
-                            style="flex: 1; background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                            Reject
-                        </button>
-                    </div>
-
-                    <div id="reject-{{ req.id }}" style="display: none; margin-top: 10px;">
-                        <input type="text" name="rejection_reason" placeholder="Reason for rejection..."
-                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; margin-bottom: 5px;">
-                        <button type="submit" name="action" value="reject"
-                            style="width: 100%; background: #c0392b; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer;">
-                            Confirm Rejection
-                        </button>
-                    </div>
-                </form>
+    <!-- Top Key Metrics Row -->
+    <div class="kpi-grid">
+        <div class="kpi-card" onclick="switchTab('pending')">
+            <div class="kpi-icon" style="background: #fef3c7; color: #d97706;">⏳</div>
+            <div class="kpi-info">
+                <h3>{{ pending_requests.count }}</h3>
+                <span>Pending Office Approval</span>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div
-        style="text-align: center; padding: 20px; background: white; border-radius: 10px; color: #7f8c8d; margin-bottom: 40px; border: 1px dashed #ddd;">
-        <h3 style="margin: 0; font-size: 1.1rem;">No Pending Approvals</h3>
-        <p style="margin: 5px 0 0;">There are no new requests to review.</p>
-    </div>
-    {% endif %}
 
-    <!-- 2. WAITING FOR HOD SIGN (BULK PRINT) -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="font-size: 1.4rem; color: #34495e; margin: 0; border-left: 5px solid #3498db; padding-left: 10px;">
-            Waiting for HOD Sign ({{ waiting_requests.count }})
-        </h2>
-        {% if waiting_requests %}
-        <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" target="_blank">
-            {% csrf_token %}
-            <button type="submit" name="action" value="bulk_print" class="bulk-print-btn"
-                style="background: #34495e; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px;">
-                <span style="font-size: 1.2rem;">🖨️</span> Print All Certificates
-            </button>
-        </form>
-        {% endif %}
+        <div class="kpi-card" onclick="switchTab('waiting')">
+            <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">✍️</div>
+            <div class="kpi-info">
+                <h3>{{ waiting_requests.count }}</h3>
+                <span>Waiting Sign / Print</span>
+            </div>
+        </div>
+
+        <div class="kpi-card" onclick="switchTab('ready')">
+            <div class="kpi-icon" style="background: #f0fdf4; color: #16a34a;">📦</div>
+            <div class="kpi-info">
+                <h3>{{ ready_requests.count }}</h3>
+                <span>Ready for Collection</span>
+            </div>
+        </div>
+
+        <div class="kpi-card" onclick="switchTab('completed')">
+            <div class="kpi-icon" style="background: #f3e8ff; color: #9333ea;">✅</div>
+            <div class="kpi-info">
+                <h3>{{ completed_requests.count }}</h3>
+                <span>Completed Handovers</span>
+            </div>
+        </div>
     </div>
 
-    <!-- Desktop Table View -->
-    <div class="desktop-table-view"
-        style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Student</th>
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Reason</th>
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Date Approved</th>
-                    <th style="padding: 15px; text-align: right; color: #7f8c8d; font-weight: 600;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for req in waiting_requests %}
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 15px;">
-                        <strong>{{ req.student.student_name }}</strong><br>
-                        <small style="color: #95a5a6;">{{ req.student.roll_number }}</small>
-                    </td>
-                    <td style="padding: 15px;">{{ req.reason }}</td>
-                    <td style="padding: 15px;">{{ req.updated_at|date:"d M Y" }}</td>
-                    <td style="padding: 15px; text-align: right;">
-                        <div class="action-btn-group">
-                            <a href="{% url 'staffs:generate_bonafide_request_pdf' req.id %}" target="_blank"
-                                class="office-action-btn btn-print">
-                                🖨️ <span class="text-mobile">Print</span><span class="text-desktop">Print
-                                    Certificate</span>
-                            </a>
-                            <form method="post" action="{% url 'staffs:office_manage_bonafide' %}"
-                                style="display: inline; margin: 0;">
-                                {% csrf_token %}
-                                <input type="hidden" name="request_id" value="{{ req.id }}">
-                                <button type="submit" name="action" value="mark_signed"
-                                    class="office-action-btn btn-sign">
-                                    ✍️ <span class="text-mobile">Sign</span><span class="text-desktop">Mark
-                                        Signed</span>
-                                </button>
-                            </form>
+    <!-- Toolbar: Search Filter -->
+    <div class="toolbar-card">
+        <div class="search-box" style="width: 100%;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="bonafideSearch" onkeyup="filterBonafideRequests()" placeholder="Search student name, roll number, purpose, or ID...">
+        </div>
+    </div>
+
+    <!-- Tabbed Navigation Bar -->
+    <div class="nav-tabs-container">
+        <button class="tab-btn active" id="tab-btn-pending" onclick="switchTab('pending')">
+            ⏳ Pending Review <span class="badge-pill">{{ pending_requests.count }}</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-waiting" onclick="switchTab('waiting')">
+            ✍️ Waiting Sign & Print <span class="badge-pill">{{ waiting_requests.count }}</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-ready" onclick="switchTab('ready')">
+            📦 Ready for Collection <span class="badge-pill">{{ ready_requests.count }}</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-completed" onclick="switchTab('completed')">
+            ✅ Completed History <span class="badge-pill">{{ completed_requests.count }}</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-unclaimed" onclick="switchTab('unclaimed')">
+            ⚠️ Unclaimed <span class="badge-pill">{{ unclaimed_requests.count }}</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-rejected" onclick="switchTab('rejected')">
+            🚫 Rejected <span class="badge-pill">{{ rejected_requests.count }}</span>
+        </button>
+    </div>
+
+    <!-- ================= TAB 1: PENDING APPROVAL ================= -->
+    <div class="tab-pane active" id="tab-pane-pending">
+        {% if pending_requests %}
+        <div class="pending-grid">
+            {% for req in pending_requests %}
+            <div class="request-card filterable-item" data-search="{{ req.student.student_name|lower }} {{ req.student.roll_number|lower }} {{ req.reason|lower }}">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div class="student-cell">
+                            <div class="student-avatar">{{ req.student.student_name|slice:":1"|upper }}</div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--text-main, #0f172a);">{{ req.student.student_name }}</h4>
+                                <span style="font-size: 0.82rem; color: var(--text-muted, #64748b);">Roll: {{ req.student.roll_number }}</span>
+                            </div>
                         </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="padding: 30px; text-align: center; color: #95a5a6;">
-                        No requests waiting for signature.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                        <span style="background: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Pending Office</span>
+                    </div>
 
-    <!-- Mobile Card View for Waiting -->
-    <div class="mobile-card-view">
-        {% if waiting_requests %}
-        {% for req in waiting_requests %}
-        <div class="mobile-request-card">
-            <div class="mobile-card-header">
-                <div class="mobile-student-info">
-                    <div class="mobile-student-name">{{ req.student.student_name }}</div>
-                    <div class="mobile-student-roll">{{ req.student.roll_number }}</div>
+                    <div class="card-reason-box">
+                        <strong style="display: block; font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Purpose / Reason:</strong>
+                        {{ req.reason }}
+                    </div>
+
+                    <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 10px;">
+                        📅 Applied on: {{ req.created_at|date:"d M Y, h:i A" }}
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 6px;">
+                    <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" style="flex: 1; margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="request_id" value="{{ req.id }}">
+                        <button type="submit" name="action" value="approve" class="btn-action btn-approve" style="width: 100%; justify-content: center;">
+                            ✔️ Approve Request
+                        </button>
+                    </form>
+                    <button type="button" class="btn-action btn-reject" onclick="openRejectModal('{{ req.id }}', '{{ req.student.student_name|escapejs }}')" style="flex: 1; justify-content: center;">
+                        ❌ Reject
+                    </button>
                 </div>
             </div>
-            <div class="mobile-reason">
-                <strong>Reason</strong>
-                {{ req.reason }}
-            </div>
-            <div class="mobile-date">
-                📅 Approved: {{ req.updated_at|date:"d M Y" }}
-            </div>
-            <div class="mobile-actions">
-                <a href="{% url 'staffs:generate_bonafide_request_pdf' req.id %}" target="_blank"
-                    class="office-action-btn btn-print">
-                    🖨️ Print
-                </a>
-                <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" style="flex: 1; margin: 0;">
-                    {% csrf_token %}
-                    <input type="hidden" name="request_id" value="{{ req.id }}">
-                    <button type="submit" name="action" value="mark_signed" class="office-action-btn btn-sign"
-                        style="width: 100%;">
-                        ✍️ Mark Signed
-                    </button>
-                </form>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
         {% else %}
-        <div class="mobile-empty-state">
-            <div class="mobile-empty-icon">✍️</div>
-            <div>No requests waiting for signature.</div>
+        <div class="table-card" style="padding: 48px; text-align: center; color: var(--text-muted, #64748b);">
+            <div style="font-size: 40px; margin-bottom: 12px;">🎉</div>
+            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main, #0f172a);">No Pending Applications</h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.88rem;">All student bonafide certificate applications have been processed.</p>
         </div>
         {% endif %}
     </div>
 
-    <!-- 3. READY FOR COLLECTION -->
-    <h2
-        style="font-size: 1.4rem; color: #34495e; margin-bottom: 15px; border-left: 5px solid #27ae60; padding-left: 10px;">
-        Ready for Collection ({{ ready_requests.count }})
-    </h2>
+    <!-- ================= TAB 2: WAITING FOR HOD SIGN & PRINT ================= -->
+    <div class="tab-pane" id="tab-pane-waiting">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main, #0f172a);">✍️ Certificates Awaiting Signature</h3>
+                <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted, #64748b);">Batch print certificates or mark as signed after receiving HOD approval</p>
+            </div>
+            {% if waiting_requests %}
+            <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" target="_blank" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" name="action" value="bulk_print" class="btn-action btn-print" style="padding: 10px 18px; font-size: 0.88rem;">
+                    <span>🖨️</span> Batch Print All Certificates ({{ waiting_requests.count }})
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="table-card">
+            <table class="bonafide-table">
+                <thead>
+                    <tr>
+                        <th>Student Details</th>
+                        <th>Purpose / Reason</th>
+                        <th>Approved Date</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in waiting_requests %}
+                    <tr class="filterable-item" data-search="{{ req.student.student_name|lower }} {{ req.student.roll_number|lower }} {{ req.reason|lower }}">
+                        <td>
+                            <div class="student-cell">
+                                <div class="student-avatar" style="background: #e0f2fe; color: #0284c7;">{{ req.student.student_name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div style="font-weight: 600;">{{ req.student.student_name }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted, #64748b);">Roll: {{ req.student.roll_number }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ req.reason }}</td>
+                        <td>{{ req.updated_at|date:"d M Y, h:i A" }}</td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <a href="{% url 'staffs:generate_bonafide_request_pdf' req.id %}" target="_blank" class="btn-action btn-print">
+                                    🖨️ Print Certificate
+                                </a>
+                                <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <button type="submit" name="action" value="mark_signed" class="btn-action btn-sign">
+                                        ✍️ Mark Signed & Ready
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
+                            No certificates currently waiting for signature or print.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <!-- Desktop Table View -->
-    <div class="desktop-table-view"
-        style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Student</th>
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Reason</th>
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Date Signed</th>
-                    <th style="padding: 15px; text-align: right; color: #7f8c8d; font-weight: 600;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for req in ready_requests %}
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 15px;">
-                        <strong>{{ req.student.student_name }}</strong><br>
-                        <small style="color: #95a5a6;">{{ req.student.roll_number }}</small>
-                    </td>
-                    <td style="padding: 15px;">{{ req.reason }}</td>
-                    <td style="padding: 15px;">{{ req.updated_at|date:"d M Y" }}</td>
-                    <td style="padding: 15px; text-align: right;">
-                        <div class="action-btn-group">
-                            <a href="{% url 'staffs:generate_bonafide_request_pdf' req.id %}" target="_blank"
-                                class="office-action-btn btn-print">
-                                🖨️ <span class="text-mobile">Print</span><span class="text-desktop">Print
-                                    Certificate</span>
-                            </a>
-                            <form method="post" action="{% url 'staffs:office_manage_bonafide' %}"
-                                style="display: inline; margin: 0;">
-                                {% csrf_token %}
-                                <input type="hidden" name="request_id" value="{{ req.id }}">
-                                <button type="submit" name="action" value="mark_collected"
-                                    class="office-action-btn btn-handover">
-                                    ✅ <span class="text-mobile">Handover</span><span class="text-desktop">Handovered to
-                                        Student</span>
+    <!-- ================= TAB 3: READY FOR COLLECTION ================= -->
+    <div class="tab-pane" id="tab-pane-ready">
+        <div class="table-card">
+            <table class="bonafide-table">
+                <thead>
+                    <tr>
+                        <th>Student Details</th>
+                        <th>Purpose / Reason</th>
+                        <th>Signed Date</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in ready_requests %}
+                    <tr class="filterable-item" data-search="{{ req.student.student_name|lower }} {{ req.student.roll_number|lower }} {{ req.reason|lower }}">
+                        <td>
+                            <div class="student-cell">
+                                <div class="student-avatar" style="background: #dcfce7; color: #166534; border-color: #bbf7d0;">{{ req.student.student_name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div style="font-weight: 600;">{{ req.student.student_name }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted, #64748b);">Roll: {{ req.student.roll_number }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ req.reason }}</td>
+                        <td>{{ req.updated_at|date:"d M Y, h:i A" }}</td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                                <a href="{% url 'staffs:generate_bonafide_request_pdf' req.id %}" target="_blank" class="btn-action btn-print" style="background: #64748b;">
+                                    🖨️ Re-Print
+                                </a>
+                                <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <button type="submit" name="action" value="mark_collected" class="btn-action btn-handover">
+                                        ✅ Handed Over to Student
+                                    </button>
+                                </form>
+                                <button type="button" class="btn-action" style="background: #f59e0b; color: white;" onclick="openUnclaimedModal('{{ req.id }}', '{{ req.student.student_name|escapejs }}')">
+                                    ⚠️ Mark Unclaimed
                                 </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="padding: 30px; text-align: center; color: #95a5a6;">
-                        No requests ready for collection.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
+                            No signed certificates waiting for student collection.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Mobile Card View for Ready -->
-    <div class="mobile-card-view">
-        {% if ready_requests %}
-        {% for req in ready_requests %}
-        <div class="mobile-request-card" style="border-left-color: #27ae60;">
-            <div class="mobile-card-header">
-                <div class="mobile-student-info">
-                    <div class="mobile-student-name">{{ req.student.student_name }}</div>
-                    <div class="mobile-student-roll">{{ req.student.roll_number }}</div>
-                </div>
-                <span class="mobile-status-badge status-ready">Ready</span>
-            </div>
-            <div class="mobile-reason">
-                <strong>Reason</strong>
-                {{ req.reason }}
-            </div>
-            <div class="mobile-date">
-                ✍️ Signed: {{ req.updated_at|date:"d M Y" }}
-            </div>
-            <div class="mobile-actions">
-                <a href="{% url 'staffs:generate_bonafide_request_pdf' req.id %}" target="_blank"
-                    class="office-action-btn btn-print">
-                    🖨️ Print
-                </a>
-                <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" style="flex: 1; margin: 0;">
-                    {% csrf_token %}
-                    <input type="hidden" name="request_id" value="{{ req.id }}">
-                    <button type="submit" name="action" value="mark_collected" class="office-action-btn btn-handover"
-                        style="width: 100%;">
-                        ✅ Handover
-                    </button>
-                </form>
-            </div>
+    <!-- ================= TAB 4: COMPLETED HISTORY ================= -->
+    <div class="tab-pane" id="tab-pane-completed">
+        <div class="table-card">
+            <table class="bonafide-table">
+                <thead>
+                    <tr>
+                        <th>Student Details</th>
+                        <th>Purpose / Reason</th>
+                        <th>Handover Date</th>
+                        <th style="text-align: right;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in completed_requests %}
+                    <tr class="filterable-item" data-search="{{ req.student.student_name|lower }} {{ req.student.roll_number|lower }} {{ req.reason|lower }}">
+                        <td>
+                            <div class="student-cell">
+                                <div class="student-avatar" style="background: #f3e8ff; color: #9333ea; border-color: #e9d5ff;">{{ req.student.student_name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div style="font-weight: 600;">{{ req.student.student_name }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted, #64748b);">Roll: {{ req.student.roll_number }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ req.reason }}</td>
+                        <td>{{ req.updated_at|date:"d M Y, h:i A" }}</td>
+                        <td style="text-align: right;">
+                            <span style="background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;">
+                                Handed Over
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
+                            No handover history available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% endfor %}
-        {% else %}
-        <div class="mobile-empty-state">
-            <div class="mobile-empty-icon">📋</div>
-            <div>No requests ready for collection.</div>
-        </div>
-        {% endif %}
     </div>
 
-    <!-- Completed History -->
-    <h2
-        style="font-size: 1.4rem; color: #34495e; margin-bottom: 15px; border-left: 5px solid #95a5a6; padding-left: 10px;">
-        Handovered to Students (Last 20)
-    </h2>
-
-    <!-- Desktop Table View -->
-    <div class="desktop-table-view"
-        style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Student</th>
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Reason</th>
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Status</th>
-                    <th style="padding: 15px; text-align: right; color: #7f8c8d; font-weight: 600;">Handover Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for req in completed_requests %}
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 15px;">
-                        <strong>{{ req.student.student_name }}</strong><br>
-                        <small style="color: #95a5a6;">{{ req.student.roll_number }}</small>
-                    </td>
-                    <td style="padding: 15px; color: #555;">
-                        {{ req.reason }}
-                    </td>
-                    <td style="padding: 15px;">
-                        <span
-                            style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 15px; font-size: 0.85rem; font-weight: 500;">
-                            {{ req.status }}
-                        </span>
-                    </td>
-                    <td style="padding: 15px; text-align: right;">{{ req.updated_at|date:"d M Y" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="padding: 20px; text-align: center; color: #95a5a6;">No history available.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- ================= TAB 5: UNCLAIMED HISTORY ================= -->
+    <div class="tab-pane" id="tab-pane-unclaimed">
+        <div class="table-card">
+            <table class="bonafide-table">
+                <thead>
+                    <tr>
+                        <th>Student Details</th>
+                        <th>Application Purpose</th>
+                        <th>Unclaimed Reason</th>
+                        <th style="text-align: right;">Date Marked Unclaimed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in unclaimed_requests %}
+                    <tr class="filterable-item" data-search="{{ req.student.student_name|lower }} {{ req.student.roll_number|lower }} {{ req.reason|lower }}">
+                        <td>
+                            <div class="student-cell">
+                                <div class="student-avatar" style="background: #fef3c7; color: #b45309; border-color: #fde68a;">{{ req.student.student_name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div style="font-weight: 600;">{{ req.student.student_name }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted, #64748b);">Roll: {{ req.student.roll_number }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ req.reason }}</td>
+                        <td><span style="color: #b45309; font-weight: 500;">{{ req.rejection_reason|default:"Unclaimed / Not collected by student" }}</span></td>
+                        <td style="text-align: right;">{{ req.updated_at|date:"d M Y, h:i A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
+                            No unclaimed or expired certificate records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Mobile Card View for Completed -->
-    <div class="mobile-card-view">
-        {% if completed_requests %}
-        {% for req in completed_requests %}
-        <div class="mobile-request-card" style="border-left-color: #95a5a6;">
-            <div class="mobile-card-header">
-                <div class="mobile-student-info">
-                    <div class="mobile-student-name">{{ req.student.student_name }}</div>
-                    <div class="mobile-student-roll">{{ req.student.roll_number }}</div>
-                </div>
-                <span class="mobile-status-badge status-ready">{{ req.status }}</span>
-            </div>
-            <div class="mobile-reason">
-                <strong>Reason</strong>
-                {{ req.reason }}
-            </div>
-            <div class="mobile-date">
-                ✅ Handover: {{ req.updated_at|date:"d M Y" }}
-            </div>
+    <!-- ================= TAB 5: REJECTED HISTORY ================= -->
+    <div class="tab-pane" id="tab-pane-rejected">
+        <div class="table-card">
+            <table class="bonafide-table">
+                <thead>
+                    <tr>
+                        <th>Student Details</th>
+                        <th>Application Reason</th>
+                        <th>Rejection Reason</th>
+                        <th style="text-align: right;">Rejected Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in rejected_requests %}
+                    <tr class="filterable-item" data-search="{{ req.student.student_name|lower }} {{ req.student.roll_number|lower }} {{ req.reason|lower }}">
+                        <td>
+                            <div class="student-cell">
+                                <div class="student-avatar" style="background: #fef2f2; color: #dc2626; border-color: #fecaca;">{{ req.student.student_name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div style="font-weight: 600;">{{ req.student.student_name }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted, #64748b);">Roll: {{ req.student.roll_number }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ req.reason }}</td>
+                        <td><span style="color: #dc2626; font-weight: 500;">{{ req.rejection_reason|default:"No reason specified" }}</span></td>
+                        <td style="text-align: right;">{{ req.updated_at|date:"d M Y, h:i A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
+                            No rejected requests history.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% endfor %}
-        {% else %}
-        <div class="mobile-empty-state">
-            <div class="mobile-empty-icon">📦</div>
-            <div>No history available.</div>
-        </div>
-        {% endif %}
     </div>
-
-    <!-- Rejected History -->
-    <h2
-        style="font-size: 1.4rem; color: #c0392b; margin-bottom: 15px; border-left: 5px solid #e74c3c; padding-left: 10px;">
-        Rejected Requests (Last 20)
-    </h2>
-
-    <!-- Desktop Table View -->
-    <div class="desktop-table-view"
-        style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Student</th>
-                    <th style="padding: 15px; text-align: left; color: #7f8c8d; font-weight: 600;">Request Reason</th>
-                    <th style="padding: 15px; text-align: left; color: #c0392b; font-weight: 600;">Rejection Reason</th>
-                    <th style="padding: 15px; text-align: right; color: #7f8c8d; font-weight: 600;">Rejected Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for req in rejected_requests %}
-                <tr style="border-bottom: 1px solid #eee; background: #fff5f5;">
-                    <td style="padding: 15px;">
-                        <strong>{{ req.student.student_name }}</strong><br>
-                        <small style="color: #95a5a6;">{{ req.student.roll_number }}</small>
-                    </td>
-                    <td style="padding: 15px; color: #555;">
-                        {{ req.reason }}
-                    </td>
-                    <td style="padding: 15px; color: #c0392b; font-weight: 500;">
-                        {{ req.rejection_reason|default:"No reason provided" }}
-                    </td>
-                    <td style="padding: 15px; text-align: right;">{{ req.updated_at|date:"d M Y" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="padding: 20px; text-align: center; color: #95a5a6;">No rejected requests
-                        found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Mobile Card View for Rejected -->
-    <div class="mobile-card-view">
-        {% if rejected_requests %}
-        {% for req in rejected_requests %}
-        <div class="mobile-request-card" style="border-left-color: #e74c3c; background: #fff5f5;">
-            <div class="mobile-card-header">
-                <div class="mobile-student-info">
-                    <div class="mobile-student-name">{{ req.student.student_name }}</div>
-                    <div class="mobile-student-roll">{{ req.student.roll_number }}</div>
-                </div>
-                <span class="mobile-status-badge status-rejected">Rejected</span>
-            </div>
-            <div class="mobile-reason">
-                <strong>Original Request</strong>
-                {{ req.reason }}
-            </div>
-            <div class="mobile-rejection-reason">
-                <strong>❌ Rejection Reason:</strong><br>
-                {{ req.rejection_reason|default:"No reason provided" }}
-            </div>
-            <div class="mobile-date" style="margin-top: 10px;">
-                📅 Rejected: {{ req.updated_at|date:"d M Y" }}
-            </div>
-        </div>
-        {% endfor %}
-        {% else %}
-        <div class="mobile-empty-state">
-            <div class="mobile-empty-icon">❌</div>
-            <div>No rejected requests found.</div>
-        </div>
-        {% endif %}
-    </div>
-
 </div>
+
+<!-- Rejection Modal Dialog -->
+<div class="modal-overlay" id="rejectModal">
+    <div class="modal-card">
+        <h3 style="margin: 0 0 8px 0; font-size: 1.2rem; color: var(--text-main, #0f172a);">Reject Bonafide Request</h3>
+        <p style="margin: 0 0 16px 0; font-size: 0.88rem; color: var(--text-muted, #64748b);">Student: <strong id="modalStudentName" style="color: var(--text-main);"></strong></p>
+        
+        <form method="post" action="{% url 'staffs:office_manage_bonafide' %}">
+            {% csrf_token %}
+            <input type="hidden" name="request_id" id="modalRequestId">
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">Reason for Rejection</label>
+                <textarea name="rejection_reason" rows="3" required placeholder="State why this request is being rejected..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border, #cbd5e1); font-family: inherit; font-size: 0.88rem; outline: none; box-sizing: border-box;"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeRejectModal()" class="btn-action" style="background: #e2e8f0; color: #475569;">Cancel</button>
+                <button type="submit" name="action" value="reject" class="btn-action btn-reject">Confirm Rejection</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Unclaimed Modal Dialog -->
+<div class="modal-overlay" id="unclaimedModal">
+    <div class="modal-card">
+        <h3 style="margin: 0 0 8px 0; font-size: 1.2rem; color: var(--text-main, #0f172a);">Mark Certificate as Unclaimed</h3>
+        <p style="margin: 0 0 16px 0; font-size: 0.88rem; color: var(--text-muted, #64748b);">Student: <strong id="unclaimedStudentName" style="color: var(--text-main);"></strong></p>
+        
+        <form method="post" action="{% url 'staffs:office_manage_bonafide' %}">
+            {% csrf_token %}
+            <input type="hidden" name="request_id" id="unclaimedRequestId">
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">Unclaimed Rationale / Note (Optional)</label>
+                <textarea name="unclaimed_reason" rows="3" placeholder="e.g. Student did not come to collect within 30 days..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border, #cbd5e1); font-family: inherit; font-size: 0.88rem; outline: none; box-sizing: border-box;">Not collected by student / Unclaimed</textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeUnclaimedModal()" class="btn-action" style="background: #e2e8f0; color: #475569;">Cancel</button>
+                <button type="submit" name="action" value="mark_unclaimed" class="btn-action" style="background: #f59e0b; color: white;">Confirm Unclaimed</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Tab Switcher
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+        const targetBtn = document.getElementById('tab-btn-' + tabId);
+        const targetPane = document.getElementById('tab-pane-' + tabId);
+
+        if (targetBtn && targetPane) {
+            targetBtn.classList.add('active');
+            targetPane.classList.add('active');
+            localStorage.setItem('office_bonafide_active_tab', tabId);
+        }
+    }
+
+    // Modal Controls
+    function openRejectModal(reqId, studentName) {
+        document.getElementById('modalRequestId').value = reqId;
+        document.getElementById('modalStudentName').textContent = studentName;
+        document.getElementById('rejectModal').style.display = 'flex';
+    }
+
+    function closeRejectModal() {
+        document.getElementById('rejectModal').style.display = 'none';
+    }
+
+    function openUnclaimedModal(reqId, studentName) {
+        document.getElementById('unclaimedRequestId').value = reqId;
+        document.getElementById('unclaimedStudentName').textContent = studentName;
+        document.getElementById('unclaimedModal').style.display = 'flex';
+    }
+
+    function closeUnclaimedModal() {
+        document.getElementById('unclaimedModal').style.display = 'none';
+    }
+
+    // Live Search Filtering Across Tabs
+    function filterBonafideRequests() {
+        const query = document.getElementById('bonafideSearch').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.filterable-item');
+
+        items.forEach(item => {
+            const searchData = item.getAttribute('data-search') || '';
+            if (!query || searchData.includes(query)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // Tab Persistence on Page Load
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTab = localStorage.getItem('office_bonafide_active_tab') || 'pending';
+        switchTab(savedTab);
+    });
+</script>
 {% endblock %}

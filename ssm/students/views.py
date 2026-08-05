@@ -2266,7 +2266,7 @@ def send_test_notification(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
 
 
-@login_required
+@student_login_required
 def upload_fee_challan(request):
     if request.method == 'POST':
         roll_number = request.session.get('student_roll_number')

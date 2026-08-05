@@ -1220,15 +1220,48 @@
     <!-- Script to Handle Tabs -->
     <script>
         function switchTab(tabId) {
+            const targetContent = document.getElementById(tabId);
+            if (!targetContent) return;
+
             // Hide all contents
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             // Remove active class from all buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
 
             // Show selected content
-            document.getElementById(tabId).classList.add('active');
-            // Add active class to clicked button (simplistic matching)
-            event.target.classList.add('active');
+            targetContent.classList.add('active');
+
+            // Add active class to corresponding button
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const onclickVal = btn.getAttribute('onclick');
+                if (onclickVal && onclickVal.includes(`'${tabId}'`)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Store active tab in localStorage & URL hash so it survives reload/navigation
+            const pathKey = 'active_profile_tab_' + window.location.pathname;
+            localStorage.setItem(pathKey, tabId);
+            if (history.replaceState) {
+                history.replaceState(null, '', '#' + tabId);
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const pathKey = 'active_profile_tab_' + window.location.pathname;
+            const savedTab = localStorage.getItem(pathKey);
+            const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
+
+            let targetTab = null;
+            if (hash && document.getElementById(hash)) {
+                targetTab = hash;
+            } else if (savedTab && document.getElementById(savedTab)) {
+                targetTab = savedTab;
+            }
+
+            if (targetTab && document.getElementById(targetTab)) {
+                switchTab(targetTab);
+            }
+        });
     </script>
 {% endblock %}

@@ -65,13 +65,22 @@
                         {% endif %}
                     </td>
                     <td style="padding: 15px;">
-                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: 500; display: inline-block;
-                            {% if 'Signed' in req.status %}background: #dbeafe; color: #1e40af; box-shadow: 0 2px 4px rgba(30, 64, 175, 0.1);
-                            {% elif 'Collected' in req.status %}background: #d1fae5; color: #065f46; box-shadow: 0 2px 4px rgba(6, 95, 70, 0.1);
-                            {% elif 'Rejected' in req.status %}background: #fee2e2; color: #991b1b; box-shadow: 0 2px 4px rgba(153, 27, 27, 0.1);
-                            {% elif 'Pending' in req.status or 'Waiting' in req.status %}background: #fef9c3; color: #854d0e; box-shadow: 0 2px 4px rgba(133, 77, 14, 0.1);
+                        <span style="padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+                            {% if 'Signed' in req.status or 'Ready' in req.status %}background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(30, 64, 175, 0.1);
+                            {% elif 'Collected' in req.status %}background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; box-shadow: 0 2px 4px rgba(6, 95, 70, 0.1);
+                            {% elif 'Rejected' in req.status %}background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; box-shadow: 0 2px 4px rgba(153, 27, 27, 0.1);
+                            {% elif 'Unclaimed' in req.status %}background: #fef3c7; color: #92400e; border: 1px solid #fde68a; box-shadow: 0 2px 4px rgba(146, 64, 14, 0.1);
+                            {% elif 'Pending' in req.status or 'Waiting' in req.status %}background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; box-shadow: 0 2px 4px rgba(133, 77, 14, 0.1);
                             {% else %}background: #f3f4f6; color: #1f2937;{% endif %}">
-                            {{ req.status }}
+                            {% if 'Signed' in req.status or 'Ready' in req.status %}
+                                📜 Signed — Ready for Collection (Visit Office)
+                            {% elif 'Collected' in req.status %}
+                                ✅ Collected
+                            {% elif 'Unclaimed' in req.status %}
+                                ⚠️ Unclaimed / Expired
+                            {% else %}
+                                ⏳ {{ req.status }}
+                            {% endif %}
                         </span>
                     </td>
 

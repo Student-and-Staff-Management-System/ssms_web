@@ -334,27 +334,38 @@ def office_bonafide_list(request):
                  print(f"Error sending bonafide email: {e}")
              # ---------------------------
 
+        elif action == 'mark_unclaimed':
+             # SIGNED / READY -> UNCLAIMED
+             bonafide_req.status = 'Unclaimed'
+             unclaimed_reason = request.POST.get('unclaimed_reason', 'Not collected by student / Unclaimed').strip()
+             bonafide_req.rejection_reason = unclaimed_reason if unclaimed_reason else 'Unclaimed / Not collected by student'
+             bonafide_req.save()
+             messages.info(request, f"Marked request for {bonafide_req.student.student_name} as Unclaimed / Not Collected.")
+             
+             from .utils import send_push_notification
+             send_push_notification(bonafide_req.student, "Bonafide Request Expired", "Your certificate was marked as Unclaimed/Not Collected.")
+
         return redirect('staffs:office_manage_bonafide')
 
     # GET: List Data
     
     # 1. Pending Approval
-    pending_requests = BonafideRequest.objects.filter(status='Pending Office Approval').order_by('created_at')
+    pending_requests = BonafideRequest.objects.filter(status='Pending Office Approval').order_by('-created_at', '-id')
     
     # 2. Waiting for HOD Sign (Approved by Office, waiting for print/sign)
-    # Include 'Approved by HOD' for legacy/transition support if any exists
-    waiting_requests = BonafideRequest.objects.filter(status__in=['Waiting for HOD Sign', 'Approved by HOD']).order_by('updated_at')
+    waiting_requests = BonafideRequest.objects.filter(status__in=['Waiting for HOD Sign', 'Approved by HOD']).order_by('-updated_at', '-id')
     
     # 3. Ready for Collection (Signed)
-    # Include 'Ready for Collection' for legacy/transition support
-    ready_requests = BonafideRequest.objects.filter(status__in=['Signed', 'Ready for Collection']).order_by('updated_at')
+    ready_requests = BonafideRequest.objects.filter(status__in=['Signed', 'Ready for Collection']).order_by('-updated_at', '-id')
     
-    # 4. History
     # 4. History (Handovered)
-    completed_requests = BonafideRequest.objects.filter(status='Collected').order_by('-updated_at')[:20]
+    completed_requests = BonafideRequest.objects.filter(status='Collected').order_by('-updated_at', '-id')[:50]
     
     # 5. Rejected History
-    rejected_requests = BonafideRequest.objects.filter(status='Rejected').order_by('-updated_at')[:20]
+    rejected_requests = BonafideRequest.objects.filter(status='Rejected').order_by('-updated_at', '-id')[:50]
+
+    # 6. Unclaimed History
+    unclaimed_requests = BonafideRequest.objects.filter(status='Unclaimed').order_by('-updated_at', '-id')[:50]
 
     context = {
         'staff': staff,
@@ -363,5 +374,6 @@ def office_bonafide_list(request):
         'ready_requests': ready_requests,
         'completed_requests': completed_requests,
         'rejected_requests': rejected_requests,
+        'unclaimed_requests': unclaimed_requests,
     }
     return render(request, 'staff/bonafide/office_list.html', context)

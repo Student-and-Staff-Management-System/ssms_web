@@ -623,24 +623,15 @@
 {% endblock %}
 
 {% block content %}
-<!-- Sidebar -->
-        <aside class="profile-sidebar-legacy">
-            {% if staff.photo %}
-            <img src="{{ staff.photo.url }}" alt="{{ staff.name }}" class="profile-img">
-            {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ staff.name }}&background=random&size=200"
-                alt="{{ staff.name }}" class="profile-img">
-            {% endif %}
-            <div class="profile-name">{{ staff.salutation }} {{ staff.name }}</div>
-            <div class="profile-role">HOD</div>
-            <div class="profile-meta">{{ staff.department }}</div>
-            <br>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="action-btn"
-                style="width:100%; box-sizing:border-box; display:block;">Dashboard</a>
-        </aside>
-
-        
-            <a href="{% url 'staffs:staff_dashboard' %}" class="back-link">← Back to Dashboard</a>
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface, #fff); padding: 20px 24px; border-radius: 14px; border: 1px solid var(--border, #e2e8f0);">
+    <div>
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main, #0f172a);">Faculty Leave Applications</h2>
+        <p style="margin: 4px 0 0 0; font-size: 0.92rem; color: var(--text-muted, #64748b);">Review and approve department faculty leave requests</p>
+    </div>
+    <div>
+        <a href="{% url 'staffs:staff_dashboard' %}" style="text-decoration: none; color: var(--primary, #5a7d7c); font-weight: 600; font-size: 0.92rem;">← Back to Dashboard</a>
+    </div>
+</div>
 
             {% if messages %}
             {% for message in messages %}

@@ -205,6 +205,100 @@
             <!-- Sidebar Navigation Links -->
             <div class="nav-section" style="flex: 1; overflow-y: auto; margin-bottom: 0;">
                 
+                {% if staff.role == 'Office Staff' %}
+                <!-- Category Group: MAIN -->
+                <div class="sidebar-category-header">Main</div>
+                <div class="nav-group open" data-group-id="office-workspace">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="My Workspace">
+                        <div class="nav-group-header-left">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-text">My Workspace</span>
+                        </div>
+                        <span class="nav-group-chevron">▶</span>
+                    </div>
+                    <div class="nav-group-content" style="display: block;">
+                        <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item" data-tooltip="Dashboard">
+                            <span class="nav-icon">📊</span> <span class="nav-text">Dashboard Overview</span>
+                        </a>
+                        <a href="{% url 'staffs:staff_profile' %}" class="nav-item" data-tooltip="Profile Overview">
+                            <span class="nav-icon">👤</span> <span class="nav-text">Profile Overview</span>
+                        </a>
+                        <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item" data-tooltip="Apply for Leave">
+                            <span class="nav-icon">✈️</span> <span class="nav-text">Apply for Leave</span>
+                        </a>
+                        <a href="{% url 'staffs:staff_leave_history' %}" class="nav-item" data-tooltip="Leave History">
+                            <span class="nav-icon">📜</span> <span class="nav-text">Leave History</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Category Group: STUDENT SERVICES -->
+                <div class="sidebar-category-header">Student Services</div>
+                <div class="nav-group open" data-group-id="office-services">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Student Services">
+                        <div class="nav-group-header-left">
+                            <span class="nav-icon">📜</span>
+                            <span class="nav-text">Student Services</span>
+                        </div>
+                        <span class="nav-group-chevron">▶</span>
+                    </div>
+                    <div class="nav-group-content" style="display: block;">
+                        <a href="{% url 'staffs:office_manage_bonafide' %}" class="nav-item" data-tooltip="Bonafide Requests">
+                            <span class="nav-icon">📜</span> 
+                            <span class="nav-text">Bonafide Requests</span>
+                            {% if pending_bonafide_count %}
+                            <span class="badge-count">{{ pending_bonafide_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item" data-tooltip="Scholarship Portal">
+                            <span class="nav-icon">💰</span> <span class="nav-text">Scholarship Portal</span>
+                        </a>
+                        <a href="{% url 'staffs:student_list' %}" class="nav-item" data-tooltip="Student Directory">
+                            <span class="nav-icon">👨‍🎓</span> <span class="nav-text">Student Directory</span>
+                        </a>
+                        <a href="{% url 'staffs:passed_out_batches' %}" class="nav-item" data-tooltip="Passed Out Archives">
+                            <span class="nav-icon">🗄️</span> <span class="nav-text">Passed Out Archives</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Category Group: ADMINISTRATION -->
+                <div class="sidebar-category-header">Administration</div>
+                <div class="nav-group open" data-group-id="office-admin">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Administration">
+                        <div class="nav-group-header-left">
+                            <span class="nav-icon">🏢</span>
+                            <span class="nav-text">Administration</span>
+                        </div>
+                        <span class="nav-group-chevron">▶</span>
+                    </div>
+                    <div class="nav-group-content" style="display: block;">
+                        <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item" data-tooltip="Broadcast Notice">
+                            <span class="nav-icon">📢</span> <span class="nav-text">Broadcast Notice</span>
+                        </a>
+                        <a href="{% url 'staffs:manage_semesters' %}" class="nav-item" data-tooltip="Manage Semesters">
+                            <span class="nav-icon">📅</span> <span class="nav-text">Manage Semesters</span>
+                        </a>
+                        <a href="{% url 'staffs:manage_subjects' %}" class="nav-item" data-tooltip="Manage Subjects">
+                            <span class="nav-icon">📚</span> <span class="nav-text">Manage Subjects</span>
+                        </a>
+                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab Mapping">
+                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab Mapping</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Category Group: SYSTEM -->
+                <div class="sidebar-category-header">System</div>
+                {% if staff.is_admin %}
+                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer" data-tooltip="Admin Portal">
+                    <span class="nav-icon">⚙️</span> <span class="nav-text">Admin Portal</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'staffs:staff_logout' %}" class="nav-item" data-tooltip="Logout" style="color: #ef4444;">
+                    <span class="nav-icon">🚪</span> <span class="nav-text">Logout</span>
+                </a>
+                {% else %}
                 <!-- Category Group: MAIN -->
                 <div class="sidebar-category-header">Main</div>
                 <div class="nav-group" data-group-id="workspace">
@@ -244,10 +338,8 @@
                 </div>
 
                 <!-- Category Group: ACADEMICS -->
-                {% if staff.role != 'Office Staff' or staff.role == 'HOD' or staff.role == 'Class Incharge' or staff.role == 'Course Incharge' %}
                 <div class="sidebar-category-header">Academics</div>
                 
-                {% if staff.role != 'Office Staff' %}
                 <div class="nav-group" data-group-id="substitutions">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Alternates">
                         <div class="nav-group-header-left">
@@ -268,9 +360,7 @@
                         </a>
                     </div>
                 </div>
-                {% endif %}
 
-                {% if staff.role == 'HOD' or staff.role == 'Class Incharge' or staff.role == 'Course Incharge' %}
                 <div class="nav-group" data-group-id="students">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Students">
                         <div class="nav-group-header-left">
@@ -304,14 +394,10 @@
                         </a>
                     </div>
                 </div>
-                {% endif %}
-                {% endif %}
 
                 <!-- Category Group: MANAGEMENT -->
-                {% if staff.role == 'HOD' or rs_count > 0 or staff.role == 'Office Staff' or staff.role == 'Scholarship Officer' %}
                 <div class="sidebar-category-header">Management</div>
                 
-                {% if staff.role == 'HOD' or rs_count > 0 %}
                 <div class="nav-group" data-group-id="scholars">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Research Scholars">
                         <div class="nav-group-header-left">
@@ -340,9 +426,7 @@
                         </a>
                     </div>
                 </div>
-                {% endif %}
 
-                {% if staff.role == 'HOD' or staff.role == 'Office Staff' %}
                 <div class="nav-group" data-group-id="admin">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Administration">
                         <div class="nav-group-header-left">
@@ -355,7 +439,6 @@
                         <a href="{% url 'staffs:staff_list' %}" class="nav-item" data-tooltip="Faculty Directory">
                             <span class="nav-icon">👨‍🏫</span> <span class="nav-text">Faculty Directory</span>
                         </a>
-                        {% if staff.role == 'HOD' %}
                         <a href="{% url 'staffs:hod_leave_dashboard' %}" class="nav-item" data-tooltip="Faculty Leaves">
                             <span class="nav-icon">👔</span> 
                             <span class="nav-text">Faculty Leaves</span>
@@ -376,7 +459,6 @@
                         <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item" data-tooltip="Send Notification">
                             <span class="nav-icon">📢</span> <span class="nav-text">Send Notification</span>
                         </a>
-                        {% endif %}
                         <a href="{% url 'staffs:hod_manage_bonafide' %}" class="nav-item" data-tooltip="Bonafide Requests">
                             <span class="nav-icon">📜</span> 
                             <span class="nav-text">Bonafide Requests</span>
@@ -393,14 +475,15 @@
                         <a href="{% url 'staffs:timetable' %}" class="nav-item" data-tooltip="Master Timetables">
                             <span class="nav-icon">🕒</span> <span class="nav-text">Master Timetables</span>
                         </a>
+                        <a href="{% url 'staffs:hod_published_timetables' %}" class="nav-item" data-tooltip="Published Timetables">
+                            <span class="nav-icon">📅</span> <span class="nav-text">Published Timetables</span>
+                        </a>
                         <a href="{% url 'staffs:passed_out_batches' %}" class="nav-item" data-tooltip="Passed Out Batches">
                             <span class="nav-icon">🗄️</span> <span class="nav-text">Passed Out Batches</span>
                         </a>
                     </div>
                 </div>
-                {% endif %}
 
-                {% if staff.role == 'HOD' or staff.role == 'Scholarship Officer' or staff.role == 'Office Staff' %}
                 <div class="nav-group" data-group-id="scholarships">
                     <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Scholarships">
                         <div class="nav-group-header-left">
@@ -415,19 +498,16 @@
                         </a>
                     </div>
                 </div>
-                {% endif %}
-                {% endif %}
 
                 <!-- Category Group: SYSTEM -->
                 <div class="sidebar-category-header">System</div>
-                {% if staff.role == 'HOD' or staff.role == 'Office Staff' %}
                 <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer" data-tooltip="Admin Portal">
                     <span class="nav-icon">⚙️</span> <span class="nav-text">Admin Portal</span>
                 </a>
-                {% endif %}
                 <a href="{% url 'staffs:staff_logout' %}" class="nav-item" data-tooltip="Logout" style="color: #ef4444;">
                     <span class="nav-icon">🚪</span> <span class="nav-text">Logout</span>
                 </a>
+                {% endif %}
 
             </div>
 
@@ -750,15 +830,44 @@
             
             const activeBtn = document.querySelector(`[onclick="switchDashboardTab('${tabId}')"]`);
             if (activeBtn) activeBtn.classList.add('active');
-            
-            localStorage.setItem('active_dashboard_tab_' + window.location.pathname, tabId);
+
+            // Save active tab to localStorage & URL hash so refresh or returning stays on the same tab
+            const pathKey = 'active_dashboard_tab_' + window.location.pathname;
+            localStorage.setItem(pathKey, tabId);
+            if (history.replaceState) {
+                const cleanHash = tabId.startsWith('tab-') ? tabId.replace('tab-', '') : tabId;
+                history.replaceState(null, '', '#' + cleanHash);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             const pathKey = 'active_dashboard_tab_' + window.location.pathname;
             const savedTab = localStorage.getItem(pathKey);
-            if (savedTab && document.getElementById(savedTab)) {
-                switchDashboardTab(savedTab);
+
+            // Check if tab is explicitly specified via URL parameter (?tab=...) or hash (#...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
+
+            let targetTab = null;
+            if (tabParam && document.getElementById(tabParam)) {
+                targetTab = tabParam;
+            } else if (tabParam && document.getElementById('tab-' + tabParam)) {
+                targetTab = 'tab-' + tabParam;
+            } else if (hash && document.getElementById(hash)) {
+                targetTab = hash;
+            } else if (hash && document.getElementById('tab-' + hash)) {
+                targetTab = 'tab-' + hash;
+            } else if (savedTab && document.getElementById(savedTab)) {
+                targetTab = savedTab;
+            } else if (savedTab && document.getElementById('tab-' + savedTab)) {
+                targetTab = 'tab-' + savedTab;
+            } else if (document.getElementById('tab-overview')) {
+                targetTab = 'tab-overview';
+            }
+
+            if (targetTab) {
+                switchDashboardTab(targetTab);
             } else {
                 const firstBtn = document.querySelector('.dash-tab-btn');
                 if (firstBtn) {

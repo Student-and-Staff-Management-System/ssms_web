@@ -209,13 +209,14 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
     def generate_staff_view(self, request):
         if request.method == 'POST':
             action = request.POST.get('action')
+            staff_role = request.POST.get('staff_role', 'Course Incharge')
             
             try:
                 if action == 'preview_bulk':
                     bulk_input = request.POST.get('bulk_input', '').strip()
                     if not bulk_input:
                         messages.error(request, "Please enter staff details.")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk'})
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_role': staff_role})
                     
                     preview_list = []
                     lines = bulk_input.split('\n')
@@ -230,24 +231,25 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                     
                     if not preview_list:
                         messages.error(request, "No valid staff details found. Use format: ID, Name")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'bulk_input': bulk_input})
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'bulk_input': bulk_input, 'staff_role': staff_role})
 
                     return render(request, 'staff/generate_staff.html', {
                         'show_preview': True,
                         'preview_list': preview_list,
-                        'bulk_input': bulk_input
+                        'bulk_input': bulk_input,
+                        'staff_role': staff_role
                     })
 
                 elif action == 'generate_bulk':
                     selected_entries = request.POST.getlist('selected_entries')
                     if not selected_entries:
                         messages.error(request, "No staff selected.")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk'})
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_role': staff_role})
 
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = 'attachment; filename="generated_staff.csv"'
                     writer = csv.writer(response)
-                    writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+                    writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
 
                     with transaction.atomic():
                         for entry in selected_entries:
@@ -256,16 +258,18 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                                 staff_id=s_id,
                                 defaults={
                                     'name': s_name,
-                                    'is_active': True
+                                    'role': staff_role,
+                                    'is_active': True,
+                                    'is_profile_complete': False
                                 }
                             )
                             pwd = "Staff" + str(random.randint(1000, 9999))
                             if created:
                                 staff.set_password(pwd)
                                 staff.save()
-                                writer.writerow([f'="{s_id}"', s_name, pwd])
+                                writer.writerow([f'="{s_id}"', s_name, staff.role, pwd])
                             else:
-                                writer.writerow([f'="{s_id}"', s_name, "Existing"])
+                                writer.writerow([f'="{s_id}"', s_name, staff.role, "Existing"])
 
                     response.set_cookie('download_complete', 'true', max_age=20)
                     return response
@@ -276,22 +280,30 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                     
                     if not s_id or not s_name:
                         messages.error(request, "Please enter both Staff ID and Name.")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'single', 'single_staff_id': s_id, 'single_name': s_name})
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'single', 'single_staff_id': s_id, 'single_name': s_name, 'staff_role': staff_role})
 
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = f'attachment; filename="staff_{s_id}.csv"'
                     writer = csv.writer(response)
-                    writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+                    writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
 
                     with transaction.atomic():
                         staff, created = Staff.objects.get_or_create(
                             staff_id=s_id,
-                            defaults={'name': s_name, 'is_active': True}
+                            defaults={
+                                'name': s_name,
+                                'role': staff_role,
+                                'is_active': True,
+                                'is_profile_complete': False
+                            }
                         )
                         pwd = "Staff" + str(random.randint(1000, 9999))
                         staff.set_password(pwd)
                         staff.save()
-                        writer.writerow([f'="{s_id}"', s_name, pwd])
+                        writer.writerow([f'="{s_id}"', s_name, staff.role, pwd])
+
+                    response.set_cookie('download_complete', 'true', max_age=20)
+                    return response
 
                     response.set_cookie('download_complete', 'true', max_age=20)
                     return response

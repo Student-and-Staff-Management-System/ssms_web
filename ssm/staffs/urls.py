@@ -84,6 +84,8 @@ urlpatterns = [
     path('exam-schedule/', views.exam_schedule, name='exam_schedule'),
     path('timetable/', views.timetable, name='timetable'),
     path('timetable/edit/<int:semester>/', views.edit_timetable, name='edit_timetable'),
+    path('timetable/publish/<int:semester>/', views.toggle_publish_timetable, name='toggle_publish_timetable'),
+    path('hod/published-timetables/', views.hod_published_timetables, name='hod_published_timetables'),
     path('my-timetable/', views.my_timetable, name='my_timetable'),
 
     # Leave Management (Student -> Staff)

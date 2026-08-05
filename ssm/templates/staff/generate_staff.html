@@ -61,10 +61,11 @@
             {% endif %}
 
             {% if show_preview %}
-                <div class="alert alert-info"><strong>Confirm staff list</strong> and click generate to download CSV.</div>
+                <div class="alert alert-info"><strong>Confirm staff list</strong> and click generate to download CSV. (Role: <strong>{{ staff_role|default:'Course Incharge' }}</strong>)</div>
                 <form method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="generate_bulk">
+                    <input type="hidden" name="staff_role" value="{{ staff_role|default:'Course Incharge' }}">
                     <div class="scroll">
                         <table>
                             <thead>
@@ -102,6 +103,13 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="preview_bulk">
                     <div class="group">
+                        <label for="bulk_staff_role">Staff Role / Type</label>
+                        <select id="bulk_staff_role" name="staff_role" class="input">
+                            <option value="Course Incharge">Teaching Staff (Faculty / Course Incharge)</option>
+                            <option value="Office Staff">Non-Teaching Staff (Office Staff)</option>
+                        </select>
+                    </div>
+                    <div class="group">
                         <label for="bulk_input">Paste one row per line: <code>STAFF_ID, Staff Name</code></label>
                         <textarea id="bulk_input" name="bulk_input" class="input" placeholder="STF001, John David&#10;STF002, Meena R" required>{{ bulk_input|default:'' }}</textarea>
                     </div>
@@ -111,6 +119,13 @@
                 <form method="POST" id="form-single" style="display:none;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="generate_single">
+                    <div class="group">
+                        <label for="single_staff_role">Staff Role / Type</label>
+                        <select id="single_staff_role" name="staff_role" class="input">
+                            <option value="Course Incharge">Teaching Staff (Faculty / Course Incharge)</option>
+                            <option value="Office Staff">Non-Teaching Staff (Office Staff)</option>
+                        </select>
+                    </div>
                     <div class="row2">
                         <div class="group">
                             <label for="single_staff_id">Staff ID</label>

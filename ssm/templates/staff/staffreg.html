@@ -123,8 +123,8 @@
       </div>
 
       <div class="form-group">
-        <label>Area of Specialization</label>
-        <input type="text" name="specialization" class="form-input" placeholder="e.g. Image Processing, VLSI, Networks" required value="{{ staff.specialization|default:'' }}">
+        <label>Area of Specialization {% if staff.role == 'Office Staff' %}(Optional for Office Staff){% endif %}</label>
+        <input type="text" name="specialization" class="form-input" placeholder="e.g. Administration, Accounts, Records" {% if staff.role != 'Office Staff' %}required{% endif %} value="{{ staff.specialization|default:'' }}">
       </div>
 
       <button type="submit" class="btn-submit">Complete Onboarding & Go to Dashboard</button>

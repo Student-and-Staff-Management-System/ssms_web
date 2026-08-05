@@ -151,65 +151,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="brand">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-                    alt="Logo">
-                <h1>Faculty<br>Dashboard</h1>
-            </div>
-
-            <nav class="nav-section">
-                <div class="nav-label">Menu</div>
-                <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item">
-                    <span class="nav-icon">📊</span> Dashboard
-                </a>
-                <a href="{% url 'staffs:staff_profile' %}" class="nav-item">
-                    <span class="nav-icon">👤</span> My Profile
-                </a>
-                <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item active">
-                    <span class="nav-icon">🎓</span> Scholarship Manager
-                </a>
-            </nav>
-
-            <div class="profile-mini">
-                {% if staff.photo %}
-                <img src="{{ staff.photo.url }}" alt="Profile">
-                {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ staff.name }}" alt="Profile">
-                {% endif %}
-                <div style="flex: 1; min-width: 0;">
-                    <div
-                        style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
-                        {{ staff.name }}
-                    </div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ staff.role }}</div>
-                </div>
-                <a href="{% url 'staffs:staff_logout' %}" title="Logout"
-                    style="color: #ef4444; font-size: 1.1rem; text-decoration: none;">⏻</a>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        
-            <div class="top-bar">
-                <div class="greeting">
-                    <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <a href="{% url 'staffs:staff_dashboard' %}"
-                            style="color: var(--text-main); text-decoration: none; font-size: 1.5rem; line-height: 1;">&larr;</a>
-                        <div>
-                            <h2>Scholarship Manager</h2>
-                            <p>Advanced filtering and student management</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="clock-badge">
-                    <span>{% now "l, d F Y" %}</span>
-                    <span id="digital-clock" style="font-family: monospace; font-weight: 600;">00:00:00</span>
-                </div>
-            </div>
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface, #fff); padding: 20px 24px; border-radius: 14px; border: 1px solid var(--border, #e2e8f0);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="{% url 'staffs:staff_dashboard' %}" style="color: var(--primary, #5a7d7c); text-decoration: none; font-size: 1.3rem; font-weight: 700;">&larr;</a>
+        <div>
+            <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main, #0f172a);">Scholarship Manager</h2>
+            <p style="margin: 4px 0 0 0; font-size: 0.92rem; color: var(--text-muted, #64748b);">Advanced filtering and student management</p>
+        </div>
+    </div>
+</div>
 
             <div class="filter-layout">
                 <!-- Filter Sidebar -->

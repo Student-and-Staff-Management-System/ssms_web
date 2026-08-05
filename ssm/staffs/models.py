@@ -607,16 +607,18 @@ class Timetable(models.Model):
         ('Thursday', 'Thursday'),
         ('Friday', 'Friday'),
     ]
+    academic_year = models.CharField(max_length=20, default='2026-2027', help_text="Academic year e.g. 2026-2027")
     semester = models.IntegerField()
     day = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
     period = models.IntegerField(help_text="1 to 7")
     batch = models.CharField(max_length=3, choices=[('All', 'All'), ('A', 'Batch A'), ('B', 'Batch B')], default='All')
     subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True)
     staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True) # Optional: Assign staff directly
+    is_published = models.BooleanField(default=True, help_text="Indicates whether this timetable entry is published")
 
     class Meta:
-        ordering = ['semester', 'day', 'period']
-        unique_together = ('semester', 'day', 'period', 'batch')
+        ordering = ['academic_year', 'semester', 'day', 'period']
+        unique_together = ('academic_year', 'semester', 'day', 'period', 'batch')
 
     def __str__(self):
         return f"Sem {self.semester} - {self.day} - Period {self.period} ({self.batch})"

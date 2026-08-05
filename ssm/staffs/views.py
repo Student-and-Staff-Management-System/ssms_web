@@ -4,7 +4,7 @@ from django.utils import timezone
 import random
 import string
 
-from .models import Staff, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog, Lab, AdminSettings
+from .models import Staff, Subject, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog, Lab, AdminSettings
 from students.models import Student, ResearchScholarProfile, ScholarAttendance
 from django.db.models import Q, Case, When
 from django.db import transaction
@@ -444,6 +444,15 @@ def get_staff_profile_completion_data(staff):
             else:
                 missing_fields.append(FIELD_LABELS.get(field, field.replace('_', ' ').title()))
 
+    if staff.role == 'Office Staff':
+        if not staff.is_profile_complete:
+            staff.is_profile_complete = True
+            staff.save(update_fields=['is_profile_complete'])
+        return {
+            'percentage': 100,
+            'missing_fields': [],
+        }
+
     # Check basic fields
     check_fields(staff, ['name', 'email', 'mobile_number', 'date_of_birth', 'date_of_joining', 'address', 'salutation'])
 
@@ -523,9 +532,12 @@ def staff_register(request):
         address = request.POST.get('address')
         specialization = request.POST.get('specialization')
         
+        if staff.role == 'Office Staff' and not specialization:
+            specialization = 'General Administration'
+
         # Validation
-        if not email or not dob_str or not doj_str or not mobile_number or not address or not specialization:
-            messages.error(request, "All fields are required except password, photo, & onboarding documents.")
+        if not email or not dob_str or not doj_str or not mobile_number or not address or (staff.role != 'Office Staff' and not specialization):
+            messages.error(request, "All required fields must be filled out.")
             return render(request, 'staff/staffreg.html', {'staff': staff})
             
         # Unique email exclusion
@@ -620,15 +632,17 @@ def generate_staff(request):
             email_candidate = f"{staff_id.lower()}{suffix}@temp.staff.local"
         return email_candidate
 
-    def upsert_staff_identity(staff_id, name):
+    def upsert_staff_identity(staff_id, name, role='Course Incharge'):
         email_candidate = next_temp_email(staff_id)
+        is_office = (role == 'Office Staff')
         defaults = {
             'name': name,
             'email': email_candidate,
-            'salutation': 'Mr.',
-            'designation': 'To be updated',
-            'qualification': 'To be updated',
-            'specialization': 'To be updated',
+            'role': role,
+            'salutation': 'Mr.' if is_office else 'Dr.',
+            'designation': 'Office Assistant' if is_office else 'Assistant Professor',
+            'qualification': 'Graduate' if is_office else 'Ph.D.',
+            'specialization': 'General Administration' if is_office else 'Information Technology',
             'department': 'Information Technology',
             'is_profile_complete': False,
         }
@@ -638,37 +652,35 @@ def generate_staff(request):
             if staff_obj.name != name:
                 staff_obj.name = name
                 update_fields.append('name')
-            if not staff_obj.email:
-                staff_obj.email = email_candidate
-                update_fields.append('email')
-            if staff_obj.is_profile_complete:
-                staff_obj.is_profile_complete = False
-                update_fields.append('is_profile_complete')
+            if role and staff_obj.role != role:
+                staff_obj.role = role
+                update_fields.append('role')
             if update_fields:
                 staff_obj.save(update_fields=update_fields)
         return staff_obj, created
 
     if request.method == 'POST':
         action = request.POST.get('action', 'preview_bulk')
+        staff_role = request.POST.get('staff_role', 'Course Incharge')
 
         if action == 'preview_bulk':
             bulk_input = (request.POST.get('bulk_input') or '').strip()
             if not bulk_input:
                 messages.error(request, "Please enter at least one 'StaffID, Name' row.")
-                return render(request, 'staff/generate_staff.html')
+                return render(request, 'staff/generate_staff.html', {'staff_role': staff_role})
 
             preview_list = []
             lines = [line.strip() for line in bulk_input.splitlines() if line.strip()]
             for idx, line in enumerate(lines, start=1):
                 if ',' not in line:
                     messages.error(request, f"Row {idx} invalid. Use format: STAFF_ID, Staff Name")
-                    return render(request, 'staff/generate_staff.html')
+                    return render(request, 'staff/generate_staff.html', {'staff_role': staff_role})
                 raw_id, raw_name = line.split(',', 1)
                 staff_id = raw_id.strip()
                 name = raw_name.strip()
                 if not staff_id or not name:
                     messages.error(request, f"Row {idx} invalid. Staff ID and Name are required.")
-                    return render(request, 'staff/generate_staff.html')
+                    return render(request, 'staff/generate_staff.html', {'staff_role': staff_role})
                 exists = Staff.objects.filter(staff_id=staff_id).exists()
                 preview_list.append({'staff_id': staff_id, 'name': name, 'exists': exists})
 
@@ -676,6 +688,7 @@ def generate_staff(request):
                 'show_preview': True,
                 'preview_list': preview_list,
                 'bulk_input': bulk_input,
+                'staff_role': staff_role,
             })
 
         if action == 'generate_bulk':
@@ -687,7 +700,7 @@ def generate_staff(request):
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="generated_staff_credentials.csv"'
             writer = csv.writer(response)
-            writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+            writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
 
             with transaction.atomic():
                 for entry in selected_entries:
@@ -697,7 +710,7 @@ def generate_staff(request):
                         continue
 
                     already_exists = Staff.objects.filter(staff_id=staff_id).exists()
-                    staff_obj, _ = upsert_staff_identity(staff_id, name)
+                    staff_obj, _ = upsert_staff_identity(staff_id, name, role=staff_role)
                     if already_exists:
                         pass_label = "Existing Password"
                     else:
@@ -705,7 +718,7 @@ def generate_staff(request):
                         staff_obj.set_password(temp_pass)
                         staff_obj.save(update_fields=['password'])
                         pass_label = temp_pass
-                    writer.writerow([staff_id, name, pass_label])
+                    writer.writerow([staff_id, name, staff_obj.role, pass_label])
 
             response.set_cookie('download_complete', 'true', max_age=20)
             return response
@@ -720,14 +733,17 @@ def generate_staff(request):
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = f'attachment; filename="generated_staff_{staff_id}.csv"'
             writer = csv.writer(response)
-            writer.writerow(['Staff ID', 'Name', 'Temp Password'])
+            writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
 
             with transaction.atomic():
-                staff_obj, _ = upsert_staff_identity(staff_id, name)
+                staff_obj, _ = upsert_staff_identity(staff_id, name, role=staff_role)
                 temp_pass = "Tmp" + ''.join(random.choices(string.digits, k=5))
                 staff_obj.set_password(temp_pass)
                 staff_obj.save(update_fields=['password'])
-                writer.writerow([staff_id, name, temp_pass])
+                writer.writerow([staff_id, name, staff_obj.role, temp_pass])
+
+            response.set_cookie('download_complete', 'true', max_age=20)
+            return response
 
             response.set_cookie('download_complete', 'true', max_age=20)
             return response
@@ -2160,8 +2176,15 @@ def timetable(request):
     except ValueError:
         selected_semester = 1
         
-    # Fetch timetable entries
-    entries = Timetable.objects.filter(semester=selected_semester)
+    selected_academic_year = request.GET.get('academic_year', '2026-2027').strip()
+    existing_years = list(Timetable.objects.values_list('academic_year', flat=True).distinct())
+    default_years = ['2026-2027', '2025-2026', '2024-2025', '2023-2024', '2022-2023']
+    available_academic_years = sorted(list(set(default_years + [y for y in existing_years if y])), reverse=True)
+    if selected_academic_year not in available_academic_years:
+        selected_academic_year = '2026-2027'
+
+    # Fetch timetable entries for selected semester & academic year
+    entries = Timetable.objects.filter(academic_year=selected_academic_year, semester=selected_semester)
     
     # Structure data for the template: { 'Day': { periods... } }
     # Or just pass entries and let template handle filtering, but structured is better
@@ -2211,6 +2234,8 @@ def timetable(request):
         'staff': staff,
         'timetable_rows': timetable_rows,
         'selected_semester': selected_semester,
+        'selected_academic_year': selected_academic_year,
+        'available_academic_years': available_academic_years,
         'semesters': range(1, 9)
     })
 
@@ -2313,6 +2338,14 @@ def edit_timetable(request, semester):
     # Get all active staff to populate dropdowns
     all_staff = Staff.objects.filter(is_active=True).order_by('name')
     
+    selected_academic_year = request.GET.get('academic_year') or request.POST.get('academic_year') or '2026-2027'
+    selected_academic_year = selected_academic_year.strip()
+    existing_years = list(Timetable.objects.values_list('academic_year', flat=True).distinct())
+    default_years = ['2026-2027', '2025-2026', '2024-2025', '2023-2024', '2022-2023']
+    available_academic_years = sorted(list(set(default_years + [y for y in existing_years if y])), reverse=True)
+    if selected_academic_year not in available_academic_years:
+        selected_academic_year = '2026-2027'
+
     # Check current batch mode
     current_batch = request.GET.get('batch', 'All')
     if request.method == 'POST':
@@ -2334,8 +2367,6 @@ def edit_timetable(request, semester):
                     lab_a_val = request.POST.get(f'lab_a_{day}_{period}')
                     lab_b_val = request.POST.get(f'lab_b_{day}_{period}')
                     
-                    # Recover batch picks from linked 3-hour lab periods when hidden inputs
-                    # were attached only on leader/continuation slots.
                     if sub_val == 'LAB_SESSION' and (not lab_a_val or not lab_b_val):
                         related_periods = []
                         for block in MORNING_LAB_BLOCKS + [AFTERNOON_LAB_BLOCK]:
@@ -2348,12 +2379,11 @@ def edit_timetable(request, semester):
                             if not lab_b_val:
                                 lab_b_val = request.POST.get(f'lab_b_{day}_{p}') or lab_b_val
                     
-                    # Fetch existing entries for all batches
-                    entries = list(Timetable.objects.filter(semester=semester, day=day, period=period))
+                    # Fetch existing entries for all batches for this academic year
+                    entries = list(Timetable.objects.filter(academic_year=selected_academic_year, semester=semester, day=day, period=period))
                     
                     # Helper to manage creation/update of a batch entry
                     def handle_batch_entry(batch_val, subj_id, virtual_sub=None):
-                        # Locate existing entry for this batch
                         batch_entry = next((e for e in entries if e.batch == batch_val), None)
                         
                         if virtual_sub:
@@ -2364,7 +2394,6 @@ def edit_timetable(request, semester):
                             b_staff = b_subject.staff if b_subject else None
 
                         if not b_subject and not virtual_sub:
-                            # If no subject and not virtual, delete if exists
                             if batch_entry and batch_entry.pk is not None:
                                 if batch_entry.staff:
                                     send_staff_notification(batch_entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
@@ -2390,6 +2419,7 @@ def edit_timetable(request, semester):
                         else:
                             try:
                                 new_entry = Timetable.objects.create(
+                                    academic_year=selected_academic_year,
                                     semester=semester,
                                     day=day,
                                     period=period,
@@ -2403,14 +2433,10 @@ def edit_timetable(request, semester):
                                 pass
 
                     if current_batch == 'All':
-                        # Combined mode edit
                         if sub_val == 'LAB_SESSION':
-                            # If no batch payload came from UI but A/B rows already exist, retain
-                            # existing assignments to avoid creating mid-session data holes.
                             if not lab_a_val and not lab_b_val and any(e.batch in ['A', 'B'] for e in entries):
                                 continue
 
-                            # Delete any 'All' batch entries
                             for entry in entries:
                                 if entry.batch == 'All' and entry.pk is not None:
                                     if entry.staff:
@@ -2420,14 +2446,12 @@ def edit_timetable(request, semester):
                             handle_batch_entry('A', lab_a_val)
                             handle_batch_entry('B', lab_b_val)
                         else:
-                            # Theory or other virtual slots: Clean up 'A' and 'B' entries first
                             for entry in entries:
                                 if entry.batch in ['A', 'B'] and entry.pk is not None:
                                     if entry.staff:
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {entry.batch}).", url="/staffs/my-timetable/")
                                     entry.delete()
                             
-                            # Set everything as 'All' batch
                             if not sub_val:
                                 for entry in entries:
                                     if entry.pk is not None:
@@ -2440,9 +2464,7 @@ def edit_timetable(request, semester):
                                 handle_batch_entry('All', subj_id_to_use, virtual_sub=virt_lbl)
                                 
                     else:
-                        # Batch A or Batch B specific mode edit
                         if not sub_val:
-                            # Clear specific batch entry for this slot
                             for entry in entries:
                                 if entry.batch == current_batch and entry.pk is not None:
                                     if entry.staff:
@@ -2455,12 +2477,11 @@ def edit_timetable(request, semester):
                             b_subject = Subject.objects.filter(id=subj_id_to_use).first() if subj_id_to_use else None
                             b_staff = b_subject.staff if b_subject else None
                             
-                            # Check if there is an existing 'All' entry
                             all_entry = next((e for e in entries if e.batch == 'All'), None)
                             if all_entry:
-                                # Split the 'All' entry into two separate entries
                                 other_batch = 'B' if current_batch == 'A' else 'A'
                                 Timetable.objects.create(
+                                    academic_year=selected_academic_year,
                                     semester=semester,
                                     day=day,
                                     period=period,
@@ -2470,8 +2491,8 @@ def edit_timetable(request, semester):
                                 )
                                 all_entry.delete()
                                 
-                            # Create or update specific batch entry
                             Timetable.objects.update_or_create(
+                                academic_year=selected_academic_year,
                                 semester=semester,
                                 day=day,
                                 period=period,
@@ -2479,11 +2500,11 @@ def edit_timetable(request, semester):
                                 defaults={'subject': b_subject, 'staff': b_staff}
                             )
                                 
-        messages.success(request, f'Timetable for Semester {semester} updated successfully.')
-        return redirect(f'/staffs/timetable/?semester={semester}')
+        messages.success(request, f'Timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
+        return redirect(f'/staffs/timetable/?semester={semester}&academic_year={selected_academic_year}')
         
     # GET Request: Prepare grid data
-    entries = Timetable.objects.filter(semester=semester)
+    entries = Timetable.objects.filter(academic_year=selected_academic_year, semester=semester)
     timetable_data = {day: [None]*7 for day in days}
     
     class BatchBlock:
@@ -2522,7 +2543,6 @@ def edit_timetable(request, semester):
                 if entry.batch == current_batch:
                     timetable_data[entry.day][entry.period-1] = entry
                 elif entry.batch == 'All':
-                    # Only fallback if no specific batch entry has been set yet
                     if curr is None or curr.batch != current_batch:
                         timetable_data[entry.day][entry.period-1] = entry
 
@@ -2531,12 +2551,11 @@ def edit_timetable(request, semester):
         timetable_rows.append((day, timetable_data[day]))
         
     import json as _json
-    # Build subject→staff/type map for JS (to auto-show staff name on subject selection)
     subject_staff_map = {}
     for subj in subjects:
         subject_staff_map[str(subj.id)] = {
             'staff': subj.staff.name if subj.staff else '—',
-            'type': subj.subject_type,  # 'Theory' or 'Lab'
+            'type': subj.subject_type,
             'name': subj.name,
             'code': subj.code,
         }
@@ -2548,7 +2567,223 @@ def edit_timetable(request, semester):
         'subjects': subjects,
         'subject_staff_map_json': _json.dumps(subject_staff_map),
         'current_batch': current_batch,
+        'selected_academic_year': selected_academic_year,
+        'available_academic_years': available_academic_years,
     })
+
+def hod_published_timetables(request):
+    """
+    Dedicated view for HOD & Timetable Incharges to view all saved and published timetables
+    across academic years, semesters (1-8), and batches (All, Batch A, Batch B), along with assigned staff breakdowns.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    
+    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+        messages.error(request, "Access Denied: Only HOD or Timetable Incharge can view Master Published Timetables.")
+        return redirect('staffs:staff_dashboard')
+
+    selected_academic_year = request.GET.get('academic_year', '2026-2027').strip()
+    existing_years = list(Timetable.objects.values_list('academic_year', flat=True).distinct())
+    default_years = ['2026-2027', '2025-2026', '2024-2025', '2023-2024', '2022-2023']
+    available_academic_years = sorted(list(set(default_years + [y for y in existing_years if y])), reverse=True)
+    if selected_academic_year not in available_academic_years:
+        selected_academic_year = '2026-2027'
+
+    selected_semester = request.GET.get('semester', 1)
+    try:
+        selected_semester = int(selected_semester)
+        if selected_semester < 1 or selected_semester > 8:
+            selected_semester = 1
+    except (ValueError, TypeError):
+        selected_semester = 1
+
+    selected_batch = request.GET.get('batch', 'All')
+    if selected_batch not in ['All', 'A', 'B']:
+        selected_batch = 'All'
+
+    # Semester Summary Cards for selected academic year (Sem 1 to 8)
+    semesters_summary = []
+    for sem in range(1, 9):
+        sem_entries = Timetable.objects.filter(academic_year=selected_academic_year, semester=sem)
+        total_slots = sem_entries.count()
+        is_pub = sem_entries.filter(is_published=True).exists() if total_slots > 0 else False
+        assigned_faculty_count = sem_entries.filter(staff__isnull=False).values('staff').distinct().count()
+        subject_count = Subject.objects.filter(semester=sem).count()
+        
+        semesters_summary.append({
+            'semester': sem,
+            'total_slots': total_slots,
+            'is_published': is_pub,
+            'assigned_faculty_count': assigned_faculty_count,
+            'subject_count': subject_count,
+            'is_selected': (sem == selected_semester)
+        })
+
+    # Fetch entries for selected academic year and semester
+    entries = Timetable.objects.filter(academic_year=selected_academic_year, semester=selected_semester).select_related('subject', 'staff')
+    semester_is_published = entries.filter(is_published=True).exists() if entries.exists() else False
+
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    timetable_data = {day: [None]*7 for day in days}
+
+    class BatchBlock:
+        def __init__(self, e1, e2):
+            self.is_batch = True
+            self.A = e1 if e1.batch == 'A' else e2
+            self.B = e2 if e2.batch == 'B' else e1
+            self.staff = None
+            class DummySubj:
+                id = 'BATCHED'
+                subject_type = 'Lab'
+                code = e1.subject.code if e1.subject and e2.subject and e1.subject.id == e2.subject.id else "LAB"
+                name = e1.subject.name if e1.subject and e2.subject and e1.subject.id == e2.subject.id else "Lab Session"
+            self.subject = DummySubj()
+
+    if selected_batch == 'All':
+        for entry in entries:
+            if 1 <= entry.period <= 7:
+                curr = timetable_data[entry.day][entry.period-1]
+                if curr is None:
+                    timetable_data[entry.day][entry.period-1] = entry
+                elif getattr(curr, 'is_batch', False):
+                    continue
+                elif curr.batch in ['A', 'B'] and entry.batch in ['A', 'B'] and curr.batch != entry.batch:
+                    timetable_data[entry.day][entry.period-1] = BatchBlock(curr, entry)
+                elif curr.batch == 'All' and entry.batch in ['A', 'B']:
+                    timetable_data[entry.day][entry.period-1] = entry
+                elif curr.batch in ['A', 'B'] and entry.batch == 'All':
+                    continue
+                else:
+                    timetable_data[entry.day][entry.period-1] = entry
+    else:
+        for entry in entries:
+            if 1 <= entry.period <= 7:
+                curr = timetable_data[entry.day][entry.period-1]
+                if entry.batch == selected_batch:
+                    timetable_data[entry.day][entry.period-1] = entry
+                elif entry.batch == 'All':
+                    if curr is None or curr.batch != selected_batch:
+                        timetable_data[entry.day][entry.period-1] = entry
+
+    def build_row_cells(periods):
+        period_to_col = {0: 0, 1: 1, 2: 3, 3: 4, 4: 6, 5: 7, 6: 8}
+        col_to_period = {v: k for k, v in period_to_col.items()}
+        break_cols = {2: 'TEA', 5: 'LUNCH'}
+        total_cols = 9
+
+        cells = []
+        for col in range(total_cols):
+            if col in break_cols:
+                cells.append({'type': 'break', 'label': break_cols[col], 'skip': False})
+            else:
+                p_idx = col_to_period[col]
+                cells.append({'type': 'period', 'entry': periods[p_idx], 'colspan': 1, 'skip': False})
+
+        i = 0
+        while i < total_cols:
+            if cells[i].get('type') == 'period' and not cells[i].get('skip'):
+                entry = cells[i]['entry']
+                if entry and getattr(entry, 'subject', None):
+                    j = i + 1
+                    span = 1
+                    while j < total_cols:
+                        c = cells[j]
+                        if c['type'] == 'break':
+                            if j + 1 < total_cols and cells[j+1].get('type') == 'period':
+                                next_e = cells[j+1]['entry']
+                                if next_e and getattr(next_e, 'subject', None) and getattr(next_e.subject, 'id', None) == getattr(entry.subject, 'id', None):
+                                    c['skip'] = True
+                                    cells[j+1]['skip'] = True
+                                    span += 2
+                                    j += 2
+                                    continue
+                            break
+                        elif c['type'] == 'period':
+                            next_e = c['entry']
+                            if next_e and getattr(next_e, 'subject', None) and getattr(next_e.subject, 'id', None) == getattr(entry.subject, 'id', None):
+                                c['skip'] = True
+                                span += 1
+                                j += 1
+                                continue
+                            break
+                        j += 1
+                    cells[i]['colspan'] = span
+            i += 1
+        return cells
+
+    timetable_rows = [(day, build_row_cells(timetable_data[day])) for day in days]
+
+    # Build Course & Assigned Staff Allocation List for this semester
+    subjects = Subject.objects.filter(semester=selected_semester).select_related('staff')
+    subject_allocation_list = []
+    
+    for subj in subjects:
+        subj_entries = entries.filter(subject=subj)
+        periods_count = subj_entries.count()
+        
+        assigned_staff_set = set()
+        if subj.staff:
+            assigned_staff_set.add(subj.staff)
+        for e in subj_entries:
+            if e.staff:
+                assigned_staff_set.add(e.staff)
+                
+        schedule_details = []
+        for e in subj_entries.order_by('day', 'period'):
+            schedule_details.append(f"{e.day[:3]} P{e.period} ({e.batch})")
+            
+        subject_allocation_list.append({
+            'subject': subj,
+            'assigned_staff_list': list(assigned_staff_set),
+            'primary_staff': subj.staff,
+            'periods_count': periods_count,
+            'schedule_summary': ", ".join(schedule_details) if schedule_details else "Not Scheduled",
+            'is_assigned': len(assigned_staff_set) > 0
+        })
+
+    return render(request, 'staff/hod_published_timetables.html', {
+        'staff': staff,
+        'selected_semester': selected_semester,
+        'selected_batch': selected_batch,
+        'selected_academic_year': selected_academic_year,
+        'available_academic_years': available_academic_years,
+        'semesters_summary': semesters_summary,
+        'timetable_rows': timetable_rows,
+        'semester_is_published': semester_is_published,
+        'subject_allocation_list': subject_allocation_list,
+        'total_entries_count': entries.count(),
+        'semesters': range(1, 9)
+    })
+
+def toggle_publish_timetable(request, semester):
+    """View to publish or unpublish all timetable slots for a semester in a specific academic year. Restricted to HOD / Timetable Incharge."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    
+    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+        messages.error(request, "Access Denied: Only HOD or Timetable Incharge can publish/unpublish timetables.")
+        return redirect('staffs:staff_dashboard')
+        
+    academic_year = request.GET.get('academic_year', '2026-2027').strip()
+    entries = Timetable.objects.filter(academic_year=academic_year, semester=semester)
+    if not entries.exists():
+        messages.error(request, f"No timetable entries found for Academic Year {academic_year} Semester {semester} to publish.")
+        return redirect(f'/staff/hod/published-timetables/?academic_year={academic_year}&semester={semester}')
+        
+    currently_published = entries.filter(is_published=True).exists()
+    new_state = not currently_published
+    entries.update(is_published=new_state)
+    
+    state_str = "Published" if new_state else "Unpublished (Draft)"
+    messages.success(request, f"Timetable for Academic Year {academic_year} Semester {semester} is now {state_str}.")
+    
+    next_url = request.META.get('HTTP_REFERER') or f'/staff/hod/published-timetables/?academic_year={academic_year}&semester={semester}'
+    return redirect(next_url)
 
 def my_timetable(request):
     """
@@ -3581,6 +3816,10 @@ def staff_portfolio(request):
     staff = _get_staff_for_portfolio(request)
     if not staff:
         return redirect('staffs:stafflogin')
+
+    if staff.role == 'Office Staff':
+        messages.info(request, "Portfolio management is applicable only for teaching faculty.")
+        return redirect('staffs:staff_profile')
 
     publications = staff.publication_list.all().order_by('-year', '-id')
     awards = staff.award_list.all().order_by('-year', '-id')
