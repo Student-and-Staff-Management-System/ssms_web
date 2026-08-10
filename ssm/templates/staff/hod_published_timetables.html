@@ -421,16 +421,32 @@
 
       <a href="{% url 'staffs:toggle_publish_timetable' selected_semester %}?academic_year={{ selected_academic_year }}" class="action-btn action-btn-outline">
         {% if semester_is_published %}
-          🔒 Unpublish Sem {{ selected_semester }} ({{ selected_academic_year }})
+          🔒 Unpublish Sem {{ selected_semester }}
         {% else %}
-          🚀 Publish Sem {{ selected_semester }} ({{ selected_academic_year }})
+          🚀 Publish Sem {{ selected_semester }}
         {% endif %}
       </a>
 
-      <a href="{% url 'staffs:edit_timetable' selected_semester %}?academic_year={{ selected_academic_year }}" class="action-btn action-btn-primary">
+      <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=edit" class="action-btn action-btn-primary">
         ✏️ Edit Sem {{ selected_semester }} Timetable
       </a>
     </div>
+  </div>
+
+  <!-- Unified Top Tab Navigation Bar -->
+  <div style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color, #e2e8f0); padding-bottom: 8px; flex-wrap: wrap;">
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=master" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; {% if active_tab == 'master' %}background: var(--primary-color, #5a7d7c); color: white; box-shadow: 0 4px 12px rgba(90,125,124,0.3);{% else %}background: var(--surface, #ffffff); color: var(--text-dark, #334155); border: 1px solid var(--border-color, #e2e8f0);{% endif %}">
+      📅 Master & Published View
+    </a>
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=edit" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; {% if active_tab == 'edit' %}background: var(--primary-color, #5a7d7c); color: white; box-shadow: 0 4px 12px rgba(90,125,124,0.3);{% else %}background: var(--surface, #ffffff); color: var(--text-dark, #334155); border: 1px solid var(--border-color, #e2e8f0);{% endif %}">
+      ✏️ Interactive Timetable Editor
+    </a>
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=batches" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; {% if active_tab == 'batches' %}background: var(--primary-color, #5a7d7c); color: white; box-shadow: 0 4px 12px rgba(90,125,124,0.3);{% else %}background: var(--surface, #ffffff); color: var(--text-dark, #334155); border: 1px solid var(--border-color, #e2e8f0);{% endif %}">
+      👥 Lab Batch Assignments
+    </a>
+    <a href="{% url 'staffs:hod_live_class_visualisation' %}" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; background: var(--surface, #ffffff); color: #dc2626; border: 1px solid #fca5a5;">
+      🔴 Live Class Visualiser
+    </a>
   </div>
 
   <!-- Messages -->
@@ -450,7 +466,7 @@
   </div>
   <div class="sem-grid-container">
     {% for sem_item in semesters_summary %}
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ sem_item.semester }}&batch={{ selected_batch }}" class="sem-card {% if sem_item.is_selected %}active{% endif %}">
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ sem_item.semester }}&batch={{ selected_batch }}&tab={{ active_tab }}" class="sem-card {% if sem_item.is_selected %}active{% endif %}">
       <div class="sem-num">Semester {{ sem_item.semester }}</div>
       <div class="sem-meta">{{ sem_item.total_slots }} Slots Saved</div>
       <div class="sem-meta" style="margin-top: 2px;">{{ sem_item.assigned_faculty_count }} Faculty Assigned</div>
@@ -460,6 +476,9 @@
     </a>
     {% endfor %}
   </div>
+
+  {% if active_tab == 'master' %}
+  <!-- TAB 1: MASTER & PUBLISHED VIEW -->
 
   <!-- Filter Bar (Academic Year & Batch Filters) -->
   <div class="filter-section">
@@ -492,13 +511,20 @@
 
   <!-- Master Timetable Grid Card -->
   <div class="section-card">
-    <div class="section-card-header">
+    <div class="section-card-header" style="flex-wrap: wrap; gap: 12px; justify-content: space-between;">
       <div class="section-card-title">
         <span>🕒 Master Weekly Timetable Grid — Semester {{ selected_semester }}</span>
       </div>
-      <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
-        Periods 1 to 7 with Tea & Lunch Breaks
-      </span>
+
+      <form method="POST" action="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(90,125,124,0.08); padding: 6px 14px; border-radius: 12px; border: 1px solid rgba(90,125,124,0.2); flex-wrap: wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_effect_dates">
+        <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary-color);">📅 Get Effect From:</span>
+        <input type="date" name="from_date" value="{{ current_from_date|date:'Y-m-d' }}" required style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; background: white; color: var(--text-dark);">
+        <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary-color);">To Date:</span>
+        <input type="date" name="to_date" value="{{ current_to_date|date:'Y-m-d' }}" required style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; background: white; color: var(--text-dark);">
+        <button type="submit" style="background: var(--primary-color); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; cursor: pointer; transition: all 0.2s;">Save Effect Dates</button>
+      </form>
     </div>
 
     <div class="grid-wrapper">
@@ -668,5 +694,259 @@
     </div>
   </div>
 
+  <!-- PREVIOUS PUBLISHED TIMETABLES HISTORY (SAVED FOREVER) -->
+  <div class="section-card" style="margin-top: 32px;">
+    <div class="section-card-header" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white;">
+      <div class="section-card-title">
+        <span style="color: #f8fafc;">📜 Previous Saved & Published Timetables History (Saved Forever)</span>
+      </div>
+      <span style="font-size: 0.82rem; color: #94a3b8;">
+        Academic Year {{ selected_academic_year }} • Semester {{ selected_semester }}
+      </span>
+    </div>
+
+    <div style="padding: 24px;">
+      {% if previous_timetable_versions %}
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        {% for ver in previous_timetable_versions %}
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.1rem; font-weight: 800; color: var(--text-dark, #0f172a);">📜 {{ ver.version_name }}</span>
+                {% if ver.is_active %}
+                <span style="background: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; border: 1px solid #86efac;">ACTIVE CURRENT</span>
+                {% else %}
+                <span style="background: #f1f5f9; color: #475569; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; border: 1px solid #cbd5e1;">HISTORICAL ARCHIVE</span>
+                {% endif %}
+              </div>
+
+              <div style="font-size: 0.9rem; color: #334155; margin-top: 6px;">
+                📅 <strong>Get Effect From:</strong> <span style="color: #2563eb; font-weight: 700;">{{ ver.from_date|date:"d-M-Y"|default:"Not specified" }}</span> 
+                &nbsp;<strong>To Date:</strong> <span style="color: #2563eb; font-weight: 700;">{{ ver.to_date|date:"d-M-Y"|default:"Not specified" }}</span>
+              </div>
+            </div>
+
+            <div style="text-align: right; font-size: 0.82rem; color: #64748b;">
+              <div>Published By: <strong style="color: #0f172a;">{% if ver.published_by %}{{ ver.published_by.name }}{% else %}HOD / Timetable Incharge{% endif %}</strong></div>
+              <div>Published On: <strong>{{ ver.published_at|date:"d-M-Y h:i A" }}</strong></div>
+              <button type="button" onclick="togglePrevTT('prev-tt-{{ ver.id }}')" style="margin-top: 8px; background: var(--primary-color, #5a7d7c); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;">
+                👁️ View Timetable Grid
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible Previous Timetable Grid -->
+          <div id="prev-tt-{{ ver.id }}" style="display: none; margin-top: 16px; border-top: 1px solid #cbd5e1; padding-top: 16px; overflow-x: auto;">
+            <table class="alloc-table" style="font-size: 0.8rem; width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="width: 10%;">Day</th>
+                  <th>P1</th>
+                  <th>P2</th>
+                  <th>P3</th>
+                  <th>P4</th>
+                  <th>P5</th>
+                  <th>P6</th>
+                  <th>P7</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for day_name, p_cells in ver.grid_rows %}
+                <tr>
+                  <td style="font-weight: 700; background: #f8fafc;">{{ day_name }}</td>
+                  {% for p_item in p_cells %}
+                  <td style="padding: 8px; vertical-align: top; border-bottom: 1px solid #e2e8f0;">
+                    {% if p_item %}
+                      {% if p_item.is_batch %}
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                          {% if p_item.A %}
+                          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 4px 6px; border-radius: 4px; font-size: 0.72rem;">
+                            <strong style="color: #166534;">🅰️ {{ p_item.A.subject_code }}</strong>
+                            <span style="color: #475569; display: block; font-size: 0.7rem;">{{ p_item.A.subject_name }}</span>
+                            {% if p_item.A.staff_name %}<span style="color: #059669; font-size: 0.68rem; display: block;">👤 {{ p_item.A.staff_name }}</span>{% endif %}
+                          </div>
+                          {% endif %}
+                          {% if p_item.B %}
+                          <div style="background: #fffbebf; border: 1px solid #fde68a; padding: 4px 6px; border-radius: 4px; font-size: 0.72rem;">
+                            <strong style="color: #92400e;">🅱️ {{ p_item.B.subject_code }}</strong>
+                            <span style="color: #475569; display: block; font-size: 0.7rem;">{{ p_item.B.subject_name }}</span>
+                            {% if p_item.B.staff_name %}<span style="color: #059669; font-size: 0.68rem; display: block;">👤 {{ p_item.B.staff_name }}</span>{% endif %}
+                          </div>
+                          {% endif %}
+                        </div>
+                      {% else %}
+                        <strong style="color: #0f172a; display: block; font-size: 0.82rem;">{{ p_item.subject_code }}</strong>
+                        <span style="font-size: 0.75rem; color: #475569; display: block;">{{ p_item.subject_name }}</span>
+                        {% if p_item.staff_name %}
+                        <span style="font-size: 0.72rem; color: #059669; font-weight: 600; display: block;">👤 {{ p_item.staff_name }}</span>
+                        {% endif %}
+                      {% endif %}
+                    {% else %}
+                      <span style="color: #cbd5e1; font-style: italic;">—</span>
+                    {% endif %}
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding: 24px; text-align: center; color: #64748b; font-style: italic;">
+        No previous published timetable versions found for Semester {{ selected_semester }}. Every published and saved timetable version will automatically be archived here forever with its effective date range.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if active_tab == 'edit' %}
+  <!-- TAB 2: INTERACTIVE TIMETABLE EDITOR -->
+  <form method="POST" action="{% url 'staffs:edit_timetable' selected_semester %}">
+    {% csrf_token %}
+    <input type="hidden" name="academic_year" value="{{ selected_academic_year }}">
+    <input type="hidden" name="current_batch" value="{{ selected_batch }}">
+
+    <div class="section-card">
+      <div class="section-card-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div class="section-card-title">
+          <span>✏️ Interactive Timetable Editor — Semester {{ selected_semester }} ({{ selected_academic_year }})</span>
+        </div>
+        <button type="submit" class="action-btn action-btn-primary">
+          💾 Save Timetable Grid
+        </button>
+      </div>
+
+      <div style="overflow-x: auto; padding: 16px;">
+        <table class="alloc-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th style="width: 10%;">Day</th>
+              <th>P1 (08:30-09:30)</th>
+              <th>P2 (09:30-10:30)</th>
+              <th>P3 (10:40-11:40)</th>
+              <th>P4 (11:40-12:40)</th>
+              <th>P5 (13:30-14:30)</th>
+              <th>P6 (14:30-15:30)</th>
+              <th>P7 (15:30-16:30)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for day, p_slots in edit_timetable_rows %}
+            <tr>
+              <td style="font-weight: 700; background: #f8fafc; text-align: center; vertical-align: middle;">{{ day }}</td>
+              {% for entry in p_slots %}
+              {% with period=forloop.counter %}
+              <td style="padding: 6px; vertical-align: top;">
+                <select name="subject_{{ day }}_{{ period }}" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem;">
+                  <option value="">— Vacant —</option>
+                  {% for s in subjects_list %}
+                  <option value="{{ s.id }}" {% if entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>
+                    {{ s.code }} ({{ s.subject_type }})
+                  </option>
+                  {% endfor %}
+                  <option value="LAB_SESSION" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION' %}selected{% endif %}>🔬 LAB SESSION (Split A/B)</option>
+                  <option value="PLACEMENT" {% if entry and entry.subject and entry.subject.id == 'PLACEMENT' %}selected{% endif %}>💼 PLACEMENT</option>
+                  <option value="LIBRARY" {% if entry and entry.subject and entry.subject.id == 'LIBRARY' %}selected{% endif %}>📚 LIBRARY</option>
+                </select>
+              </td>
+              {% endwith %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
+  {% if active_tab == 'batches' %}
+  <!-- TAB 3: LAB BATCH ASSIGNMENTS -->
+  <form method="POST" action="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&tab=batches">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="assign_batches">
+    <input type="hidden" name="semester" value="{{ selected_semester }}">
+
+    <div class="section-card">
+      <div class="section-card-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div class="section-card-title">
+          <span>👥 Lab Batch Assignments & Class Representatives — Semester {{ selected_semester }}</span>
+        </div>
+        <button type="submit" class="action-btn action-btn-primary">
+          💾 Save Batch Assignments
+        </button>
+      </div>
+
+      <div style="padding: 20px; overflow-x: auto;">
+        <table class="alloc-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Roll Number</th>
+              <th>Student Name</th>
+              <th>Current Batch</th>
+              <th>Assign Batch</th>
+              <th>Class Representative</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in students_list %}
+            <tr>
+              <td><strong>{{ s.roll_number }}</strong></td>
+              <td>{{ s.student_name }}</td>
+              <td>
+                {% if s.lab_batch == 'A' %}
+                <span style="font-size: 0.75rem; font-weight: 700; background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 12px;">Batch A</span>
+                {% elif s.lab_batch == 'B' %}
+                <span style="font-size: 0.75rem; font-weight: 700; background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px;">Batch B</span>
+                {% else %}
+                <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>
+                <select name="batch_{{ s.roll_number }}" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.82rem;">
+                  <option value="">-- Select Batch --</option>
+                  <option value="A" {% if s.lab_batch == 'A' %}selected{% endif %}>Batch A</option>
+                  <option value="B" {% if s.lab_batch == 'B' %}selected{% endif %}>Batch B</option>
+                </select>
+              </td>
+              <td>
+                <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                  <input type="checkbox" name="rep_{{ s.roll_number }}" value="true" {% if s.is_class_representative %}checked{% endif %} style="transform: scale(1.2);">
+                  <span style="font-size: 0.82rem; color: var(--text-dark);">Class Rep</span>
+                </label>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                No active students enrolled in Semester {{ selected_semester }}.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
 </div>
+
+<script>
+  function togglePrevTT(id) {
+    const elem = document.getElementById(id);
+    if (elem) {
+      if (elem.style.display === 'none' || !elem.style.display) {
+        elem.style.display = 'block';
+      } else {
+        elem.style.display = 'none';
+      }
+    }
+  }
+</script>
 {% endblock %}

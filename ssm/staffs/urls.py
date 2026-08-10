@@ -107,6 +107,8 @@ urlpatterns = [
     path('hod/assign-post/<str:staff_id>/', views.hod_assign_post, name='hod_assign_post'),
     path('hod/manage-labs/', views.hod_manage_labs, name='hod_manage_labs'),
     path('hod/manage-labs/delete/<int:lab_id>/', views.hod_delete_lab, name='hod_delete_lab'),
+    path('hod/manage-class-mapping/delete/<int:class_id>/', views.hod_delete_class_mapping, name='hod_delete_class_mapping'),
+    path('hod/live-class-visualisation/', views.hod_live_class_visualisation, name='hod_live_class_visualisation'),
     
     # NEW BONAFIDE SYSTEM (Replaces old views)
     path('hod/bonafide-fix/', bonafide_views.hod_bonafide_list, name='hod_manage_bonafide'),

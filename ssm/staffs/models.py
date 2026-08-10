@@ -258,6 +258,31 @@ class Lab(models.Model):
         return f"{self.name} ({self.short_name})"
 
 
+class ClassMapping(models.Model):
+    class_name = models.CharField(max_length=255, verbose_name="Class Name", help_text="e.g. III Year IT - Sem 5")
+    room_name = models.CharField(max_length=100, verbose_name="Class Room Name", help_text="e.g. LH-201, Room 102")
+    semester = models.IntegerField(null=True, blank=True, verbose_name="Semester (1-8)")
+    staff = models.ForeignKey(
+        Staff, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='assigned_class_mappings',
+        verbose_name="Class Incharge",
+        help_text="The staff member in charge of this class."
+    )
+    from_date = models.DateField(null=True, blank=True, verbose_name="From Date")
+    to_date = models.DateField(null=True, blank=True, verbose_name="To Date")
+
+    class Meta:
+        verbose_name = "Class Mapping"
+        verbose_name_plural = "Class Mappings"
+        ordering = ['semester', 'class_name']
+
+    def __str__(self):
+        return f"{self.class_name} ({self.room_name})"
+
+
 class StaffPublication(models.Model):
     """Individual publication entry for staff."""
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='publication_list')
@@ -583,8 +608,22 @@ class Subject(models.Model):
         help_text="Designate if this course assignment applies to Batch A, Batch B, or Both."
     )
     
+    classroom = models.ForeignKey('ClassMapping', on_delete=models.SET_NULL, null=True, blank=True, related_name='subjects', verbose_name="Classroom Mapping")
+    lab = models.ForeignKey('Lab', on_delete=models.SET_NULL, null=True, blank=True, related_name='subjects', verbose_name="Lab Mapping")
+    location_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Location Name", help_text="Assigned class room or lab room name e.g. LH-201, OS Lab")
+
+    def get_location_display(self):
+        if self.location_name:
+            return self.location_name
+        if self.lab:
+            return self.lab.name
+        if self.classroom:
+            return f"{self.classroom.room_name} ({self.classroom.class_name})"
+        return f"Sem {self.semester} Room"
+
     def __str__(self):
         return f"{self.code} - {self.name} (Sem {self.semester})"
+
 
 class ExamSchedule(models.Model):
     semester = models.IntegerField()
@@ -615,6 +654,8 @@ class Timetable(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True)
     staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True) # Optional: Assign staff directly
     is_published = models.BooleanField(default=True, help_text="Indicates whether this timetable entry is published")
+    from_date = models.DateField(null=True, blank=True, help_text="Effective From Date")
+    to_date = models.DateField(null=True, blank=True, help_text="Effective To Date")
 
     class Meta:
         ordering = ['academic_year', 'semester', 'day', 'period']
@@ -622,6 +663,24 @@ class Timetable(models.Model):
 
     def __str__(self):
         return f"Sem {self.semester} - {self.day} - Period {self.period} ({self.batch})"
+
+
+class PublishedTimetableVersion(models.Model):
+    academic_year = models.CharField(max_length=20, default='2026-2027', help_text="Academic year e.g. 2026-2027")
+    semester = models.IntegerField(help_text="Semester 1 to 8")
+    version_name = models.CharField(max_length=100, default='v1.0', null=True, blank=True, help_text="Timetable Version Name")
+    from_date = models.DateField(null=True, blank=True, help_text="Effective From Date")
+    to_date = models.DateField(null=True, blank=True, help_text="Effective To Date")
+    published_by = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True)
+    published_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True, help_text="Is current active published version")
+    timetable_data_json = models.TextField(default='{}', help_text="JSON snapshot of saved timetable grid entries")
+
+    class Meta:
+        ordering = ['-published_at']
+
+    def __str__(self):
+        return f"Sem {self.semester} ({self.from_date} to {self.to_date}) - {self.version_name}"
 
 class StaffLeaveRequest(models.Model):
     LEAVE_TYPES = [

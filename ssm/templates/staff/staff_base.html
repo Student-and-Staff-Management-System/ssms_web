@@ -282,8 +282,11 @@
                         <a href="{% url 'staffs:manage_subjects' %}" class="nav-item" data-tooltip="Manage Subjects">
                             <span class="nav-icon">📚</span> <span class="nav-text">Manage Subjects</span>
                         </a>
-                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab Mapping">
-                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab Mapping</span>
+                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab & Class Mapping">
+                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab & Class Mapping</span>
+                        </a>
+                        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="nav-item" data-tooltip="Live Class Visualiser">
+                            <span class="nav-icon">📡</span> <span class="nav-text">Live Class Visualiser</span>
                         </a>
                     </div>
                 </div>
@@ -453,8 +456,11 @@
                             <span class="badge-count">{{ pending_portfolio_count }}</span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab Mapping">
-                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab Mapping</span>
+                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab & Class Mapping">
+                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab & Class Mapping</span>
+                        </a>
+                        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="nav-item" data-tooltip="Live Class Visualiser">
+                            <span class="nav-icon">📡</span> <span class="nav-text">Live Class Visualiser</span>
                         </a>
                         <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item" data-tooltip="Send Notification">
                             <span class="nav-icon">📢</span> <span class="nav-text">Send Notification</span>
@@ -472,11 +478,8 @@
                         <a href="{% url 'staffs:manage_subjects' %}" class="nav-item" data-tooltip="Manage Subjects">
                             <span class="nav-icon">📚</span> <span class="nav-text">Manage Subjects</span>
                         </a>
-                        <a href="{% url 'staffs:timetable' %}" class="nav-item" data-tooltip="Master Timetables">
-                            <span class="nav-icon">🕒</span> <span class="nav-text">Master Timetables</span>
-                        </a>
-                        <a href="{% url 'staffs:hod_published_timetables' %}" class="nav-item" data-tooltip="Published Timetables">
-                            <span class="nav-icon">📅</span> <span class="nav-text">Published Timetables</span>
+                        <a href="{% url 'staffs:timetable' %}" class="nav-item" data-tooltip="Master Timetable Hub">
+                            <span class="nav-icon">📅</span> <span class="nav-text">Master Timetable Hub</span>
                         </a>
                         <a href="{% url 'staffs:passed_out_batches' %}" class="nav-item" data-tooltip="Passed Out Batches">
                             <span class="nav-icon">🗄️</span> <span class="nav-text">Passed Out Batches</span>

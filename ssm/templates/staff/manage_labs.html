@@ -1,12 +1,45 @@
 {% extends 'staff/staff_base.html' %}
 {% load static %}
 
-{% block title %}Manage Lab In Charge | HOD Dashboard{% endblock %}
+{% block title %}Manage Lab & Class Mapping | HOD Dashboard{% endblock %}
 
-{% block page_title %}Manage Lab In Charge{% endblock %}
+{% block page_title %}Manage Lab & Class Mapping{% endblock %}
 
 {% block extra_css %}
     <style>
+        .mapping-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: 1px solid var(--border, #e2e8f0);
+            background: var(--surface, #ffffff);
+            color: var(--text-muted, #64748b);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main, #0f172a);
+            border-color: var(--primary, #5a7d7c);
+        }
+
+        .tab-btn.active {
+            background: var(--primary, #5a7d7c);
+            color: #ffffff;
+            border-color: var(--primary, #5a7d7c);
+            box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25);
+        }
+
         .grid-container {
             display: grid;
             grid-template-columns: 360px 1fr;
@@ -89,7 +122,7 @@
             background: var(--primary-dark, #4a6b69);
         }
 
-        /* Labs List / Table Styling */
+        /* Table Styling */
         .search-container {
             margin-bottom: 20px;
             position: relative;
@@ -100,9 +133,8 @@
             padding: 10px 14px 10px 38px;
             border-radius: 8px;
             border: 1px solid var(--border, #e2e8f0);
+            font-size: 0.9rem;
             box-sizing: border-box;
-            font-family: inherit;
-            font-size: 0.92rem;
             background: var(--surface, #ffffff);
             color: var(--text-main, #0f172a);
         }
@@ -112,60 +144,44 @@
             left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted, #64748b);
+            color: var(--text-muted, #94a3b8);
         }
 
         .labs-table {
             width: 100%;
             border-collapse: collapse;
-        }
-
-        .labs-table th,
-        .labs-table td {
-            text-align: left;
-            padding: 14px 16px;
-            vertical-align: middle;
-            border-bottom: 1px solid var(--border, #e2e8f0);
-            font-size: 0.92rem;
-            color: var(--text-main, #0f172a);
+            font-size: 0.9rem;
         }
 
         .labs-table th {
-            background-color: var(--bg-body, #f8fafc);
+            text-align: left;
+            padding: 12px 14px;
+            background: var(--surface-subtle, #f8fafc);
             color: var(--text-muted, #64748b);
             font-weight: 600;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
+            border-bottom: 1px solid var(--border, #e2e8f0);
         }
 
-        .labs-table tbody tr:hover {
-            background-color: rgba(90, 125, 124, 0.04);
-        }
-
-        .lab-name-cell {
-            font-weight: 600 !important;
-            white-space: nowrap;
+        .labs-table td {
+            padding: 14px;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            vertical-align: middle;
         }
 
         .code-badge {
-            display: inline-block;
-            white-space: nowrap;
-            background: var(--primary-light, #eef2f2);
+            background: rgba(90, 125, 124, 0.1);
             color: var(--primary, #5a7d7c);
             font-weight: 600;
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
             font-size: 0.82rem;
-            border: 1px solid var(--primary-border, #dee2e6);
+            display: inline-block;
         }
 
         .staff-info {
             display: flex;
             align-items: center;
             gap: 10px;
-            white-space: nowrap;
         }
 
         .staff-avatar {
@@ -173,8 +189,7 @@
             height: 34px;
             border-radius: 50%;
             object-fit: cover;
-            background: #e2e8f0;
-            flex-shrink: 0;
+            border: 1px solid var(--border, #e2e8f0);
         }
 
         .staff-details {
@@ -183,109 +198,89 @@
         }
 
         .staff-name {
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-main, #0f172a);
         }
 
         .staff-id {
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             color: var(--text-muted, #64748b);
         }
 
         .unassigned {
-            color: var(--text-muted, #64748b);
+            color: var(--text-muted, #94a3b8);
             font-style: italic;
+            font-size: 0.85rem;
         }
 
         .action-buttons {
             display: flex;
-            align-items: center;
             gap: 8px;
-            flex-wrap: nowrap;
         }
 
         .btn-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
             padding: 6px 12px;
             border-radius: 6px;
-            border: 1px solid var(--border, #e2e8f0);
-            background: var(--surface, #ffffff);
-            cursor: pointer;
             font-size: 0.82rem;
-            font-weight: 500;
-            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
             text-decoration: none;
-            transition: all 0.2s ease;
-            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-action:hover {
+            opacity: 0.85;
         }
 
         .btn-edit {
-            color: var(--primary, #5a7d7c);
-        }
-
-        .btn-edit:hover {
-            border-color: var(--primary, #5a7d7c);
-            background: var(--primary-light, #eef2f2);
+            background: #e0f2fe;
+            color: #0369a1;
         }
 
         .btn-delete {
-            color: #ef4444;
+            background: #fee2e2;
+            color: #dc2626;
         }
 
-        .btn-delete:hover {
-            border-color: #ef4444;
-            background: #fef2f2;
-        }
-
-        /* Modal Overlay styling */
+        /* Modal Styling */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15, 23, 42, 0.4);
+            background: rgba(15, 23, 42, 0.5);
             backdrop-filter: blur(4px);
-            z-index: 1000;
             display: none;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
 
         .modal-card {
             background: var(--surface, #ffffff);
-            border-radius: 14px;
             width: 100%;
             max-width: 500px;
+            border-radius: 16px;
             padding: 28px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            animation: modalFadeIn 0.3s ease-out;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border, #e2e8f0);
             position: relative;
         }
 
         .modal-close {
             position: absolute;
-            top: 18px;
-            right: 18px;
+            top: 20px;
+            right: 20px;
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
             color: var(--text-muted, #64748b);
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
         }
     </style>
 {% endblock %}
@@ -293,8 +288,8 @@
 {% block content %}
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface, #fff); padding: 20px 24px; border-radius: 14px; border: 1px solid var(--border, #e2e8f0);">
     <div>
-        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main, #0f172a);">Manage Lab Incharge & Laboratories</h2>
-        <p style="margin: 4px 0 0 0; font-size: 0.92rem; color: var(--text-muted, #64748b);">Create laboratories, view duties, and assign staff members.</p>
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main, #0f172a);">Manage Lab & Class Mappings</h2>
+        <p style="margin: 4px 0 0 0; font-size: 0.92rem; color: var(--text-muted, #64748b);">Create laboratories and class room mappings, view duties, and assign staff members.</p>
     </div>
     <div>
         <a href="{% url 'staffs:staff_dashboard' %}" style="text-decoration: none; color: var(--primary, #5a7d7c); font-weight: 600; font-size: 0.92rem;">← Back to Dashboard</a>
@@ -314,127 +309,291 @@
 {% endfor %}
 {% endif %}
 
-<div class="grid-container">
-    <!-- Left Side: Create Lab Form -->
-    <div class="card">
-        <h3 class="card-title">🔬 Add New Laboratory</h3>
-        <form action="{% url 'staffs:hod_manage_labs' %}" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="create">
+<!-- Tabs Navigation -->
+<div class="mapping-tabs">
+    <button type="button" class="tab-btn active" id="labTabBtn" onclick="switchTab('lab')">
+        🔬 Laboratory Mapping
+    </button>
+    <button type="button" class="tab-btn" id="classTabBtn" onclick="switchTab('class')">
+        🏫 Class Mapping
+    </button>
+</div>
 
-            <div class="form-group">
-                <label for="lab_name">Lab Name</label>
-                <input type="text" id="lab_name" name="name" class="form-control" placeholder="e.g. Operating Systems Lab" required>
-            </div>
+<!-- SECTION 1: LAB MAPPING -->
+<div id="labMappingSection">
+    <div class="grid-container">
+        <!-- Left Side: Create Lab Form -->
+        <div class="card">
+            <h3 class="card-title">🔬 Add New Laboratory</h3>
+            <form action="{% url 'staffs:hod_manage_labs' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
 
-            <div class="form-group">
-                <label for="lab_short_name">Lab Short Name</label>
-                <input type="text" id="lab_short_name" name="short_name" class="form-control" placeholder="e.g. IT-LAB-01" required>
-            </div>
-
-            <div class="form-group">
-                <label for="lab_staff">Assigned Lab Incharge</label>
-                <select id="lab_staff" name="staff_id" class="form-control">
-                    <option value="">-- Select Staff (Optional) --</option>
-                    {% for s in all_staff %}
-                    <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
-                    <label for="lab_from_date">From Date</label>
-                    <input type="date" id="lab_from_date" name="from_date" class="form-control">
+                    <label for="lab_name">Lab Name</label>
+                    <input type="text" id="lab_name" name="name" class="form-control" placeholder="e.g. Operating Systems Lab" required>
                 </div>
+
                 <div class="form-group">
-                    <label for="lab_to_date">To Date</label>
-                    <input type="date" id="lab_to_date" name="to_date" class="form-control">
+                    <label for="lab_short_name">Lab Short Name</label>
+                    <input type="text" id="lab_short_name" name="short_name" class="form-control" placeholder="e.g. IT-LAB-01" required>
                 </div>
-            </div>
 
-            <button type="submit" class="btn-submit">Add Laboratory</button>
-        </form>
-    </div>
+                <div class="form-group">
+                    <label for="lab_staff">Assigned Lab Incharge</label>
+                    <select id="lab_staff" name="staff_id" class="form-control">
+                        <option value="">-- Select Staff (Optional) --</option>
+                        {% for s in all_staff %}
+                        <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-    <!-- Right Side: Existing Labs List -->
-    <div class="card">
-        <h3 class="card-title" style="margin-bottom: 6px;">🔬 Laboratories & Duties</h3>
-        <p style="color: var(--text-muted, #64748b); margin: 0 0 20px 0; font-size: 0.9rem;">View and manage laboratory assignments below.</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="lab_from_date">From Date</label>
+                        <input type="date" id="lab_from_date" name="from_date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="lab_to_date">To Date</label>
+                        <input type="date" id="lab_to_date" name="to_date" class="form-control">
+                    </div>
+                </div>
 
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="labSearch" class="search-input" placeholder="Search by name or code..." onkeyup="filterLabs()">
+                <button type="submit" class="btn-submit">Add Laboratory</button>
+            </form>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table class="labs-table" id="labsTable">
-                <thead>
-                    <tr>
-                        <th>Lab Short Name</th>
-                        <th>Lab Name</th>
-                        <th>Assigned Incharge</th>
-                        <th>From Date</th>
-                        <th>To Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lab in labs %}
-                    <tr class="lab-row">
-                        <td><span class="code-badge">{{ lab.short_name }}</span></td>
-                        <td class="lab-name-cell">{{ lab.name }}</td>
-                        <td>
-                            {% if lab.staff %}
-                            <div class="staff-info">
-                                {% if lab.staff.photo %}
-                                <img src="{{ lab.staff.photo.url }}" alt="Profile" class="staff-avatar">
-                                {% else %}
-                                <img src="https://ui-avatars.com/api/?name={{ lab.staff.name }}" alt="Profile" class="staff-avatar">
-                                {% endif %}
-                                <div class="staff-details">
-                                    <span class="staff-name">{{ lab.staff.name }}</span>
-                                    <span class="staff-id">ID: {{ lab.staff.staff_id }}</span>
+        <!-- Right Side: Existing Labs List -->
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom: 6px;">🔬 Laboratories & Duties</h3>
+            <p style="color: var(--text-muted, #64748b); margin: 0 0 20px 0; font-size: 0.9rem;">View and manage laboratory assignments below.</p>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="labSearch" class="search-input" placeholder="Search by name or code..." onkeyup="filterLabs()">
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="labs-table" id="labsTable">
+                    <thead>
+                        <tr>
+                            <th>Lab Short Name</th>
+                            <th>Lab Name</th>
+                            <th>Assigned Incharge</th>
+                            <th>From Date</th>
+                            <th>To Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lab in labs %}
+                        <tr class="lab-row">
+                            <td><span class="code-badge">{{ lab.short_name }}</span></td>
+                            <td class="lab-name-cell">{{ lab.name }}</td>
+                            <td>
+                                {% if lab.staff %}
+                                <div class="staff-info">
+                                    {% if lab.staff.photo %}
+                                    <img src="{{ lab.staff.photo.url }}" alt="Profile" class="staff-avatar">
+                                    {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ lab.staff.name }}" alt="Profile" class="staff-avatar">
+                                    {% endif %}
+                                    <div class="staff-details">
+                                        <span class="staff-name">{{ lab.staff.name }}</span>
+                                        <span class="staff-id">ID: {{ lab.staff.staff_id }}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            {% else %}
-                            <span class="unassigned">Unassigned</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if lab.from_date %}
-                            <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ lab.from_date|date:"d-M-Y" }}</span>
-                            {% else %}
-                            <span class="unassigned">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if lab.to_date %}
-                            <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ lab.to_date|date:"d-M-Y" }}</span>
-                            {% else %}
-                            <span class="unassigned">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action btn-edit" onclick="openEditModal('{{ lab.id }}', '{{ lab.name|escapejs }}', '{{ lab.short_name|escapejs }}', '{{ lab.staff.staff_id|default_if_none:'' }}', '{{ lab.from_date|date:'Y-m-d' }}', '{{ lab.to_date|date:'Y-m-d' }}')">
-                                    ✏️ Edit
-                                </button>
-                                <a href="{% url 'staffs:hod_delete_lab' lab.id %}" class="btn-action btn-delete" onclick="return confirm('Are you sure you want to delete lab: {{ lab.name|escapejs }}?')">
-                                    🗑️ Delete
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: var(--text-muted, #64748b); padding: 40px;">
-                            No laboratories added yet.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                                {% else %}
+                                <span class="unassigned">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lab.from_date %}
+                                <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ lab.from_date|date:"d-M-Y" }}</span>
+                                {% else %}
+                                <span class="unassigned">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lab.to_date %}
+                                <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ lab.to_date|date:"d-M-Y" }}</span>
+                                {% else %}
+                                <span class="unassigned">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit" onclick="openEditModal('{{ lab.id }}', '{{ lab.name|escapejs }}', '{{ lab.short_name|escapejs }}', '{{ lab.staff.staff_id|default_if_none:'' }}', '{{ lab.from_date|date:'Y-m-d' }}', '{{ lab.to_date|date:'Y-m-d' }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <a href="{% url 'staffs:hod_delete_lab' lab.id %}" class="btn-action btn-delete" onclick="return confirm('Are you sure you want to delete lab: {{ lab.name|escapejs }}?')">
+                                        🗑️ Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted, #64748b); padding: 40px;">
+                                No laboratories added yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 2: CLASS MAPPING -->
+<div id="classMappingSection" style="display: none;">
+    <div class="grid-container">
+        <!-- Left Side: Create Class Mapping Form -->
+        <div class="card">
+            <h3 class="card-title">🏫 Add Class Mapping</h3>
+            <form action="{% url 'staffs:hod_manage_labs' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_class">
+
+                <div class="form-group">
+                    <label for="class_name">Class Name / Title</label>
+                    <input type="text" id="class_name" name="class_name" class="form-control" placeholder="e.g. III Year IT - Sem 5" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="room_name">Class Room Name / Number</label>
+                    <input type="text" id="room_name" name="room_name" class="form-control" placeholder="e.g. LH-201 or Room 102" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="class_semester">Semester (Optional)</label>
+                    <select id="class_semester" name="semester" class="form-control">
+                        <option value="">-- Select Semester --</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="class_staff">Assigned Class Incharge</label>
+                    <select id="class_staff" name="staff_id" class="form-control">
+                        <option value="">-- Select Staff (Optional) --</option>
+                        {% for s in all_staff %}
+                        <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="class_from_date">From Date</label>
+                        <input type="date" id="class_from_date" name="from_date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="class_to_date">To Date</label>
+                        <input type="date" id="class_to_date" name="to_date" class="form-control">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Add Class Mapping</button>
+            </form>
+        </div>
+
+        <!-- Right Side: Existing Class Mappings List -->
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom: 6px;">🏫 Class Mappings & Incharges</h3>
+            <p style="color: var(--text-muted, #64748b); margin: 0 0 20px 0; font-size: 0.9rem;">View and manage class room assignments and class incharges below.</p>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="classSearch" class="search-input" placeholder="Search by class or room name..." onkeyup="filterClasses()">
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="labs-table" id="classesTable">
+                    <thead>
+                        <tr>
+                            <th>Class Room Name</th>
+                            <th>Class Name</th>
+                            <th>Semester</th>
+                            <th>Assigned Incharge</th>
+                            <th>From Date</th>
+                            <th>To Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cm in class_mappings %}
+                        <tr class="class-row">
+                            <td><span class="code-badge">{{ cm.room_name }}</span></td>
+                            <td class="class-name-cell">{{ cm.class_name }}</td>
+                            <td>
+                                {% if cm.semester %}
+                                <span style="font-weight: 600; color: var(--text-main, #0f172a);">Sem {{ cm.semester }}</span>
+                                {% else %}
+                                <span class="unassigned">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cm.staff %}
+                                <div class="staff-info">
+                                    {% if cm.staff.photo %}
+                                    <img src="{{ cm.staff.photo.url }}" alt="Profile" class="staff-avatar">
+                                    {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ cm.staff.name }}" alt="Profile" class="staff-avatar">
+                                    {% endif %}
+                                    <div class="staff-details">
+                                        <span class="staff-name">{{ cm.staff.name }}</span>
+                                        <span class="staff-id">ID: {{ cm.staff.staff_id }}</span>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <span class="unassigned">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cm.from_date %}
+                                <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ cm.from_date|date:"d-M-Y" }}</span>
+                                {% else %}
+                                <span class="unassigned">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cm.to_date %}
+                                <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ cm.to_date|date:"d-M-Y" }}</span>
+                                {% else %}
+                                <span class="unassigned">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit" onclick="openEditClassModal('{{ cm.id }}', '{{ cm.class_name|escapejs }}', '{{ cm.room_name|escapejs }}', '{{ cm.semester|default_if_none:'' }}', '{{ cm.staff.staff_id|default_if_none:'' }}', '{{ cm.from_date|date:'Y-m-d' }}', '{{ cm.to_date|date:'Y-m-d' }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <a href="{% url 'staffs:hod_delete_class_mapping' cm.id %}" class="btn-action btn-delete" onclick="return confirm('Are you sure you want to delete class mapping: {{ cm.class_name|escapejs }}?')">
+                                        🗑️ Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted, #64748b); padding: 40px;">
+                                No class mappings added yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -484,10 +643,90 @@
         </form>
     </div>
 </div>
+
+<!-- Edit Class Mapping Modal -->
+<div class="modal-overlay" id="editClassModal">
+    <div class="modal-card">
+        <button class="modal-close" onclick="closeEditClassModal()">×</button>
+        <h3 class="card-title">✏️ Edit Class Mapping</h3>
+        <form action="{% url 'staffs:hod_manage_labs' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_class">
+            <input type="hidden" id="edit_class_id" name="class_id">
+
+            <div class="form-group">
+                <label for="edit_class_name">Class Name</label>
+                <input type="text" id="edit_class_name" name="class_name" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_room_name">Class Room Name / Number</label>
+                <input type="text" id="edit_room_name" name="room_name" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_class_semester">Semester (Optional)</label>
+                <select id="edit_class_semester" name="semester" class="form-control">
+                    <option value="">-- Select Semester --</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_class_staff">Assigned Class Incharge</label>
+                <select id="edit_class_staff" name="staff_id" class="form-control">
+                    <option value="">-- Select Staff (Optional) --</option>
+                    {% for s in all_staff %}
+                    <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label for="edit_class_from_date">From Date</label>
+                    <input type="date" id="edit_class_from_date" name="from_date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit_class_to_date">To Date</label>
+                    <input type="date" id="edit_class_to_date" name="to_date" class="form-control">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" style="margin-top: 15px;">Save Changes</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+    function switchTab(tab) {
+        const labSection = document.getElementById('labMappingSection');
+        const classSection = document.getElementById('classMappingSection');
+        const labBtn = document.getElementById('labTabBtn');
+        const classBtn = document.getElementById('classTabBtn');
+
+        if (tab === 'class') {
+            labSection.style.display = 'none';
+            classSection.style.display = 'block';
+            labBtn.classList.remove('active');
+            classBtn.classList.add('active');
+        } else {
+            labSection.style.display = 'block';
+            classSection.style.display = 'none';
+            labBtn.classList.add('active');
+            classBtn.classList.remove('active');
+        }
+    }
+
     function filterLabs() {
         const input = document.getElementById('labSearch');
         const filter = input.value.toLowerCase();
@@ -502,6 +741,30 @@
             let textValue = "";
             if (shortNameCell) textValue += shortNameCell.innerText + " ";
             if (nameCell) textValue += nameCell.innerText + " ";
+            if (staffCell) textValue += staffCell.innerText;
+
+            if (textValue.toLowerCase().indexOf(filter) > -1) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+
+    function filterClasses() {
+        const input = document.getElementById('classSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('classesTable');
+        const rows = table.getElementsByClassName('class-row');
+
+        for (let i = 0; i < rows.length; i++) {
+            const roomNameCell = rows[i].getElementsByClassName('code-badge')[0];
+            const classNameCell = rows[i].getElementsByClassName('class-name-cell')[0];
+            const staffCell = rows[i].getElementsByClassName('staff-name')[0];
+            
+            let textValue = "";
+            if (roomNameCell) textValue += roomNameCell.innerText + " ";
+            if (classNameCell) textValue += classNameCell.innerText + " ";
             if (staffCell) textValue += staffCell.innerText;
 
             if (textValue.toLowerCase().indexOf(filter) > -1) {
@@ -527,13 +790,32 @@
         document.getElementById('editModal').style.display = 'none';
     }
 
-    // Close modal if clicked outside card
+    function openEditClassModal(id, className, roomName, semester, staffId, fromDate, toDate) {
+        document.getElementById('edit_class_id').value = id;
+        document.getElementById('edit_class_name').value = className;
+        document.getElementById('edit_room_name').value = roomName;
+        document.getElementById('edit_class_semester').value = semester || '';
+        document.getElementById('edit_class_staff').value = staffId;
+        document.getElementById('edit_class_from_date').value = fromDate || '';
+        document.getElementById('edit_class_to_date').value = toDate || '';
+
+        document.getElementById('editClassModal').style.display = 'flex';
+    }
+
+    function closeEditClassModal() {
+        document.getElementById('editClassModal').style.display = 'none';
+    }
+
+    // Close modals if clicked outside card
     window.onclick = function (event) {
-        const modal = document.getElementById('editModal');
-        if (event.target == modal) {
-            modal.style.display = 'none';
+        const labModal = document.getElementById('editModal');
+        const classModal = document.getElementById('editClassModal');
+        if (event.target == labModal) {
+            labModal.style.display = 'none';
+        }
+        if (event.target == classModal) {
+            classModal.style.display = 'none';
         }
     }
 </script>
 {% endblock %}
-

@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from staffs.models import Staff, AdminSettings, Lab
+from staffs.models import Staff, AdminSettings, Lab, ClassMapping, Subject, PublishedTimetableVersion, Timetable
 
 class AdminSettingsTestCase(TestCase):
     def setUp(self):
@@ -161,6 +161,121 @@ class LabManagementTestCase(TestCase):
         response = self.client.get(reverse('staffs:hod_delete_lab', args=[lab.id]))
         self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
         self.assertFalse(Lab.objects.filter(id=lab.id).exists())
+
+    def test_hod_create_edit_delete_class_mapping(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        # 1. Create Class Mapping via POST
+        post_data = {
+            'action': 'create_class',
+            'class_name': 'III Year IT - Sem 5',
+            'room_name': 'LH-201',
+            'semester': '5',
+            'staff_id': self.staff_member.staff_id
+        }
+        response = self.client.post(reverse('staffs:hod_manage_labs'), post_data)
+        self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
+        self.assertTrue(ClassMapping.objects.filter(room_name='LH-201').exists())
+        cm = ClassMapping.objects.get(room_name='LH-201')
+        self.assertEqual(cm.class_name, 'III Year IT - Sem 5')
+        self.assertEqual(cm.staff, self.staff_member)
+        self.assertEqual(cm.semester, 5)
+
+        # Verify staff role was auto updated to Class Incharge
+        self.staff_member.refresh_from_db()
+        self.assertEqual(self.staff_member.role, 'Class Incharge')
+        self.assertEqual(self.staff_member.assigned_semester, 5)
+
+        # 2. Edit Class Mapping via POST
+        edit_data = {
+            'action': 'edit_class',
+            'class_id': cm.id,
+            'class_name': 'Updated III Year IT',
+            'room_name': 'LH-202',
+            'semester': '6',
+            'staff_id': '' # Unassign
+        }
+        response = self.client.post(reverse('staffs:hod_manage_labs'), edit_data)
+        self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
+        cm.refresh_from_db()
+        self.assertEqual(cm.class_name, 'Updated III Year IT')
+        self.assertEqual(cm.room_name, 'LH-202')
+        self.assertIsNone(cm.staff)
+
+        # 3. Delete Class Mapping via GET delete route
+        response = self.client.get(reverse('staffs:hod_delete_class_mapping', args=[cm.id]))
+        self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
+        self.assertFalse(ClassMapping.objects.filter(id=cm.id).exists())
+
+    def test_subject_location_assignment_and_live_visualisation(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        # 1. Create Subject with location_name via POST
+        post_data = {
+            'action': 'add_subject',
+            'code': 'CS301',
+            'name': 'Operating Systems',
+            'semester': '5',
+            'type': 'Theory',
+            'location_name': 'LH-201'
+        }
+        response = self.client.post(reverse('staffs:manage_subjects'), post_data)
+        self.assertRedirects(response, reverse('staffs:manage_subjects'))
+        self.assertTrue(Subject.objects.filter(code='CS301').exists())
+        subject = Subject.objects.get(code='CS301')
+        self.assertEqual(subject.location_name, 'LH-201')
+        self.assertEqual(subject.get_location_display(), 'LH-201')
+
+        # 2. Test Live Class Visualisation View Access for HOD
+        response = self.client.get(reverse('staffs:hod_live_class_visualisation'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('room_cards', response.context)
+
+    def test_published_timetable_versioning_and_effect_dates(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        # 1. Create a Timetable entry
+        subj = Subject.objects.create(code='CS601', name='Algorithms', semester=6, subject_type='Theory')
+        Timetable.objects.create(
+            academic_year='2026-2027',
+            semester=6,
+            day='Monday',
+            period=1,
+            batch='All',
+            subject=subj,
+            staff=self.staff_member,
+            is_published=True
+        )
+
+        # 2. Save Effect Dates via POST to hod_published_timetables
+        post_data = {
+            'action': 'set_effect_dates',
+            'from_date': '2026-08-01',
+            'to_date': '2026-12-31'
+        }
+        url = reverse('staffs:hod_published_timetables') + '?academic_year=2026-2027&semester=6'
+        response = self.client.post(url, post_data)
+        self.assertRedirects(response, url + '&tab=master')
+
+        # Verify PublishedTimetableVersion created
+        self.assertTrue(PublishedTimetableVersion.objects.filter(semester=6, academic_year='2026-2027').exists())
+        ver = PublishedTimetableVersion.objects.get(semester=6, academic_year='2026-2027')
+        self.assertEqual(str(ver.from_date), '2026-08-01')
+        self.assertEqual(str(ver.to_date), '2026-12-31')
+        self.assertTrue(ver.is_active)
+
+        # 3. GET request: verify context contains previous_timetable_versions
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('previous_timetable_versions', response.context)
+        self.assertEqual(len(response.context['previous_timetable_versions']), 1)
+
 
     def test_dashboard_context_reflection(self):
         # Assign a lab to staff

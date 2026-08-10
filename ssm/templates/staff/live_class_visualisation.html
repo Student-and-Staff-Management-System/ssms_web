@@ -1,0 +1,862 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Live Classroom & Lab Visualiser | HOD Portal{% endblock %}
+
+{% block page_title %}Live Campus Class Visualiser{% endblock %}
+
+{% block extra_css %}
+<style>
+    .visualiser-container {
+        padding: 10px 0 40px 0;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Live Header Card */
+    .live-header-card {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-lg, 16px);
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(15, 23, 42, 0.05));
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        transition: var(--transition, all 0.25s ease);
+    }
+
+    .header-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .header-info h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-main, #0f172a);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-subtitle {
+        margin: 6px 0 0 0;
+        color: var(--text-muted, #64748b);
+        font-size: 0.92rem;
+    }
+
+    .clock-highlight {
+        color: var(--primary, #5a7d7c);
+    }
+
+    .live-radar-dot {
+        width: 14px;
+        height: 14px;
+        background-color: #ef4444;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
+        animation: pulse-ring 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+
+    @keyframes pulse-ring {
+        0% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
+        }
+        70% {
+            box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        }
+    }
+
+    .stat-pills {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .stat-pill {
+        background: var(--primary-light, #f1f5f9);
+        border: 1px solid var(--border, #e2e8f0);
+        padding: 8px 16px;
+        border-radius: var(--radius-md, 12px);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-main, #0f172a);
+    }
+
+    .stat-pill .num {
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .stat-pill.live-pill {
+        border-color: rgba(239, 68, 68, 0.4);
+        background: rgba(239, 68, 68, 0.08);
+        color: #dc2626;
+    }
+
+    body.dark-theme .stat-pill.live-pill {
+        color: #fca5a5;
+    }
+
+    .stat-pill.vacant-pill {
+        border-color: rgba(16, 185, 129, 0.4);
+        background: rgba(16, 185, 129, 0.08);
+        color: #059669;
+    }
+
+    body.dark-theme .stat-pill.vacant-pill {
+        color: #6ee7b7;
+    }
+
+    /* Integrated Period Bar */
+    .period-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--primary-light, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        padding: 10px 18px;
+        border-radius: var(--radius-md, 12px);
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    body.dark-theme .period-strip {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: var(--border, #1f2937);
+    }
+
+    .period-badge-label {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .active-p-badge {
+        background: var(--primary, #5a7d7c);
+        color: #ffffff;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .period-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .switch-lbl {
+        font-size: 0.8rem;
+        color: var(--text-muted, #64748b);
+        font-weight: 600;
+        margin-right: 4px;
+    }
+
+    .p-btn {
+        text-decoration: none;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: var(--transition, all 0.2s ease);
+        background: var(--surface, #ffffff);
+        color: var(--text-muted, #64748b);
+        border: 1px solid var(--border, #e2e8f0);
+    }
+
+    .p-btn:hover {
+        color: var(--text-main, #0f172a);
+        border-color: var(--primary, #5a7d7c);
+    }
+
+    .p-btn.is-active {
+        background: var(--primary, #5a7d7c);
+        color: #ffffff;
+        border-color: var(--primary, #5a7d7c);
+        box-shadow: 0 2px 8px rgba(90, 125, 124, 0.3);
+    }
+
+    .auto-clock-btn {
+        text-decoration: none;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: var(--transition, all 0.2s ease);
+    }
+
+    .auto-clock-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+
+    /* Controls Bar: Filters & View Switch */
+    .controls-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+        width: 100%;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        background: var(--surface, #ffffff);
+        padding: 6px;
+        border-radius: var(--radius-md, 12px);
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(15, 23, 42, 0.03));
+    }
+
+    .filter-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted, #64748b);
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: var(--transition, all 0.2s ease);
+    }
+
+    .filter-btn:hover {
+        color: var(--text-main, #0f172a);
+    }
+
+    .filter-btn.active {
+        background: var(--primary, #5a7d7c);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25);
+    }
+
+    .view-switch {
+        display: flex;
+        gap: 8px;
+        background: var(--surface, #ffffff);
+        padding: 6px;
+        border-radius: var(--radius-md, 12px);
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(15, 23, 42, 0.03));
+    }
+
+    .view-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted, #64748b);
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: var(--transition, all 0.2s ease);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .view-btn.active {
+        background: var(--primary-light, #eef2f2);
+        color: var(--primary, #5a7d7c);
+    }
+
+    body.dark-theme .view-btn.active {
+        background: var(--surface-hover, #1f2937);
+        color: var(--primary-glow, #38bdf8);
+    }
+
+    /* GRID VIEW CARDS */
+    .rooms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 22px;
+        width: 100%;
+    }
+
+    .room-card {
+        background: var(--surface, #ffffff);
+        border-radius: var(--radius-lg, 16px);
+        border: 1px solid var(--border, #e2e8f0);
+        padding: 22px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 220px;
+        box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(15, 23, 42, 0.03));
+    }
+
+    .room-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(15, 23, 42, 0.08));
+        border-color: var(--primary, #5a7d7c);
+    }
+
+    .room-card.is-live {
+        border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .room-card.is-live::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ef4444, #f97316);
+    }
+
+    .room-card.is-vacant::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #10b981, #059669);
+    }
+
+    .room-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+    }
+
+    .room-badge-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .room-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        margin: 0;
+    }
+
+    .room-subtitle {
+        font-size: 0.82rem;
+        color: var(--text-muted, #64748b);
+    }
+
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge.badge-live {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    body.dark-theme .status-badge.badge-live {
+        color: #fca5a5;
+    }
+
+    .status-badge.badge-vacant {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    body.dark-theme .status-badge.badge-vacant {
+        color: #6ee7b7;
+    }
+
+    .live-content {
+        background: var(--primary-light, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-md, 12px);
+        padding: 14px;
+        margin-top: 10px;
+    }
+
+    body.dark-theme .live-content {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: var(--border, #1f2937);
+    }
+
+    .subject-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary, #5a7d7c);
+        margin-bottom: 6px;
+    }
+
+    .teacher-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .teacher-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1.5px solid var(--primary, #5a7d7c);
+    }
+
+    .teacher-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-main, #0f172a);
+    }
+
+    .card-footer {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border, #e2e8f0);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.82rem;
+        color: var(--text-muted, #64748b);
+    }
+
+    .card-footer .incharge-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 60%;
+    }
+
+    .card-footer .inspect-link {
+        color: var(--primary, #5a7d7c);
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* FLOORPLAN VIEW */
+    #floorPlanView {
+        display: none;
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-xl, 20px);
+        padding: 30px;
+        position: relative;
+        min-height: 500px;
+        box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(15, 23, 42, 0.03));
+        width: 100%;
+    }
+
+    .floorplan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+    }
+
+    .blueprint-room {
+        border: 2px dashed var(--border, #cbd5e1);
+        background: var(--primary-light, #f8fafc);
+        border-radius: var(--radius-lg, 16px);
+        padding: 20px;
+        position: relative;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    body.dark-theme .blueprint-room {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: var(--border, #1f2937);
+    }
+
+    .blueprint-room.active-live {
+        border: 2px solid #ef4444;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
+    }
+
+    .blueprint-desk-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .mini-desk {
+        height: 24px;
+        background: var(--surface, #ffffff);
+        border-radius: 4px;
+        border: 1px solid var(--border, #e2e8f0);
+    }
+
+    .blueprint-room.active-live .mini-desk {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* MODAL DRAWER */
+    .room-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(6px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .room-modal-card {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        width: 100%;
+        max-width: 650px;
+        border-radius: var(--radius-xl, 20px);
+        padding: 28px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        position: relative;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .timeline-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .timeline-item {
+        background: var(--primary-light, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    body.dark-theme .timeline-item {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: var(--border, #1f2937);
+    }
+
+    .timeline-item.active-period {
+        border-color: var(--primary, #5a7d7c);
+        background: rgba(90, 125, 124, 0.12);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="visualiser-container">
+    <!-- Live Header Card with Integrated Period Bar -->
+    <div class="live-header-card">
+        <div class="header-top-row">
+            <div class="header-info">
+                <h2>
+                    <span class="live-radar-dot"></span> Live Campus Class Visualiser
+                </h2>
+                <p class="header-subtitle">
+                    Real-time active class & laboratory monitor for <strong style="color: var(--text-main, #0f172a);">{{ day_name }}</strong>. Current Time: <strong class="clock-highlight" id="liveClock">{{ current_time_str }}</strong>
+                </p>
+            </div>
+
+            <div class="stat-pills">
+                <div class="stat-pill live-pill">
+                    <span class="num">{{ live_count }}</span>
+                    <span>🔴 Live Classes Now</span>
+                </div>
+                <div class="stat-pill vacant-pill">
+                    <span class="num">{{ vacant_count }}</span>
+                    <span>🟢 Vacant Rooms</span>
+                </div>
+                <div class="stat-pill">
+                    <span class="num" style="color: var(--primary, #5a7d7c);">{{ total_rooms }}</span>
+                    <span>🏫 Total Monitored</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integrated Period Strip -->
+        <div class="period-strip">
+            <div class="period-badge-label">
+                ⏱️ Active Period Monitored: <span class="active-p-badge">Period {{ current_period }}</span>
+            </div>
+            <div class="period-buttons">
+                <span class="switch-lbl">Switch Period:</span>
+                {% for p_num in "1234567"|make_list %}
+                <a href="?period={{ p_num }}" class="p-btn {% if current_period|add:0 == p_num|add:0 %}is-active{% endif %}">
+                    P{{ p_num }}
+                </a>
+                {% endfor %}
+                <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="auto-clock-btn">
+                    🔴 Real-Time Clock
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+        <div class="filter-tabs">
+            <button class="filter-btn active" onclick="filterRooms('all', this)">All Rooms</button>
+            <button class="filter-btn" onclick="filterRooms('LIVE', this)">🔴 Live Now ({{ live_count }})</button>
+            <button class="filter-btn" onclick="filterRooms('Classroom', this)">🏫 Classrooms ({{ classroom_count }})</button>
+            <button class="filter-btn" onclick="filterRooms('Lab', this)">🔬 Labs ({{ lab_count }})</button>
+        </div>
+
+        <div class="view-switch">
+            <button class="view-btn active" id="btnGridView" onclick="switchView('grid')">
+                🎛️ Interactive Grid
+            </button>
+            <button class="view-btn" id="btnFloorView" onclick="switchView('floor')">
+                📐 Floor Plan
+            </button>
+        </div>
+    </div>
+
+    <!-- VIEW 1: INTERACTIVE GRID VIEW -->
+    <div class="rooms-grid" id="gridView">
+        {% for card in room_cards %}
+        <div class="room-card {% if card.status == 'LIVE' %}is-live{% else %}is-vacant{% endif %}" 
+             data-type="{{ card.type }}" 
+             data-status="{{ card.status }}"
+             onclick="openRoomModal('{{ card.id }}')">
+            <div>
+                <div class="room-card-header">
+                    <div class="room-badge-group">
+                        <h3 class="room-title">{{ card.title }}</h3>
+                        <span class="room-subtitle">📍 {{ card.room_name }} • {{ card.type }}</span>
+                    </div>
+                    <span class="status-badge {% if card.status == 'LIVE' %}badge-live{% else %}badge-vacant{% endif %}">
+                        {{ card.status_display }}
+                    </span>
+                </div>
+
+                {% if card.status == 'LIVE' and card.live_entry.subject %}
+                <div class="live-content">
+                    <div class="subject-title">
+                        {{ card.live_entry.subject.code }} - {{ card.live_entry.subject.name }}
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted, #64748b);">
+                        Semester {{ card.live_entry.subject.semester }} • {{ card.live_entry.subject.subject_type }}
+                    </div>
+
+                    {% with staff_obj=card.live_entry.staff|default:card.live_entry.subject.staff %}
+                    {% if staff_obj %}
+                    <div class="teacher-row">
+                        {% if staff_obj.photo %}
+                        <img src="{{ staff_obj.photo.url }}" class="teacher-avatar" alt="Faculty">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ staff_obj.name }}" class="teacher-avatar" alt="Faculty">
+                        {% endif %}
+                        <div>
+                            <div class="teacher-name">{{ staff_obj.name }}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted, #64748b);">Faculty Incharge</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                {% else %}
+                <div style="padding: 16px 0; color: var(--text-muted, #64748b); font-size: 0.88rem; font-style: italic;">
+                    No class scheduled for current time slot. Room is vacant.
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="card-footer">
+                <span class="incharge-text">
+                    👤 Incharge: <strong>{% if card.incharge %}{{ card.incharge.name }}{% else %}Unassigned{% endif %}</strong>
+                </span>
+                <span class="inspect-link">Inspect Schedule →</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- VIEW 2: ARCHITECTURAL FLOOR PLAN VIEW -->
+    <div id="floorPlanView">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border, #e2e8f0); padding-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: var(--primary, #5a7d7c);">📐 Campus Architectural Layout Blueprint</h3>
+            <span style="font-size: 0.85rem; color: var(--text-muted, #64748b);">Interactive Room Status Map</span>
+        </div>
+
+        <div class="floorplan-grid">
+            {% for card in room_cards %}
+            <div class="blueprint-room {% if card.status == 'LIVE' %}active-live{% endif %}" onclick="openRoomModal('{{ card.id }}')">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--text-main, #0f172a); font-size: 0.95rem;">{{ card.room_name }}</strong>
+                    <span style="font-size: 0.75rem; font-weight: 700; color: {% if card.status == 'LIVE' %}#ef4444{% else %}#10b981{% endif %};">
+                        {% if card.status == 'LIVE' %}LIVE NOW{% else %}FREE{% endif %}
+                    </span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted, #64748b); margin-top: 2px;">{{ card.title }}</div>
+
+                <div class="blueprint-desk-grid">
+                    <div class="mini-desk"></div>
+                    <div class="mini-desk"></div>
+                    <div class="mini-desk"></div>
+                    <div class="mini-desk"></div>
+                    <div class="mini-desk"></div>
+                    <div class="mini-desk"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ROOM TIMELINE MODAL DRAWER -->
+{% for card in room_cards %}
+<div class="room-modal-overlay" id="modal-{{ card.id }}">
+    <div class="room-modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid var(--border, #e2e8f0); padding-bottom: 16px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.3rem; color: var(--text-main, #0f172a);">{{ card.title }}</h3>
+                <span style="color: var(--primary, #5a7d7c); font-size: 0.9rem;">📍 Room {{ card.room_name }} • {{ card.type }}</span>
+            </div>
+            <button onclick="closeRoomModal('{{ card.id }}')" style="background: none; border: none; color: var(--text-muted, #64748b); font-size: 1.5rem; cursor: pointer;">×</button>
+        </div>
+
+        <div style="margin-bottom: 16px; font-size: 0.9rem; color: var(--text-main, #0f172a);">
+            📅 <strong>Today's Schedule & Period Timeline</strong>
+        </div>
+
+        <div class="timeline-list">
+            {% for item in card.day_schedule %}
+            <div class="timeline-item {% if item.is_current %}active-period{% endif %}">
+                <div>
+                    <strong style="color: var(--primary, #5a7d7c);">Period {{ item.period }}</strong>
+                    {% if item.is_current %}<span style="font-size: 0.75rem; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">CURRENT</span>{% endif %}
+                </div>
+                <div>
+                    {% if item.subject %}
+                    <span style="color: var(--text-main, #0f172a); font-weight: 600;">{{ item.subject.code }} - {{ item.subject.name }}</span>
+                    {% if item.staff %}
+                    <span style="font-size: 0.8rem; color: var(--text-muted, #64748b); margin-left: 8px;">({{ item.staff.name }})</span>
+                    {% endif %}
+                    {% else %}
+                    <span style="color: var(--text-muted, #64748b); font-style: italic;">No class scheduled</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time Live Clock Updater
+    function updateClock() {
+        const now = new Date();
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        const timeStr = hours + ':' + minutes + ' ' + ampm;
+        const clockElem = document.getElementById('liveClock');
+        if (clockElem) clockElem.innerText = timeStr;
+    }
+    setInterval(updateClock, 1000);
+
+    // Filter Rooms by Type/Status
+    function filterRooms(filter, btnElem) {
+        const buttons = document.querySelectorAll('.filter-btn');
+        buttons.forEach(b => b.classList.remove('active'));
+        if (btnElem) btnElem.classList.add('active');
+
+        const cards = document.querySelectorAll('.room-card');
+        cards.forEach(card => {
+            const type = card.getAttribute('data-type');
+            const status = card.getAttribute('data-status');
+
+            if (filter === 'all') {
+                card.style.display = '';
+            } else if (filter === 'LIVE') {
+                card.style.display = status === 'LIVE' ? '' : 'none';
+            } else if (filter === 'Classroom') {
+                card.style.display = type === 'Classroom' ? '' : 'none';
+            } else if (filter === 'Lab') {
+                card.style.display = type === 'Lab' ? '' : 'none';
+            }
+        });
+    }
+
+    // Switch between Grid View and Floor Plan Blueprint View
+    function switchView(view) {
+        const gridView = document.getElementById('gridView');
+        const floorView = document.getElementById('floorPlanView');
+        const btnGrid = document.getElementById('btnGridView');
+        const btnFloor = document.getElementById('btnFloorView');
+
+        if (view === 'floor') {
+            gridView.style.display = 'none';
+            floorView.style.display = 'block';
+            btnGrid.classList.remove('active');
+            btnFloor.classList.add('active');
+        } else {
+            gridView.style.display = 'grid';
+            floorView.style.display = 'none';
+            btnGrid.classList.add('active');
+            btnFloor.classList.remove('active');
+        }
+    }
+
+    // Modal Drawer functions
+    function openRoomModal(id) {
+        const modal = document.getElementById('modal-' + id);
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeRoomModal(id) {
+        const modal = document.getElementById('modal-' + id);
+        if (modal) modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const overlays = document.querySelectorAll('.room-modal-overlay');
+        overlays.forEach(modal => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

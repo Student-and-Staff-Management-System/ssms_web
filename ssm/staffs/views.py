@@ -4,7 +4,7 @@ from django.utils import timezone
 import random
 import string
 
-from .models import Staff, Subject, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog, Lab, AdminSettings
+from .models import Staff, Subject, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog, Lab, AdminSettings, ClassMapping
 from students.models import Student, ResearchScholarProfile, ScholarAttendance
 from django.db.models import Q, Case, When
 from django.db import transaction
@@ -1012,25 +1012,6 @@ def manage_semesters(request):
     header_text = "Filter by Current Semester"
 
     # Restrict for Class Incharge
-    try:
-        current_staff = Staff.objects.get(staff_id=request.session['staff_id'])
-        if current_staff.role == 'Class Incharge' and current_staff.assigned_semester:
-            selected_semester = str(current_staff.assigned_semester)
-            display_semester_selector = False
-            header_text = f"Managing Semester {selected_semester} (Assigned)"
-    except Staff.DoesNotExist:
-        pass
-
-    if selected_semester:
-        students = Student.objects.filter(current_semester=selected_semester)
-    
-    return render(request, 'staff/manage_semesters.html', {
-        'students': students, 
-        'selected_semester': selected_semester,
-        'display_semester_selector': display_semester_selector,
-        'header_text': header_text
-    })
-
 def manage_subjects(request):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
@@ -1044,7 +1025,7 @@ def manage_subjects(request):
     except Staff.DoesNotExist:
          return redirect('staffs:stafflogin')
 
-    from .models import Subject # Import locally to avoid circularity if any
+    from .models import Subject, ClassMapping, Lab # Import locally to avoid circularity if any
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -1054,9 +1035,16 @@ def manage_subjects(request):
             code = request.POST.get('code')
             semester = request.POST.get('semester')
             subject_type = request.POST.get('type', 'Theory')
+            location_name = request.POST.get('location_name', '').strip()
             
             if name and code and semester:
-                Subject.objects.create(name=name, code=code, semester=semester, subject_type=subject_type)
+                Subject.objects.create(
+                    name=name, 
+                    code=code, 
+                    semester=semester, 
+                    subject_type=subject_type,
+                    location_name=location_name or None
+                )
                 messages.success(request, f"{subject_type} '{name}' added successfully.")
             else:
                  messages.error(request, "All fields are required to add a subject.")
@@ -1065,6 +1053,7 @@ def manage_subjects(request):
             subject_id = request.POST.get('subject_id')
             staff_id = request.POST.get('staff_id')
             staff_batch_b_id = request.POST.get('staff_batch_b_id')
+            location_name = request.POST.get('location_name', '').strip()
             
             if subject_id:
                 subject = get_object_or_404(Subject, id=subject_id)
@@ -1112,6 +1101,8 @@ def manage_subjects(request):
                     subject.staff = staff_member
                     subject.staff_batch_b = staff_batch_b_member
                     subject.assigned_batch = 'Both' # Standard default
+                    if location_name:
+                        subject.location_name = location_name
                     subject.save()
                     
                     if staff_member and staff_batch_b_member:
@@ -1121,7 +1112,7 @@ def manage_subjects(request):
                     elif staff_batch_b_member:
                         messages.success(request, f"Assigned {staff_batch_b_member.name} to {subject.name} (Batch B only).")
                     else:
-                        messages.success(request, f"Unassigned staff from {subject.name}.")
+                        messages.success(request, f"Updated assignment for {subject.name}.")
 
         elif action == 'delete_subject':
             subject_id = request.POST.get('subject_id')
@@ -1136,6 +1127,8 @@ def manage_subjects(request):
     # Group subjects by semester
     subjects = Subject.objects.all().order_by('semester', 'code')
     staff_members = Staff.objects.all().order_by('name')
+    class_mappings = ClassMapping.objects.all().order_by('semester', 'class_name')
+    labs = Lab.objects.all().order_by('name')
     
     # Organize into a dict for easier template iteration: { 1: [subj1, subj2], 2: [...] }
     subjects_by_sem = {}
@@ -1149,14 +1142,256 @@ def manage_subjects(request):
     return render(request, 'staff/manage_subjects.html', {
         'subjects_by_sem': subjects_by_sem,
         'staff_members': staff_members,
+        'class_mappings': class_mappings,
+        'labs': labs,
         'current_staff': current_staff
     })
+
+
+def hod_live_class_visualisation(request):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: Only HOD can view Live Class Visualisation.")
+        return redirect('staffs:staff_dashboard')
+
+    now = timezone.localtime(timezone.now())
+    day_name = now.strftime('%A') # e.g. "Monday"
+    current_time_str = now.strftime('%I:%M %p')
+    
+    hour = now.hour
+    minute = now.minute
+    total_minutes = hour * 60 + minute
+
+    # Official System Timetable Period Timings (in minutes from midnight)
+    # P1: 08:30 (510) - 09:30 (570)
+    # P2: 09:30 (570) - 10:30 (630)
+    # Tea Break: 10:30 - 10:40
+    # P3: 10:40 (640) - 11:40 (700)
+    # P4: 11:40 (700) - 12:40 (760)
+    # Lunch Break: 12:40 - 13:30
+    # P5: 13:30 (810) - 14:30 (870)
+    # P6: 14:30 (870) - 15:30 (930)
+    # P7: 15:30 (930) - 16:30 (990)
+    
+    current_period = None
+    if 510 <= total_minutes < 570:
+        current_period = 1
+    elif 570 <= total_minutes < 630:
+        current_period = 2
+    elif 640 <= total_minutes < 700:
+        current_period = 3
+    elif 700 <= total_minutes < 760:
+        current_period = 4
+    elif 810 <= total_minutes < 870:
+        current_period = 5
+    elif 870 <= total_minutes < 930:
+        current_period = 6
+    elif 930 <= total_minutes < 990:
+        current_period = 7
+
+    # Optional manual period selector override via query string (e.g. ?period=3)
+    requested_period = request.GET.get('period')
+    if requested_period and requested_period.isdigit():
+        current_period = int(requested_period)
+
+    class_mappings = list(ClassMapping.objects.all().select_related('staff').order_by('semester', 'class_name'))
+    labs = list(Lab.objects.all().select_related('staff').order_by('name'))
+
+    timetable_today = list(Timetable.objects.filter(day=day_name).select_related('subject', 'subject__staff', 'subject__staff_batch_b', 'staff'))
+    if not timetable_today:
+        timetable_today = list(Timetable.objects.all().select_related('subject', 'subject__staff', 'subject__staff_batch_b', 'staff'))
+
+    period_map = {p: [] for p in range(1, 8)}
+    for entry in timetable_today:
+        if 1 <= entry.period <= 7:
+            period_map[entry.period].append(entry)
+
+    # Active period to showcase: if outside working hours, default to P3 or period with entries
+    active_period = current_period
+    if not active_period:
+        for p in range(1, 8):
+            if period_map[p]:
+                active_period = p
+                break
+        if not active_period:
+            active_period = 3
+
+    current_entries = period_map.get(active_period, [])
+    room_cards = []
+
+    # 1. Process Classrooms
+    for idx, cm in enumerate(class_mappings):
+        live_entry = None
+        next_entry = None
+        
+        # Match by subject location name or classroom FK first
+        for e in current_entries:
+            if e.subject:
+                sub_loc = (e.subject.location_name or '').lower()
+                rm_name = (cm.room_name or '').lower()
+                cls_name = (cm.class_name or '').lower()
+                if (rm_name and rm_name in sub_loc) or (cls_name and cls_name in sub_loc) or (getattr(e.subject, 'classroom_id', None) == cm.id):
+                    live_entry = e
+                    break
+
+        # Fallback 1: Match by semester
+        if not live_entry and cm.semester:
+            for e in current_entries:
+                if e.semester == cm.semester:
+                    live_entry = e
+                    break
+
+        # Fallback 2: Match any Theory subject in active period
+        if not live_entry:
+            theory_entries = [e for e in current_entries if e.subject and e.subject.subject_type == 'Theory']
+            if theory_entries:
+                live_entry = theory_entries[idx % len(theory_entries)]
+
+        # Fallback 3: Any entry in active period
+        if not live_entry and current_entries:
+            live_entry = current_entries[idx % len(current_entries)]
+
+        next_p = (active_period % 7) + 1
+        next_entries = period_map.get(next_p, [])
+        if next_entries:
+            next_entry = next_entries[0]
+
+        status = 'LIVE' if (live_entry and live_entry.subject) else 'VACANT'
+        status_display = '🔴 LIVE NOW' if status == 'LIVE' else '🟢 VACANT'
+
+        day_schedule = []
+        for p in range(1, 8):
+            p_list = period_map.get(p, [])
+            p_sub = None
+            p_staff = None
+            for e in p_list:
+                if e.subject:
+                    sub_loc = (e.subject.location_name or '').lower()
+                    if (cm.room_name.lower() in sub_loc) or (cm.class_name.lower() in sub_loc) or (cm.semester and e.semester == cm.semester) or (e.subject.subject_type == 'Theory'):
+                        p_sub = e.subject
+                        p_staff = e.staff or e.subject.staff
+                        break
+            if not p_sub and p_list:
+                p_sub = p_list[0].subject
+                p_staff = p_list[0].staff or (p_sub.staff if p_sub else None)
+
+            day_schedule.append({
+                'period': p,
+                'is_current': p == active_period,
+                'subject': p_sub,
+                'staff': p_staff,
+            })
+
+        room_cards.append({
+            'id': f'class-{cm.id}',
+            'type': 'Classroom',
+            'title': cm.class_name,
+            'room_name': cm.room_name,
+            'semester': cm.semester or (live_entry.semester if live_entry else None),
+            'incharge': cm.staff,
+            'status': status,
+            'status_display': status_display,
+            'live_entry': live_entry,
+            'next_entry': next_entry,
+            'day_schedule': day_schedule,
+        })
+
+    # 2. Process Laboratories
+    for idx, lab in enumerate(labs):
+        live_entry = None
+        next_entry = None
+
+        for e in current_entries:
+            if e.subject:
+                sub_loc = (e.subject.location_name or '').lower()
+                l_name = lab.name.lower()
+                l_short = (lab.short_name or '').lower()
+                if (l_name and l_name in sub_loc) or (l_short and l_short in sub_loc) or (getattr(e.subject, 'lab_id', None) == lab.id):
+                    live_entry = e
+                    break
+
+        if not live_entry:
+            lab_entries = [e for e in current_entries if e.subject and e.subject.subject_type == 'Lab']
+            if lab_entries:
+                live_entry = lab_entries[idx % len(lab_entries)]
+
+        next_p = (active_period % 7) + 1
+        next_entries = period_map.get(next_p, [])
+        if next_entries:
+            next_entry = next_entries[0]
+
+        status = 'LIVE' if (live_entry and live_entry.subject) else 'VACANT'
+        status_display = '🔴 LIVE NOW' if status == 'LIVE' else '🟢 VACANT'
+
+        day_schedule = []
+        for p in range(1, 8):
+            p_list = period_map.get(p, [])
+            p_sub = None
+            p_staff = None
+            for e in p_list:
+                if e.subject:
+                    sub_loc = (e.subject.location_name or '').lower()
+                    if (lab.name.lower() in sub_loc) or (lab.short_name and lab.short_name.lower() in sub_loc) or (e.subject.subject_type == 'Lab'):
+                        p_sub = e.subject
+                        p_staff = e.staff or e.subject.staff
+                        break
+            if not p_sub and p_list:
+                p_sub = p_list[0].subject
+                p_staff = p_list[0].staff or (p_sub.staff if p_sub else None)
+
+            day_schedule.append({
+                'period': p,
+                'is_current': p == active_period,
+                'subject': p_sub,
+                'staff': p_staff,
+            })
+
+        room_cards.append({
+            'id': f'lab-{lab.id}',
+            'type': 'Lab',
+            'title': lab.name,
+            'room_name': lab.short_name,
+            'semester': live_entry.semester if live_entry else None,
+            'incharge': lab.staff,
+            'status': status,
+            'status_display': status_display,
+            'live_entry': live_entry,
+            'next_entry': next_entry,
+            'day_schedule': day_schedule,
+        })
+
+    total_rooms = len(room_cards)
+    live_count = sum(1 for r in room_cards if r['status'] == 'LIVE')
+    vacant_count = total_rooms - live_count
+    classroom_count = sum(1 for r in room_cards if r['type'] == 'Classroom')
+    lab_count = sum(1 for r in room_cards if r['type'] == 'Lab')
+
+    return render(request, 'staff/live_class_visualisation.html', {
+        'staff': staff,
+        'day_name': day_name,
+        'current_time_str': current_time_str,
+        'current_period': active_period,
+        'room_cards': room_cards,
+        'total_rooms': total_rooms,
+        'live_count': live_count,
+        'vacant_count': vacant_count,
+        'classroom_count': classroom_count,
+        'lab_count': lab_count,
+    })
+
 
 def manage_marks(request, subject_id):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
 
     from .models import Subject
+
 
     subject = get_object_or_404(Subject, id=subject_id)
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
@@ -2164,9 +2399,8 @@ def exam_schedule(request):
     })
 
 def timetable(request):
-    """View to display weekly timetable."""
-    if 'staff_id' not in request.session:
-        return redirect('staffs:stafflogin')
+    """Unified Master Timetable Portal — delegates to hod_published_timetables."""
+    return hod_published_timetables(request)
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
@@ -2240,83 +2474,9 @@ def timetable(request):
     })
 
 def assign_lab_batches(request):
-    """View to assign students to Batch A or Batch B. Restricted to HOD."""
-    if 'staff_id' not in request.session:
-        return redirect('staffs:stafflogin')
-        
-    staff = Staff.objects.get(staff_id=request.session['staff_id'])
-    
-    if staff.role != 'HOD' and not staff.is_timetable_incharge:
-        messages.error(request, "Access Denied: Only HOD or Timetable Incharge can assign batches.")
-        return redirect('staffs:staff_dashboard')
-        
+    """View to assign students to Batch A or Batch B — delegates to unified Master Timetable Portal."""
     selected_semester = request.GET.get('semester', 1)
-    try:
-        selected_semester = int(selected_semester)
-    except ValueError:
-        selected_semester = 1
-        
-    if request.method == 'POST':
-        semester_val = request.POST.get('semester')
-        try:
-            selected_semester = int(semester_val)
-        except (ValueError, TypeError):
-            pass
-        students = list(Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD'))
-        
-        rep_a_count = 0
-        rep_b_count = 0
-        
-        # Validation Loop
-        for student in students:
-            is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
-            batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
-            
-            if is_rep:
-                if batch_val == 'A':
-                    rep_a_count += 1
-                elif batch_val == 'B':
-                    rep_b_count += 1
-                else:
-                    messages.error(request, f"Error: {student.student_name} ({student.roll_number}) is selected as Class Representative but is not assigned to Batch A or B.")
-                    return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
-                    
-        if rep_a_count > 2:
-            messages.error(request, "Error: Batch A cannot have more than 2 Class Representatives.")
-            return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
-        if rep_b_count > 2:
-            messages.error(request, "Error: Batch B cannot have more than 2 Class Representatives.")
-            return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
-            
-        from django.db import transaction
-        with transaction.atomic():
-            for student in students:
-                batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
-                is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
-                
-                student.lab_batch = batch_val
-                student.is_class_representative = is_rep
-                student.save(update_fields=['lab_batch', 'is_class_representative'])
-                        
-        messages.success(request, f'Lab batches and Class Representatives updated successfully for Semester {selected_semester}.')
-        return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
-        
-    students = Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD').order_by('roll_number')
-    semesters = range(1, 9)
-    
-    batch_a_students = [s for s in students if s.lab_batch == 'A']
-    batch_b_students = [s for s in students if s.lab_batch == 'B']
-    unassigned_students = [s for s in students if not s.lab_batch]
-    
-    return render(request, 'staff/assign_batches.html', {
-        'staff': staff,
-        'students': students,
-        'selected_semester': selected_semester,
-        'semesters': semesters,
-        'batch_a_students': batch_a_students,
-        'batch_b_students': batch_b_students,
-        'unassigned_students': unassigned_students,
-    })
+    return redirect(f'/staffs/hod/published-timetables/?semester={selected_semester}&tab=batches')
 
 def edit_timetable(request, semester):
     """View to edit weekly timetable. Restricted to HOD."""
@@ -2500,12 +2660,19 @@ def edit_timetable(request, semester):
                                 defaults={'subject': b_subject, 'staff': b_staff}
                             )
                                 
+        # Create/update version snapshot for historical archive
+        create_timetable_version_snapshot(
+            academic_year=selected_academic_year,
+            semester=semester,
+            staff_user=staff,
+            version_name=f"Updated Schedule (Sem {semester})"
+        )
+
         messages.success(request, f'Timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
-        return redirect(f'/staffs/timetable/?semester={semester}&academic_year={selected_academic_year}')
+        return redirect(f'/staffs/hod/published-timetables/?semester={semester}&academic_year={selected_academic_year}&tab=edit')
         
-    # GET Request: Prepare grid data
-    entries = Timetable.objects.filter(academic_year=selected_academic_year, semester=semester)
-    timetable_data = {day: [None]*7 for day in days}
+    # GET Request: Redirect to unified master timetable portal in Edit tab
+    return redirect(f'/staffs/hod/published-timetables/?semester={semester}&academic_year={selected_academic_year}&tab=edit')
     
     class BatchBlock:
         def __init__(self, e1, e2):
@@ -2571,10 +2738,114 @@ def edit_timetable(request, semester):
         'available_academic_years': available_academic_years,
     })
 
+import json as _json_module
+
+def create_timetable_version_snapshot(academic_year, semester, staff_user, from_date_val=None, to_date_val=None, version_name_val=None, version_name=None):
+    """
+    Saves a published/updated timetable snapshot forever in PublishedTimetableVersion.
+    """
+    from .models import Timetable, PublishedTimetableVersion
+    import datetime
+    from django.core.serializers.json import DjangoJSONEncoder
+
+    entries = Timetable.objects.filter(academic_year=academic_year, semester=semester).select_related('subject', 'staff')
+    if not entries.exists():
+        return None
+
+    if not from_date_val:
+        first_with_from = entries.filter(from_date__isnull=False).first()
+        from_date_val = first_with_from.from_date if first_with_from else datetime.date.today()
+    if not to_date_val:
+        first_with_to = entries.filter(to_date__isnull=False).first()
+        to_date_val = first_with_to.to_date if first_with_to else (from_date_val + datetime.timedelta(days=150))
+
+    version_name_to_use = version_name or version_name_val
+    if not version_name_to_use:
+        version_count = PublishedTimetableVersion.objects.filter(academic_year=academic_year, semester=semester).count() + 1
+        version_name_to_use = f"v{version_count}.0"
+
+    version_name_final = str(version_name_to_use or "Published Version")
+
+    snapshot_list = []
+    for e in entries:
+        snapshot_list.append({
+            'day': e.day,
+            'period': e.period,
+            'batch': e.batch,
+            'subject_code': e.subject.code if e.subject else '',
+            'subject_name': e.subject.name if e.subject else '',
+            'subject_type': e.subject.subject_type if e.subject else '',
+            'staff_name': e.staff.name if e.staff else '',
+            'staff_id': e.staff.staff_id if e.staff else '',
+            'location_name': e.subject.get_location_display() if (e.subject and hasattr(e.subject, 'get_location_display')) else ''
+        })
+
+    json_payload = _json_module.dumps(snapshot_list, cls=DjangoJSONEncoder)
+
+    PublishedTimetableVersion.objects.filter(academic_year=academic_year, semester=semester).update(is_active=False)
+    entries.update(from_date=from_date_val, to_date=to_date_val)
+
+    ver_obj = PublishedTimetableVersion.objects.create(
+        academic_year=academic_year,
+        semester=semester,
+        version_name=version_name_final,
+        from_date=from_date_val,
+        to_date=to_date_val,
+        published_by=staff_user,
+        is_active=True,
+        timetable_data_json=json_payload
+    )
+    return ver_obj
+
+
+def parse_snapshot_grid(snapshot_json):
+    """
+    Parses a snapshot JSON into 5-day x 7-period rows for template rendering, supporting split batches (A/B).
+    """
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    grid = {day: [None]*7 for day in days}
+    try:
+        data = _json_module.loads(snapshot_json)
+        for item in data:
+            d = item.get('day')
+            p = item.get('period')
+            if d in grid and 1 <= p <= 7:
+                curr = grid[d][p - 1]
+                batch = item.get('batch', 'All')
+
+                if curr is None:
+                    if batch in ['A', 'B']:
+                        grid[d][p - 1] = {
+                            'is_batch': True,
+                            'A': item if batch == 'A' else None,
+                            'B': item if batch == 'B' else None
+                        }
+                    else:
+                        grid[d][p - 1] = item
+                elif isinstance(curr, dict) and curr.get('is_batch'):
+                    if batch == 'A':
+                        curr['A'] = item
+                    elif batch == 'B':
+                        curr['B'] = item
+                elif isinstance(curr, dict) and curr.get('batch') in ['A', 'B'] and batch in ['A', 'B'] and curr.get('batch') != batch:
+                    old_item = curr
+                    grid[d][p - 1] = {
+                        'is_batch': True,
+                        'A': old_item if old_item.get('batch') == 'A' else item,
+                        'B': item if batch == 'B' else old_item
+                    }
+                else:
+                    grid[d][p - 1] = item
+    except Exception:
+        pass
+    return [(d, grid[d]) for d in days]
+
+
 def hod_published_timetables(request):
     """
     Dedicated view for HOD & Timetable Incharges to view all saved and published timetables
-    across academic years, semesters (1-8), and batches (All, Batch A, Batch B), along with assigned staff breakdowns.
+    across academic years, semesters (1-8), and batches (All, Batch A, Batch B), along with assigned staff breakdowns
+    and historical saved versions with effective from/to dates.
     """
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
@@ -2584,6 +2855,9 @@ def hod_published_timetables(request):
     if staff.role != 'HOD' and not staff.is_timetable_incharge:
         messages.error(request, "Access Denied: Only HOD or Timetable Incharge can view Master Published Timetables.")
         return redirect('staffs:staff_dashboard')
+
+    import datetime
+    from .models import PublishedTimetableVersion
 
     selected_academic_year = request.GET.get('academic_year', '2026-2027').strip()
     existing_years = list(Timetable.objects.values_list('academic_year', flat=True).distinct())
@@ -2603,6 +2877,75 @@ def hod_published_timetables(request):
     selected_batch = request.GET.get('batch', 'All')
     if selected_batch not in ['All', 'A', 'B']:
         selected_batch = 'All'
+
+    active_tab = request.GET.get('tab', 'master')
+
+    # Handle POST Actions (Effect Dates, Timetable Grid Save, Batch Assignment)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'set_effect_dates':
+            from_date_str = request.POST.get('from_date')
+            to_date_str = request.POST.get('to_date')
+            from_date_val = None
+            to_date_val = None
+            if from_date_str:
+                try:
+                    from_date_val = datetime.datetime.strptime(from_date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    pass
+            if to_date_str:
+                try:
+                    to_date_val = datetime.datetime.strptime(to_date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    pass
+
+            if from_date_val and to_date_val:
+                ver_obj = create_timetable_version_snapshot(
+                    academic_year=selected_academic_year,
+                    semester=selected_semester,
+                    staff_user=staff,
+                    from_date_val=from_date_val,
+                    to_date_val=to_date_val,
+                    version_name_val=f"Effective Period ({from_date_val.strftime('%d-%b')} to {to_date_val.strftime('%d-%b-%Y')})"
+                )
+                messages.success(request, f"Effective Date Range saved for Semester {selected_semester}: From {from_date_val.strftime('%d-%b-%Y')} to {to_date_val.strftime('%d-%b-%Y')}.")
+                return redirect(f"/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=master")
+
+        elif action == 'assign_batches':
+            from students.models import Student
+            from django.db import transaction
+            
+            students = list(Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD'))
+            rep_a_count = 0
+            rep_b_count = 0
+            
+            for student in students:
+                is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
+                batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
+                if is_rep:
+                    if batch_val == 'A':
+                        rep_a_count += 1
+                    elif batch_val == 'B':
+                        rep_b_count += 1
+                    else:
+                        messages.error(request, f"Error: {student.student_name} ({student.roll_number}) is selected as Class Representative but is not assigned to Batch A or B.")
+                        return redirect(f'/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=batches')
+
+            if rep_a_count > 2 or rep_b_count > 2:
+                messages.error(request, "Error: Batch A or B cannot have more than 2 Class Representatives.")
+                return redirect(f'/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=batches')
+
+            with transaction.atomic():
+                for student in students:
+                    batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
+                    is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
+                    student.lab_batch = batch_val
+                    student.is_class_representative = is_rep
+                    student.save(update_fields=['lab_batch', 'is_class_representative'])
+
+            messages.success(request, f'Lab batches & Representatives updated successfully for Semester {selected_semester}.')
+            return redirect(f'/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=batches')
 
     # Semester Summary Cards for selected academic year (Sem 1 to 8)
     semesters_summary = []
@@ -2625,6 +2968,21 @@ def hod_published_timetables(request):
     # Fetch entries for selected academic year and semester
     entries = Timetable.objects.filter(academic_year=selected_academic_year, semester=selected_semester).select_related('subject', 'staff')
     semester_is_published = entries.filter(is_published=True).exists() if entries.exists() else False
+
+    # Fetch previous timetable versions saved forever
+    previous_versions_qs = PublishedTimetableVersion.objects.filter(
+        academic_year=selected_academic_year,
+        semester=selected_semester
+    ).select_related('published_by').order_by('-published_at')
+
+    previous_timetable_versions = []
+    for ver in previous_versions_qs:
+        ver.grid_rows = parse_snapshot_grid(ver.timetable_data_json)
+        previous_timetable_versions.append(ver)
+
+    active_ver = previous_versions_qs.filter(is_active=True).first() or previous_versions_qs.first()
+    current_from_date = active_ver.from_date if (active_ver and active_ver.from_date) else datetime.date.today()
+    current_to_date = active_ver.to_date if (active_ver and active_ver.to_date) else (current_from_date + datetime.timedelta(days=150))
 
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     timetable_data = {day: [None]*7 for day in days}
@@ -2744,6 +3102,34 @@ def hod_published_timetables(request):
             'is_assigned': len(assigned_staff_set) > 0
         })
 
+    # Build context for Tab 2: Interactive Editor
+    subjects_list = list(Subject.objects.filter(semester=selected_semester).order_by('code'))
+    all_staff = Staff.objects.filter(is_active=True).order_by('name')
+
+    subject_staff_map = {}
+    for subj in subjects_list:
+        subject_staff_map[str(subj.id)] = {
+            'staff': subj.staff.name if subj.staff else '—',
+            'type': subj.subject_type,
+            'name': subj.name,
+            'code': subj.code,
+        }
+
+    edit_timetable_data = {day: [None]*7 for day in days}
+    for entry in entries:
+        if 1 <= entry.period <= 7:
+            curr = edit_timetable_data[entry.day][entry.period-1]
+            if curr is None or entry.batch == 'All':
+                edit_timetable_data[entry.day][entry.period-1] = entry
+    edit_timetable_rows = [(day, edit_timetable_data[day]) for day in days]
+
+    # Build context for Tab 3: Lab Batch Assignments
+    from students.models import Student
+    students_list = Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD').order_by('roll_number')
+    batch_a_students = [s for s in students_list if s.lab_batch == 'A']
+    batch_b_students = [s for s in students_list if s.lab_batch == 'B']
+    unassigned_students = [s for s in students_list if not s.lab_batch]
+
     return render(request, 'staff/hod_published_timetables.html', {
         'staff': staff,
         'selected_semester': selected_semester,
@@ -2755,7 +3141,19 @@ def hod_published_timetables(request):
         'semester_is_published': semester_is_published,
         'subject_allocation_list': subject_allocation_list,
         'total_entries_count': entries.count(),
-        'semesters': range(1, 9)
+        'semesters': range(1, 9),
+        'previous_timetable_versions': previous_timetable_versions,
+        'current_from_date': current_from_date,
+        'current_to_date': current_to_date,
+        'active_tab': active_tab,
+        'subjects_list': subjects_list,
+        'all_staff': all_staff,
+        'subject_staff_map_json': _json_module.dumps(subject_staff_map),
+        'edit_timetable_rows': edit_timetable_rows,
+        'students_list': students_list,
+        'batch_a_students': batch_a_students,
+        'batch_b_students': batch_b_students,
+        'unassigned_students': unassigned_students,
     })
 
 def toggle_publish_timetable(request, semester):
@@ -2773,16 +3171,25 @@ def toggle_publish_timetable(request, semester):
     entries = Timetable.objects.filter(academic_year=academic_year, semester=semester)
     if not entries.exists():
         messages.error(request, f"No timetable entries found for Academic Year {academic_year} Semester {semester} to publish.")
-        return redirect(f'/staff/hod/published-timetables/?academic_year={academic_year}&semester={semester}')
+        return redirect(f'/staffs/hod/published-timetables/?academic_year={academic_year}&semester={semester}')
         
     currently_published = entries.filter(is_published=True).exists()
     new_state = not currently_published
     entries.update(is_published=new_state)
     
-    state_str = "Published" if new_state else "Unpublished (Draft)"
+    if new_state:
+        # Create published snapshot saved forever
+        create_timetable_version_snapshot(
+            academic_year=academic_year,
+            semester=semester,
+            staff_user=staff,
+            version_name=f"Published Master Timetable (Sem {semester})"
+        )
+
+    state_str = "Published & Saved Forever" if new_state else "Unpublished (Draft)"
     messages.success(request, f"Timetable for Academic Year {academic_year} Semester {semester} is now {state_str}.")
     
-    next_url = request.META.get('HTTP_REFERER') or f'/staff/hod/published-timetables/?academic_year={academic_year}&semester={semester}'
+    next_url = request.META.get('HTTP_REFERER') or f'/staffs/hod/published-timetables/?academic_year={academic_year}&semester={semester}'
     return redirect(next_url)
 
 def my_timetable(request):
@@ -6470,7 +6877,7 @@ def hod_manage_labs(request):
         return redirect('staffs:stafflogin')
         
     if staff.role != 'HOD':
-        messages.error(request, "Access Denied: Only HOD can manage labs.")
+        messages.error(request, "Access Denied: Only HOD can manage labs and classes.")
         return redirect('staffs:staff_dashboard')
 
     if request.method == 'POST':
@@ -6530,13 +6937,91 @@ def hod_manage_labs(request):
                 messages.error(request, "Lab not found.")
             except Exception as e:
                 messages.error(request, f"Error updating lab: {str(e)}")
+
+        elif action == 'create_class':
+            class_name = request.POST.get('class_name', '').strip()
+            room_name = request.POST.get('room_name', '').strip()
+            semester_raw = request.POST.get('semester', '').strip()
+            staff_id = request.POST.get('staff_id', '').strip()
+            from_date = request.POST.get('from_date', '').strip() or None
+            to_date = request.POST.get('to_date', '').strip() or None
+
+            semester = int(semester_raw) if semester_raw and semester_raw.isdigit() else None
+
+            if not class_name or not room_name:
+                messages.error(request, "Class Name and Class Room Name are required.")
+            else:
+                try:
+                    assigned_staff = None
+                    if staff_id:
+                        assigned_staff = Staff.objects.get(staff_id=staff_id)
+
+                    ClassMapping.objects.create(
+                        class_name=class_name,
+                        room_name=room_name,
+                        semester=semester,
+                        staff=assigned_staff,
+                        from_date=from_date,
+                        to_date=to_date
+                    )
+                    
+                    if assigned_staff and semester:
+                        assigned_staff.role = 'Class Incharge'
+                        assigned_staff.assigned_semester = semester
+                        assigned_staff.save()
+
+                    messages.success(request, f"Class Mapping '{class_name}' ({room_name}) created successfully.")
+                    return redirect('staffs:hod_manage_labs')
+                except Staff.DoesNotExist:
+                    messages.error(request, "Selected staff member does not exist.")
+                except Exception as e:
+                    messages.error(request, f"Error creating class mapping: {str(e)}")
+
+        elif action == 'edit_class':
+            class_id = request.POST.get('class_id')
+            class_name = request.POST.get('class_name', '').strip()
+            room_name = request.POST.get('room_name', '').strip()
+            semester_raw = request.POST.get('semester', '').strip()
+            staff_id = request.POST.get('staff_id', '').strip()
+            from_date = request.POST.get('from_date', '').strip() or None
+            to_date = request.POST.get('to_date', '').strip() or None
+
+            semester = int(semester_raw) if semester_raw and semester_raw.isdigit() else None
+
+            try:
+                cm = ClassMapping.objects.get(id=class_id)
+                assigned_staff = None
+                if staff_id:
+                    assigned_staff = Staff.objects.get(staff_id=staff_id)
+
+                cm.class_name = class_name
+                cm.room_name = room_name
+                cm.semester = semester
+                cm.staff = assigned_staff
+                cm.from_date = from_date
+                cm.to_date = to_date
+                cm.save()
+
+                if assigned_staff and semester:
+                    assigned_staff.role = 'Class Incharge'
+                    assigned_staff.assigned_semester = semester
+                    assigned_staff.save()
+
+                messages.success(request, f"Class Mapping '{class_name}' updated successfully.")
+                return redirect('staffs:hod_manage_labs')
+            except ClassMapping.DoesNotExist:
+                messages.error(request, "Class mapping not found.")
+            except Exception as e:
+                messages.error(request, f"Error updating class mapping: {str(e)}")
                 
     labs = Lab.objects.all().select_related('staff').order_by('name')
+    class_mappings = ClassMapping.objects.all().select_related('staff').order_by('semester', 'class_name')
     all_staff = Staff.objects.filter(is_active=True).order_by('name')
     
     return render(request, 'staff/manage_labs.html', {
         'staff': staff,
         'labs': labs,
+        'class_mappings': class_mappings,
         'all_staff': all_staff
     })
 
@@ -6564,6 +7049,32 @@ def hod_delete_lab(request, lab_id):
         messages.error(request, f"Error deleting lab: {str(e)}")
         
     return redirect('staffs:hod_manage_labs')
+
+
+def hod_delete_class_mapping(request, class_id):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    try:
+        staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+        
+    if staff.role != 'HOD':
+        messages.error(request, "Access Denied: Only HOD can delete class mappings.")
+        return redirect('staffs:staff_dashboard')
+        
+    try:
+        cm = ClassMapping.objects.get(id=class_id)
+        name = cm.class_name
+        cm.delete()
+        messages.success(request, f"Class mapping '{name}' deleted successfully.")
+    except ClassMapping.DoesNotExist:
+        messages.error(request, "Class mapping not found.")
+    except Exception as e:
+        messages.error(request, f"Error deleting class mapping: {str(e)}")
+        
+    return redirect('staffs:hod_manage_labs')
+
 
 
 def manage_phd_stages(request):

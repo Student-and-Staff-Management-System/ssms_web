@@ -456,6 +456,27 @@
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <label>Class / Lab Room Location</label>
+                        <select name="location_name" class="form-control">
+                            <option value="">-- Select Location (Optional) --</option>
+                            {% if class_mappings %}
+                            <optgroup label="🏫 Classrooms">
+                                {% for cm in class_mappings %}
+                                <option value="{{ cm.room_name }} ({{ cm.class_name }})">{{ cm.room_name }} - {{ cm.class_name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                            {% if labs %}
+                            <optgroup label="🔬 Laboratories">
+                                {% for lab in labs %}
+                                <option value="{{ lab.name }}">{{ lab.name }} ({{ lab.short_name }})</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                        </select>
+                    </div>
+
                     <button type="submit" class="btn-submit">Add Subject</button>
                 </form>
             </div>
@@ -493,7 +514,14 @@
                                             {{ subject.subject_type }}
                                         </span>
                                     </td>
-                                    <td>{{ subject.name }}</td>
+                                    <td>
+                                        <div>{{ subject.name }}</div>
+                                        {% if subject.get_location_display %}
+                                        <div style="margin-top: 4px;">
+                                            <span style="display: inline-flex; align-items: center; gap: 3px; background: #f1f5f9; color: #475569; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: 500; border: 1px solid #cbd5e1;">📍 {{ subject.get_location_display }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <form method="POST" class="staff-select-form">
                                             {% csrf_token %}
@@ -519,6 +547,31 @@
                                                         {{ staff.name }}
                                                     </option>
                                                     {% endfor %}
+                                                </select>
+
+                                                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 2px 0 0 0; display: block;">Room / Lab Location:</label>
+                                                <select name="location_name" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;">
+                                                    <option value="">-- Select Location --</option>
+                                                    {% if class_mappings %}
+                                                    <optgroup label="🏫 Classrooms">
+                                                        {% for cm in class_mappings %}
+                                                        {% with cm_val=cm.room_name|add:" ("|add:cm.class_name|add:")" %}
+                                                        <option value="{{ cm_val }}" {% if subject.location_name == cm_val or subject.location_name == cm.room_name %}selected{% endif %}>
+                                                            {{ cm.room_name }} - {{ cm.class_name }}
+                                                        </option>
+                                                        {% endwith %}
+                                                        {% endfor %}
+                                                    </optgroup>
+                                                    {% endif %}
+                                                    {% if labs %}
+                                                    <optgroup label="🔬 Laboratories">
+                                                        {% for lab in labs %}
+                                                        <option value="{{ lab.name }}" {% if subject.location_name == lab.name %}selected{% endif %}>
+                                                            {{ lab.name }} ({{ lab.short_name }})
+                                                        </option>
+                                                        {% endfor %}
+                                                    </optgroup>
+                                                    {% endif %}
                                                 </select>
                                             </div>
 

@@ -222,8 +222,13 @@
                 </a>
                 <a href="{% url 'staffs:hod_manage_labs' %}" class="action-tile">
                     <div class="action-tile-icon">🔬</div>
-                    <h4>Lab Mapping</h4>
-                    <p>Map and assign Lab Incharges.</p>
+                    <h4>Lab & Class Mapping</h4>
+                    <p>Map and assign Lab & Class Incharges.</p>
+                </a>
+                <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="action-tile" style="border: 1px solid rgba(56, 189, 248, 0.4);">
+                    <div class="action-tile-icon">📡</div>
+                    <h4>Live Class Visualiser</h4>
+                    <p>Real-time animated monitor for all active classes & labs.</p>
                 </a>
                 <a href="{% url 'staffs:send_custom_notification' %}" class="action-tile">
                     <div class="action-tile-icon">📢</div>
@@ -235,15 +240,10 @@
                     <h4>Bonafide Requests</h4>
                     <p>Review and sign student bonafide requests.</p>
                 </a>
-                <a href="{% url 'staffs:timetable' %}" class="action-tile">
-                    <div class="action-tile-icon">🕒</div>
-                    <h4>Master Timetable</h4>
-                    <p>View/manage master schedules.</p>
-                </a>
-                <a href="{% url 'staffs:hod_published_timetables' %}" class="action-tile">
+                <a href="{% url 'staffs:timetable' %}" class="action-tile" style="border: 1px solid var(--primary-light);">
                     <div class="action-tile-icon">📅</div>
-                    <h4>Published Timetables</h4>
-                    <p>View saved timetables & staff allocations sem-wise.</p>
+                    <h4>Master Timetable Hub</h4>
+                    <p>View schedules, edit grid, assign lab batches & track history in 1 place.</p>
                 </a>
             </div>
         </section>

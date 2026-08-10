@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Staff, Subject, ExamSchedule, Timetable, News, StaffLeaveRequest, AuditLog, StaffGenerator, AdminSettings, Lab
+from .models import Staff, Subject, ExamSchedule, Timetable, News, StaffLeaveRequest, AuditLog, StaffGenerator, AdminSettings, Lab, ClassMapping, PublishedTimetableVersion
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
@@ -330,3 +330,18 @@ class LabAdmin(admin.ModelAdmin):
     list_display = ('short_name', 'name', 'staff', 'from_date', 'to_date')
     search_fields = ('short_name', 'name')
     list_filter = ('staff', 'from_date', 'to_date')
+
+
+@admin.register(ClassMapping)
+class ClassMappingAdmin(admin.ModelAdmin):
+    list_display = ('class_name', 'room_name', 'semester', 'staff', 'from_date', 'to_date')
+    search_fields = ('class_name', 'room_name')
+    list_filter = ('semester', 'staff', 'from_date', 'to_date')
+
+
+@admin.register(PublishedTimetableVersion)
+class PublishedTimetableVersionAdmin(admin.ModelAdmin):
+    list_display = ('academic_year', 'semester', 'version_name', 'from_date', 'to_date', 'published_by', 'published_at', 'is_active')
+    search_fields = ('version_name', 'academic_year')
+    list_filter = ('academic_year', 'semester', 'is_active', 'from_date', 'to_date')
+
