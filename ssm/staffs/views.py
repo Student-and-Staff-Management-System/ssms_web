@@ -72,6 +72,8 @@ def staff_dashboard(request):
         template_name = 'staff/staffdash_scholarship.html'
     elif staff.role == 'Office Staff':
         template_name = 'staff/staffdash_office.html'
+    elif staff.role == 'Technical Officer':
+        template_name = 'staff/staffdash_technical.html'
     else:
         template_name = 'staff/staffdash_hod.html'
         
@@ -122,6 +124,7 @@ def staff_dashboard(request):
         from .models import StaffPastDesignation
         pending_portfolio_count = StaffPastDesignation.objects.filter(approval_status='Pending').count()
     elif staff.role == 'Office Staff':
+         from students.models import DocumentRequest
          # Office Staff sees all active requests not yet collected/rejected
          pending_bonafide_count = BonafideRequest.objects.filter(
              status__in=[
@@ -134,6 +137,11 @@ def staff_dashboard(request):
          ).count()
          # Fetch recent active requests for the dashboard widget
          recent_bonafide_requests = BonafideRequest.objects.select_related('student').exclude(status__in=['Rejected', 'Collected']).order_by('-updated_at')[:5]
+         
+         pending_doc_count = DocumentRequest.objects.filter(status='Pending').count()
+         unreturned_doc_count = DocumentRequest.objects.filter(status='Collected (Not Returned)').count()
+         recent_doc_requests = DocumentRequest.objects.select_related('student').order_by('-updated_at')[:5]
+
          # Ensure other counts are 0
          pending_leaves_count = 0
          pending_staff_leaves_count = 0
@@ -377,6 +385,9 @@ def staff_dashboard(request):
         'pending_leaves_count': pending_leaves_count,
         'pending_staff_leaves_count': pending_staff_leaves_count,
         'pending_bonafide_count': pending_bonafide_count,
+        'pending_doc_count': locals().get('pending_doc_count', 0),
+        'unreturned_doc_count': locals().get('unreturned_doc_count', 0),
+        'recent_doc_requests': locals().get('recent_doc_requests', []),
         'pending_portfolio_count': pending_portfolio_count,
         'recent_bonafide_requests': locals().get('recent_bonafide_requests', []),
         'news_list': news_list,
@@ -390,6 +401,7 @@ def staff_dashboard(request):
         'rs_pending_attendance': rs_pending_attendance,
         'rs_scholars': rs_scholars,
         'assigned_labs': assigned_labs,
+        'assigned_dept_tasks': staff.assigned_department_tasks.all().order_by('task_number'),
         # Guided Students
         'guided_phd_completed': guided_phd_completed,
         'guided_phd_ongoing': guided_phd_ongoing,
@@ -444,7 +456,7 @@ def get_staff_profile_completion_data(staff):
             else:
                 missing_fields.append(FIELD_LABELS.get(field, field.replace('_', ' ').title()))
 
-    if staff.role == 'Office Staff':
+    if staff.role in ['Office Staff', 'Technical Officer']:
         if not staff.is_profile_complete:
             staff.is_profile_complete = True
             staff.save(update_fields=['is_profile_complete'])
@@ -534,9 +546,11 @@ def staff_register(request):
         
         if staff.role == 'Office Staff' and not specialization:
             specialization = 'General Administration'
+        elif staff.role == 'Technical Officer' and not specialization:
+            specialization = 'Technical Support & Lab Management'
 
         # Validation
-        if not email or not dob_str or not doj_str or not mobile_number or not address or (staff.role != 'Office Staff' and not specialization):
+        if not email or not dob_str or not doj_str or not mobile_number or not address or (staff.role not in ['Office Staff', 'Technical Officer'] and not specialization):
             messages.error(request, "All required fields must be filled out.")
             return render(request, 'staff/staffreg.html', {'staff': staff})
             
@@ -1156,8 +1170,8 @@ def hod_live_class_visualisation(request):
     except Staff.DoesNotExist:
         return redirect('staffs:stafflogin')
 
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: Only HOD can view Live Class Visualisation.")
+    if staff.role not in ['HOD', 'Technical Officer', 'Office Staff'] and not staff.is_admin:
+        messages.error(request, "Access Denied: You do not have permission to view Live Class Visualisation.")
         return redirect('staffs:staff_dashboard')
 
     now = timezone.localtime(timezone.now())
@@ -1200,7 +1214,7 @@ def hod_live_class_visualisation(request):
     if requested_period and requested_period.isdigit():
         current_period = int(requested_period)
 
-    class_mappings = list(ClassMapping.objects.all().select_related('staff').order_by('semester', 'class_name'))
+    class_mappings = list(ClassMapping.objects.all().order_by('semester', 'class_name'))
     labs = list(Lab.objects.all().select_related('staff').order_by('name'))
 
     timetable_today = list(Timetable.objects.filter(day=day_name).select_related('subject', 'subject__staff', 'subject__staff_batch_b', 'staff'))
@@ -1294,7 +1308,7 @@ def hod_live_class_visualisation(request):
             'title': cm.class_name,
             'room_name': cm.room_name,
             'semester': cm.semester or (live_entry.semester if live_entry else None),
-            'incharge': cm.staff,
+            'incharge': None,
             'status': status,
             'status_display': status_display,
             'live_entry': live_entry,
@@ -2399,10 +2413,12 @@ def exam_schedule(request):
     })
 
 def timetable(request):
-    """Unified Master Timetable Portal — delegates to hod_published_timetables."""
-    return hod_published_timetables(request)
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    if staff.role == 'HOD' or staff.is_timetable_incharge:
+        return hod_published_timetables(request)
     
     selected_semester = request.GET.get('semester', 1)
     try:
@@ -2474,9 +2490,74 @@ def timetable(request):
     })
 
 def assign_lab_batches(request):
-    """View to assign students to Batch A or Batch B — delegates to unified Master Timetable Portal."""
-    selected_semester = request.GET.get('semester', 1)
-    return redirect(f'/staffs/hod/published-timetables/?semester={selected_semester}&tab=batches')
+    """View to assign students to Batch A or Batch B."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = Staff.objects.get(staff_id=request.session['staff_id'])
+    
+    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+        messages.error(request, "Access Denied: Only HOD or Timetable Incharge can assign batches.")
+        return redirect('staffs:staff_dashboard')
+
+    from students.models import Student
+    from django.db import transaction
+
+    selected_semester = request.POST.get('semester') or request.GET.get('semester') or 1
+    try:
+        selected_semester = int(selected_semester)
+    except (ValueError, TypeError):
+        selected_semester = 1
+
+    if request.method == 'POST':
+        students = list(Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD'))
+        rep_a_count = 0
+        rep_b_count = 0
+        
+        for student in students:
+            is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
+            batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
+            if is_rep:
+                if batch_val == 'A':
+                    rep_a_count += 1
+                elif batch_val == 'B':
+                    rep_b_count += 1
+                else:
+                    messages.error(request, f"Error: {student.student_name} ({student.roll_number}) is selected as Class Representative but is not assigned to Batch A or B.")
+                    return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
+
+        if rep_a_count > 2 or rep_b_count > 2:
+            messages.error(request, "Error: Batch A or B cannot have more than 2 Class Representatives.")
+            return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
+
+        with transaction.atomic():
+            for student in students:
+                batch_val = request.POST.get(f'batch_{student.roll_number}', '').strip() or None
+                is_rep = request.POST.get(f'rep_{student.roll_number}') == 'true'
+                student.lab_batch = batch_val
+                student.is_class_representative = is_rep
+                student.save(update_fields=['lab_batch', 'is_class_representative'])
+
+        messages.success(request, f'Lab batches & Representatives updated successfully for Semester {selected_semester}.')
+        return redirect(f'/staffs/assign-batches/?semester={selected_semester}')
+
+    students_list = Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD').order_by('roll_number')
+    phd_student = Student.objects.filter(current_semester=selected_semester, program_level='PHD').first()
+    batch_a_students = [s for s in students_list if s.lab_batch == 'A']
+    batch_b_students = [s for s in students_list if s.lab_batch == 'B']
+    unassigned_students = [s for s in students_list if not s.lab_batch]
+
+    return render(request, 'staff/assign_batches.html', {
+        'staff': staff,
+        'selected_semester': selected_semester,
+        'students_list': students_list,
+        'students': students_list,
+        'batch_a_students': batch_a_students,
+        'batch_b_students': batch_b_students,
+        'unassigned_students': unassigned_students,
+        'phd_student': phd_student,
+        'semesters': range(1, 9),
+    })
 
 def edit_timetable(request, semester):
     """View to edit weekly timetable. Restricted to HOD."""
@@ -2520,10 +2601,47 @@ def edit_timetable(request, semester):
         MORNING_LAB_BLOCKS = [(1, 2, 3), (2, 3, 4)]
         AFTERNOON_LAB_BLOCK = (5, 6, 7)
         
+        lab_subject_ids = set(str(sid) for sid in Subject.objects.filter(semester=semester, subject_type='Lab').values_list('id', flat=True))
+
+        def is_3hr_lab(val):
+            if not val:
+                return False
+            return val == 'LAB_SESSION' or val in lab_subject_ids
+
+        # Pre-parse form input into a grid dictionary
+        post_grid = {}
+        for day in days:
+            post_grid[day] = {}
+            for period in periods:
+                post_grid[day][period] = (request.POST.get(f'subject_{day}_{period}') or '').strip()
+
+        # Apply 3-hour propagation for 3-hour labs (explicit Lab subject or LAB_SESSION)
+        for day in days:
+            # Morning Lab Block 1: P1 -> P1, P2, P3
+            if is_3hr_lab(post_grid[day][1]):
+                if not post_grid[day][2] or is_3hr_lab(post_grid[day][2]):
+                    post_grid[day][2] = post_grid[day][1]
+                if not post_grid[day][3] or is_3hr_lab(post_grid[day][3]):
+                    post_grid[day][3] = post_grid[day][1]
+
+            # Morning Lab Block 2: P2 -> P2, P3, P4
+            elif is_3hr_lab(post_grid[day][2]):
+                if not post_grid[day][3] or is_3hr_lab(post_grid[day][3]):
+                    post_grid[day][3] = post_grid[day][2]
+                if not post_grid[day][4] or is_3hr_lab(post_grid[day][4]):
+                    post_grid[day][4] = post_grid[day][2]
+
+            # Afternoon Lab Block: P5 -> P5, P6, P7
+            if is_3hr_lab(post_grid[day][5]):
+                if not post_grid[day][6] or is_3hr_lab(post_grid[day][6]):
+                    post_grid[day][6] = post_grid[day][5]
+                if not post_grid[day][7] or is_3hr_lab(post_grid[day][7]):
+                    post_grid[day][7] = post_grid[day][5]
+
         with transaction.atomic():
             for day in days:
                 for period in periods:
-                    sub_val = request.POST.get(f'subject_{day}_{period}')
+                    sub_val = post_grid[day][period]
                     lab_a_val = request.POST.get(f'lab_a_{day}_{period}')
                     lab_b_val = request.POST.get(f'lab_b_{day}_{period}')
                     
@@ -2671,8 +2789,9 @@ def edit_timetable(request, semester):
         messages.success(request, f'Timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
         return redirect(f'/staffs/hod/published-timetables/?semester={semester}&academic_year={selected_academic_year}&tab=edit')
         
-    # GET Request: Redirect to unified master timetable portal in Edit tab
-    return redirect(f'/staffs/hod/published-timetables/?semester={semester}&academic_year={selected_academic_year}&tab=edit')
+    # GET Request: Fetch timetable entries for selected semester & academic year
+    entries = Timetable.objects.filter(academic_year=selected_academic_year, semester=semester).select_related('subject', 'staff')
+    timetable_data = {day: [None]*7 for day in days}
     
     class BatchBlock:
         def __init__(self, e1, e2):
@@ -2718,13 +2837,52 @@ def edit_timetable(request, semester):
         timetable_rows.append((day, timetable_data[day]))
         
     import json as _json
+    # Build faculty occupancy map for conflict detection across ALL semesters for the selected academic year
+    all_academic_entries = Timetable.objects.filter(
+        academic_year=selected_academic_year
+    ).select_related('staff', 'subject', 'subject__staff', 'subject__staff_batch_b')
+
+    faculty_occupancy = {}
+    for entry in all_academic_entries:
+        staff_ids = set()
+        if entry.staff_id:
+            staff_ids.add(entry.staff_id)
+        if entry.subject:
+            if entry.subject.staff_id:
+                staff_ids.add(entry.subject.staff_id)
+            if entry.subject.staff_batch_b_id:
+                staff_ids.add(entry.subject.staff_batch_b_id)
+                
+        for sid in staff_ids:
+            key = f"{entry.day}_{entry.period}_{sid}"
+            if key not in faculty_occupancy:
+                faculty_occupancy[key] = []
+            faculty_occupancy[key].append({
+                'semester': entry.semester,
+                'subject_code': entry.subject.code if entry.subject else 'Class',
+                'subject_name': entry.subject.name if entry.subject else '',
+                'staff_name': entry.staff.name if entry.staff else (entry.subject.staff.name if entry.subject and entry.subject.staff else ''),
+                'batch': entry.batch
+            })
+
     subject_staff_map = {}
     for subj in subjects:
+        target_hours = 3 if subj.subject_type == 'Lab' else getattr(subj, 'credits', 3)
+        if target_hours <= 0:
+            target_hours = 3 if subj.subject_type == 'Lab' else 4
+
         subject_staff_map[str(subj.id)] = {
-            'staff': subj.staff.name if subj.staff else '—',
-            'type': subj.subject_type,
-            'name': subj.name,
+            'id': subj.id,
             'code': subj.code,
+            'name': subj.name,
+            'type': subj.subject_type,
+            'credits': getattr(subj, 'credits', 3),
+            'target_hours': target_hours,
+            'staff_id': subj.staff.staff_id if subj.staff else None,
+            'staff': subj.staff.name if subj.staff else '—',
+            'staff_b_id': subj.staff_batch_b.staff_id if subj.staff_batch_b else None,
+            'staff_b': subj.staff_batch_b.name if subj.staff_batch_b else '—',
+            'location': subj.get_location_display() if hasattr(subj, 'get_location_display') else ''
         }
     
     return render(request, 'staff/edit_timetable.html', {
@@ -2733,6 +2891,7 @@ def edit_timetable(request, semester):
         'timetable_rows': timetable_rows,
         'subjects': subjects,
         'subject_staff_map_json': _json.dumps(subject_staff_map),
+        'faculty_occupancy_json': _json.dumps(faculty_occupancy),
         'current_batch': current_batch,
         'selected_academic_year': selected_academic_year,
         'available_academic_years': available_academic_years,
@@ -3106,13 +3265,52 @@ def hod_published_timetables(request):
     subjects_list = list(Subject.objects.filter(semester=selected_semester).order_by('code'))
     all_staff = Staff.objects.filter(is_active=True).order_by('name')
 
+    # Build faculty occupancy map for conflict detection across ALL semesters for the selected academic year
+    all_academic_entries = Timetable.objects.filter(
+        academic_year=selected_academic_year
+    ).select_related('staff', 'subject', 'subject__staff', 'subject__staff_batch_b')
+
+    faculty_occupancy = {}
+    for entry in all_academic_entries:
+        staff_ids = set()
+        if entry.staff_id:
+            staff_ids.add(entry.staff_id)
+        if entry.subject:
+            if entry.subject.staff_id:
+                staff_ids.add(entry.subject.staff_id)
+            if entry.subject.staff_batch_b_id:
+                staff_ids.add(entry.subject.staff_batch_b_id)
+                
+        for sid in staff_ids:
+            key = f"{entry.day}_{entry.period}_{sid}"
+            if key not in faculty_occupancy:
+                faculty_occupancy[key] = []
+            faculty_occupancy[key].append({
+                'semester': entry.semester,
+                'subject_code': entry.subject.code if entry.subject else 'Class',
+                'subject_name': entry.subject.name if entry.subject else '',
+                'staff_name': entry.staff.name if entry.staff else (entry.subject.staff.name if entry.subject and entry.subject.staff else ''),
+                'batch': entry.batch
+            })
+
     subject_staff_map = {}
     for subj in subjects_list:
+        target_hours = 3 if subj.subject_type == 'Lab' else getattr(subj, 'credits', 3)
+        if target_hours <= 0:
+            target_hours = 3 if subj.subject_type == 'Lab' else 4
+
         subject_staff_map[str(subj.id)] = {
-            'staff': subj.staff.name if subj.staff else '—',
-            'type': subj.subject_type,
-            'name': subj.name,
+            'id': subj.id,
             'code': subj.code,
+            'name': subj.name,
+            'type': subj.subject_type,
+            'credits': getattr(subj, 'credits', 3),
+            'target_hours': target_hours,
+            'staff_id': subj.staff.staff_id if subj.staff else None,
+            'staff': subj.staff.name if subj.staff else '—',
+            'staff_b_id': subj.staff_batch_b.staff_id if subj.staff_batch_b else None,
+            'staff_b': subj.staff_batch_b.name if subj.staff_batch_b else '—',
+            'location': subj.get_location_display() if hasattr(subj, 'get_location_display') else ''
         }
 
     edit_timetable_data = {day: [None]*7 for day in days}
@@ -3149,6 +3347,7 @@ def hod_published_timetables(request):
         'subjects_list': subjects_list,
         'all_staff': all_staff,
         'subject_staff_map_json': _json_module.dumps(subject_staff_map),
+        'faculty_occupancy_json': _json_module.dumps(faculty_occupancy),
         'edit_timetable_rows': edit_timetable_rows,
         'students_list': students_list,
         'batch_a_students': batch_a_students,
@@ -3673,7 +3872,7 @@ def create_superuser(request):
 
 
 def scholarship_manager(request):
-    """Dedicated page for managing scholarships with advanced filtering and export."""
+    """Dedicated page for managing scholarships with advanced multi-combination filtering, approval POST actions, and export."""
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
         
@@ -3686,105 +3885,203 @@ def scholarship_manager(request):
         messages.error(request, "Access restricted to Scholarship Officer or Office Staff.")
         return redirect('staffs:staff_dashboard')
         
-    from students.models import Student, ScholarshipInfo, PersonalInfo
+    from students.models import Student, ScholarshipInfo, PersonalInfo, ScholarshipApplication, SCHOLARSHIP_TYPE_CHOICES
     from django.db.models import Q
     import csv
     from django.http import HttpResponse
 
-    # Base QuerySet
-    students = Student.objects.select_related('scholarshipinfo', 'personalinfo').all()
+    # --- Handle POST Actions (Approval, Disbursement, Rejection) ---
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        app_id = request.POST.get('app_id')
+        sch_app = get_object_or_404(ScholarshipApplication, id=app_id)
 
-    # --- Filtering ---
-    # 1. Scholarship Type (handling multiple selections if needed, though simple select for now)
-    sch_type = request.GET.get('scholarship_type')
-    if sch_type:
-        SCHOLARSHIP_MAPPING = {
-            'First Graduate': 'scholarshipinfo__is_first_graduate',
-            'BC/MBC': 'scholarshipinfo__sch_bcmbc',
-            'Postmatric': 'scholarshipinfo__sch_postmetric',
-            'PM': 'scholarshipinfo__sch_pm',
-            'Govt': 'scholarshipinfo__sch_govt',
-            'Pudhumai Penn': 'scholarshipinfo__sch_pudhumai',
-            'Tamizh Puthalvan': 'scholarshipinfo__sch_tamizh',
-            'Private': 'scholarshipinfo__sch_private'
-        }
-        if sch_type in SCHOLARSHIP_MAPPING:
-            filter_kwargs = {SCHOLARSHIP_MAPPING[sch_type]: True}
-            students = students.filter(**filter_kwargs)
+        if action == 'approve':
+            sch_app.status = 'Verified & Recommended'
+            sch_app.verified_at = timezone.now()
+            remarks = request.POST.get('office_remarks', '').strip()
+            if remarks:
+                sch_app.office_remarks = remarks
+            sch_app.save()
 
-    # 2. Program Level
+            # Sync to student's ScholarshipInfo record
+            sch_info, _ = ScholarshipInfo.objects.get_or_create(student=sch_app.student)
+            stype = sch_app.scholarship_type
+            if stype == 'FG': sch_info.is_first_graduate = True
+            elif stype == 'BCMBC': sch_info.sch_bcmbc = True
+            elif stype == 'POSTMATRIC': sch_info.sch_postmetric = True
+            elif stype == 'PM': sch_info.sch_pm = True
+            elif stype == 'GOVT_7_5': sch_info.sch_govt = True; sch_info.is_7_5_reservation = True
+            elif stype == 'PUDHUMAI': sch_info.sch_pudhumai = True
+            elif stype == 'TAMIZH': sch_info.sch_tamizh = True
+            elif stype == 'PRIVATE':
+                sch_info.sch_private = True
+                if sch_app.private_scholarship_name:
+                    sch_info.private_scholarship_name = sch_app.private_scholarship_name
+            sch_info.save()
+
+            messages.success(request, f"Scholarship application for {sch_app.student.student_name} ({sch_app.get_scholarship_type_display()}) verified & recommended to Govt portal!")
+
+        elif action == 'disburse':
+            sch_app.status = 'Govt Sanctioned / Availed'
+            sch_app.disbursed_at = timezone.now()
+            remarks = request.POST.get('office_remarks', '').strip()
+            if remarks:
+                sch_app.office_remarks = remarks
+            sch_app.save()
+
+            messages.info(request, f"Scholarship status updated to Govt Sanctioned / Availed for {sch_app.student.student_name}.")
+
+        elif action == 'reject':
+            reason = request.POST.get('rejection_reason', '').strip()
+            sch_app.status = 'Rejected / Ineligible'
+            sch_app.rejection_reason = reason or 'Application rejected or ineligible.'
+            sch_app.save()
+
+            messages.warning(request, f"Scholarship record for {sch_app.student.student_name} marked as Rejected / Ineligible.")
+
+        return redirect('staffs:scholarship_manager')
+
+    # Base Applications QuerySet
+    app_qs = ScholarshipApplication.objects.select_related('student', 'student__scholarshipinfo', 'student__personalinfo').all()
+
+    # --- Multi-Combination Filtering ---
+    # 1. Multi-Select Scholarship Types
+    sel_types = request.GET.getlist('scholarship_types')
+    if not sel_types:
+        single_type = request.GET.get('scholarship_type')
+        if single_type:
+            sel_types = [single_type]
+
+    if sel_types and '' not in sel_types:
+        app_qs = app_qs.filter(scholarship_type__in=sel_types)
+
+    # 2. Application Status
+    app_status = request.GET.get('status')
+    if app_status:
+        app_qs = app_qs.filter(status=app_status)
+
+    # 3. Program Level
     program = request.GET.get('program_level')
     if program:
-        students = students.filter(program_level=program)
+        app_qs = app_qs.filter(student__program_level=program)
 
-    # 3. Semester
+    # 4. Semester
     semester = request.GET.get('semester')
     if semester:
-        students = students.filter(current_semester=semester)
+        app_qs = app_qs.filter(student__current_semester=semester)
 
-    # 4. Gender (from PersonalInfo)
+    # 5. Gender
     gender = request.GET.get('gender')
     if gender:
-        students = students.filter(personalinfo__gender=gender)
+        app_qs = app_qs.filter(student__personalinfo__gender=gender)
 
-    # 5. Community (from PersonalInfo)
+    # 6. Community
     community = request.GET.get('community')
     if community:
-        students = students.filter(personalinfo__community=community)
+        app_qs = app_qs.filter(student__personalinfo__community=community)
+
+    # 7. Max Income Filter
+    max_income = request.GET.get('max_income')
+    if max_income:
+        try:
+            app_qs = app_qs.filter(annual_income__lte=int(max_income))
+        except ValueError:
+            pass
+
+    # 8. Hosteller vs Day Scholar
+    hostel_status = request.GET.get('is_hosteler')
+    if hostel_status == 'yes':
+        app_qs = app_qs.filter(student__personalinfo__is_hosteler=True)
+    elif hostel_status == 'no':
+        app_qs = app_qs.filter(student__personalinfo__is_hosteler=False)
+
+    # 9. 7.5% Govt School Quota
+    is_7_5 = request.GET.get('is_7_5')
+    if is_7_5 == 'yes':
+        app_qs = app_qs.filter(Q(scholarship_type='GOVT_7_5') | Q(student__scholarshipinfo__is_7_5_reservation=True))
+
+    # 10. First Graduate
+    is_fg = request.GET.get('is_fg')
+    if is_fg == 'yes':
+        app_qs = app_qs.filter(Q(scholarship_type='FG') | Q(student__scholarshipinfo__is_first_graduate=True))
+
+    # 11. Search Query (Name, Roll, App No)
+    q = request.GET.get('q', '').strip()
+    if q:
+        app_qs = app_qs.filter(
+            Q(student__student_name__icontains=q) |
+            Q(student__roll_number__icontains=q) |
+            Q(application_no__icontains=q)
+        )
 
     # --- Export to CSV ---
     if request.GET.get('export') == 'csv':
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="scholarship_students.csv"'
+        response['Content-Disposition'] = 'attachment; filename="scholarship_applications_audit.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['Roll Number', 'Name', 'Program', 'Semester', 'Community', 'Gender', 'Scholarships'])
+        writer.writerow([
+            'Roll Number', 'Student Name', 'Program', 'Semester', 'Community', 'Gender',
+            'Scholarship Scheme', 'App Ref No', 'Annual Income', 'Bank Account', 'IFSC', 'Status', 'Applied Date'
+        ])
 
-        for s in students:
-            # Determine active scholarships
-            active_sch = []
-            try:
-                si = s.scholarshipinfo
-                if si.is_first_graduate: active_sch.append('First Graduate')
-                if si.sch_bcmbc: active_sch.append('BC/MBC')
-                if si.sch_postmetric: active_sch.append('Postmetric')
-                if si.sch_pm: active_sch.append('PM')
-                if si.sch_govt: active_sch.append('Govt')
-                if si.sch_pudhumai: active_sch.append('Pudhumai Penn')
-                if si.sch_tamizh: active_sch.append('Tamizh Puthalvan')
-                if si.sch_private: active_sch.append(f"Private ({si.private_scholarship_name})")
-            except ScholarshipInfo.DoesNotExist:
-                pass
-            
-            # Helper to safely get personal info
+        for app in app_qs:
             comm = 'N/A'
             gen = 'N/A'
             try:
-                comm = s.personalinfo.community
-                gen = s.personalinfo.gender
+                comm = app.student.personalinfo.community
+                gen = app.student.personalinfo.gender
             except PersonalInfo.DoesNotExist:
                 pass
 
             writer.writerow([
-                s.roll_number,
-                s.student_name,
-                s.program_level,
-                s.current_semester,
+                app.student.roll_number,
+                app.student.student_name,
+                app.student.program_level,
+                app.student.current_semester,
                 comm,
                 gen,
-                ", ".join(active_sch)
+                app.get_scholarship_type_display(),
+                app.application_no or 'N/A',
+                app.annual_income or 'N/A',
+                app.bank_account_no or 'N/A',
+                app.bank_ifsc or 'N/A',
+                app.status,
+                app.applied_at.strftime('%Y-%m-%d')
             ])
         return response
 
+    # Stats counters for header tiles
+    all_apps = ScholarshipApplication.objects.all()
+    pending_count = all_apps.filter(status='Pending Office Verification').count()
+    approved_count = all_apps.filter(status='Verified & Recommended').count()
+    disbursed_count = all_apps.filter(status='Govt Sanctioned / Amount Received').count()
+    not_received_count = all_apps.filter(status='Not Received / Pending Govt').count()
+    rejected_count = all_apps.filter(status='Rejected / Ineligible').count()
+
     context = {
         'staff': staff,
-        'students': students,
-        'filters': { # Pass current filters back to template
-            'scholarship_type': sch_type,
+        'applications': app_qs,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'disbursed_count': disbursed_count,
+        'not_received_count': not_received_count,
+        'rejected_count': rejected_count,
+        'type_choices': SCHOLARSHIP_TYPE_CHOICES,
+        'filters': {
+            'scholarship_types': sel_types,
+            'scholarship_type': request.GET.get('scholarship_type', ''),
+            'status': app_status,
             'program_level': program,
             'semester': semester,
             'gender': gender,
-            'community': community
+            'community': community,
+            'max_income': max_income,
+            'is_hosteler': hostel_status,
+            'is_7_5': is_7_5,
+            'is_fg': is_fg,
+            'q': q,
         }
     }
     return render(request, 'staff/scholarship_manager.html', context)
@@ -6942,7 +7239,6 @@ def hod_manage_labs(request):
             class_name = request.POST.get('class_name', '').strip()
             room_name = request.POST.get('room_name', '').strip()
             semester_raw = request.POST.get('semester', '').strip()
-            staff_id = request.POST.get('staff_id', '').strip()
             from_date = request.POST.get('from_date', '').strip() or None
             to_date = request.POST.get('to_date', '').strip() or None
 
@@ -6952,28 +7248,16 @@ def hod_manage_labs(request):
                 messages.error(request, "Class Name and Class Room Name are required.")
             else:
                 try:
-                    assigned_staff = None
-                    if staff_id:
-                        assigned_staff = Staff.objects.get(staff_id=staff_id)
-
                     ClassMapping.objects.create(
                         class_name=class_name,
                         room_name=room_name,
                         semester=semester,
-                        staff=assigned_staff,
                         from_date=from_date,
                         to_date=to_date
                     )
                     
-                    if assigned_staff and semester:
-                        assigned_staff.role = 'Class Incharge'
-                        assigned_staff.assigned_semester = semester
-                        assigned_staff.save()
-
                     messages.success(request, f"Class Mapping '{class_name}' ({room_name}) created successfully.")
                     return redirect('staffs:hod_manage_labs')
-                except Staff.DoesNotExist:
-                    messages.error(request, "Selected staff member does not exist.")
                 except Exception as e:
                     messages.error(request, f"Error creating class mapping: {str(e)}")
 
@@ -6982,7 +7266,6 @@ def hod_manage_labs(request):
             class_name = request.POST.get('class_name', '').strip()
             room_name = request.POST.get('room_name', '').strip()
             semester_raw = request.POST.get('semester', '').strip()
-            staff_id = request.POST.get('staff_id', '').strip()
             from_date = request.POST.get('from_date', '').strip() or None
             to_date = request.POST.get('to_date', '').strip() or None
 
@@ -6990,22 +7273,13 @@ def hod_manage_labs(request):
 
             try:
                 cm = ClassMapping.objects.get(id=class_id)
-                assigned_staff = None
-                if staff_id:
-                    assigned_staff = Staff.objects.get(staff_id=staff_id)
 
                 cm.class_name = class_name
                 cm.room_name = room_name
                 cm.semester = semester
-                cm.staff = assigned_staff
                 cm.from_date = from_date
                 cm.to_date = to_date
                 cm.save()
-
-                if assigned_staff and semester:
-                    assigned_staff.role = 'Class Incharge'
-                    assigned_staff.assigned_semester = semester
-                    assigned_staff.save()
 
                 messages.success(request, f"Class Mapping '{class_name}' updated successfully.")
                 return redirect('staffs:hod_manage_labs')
@@ -7015,7 +7289,7 @@ def hod_manage_labs(request):
                 messages.error(request, f"Error updating class mapping: {str(e)}")
                 
     labs = Lab.objects.all().select_related('staff').order_by('name')
-    class_mappings = ClassMapping.objects.all().select_related('staff').order_by('semester', 'class_name')
+    class_mappings = ClassMapping.objects.all().order_by('semester', 'class_name')
     all_staff = Staff.objects.filter(is_active=True).order_by('name')
     
     return render(request, 'staff/manage_labs.html', {
@@ -7283,3 +7557,275 @@ def assign_phd_guide(request):
         return redirect(redirect_back)
     from django.urls import reverse
     return redirect(reverse('staffs:manage_phd_stages') + f'?student_roll={roll}')
+
+
+def manage_department_tasks(request):
+    """View to assign Department Tasks & Roles to staff members with checkboxes."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not staff or (staff.role != 'HOD' and not staff.is_admin):
+        messages.error(request, "Access Denied: Only HOD or Admin can manage department tasks and roles.")
+        return redirect('staffs:staff_dashboard')
+
+    from .models import DepartmentTask
+    from django.db import transaction
+
+    # Ensure default tasks exist
+    DepartmentTask.seed_default_tasks()
+
+    if request.method == 'POST':
+        tasks = DepartmentTask.objects.all().prefetch_related('assigned_staff')
+        with transaction.atomic():
+            for task in tasks:
+                selected_staff_ids = request.POST.getlist(f'task_{task.id}')
+                task.assigned_staff.set(Staff.objects.filter(staff_id__in=selected_staff_ids))
+        messages.success(request, "Department Tasks & Roles allocations updated successfully!")
+        return redirect('staffs:manage_department_tasks')
+
+    tasks = DepartmentTask.objects.all().prefetch_related('assigned_staff').order_by('task_number')
+    staff_members = Staff.objects.filter(is_active=True).order_by('name')
+
+    categories = sorted(list(set(t.category for t in tasks if t.category)))
+
+    context = {
+        'staff': staff,
+        'tasks': tasks,
+        'staff_members': staff_members,
+        'categories': categories,
+    }
+    return render(request, 'staff/department_tasks.html', context)
+
+
+def export_staff_tasks_csv(request):
+    """Generates downloadable CSV report of staff members with assigned department tasks/roles."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not staff or (staff.role != 'HOD' and not staff.is_admin):
+        messages.error(request, "Access Denied.")
+        return redirect('staffs:staff_dashboard')
+
+    import csv
+    from django.http import HttpResponse
+    from .models import DepartmentTask
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="staff_department_roles_report.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Staff ID', 'Salutation', 'Name', 'Designation', 'Department',
+        'Email', 'Mobile', 'Primary Role', 'Total Assigned Tasks', 'Assigned Additional Tasks / Roles'
+    ])
+
+    staff_qs = Staff.objects.filter(is_active=True).prefetch_related('assigned_department_tasks').order_by('name')
+    for member in staff_qs:
+        tasks = [f"{t.task_number}. {t.name}" for t in member.assigned_department_tasks.all()]
+        writer.writerow([
+            member.staff_id,
+            member.salutation or '',
+            member.name,
+            member.designation or '',
+            member.department or '',
+            member.email or '',
+            member.mobile_number or '',
+            member.role,
+            len(tasks),
+            "; ".join(tasks) if tasks else "No additional tasks assigned"
+        ])
+
+    return response
+
+
+def export_task_matrix_csv(request):
+    """Generates downloadable CSV matrix (Staff vs 58 Department Tasks)."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not staff or (staff.role != 'HOD' and not staff.is_admin):
+        messages.error(request, "Access Denied.")
+        return redirect('staffs:staff_dashboard')
+
+    import csv
+    from django.http import HttpResponse
+    from .models import DepartmentTask
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="department_task_allocation_matrix.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    all_tasks = DepartmentTask.objects.all().order_by('task_number')
+
+    header = ['Staff ID', 'Staff Name', 'Designation', 'Primary Role'] + [f"[{t.task_number}] {t.name}" for t in all_tasks]
+    writer.writerow(header)
+
+    staff_qs = Staff.objects.filter(is_active=True).prefetch_related('assigned_department_tasks').order_by('name')
+    for member in staff_qs:
+        assigned_ids = set(member.assigned_department_tasks.values_list('id', flat=True))
+        row = [
+            member.staff_id,
+            member.name,
+            member.designation or '',
+            member.role
+        ]
+        for task in all_tasks:
+            row.append("YES" if task.id in assigned_ids else "NO")
+        writer.writerow(row)
+
+    return response
+
+
+def office_manage_document_requests(request):
+    """
+    Office Staff view to manage student original document / marksheet requests (X, XII, TC, etc.).
+    Workflow: Pending -> Ready for Collection -> Collected (Not Returned) -> Returned.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+
+    # Allow Office Staff, HOD, and Admin
+    if staff.role not in ['Office Staff', 'HOD'] and not staff.is_admin:
+        messages.error(request, "Access Denied: You are not authorized as Office Staff.")
+        return redirect('staffs:staff_dashboard')
+
+    from students.models import DocumentRequest
+    from django.utils import timezone
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        req_id = request.POST.get('request_id')
+        doc_req = get_object_or_404(DocumentRequest, id=req_id)
+
+        if action == 'ready':
+            doc_req.status = 'Ready for Collection'
+            doc_req.ready_at = timezone.now()
+            remarks = request.POST.get('office_remarks', '').strip()
+            if remarks:
+                doc_req.office_remarks = remarks
+            doc_req.save()
+
+            messages.success(
+                request,
+                f"Document request for {doc_req.student.student_name} ({doc_req.document_type}) marked as Ready for Collection."
+            )
+
+            # Send Email Notification to Student
+            if doc_req.student.student_email:
+                try:
+                    from django.core.mail import send_mail
+                    from django.conf import settings
+
+                    subject = f"SSMS Notice: Your Original {doc_req.document_type} is Ready for Collection"
+                    message = (
+                        f"Dear {doc_req.student.student_name},\n\n"
+                        f"Your request to borrow original document ({doc_req.document_type}) has been approved and is READY FOR COLLECTION at the Department Office.\n\n"
+                        f"Request Details:\n"
+                        f"- Student Roll No: {doc_req.student.roll_number}\n"
+                        f"- Document: {doc_req.document_type}\n"
+                        f"- Reason: {doc_req.reason}\n\n"
+                        f"Important Note: This is a borrowed original document. Once collected, you are required to return it to the office after your work is completed.\n\n"
+                        f"Regards,\nDepartment Office Staff\nSSMS System"
+                    )
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [doc_req.student.student_email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Failed to send email notification to student: {e}")
+
+        elif action == 'collected':
+            # Mark as Collected -> Automatically set status to 'Collected (Not Returned)'
+            doc_req.status = 'Collected (Not Returned)'
+            doc_req.collected_at = timezone.now()
+            remarks = request.POST.get('office_remarks', '').strip()
+            if remarks:
+                doc_req.office_remarks = remarks
+            doc_req.save()
+
+            messages.info(
+                request,
+                f"Document marked as Collected by {doc_req.student.student_name}. Status changed to 'Collected (Not Returned)'."
+            )
+
+        elif action == 'returned':
+            # Student returns physical document
+            doc_req.status = 'Returned'
+            doc_req.returned_at = timezone.now()
+            remarks = request.POST.get('office_remarks', '').strip()
+            if remarks:
+                doc_req.office_remarks = remarks
+            doc_req.save()
+
+            messages.success(
+                request,
+                f"Original {doc_req.document_type} successfully returned by {doc_req.student.student_name}. Workflow completed!"
+            )
+
+        elif action == 'reject':
+            rejection_reason = request.POST.get('rejection_reason', '').strip()
+            doc_req.status = 'Rejected'
+            doc_req.rejection_reason = rejection_reason or 'Request rejected by Department Office.'
+            doc_req.save()
+
+            messages.warning(
+                request,
+                f"Document request for {doc_req.student.student_name} ({doc_req.document_type}) was rejected."
+            )
+
+            if doc_req.student.student_email:
+                try:
+                    from django.core.mail import send_mail
+                    from django.conf import settings
+
+                    subject = f"SSMS Notice: Document Request Update ({doc_req.document_type})"
+                    message = (
+                        f"Dear {doc_req.student.student_name},\n\n"
+                        f"Your request to borrow {doc_req.document_type} could not be approved.\n\n"
+                        f"Reason for rejection: {doc_req.rejection_reason}\n\n"
+                        f"Please contact the Department Office for further queries.\n\n"
+                        f"Regards,\nDepartment Office Staff"
+                    )
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [doc_req.student.student_email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Failed to send rejection email: {e}")
+
+        return redirect('staffs:office_manage_document_requests')
+
+    all_requests = DocumentRequest.objects.select_related('student').order_by('-updated_at')
+
+    pending_list = all_requests.filter(status='Pending')
+    ready_list = all_requests.filter(status='Ready for Collection')
+    borrowed_list = all_requests.filter(status='Collected (Not Returned)')
+    completed_list = all_requests.filter(status__in=['Returned', 'Rejected'])
+
+    context = {
+        'staff': staff,
+        'all_requests': all_requests,
+        'pending_list': pending_list,
+        'ready_list': ready_list,
+        'borrowed_list': borrowed_list,
+        'completed_list': completed_list,
+        'pending_count': pending_list.count(),
+        'ready_count': ready_list.count(),
+        'borrowed_count': borrowed_list.count(),
+    }
+    return render(request, 'staff/office_document_requests.html', context)
+
+

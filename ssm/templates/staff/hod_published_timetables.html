@@ -805,54 +805,383 @@
   {% endif %}
 
   {% if active_tab == 'edit' %}
-  <!-- TAB 2: INTERACTIVE TIMETABLE EDITOR -->
-  <form method="POST" action="{% url 'staffs:edit_timetable' selected_semester %}">
+  <!-- TAB 2: SUPERCHARGED INTERACTIVE TIMETABLE EDITOR -->
+  <style>
+    .tt-palette-wrapper {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .tt-palette-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tt-palette-grid {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      align-items: stretch;
+    }
+    .tt-subject-card {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 9px 12px;
+      min-width: 170px;
+      cursor: grab;
+      user-select: none;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      position: relative;
+    }
+    .tt-subject-card:hover {
+      transform: translateY(-2px);
+      border-color: #5a7d7c;
+      box-shadow: 0 6px 16px rgba(90,125,124,0.18);
+    }
+    .tt-subject-card.paint-active {
+      border-color: #059669 !important;
+      background: #ecfdf5 !important;
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.3) !important;
+    }
+    .tt-card-code {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tt-card-type {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .tt-type-theory { background: #e0f2fe; color: #0369a1; }
+    .tt-type-lab { background: #fce7f3; color: #be185d; }
+    .tt-type-special { background: #fef3c7; color: #92400e; }
+
+    .tt-card-staff {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tt-card-progress {
+      margin-top: 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tt-badge-met { color: #059669; }
+    .tt-badge-pending { color: #d97706; }
+    .tt-badge-over { color: #dc2626; }
+
+    .tt-stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .tt-stat-card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      border-top: 3px solid #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tt-stat-card.f { border-top-color: #059669; }
+    .tt-stat-card.e { border-top-color: #3b82f6; }
+    .tt-stat-card.l { border-top-color: #8b5cf6; }
+    .tt-stat-card.c { border-top-color: #ef4444; }
+    .tt-stat-val { font-size: 1.15rem; font-weight: 700; color: #0f172a; line-height: 1; }
+    .tt-stat-lbl { font-size: 0.7rem; color: #64748b; margin-top: 2px; }
+
+    .tt-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      background: #f1f5f9;
+      padding: 8px 14px;
+      border-radius: 8px;
+    }
+    .tt-tb-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .tt-tb-btn:hover { background: #f8fafc; border-color: #94a3b8; color: #0f172a; }
+    .tt-tb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .tt-conflict-alert-box {
+      margin-top: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      padding: 3px 6px;
+      border-radius: 5px;
+      animation: ttPulse 1.5s infinite;
+    }
+    @keyframes ttPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .paint-cursor * { cursor: crosshair !important; }
+  </style>
+
+  <!-- BATCH MODE TABS -->
+  <div style="display: flex; gap: 8px; margin-bottom: 14px; background: #f8fafc; padding: 8px 12px; border-radius: 10px; align-items: center; border: 1px solid #e2e8f0; flex-wrap: wrap;">
+    <span style="font-weight: 600; color: #475569; font-size: 0.85rem; margin-right: 8px; display: flex; align-items: center; gap: 4px;">
+      ⚙️ Mode (Academic Year {{ selected_academic_year }}):
+    </span>
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All&tab=edit" class="tt-tb-btn" style="{% if selected_batch == 'All' %}background: #5a7d7c; color: white; border-color: #5a7d7c;{% endif %}">
+      👥 Combined (All Students)
+    </a>
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab=edit" class="tt-tb-btn" style="{% if selected_batch == 'A' %}background: #5a7d7c; color: white; border-color: #5a7d7c;{% endif %}">
+      🅰️ Batch A Only
+    </a>
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B&tab=edit" class="tt-tb-btn" style="{% if selected_batch == 'B' %}background: #5a7d7c; color: white; border-color: #5a7d7c;{% endif %}">
+      🅱️ Batch B Only
+    </a>
+  </div>
+
+  <!-- LIVE STATS BAR -->
+  <div class="tt-stats-bar">
+    <div class="tt-stat-card f">
+      <div style="font-size: 1.3rem;">✅</div>
+      <div>
+        <div class="tt-stat-val" id="stat-filled-val">0 / 35</div>
+        <div class="tt-stat-lbl" id="stat-filled-lbl">Filled Slots</div>
+      </div>
+    </div>
+    <div class="tt-stat-card e">
+      <div style="font-size: 1.3rem;">⬜</div>
+      <div>
+        <div class="tt-stat-val" id="stat-vacant-val">35</div>
+        <div class="tt-stat-lbl">Vacant Slots</div>
+      </div>
+    </div>
+    <div class="tt-stat-card l">
+      <div style="font-size: 1.3rem;">🔬</div>
+      <div>
+        <div class="tt-stat-val" id="stat-labs-val">0</div>
+        <div class="tt-stat-lbl">Lab Sessions</div>
+      </div>
+    </div>
+    <div class="tt-stat-card c" id="stat-conflict-card">
+      <div style="font-size: 1.3rem;" id="stat-conflict-icon">🛡️</div>
+      <div>
+        <div class="tt-stat-val" id="stat-conflict-val" style="color: #059669;">0</div>
+        <div class="tt-stat-lbl" id="stat-conflict-lbl">Faculty Conflicts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBJECT PALETTE & QUICK APPLICATOR -->
+  <div class="tt-palette-wrapper">
+    <div class="tt-palette-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 1.1rem;">🎨</span>
+        <strong style="font-size: 0.9rem; color: #1e293b;">Subject Palette & Quick Painter</strong>
+        <span style="font-size: 0.72rem; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 12px;">Click to Paint or Drag & Drop</span>
+      </div>
+      <div id="paint-status-pill" style="display: none; background: #ecfdf5; color: #047857; font-weight: 700; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; border: 1px solid #6ee7b7;">
+        🖌️ Paint Mode Active (<span id="paint-status-name"></span>) — Click cell to apply (Esc to cancel)
+      </div>
+    </div>
+
+    <div class="tt-palette-grid">
+      {% for subj in subjects_list %}
+      <div class="tt-subject-card" draggable="true" data-subj-id="{{ subj.id }}" data-subj-code="{{ subj.code }}" data-subj-type="{{ subj.subject_type }}" onclick="activatePaintMode('{{ subj.id }}', '{{ subj.code }}')" ondragstart="handlePaletteDragStart(event, '{{ subj.id }}')">
+        <div class="tt-card-code">
+          <span>{{ subj.code }}</span>
+          <span class="tt-card-type {% if subj.subject_type == 'Lab' %}tt-type-lab{% else %}tt-type-theory{% endif %}">{{ subj.subject_type }}</span>
+        </div>
+        <div class="tt-card-staff">👤 {% if subj.staff %}{{ subj.staff.name }}{% else %}Unassigned{% endif %}</div>
+        <div class="tt-card-progress">
+          <span style="color: #64748b;">Quota:</span>
+          <span id="quota-badge-{{ subj.id }}" class="tt-badge-pending">0/3 hrs</span>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- SPECIAL SLOT CARDS -->
+      <div class="tt-subject-card" draggable="true" data-subj-id="LAB_SESSION" data-subj-code="LAB SESSION" data-subj-type="Lab" onclick="activatePaintMode('LAB_SESSION', 'LAB SESSION')" ondragstart="handlePaletteDragStart(event, 'LAB_SESSION')" style="border-color: #f59e0b; background: #fffbeb;">
+        <div class="tt-card-code">
+          <span>🔬 LAB SESSION</span>
+          <span class="tt-card-type tt-type-special">3-Hr Span</span>
+        </div>
+        <div class="tt-card-staff">Split A/B or Combined</div>
+        <div class="tt-card-progress">
+          <span style="color: #b45309; font-weight: 700;">Special Block</span>
+        </div>
+      </div>
+
+      <div class="tt-subject-card" draggable="true" data-subj-id="PLACEMENT" data-subj-code="PLACEMENT" data-subj-type="Theory" onclick="activatePaintMode('PLACEMENT', 'PLACEMENT')" ondragstart="handlePaletteDragStart(event, 'PLACEMENT')" style="border-color: #3b82f6; background: #eff6ff;">
+        <div class="tt-card-code">
+          <span>💼 PLACEMENT</span>
+          <span class="tt-card-type tt-type-special">Training</span>
+        </div>
+        <div class="tt-card-staff">Skill Building</div>
+        <div class="tt-card-progress"><span style="color: #1d4ed8;">2-Hr Slot</span></div>
+      </div>
+
+      <div class="tt-subject-card" draggable="true" data-subj-id="LIBRARY" data-subj-code="LIBRARY" data-subj-type="Theory" onclick="activatePaintMode('LIBRARY', 'LIBRARY')" ondragstart="handlePaletteDragStart(event, 'LIBRARY')" style="border-color: #8b5cf6; background: #f5f3ff;">
+        <div class="tt-card-code">
+          <span>📚 LIBRARY</span>
+          <span class="tt-card-type tt-type-special">Self Study</span>
+        </div>
+        <div class="tt-card-staff">Resource Hour</div>
+        <div class="tt-card-progress"><span style="color: #6d28d9;">Reading</span></div>
+      </div>
+
+      <div class="tt-subject-card" onclick="activatePaintMode('', 'Vacant / Clear')" style="border-color: #cbd5e1; background: #f8fafc;">
+        <div class="tt-card-code">
+          <span>🧹 VACANT</span>
+          <span class="tt-card-type" style="background: #e2e8f0; color: #475569;">Clear</span>
+        </div>
+        <div class="tt-card-staff">Click cell to clear</div>
+        <div class="tt-card-progress"><span style="color: #64748b;">Reset Slot</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR & MAIN FORM -->
+  <form id="tt-main-form" method="POST" action="{% url 'staffs:edit_timetable' selected_semester %}">
     {% csrf_token %}
     <input type="hidden" name="academic_year" value="{{ selected_academic_year }}">
     <input type="hidden" name="current_batch" value="{{ selected_batch }}">
 
-    <div class="section-card">
-      <div class="section-card-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-        <div class="section-card-title">
-          <span>✏️ Interactive Timetable Editor — Semester {{ selected_semester }} ({{ selected_academic_year }})</span>
-        </div>
-        <button type="submit" class="action-btn action-btn-primary">
+    <div class="tt-toolbar">
+      <button type="button" class="tt-tb-btn" id="btn-undo" onclick="undoTT()" disabled>↩️ Undo (Ctrl+Z)</button>
+      <button type="button" class="tt-tb-btn" id="btn-redo" onclick="redoTT()" disabled>↪️ Redo (Ctrl+Y)</button>
+      
+      <div style="height: 18px; width: 1px; background: #cbd5e1; margin: 0 4px;"></div>
+      
+      <select id="copy-src-day" class="tt-tb-btn" style="padding: 5px 8px;">
+        <option value="">📋 Copy Day...</option>
+        <option value="Monday">Monday</option>
+        <option value="Tuesday">Tuesday</option>
+        <option value="Wednesday">Wednesday</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Friday">Friday</option>
+      </select>
+      <select id="copy-dst-day" class="tt-tb-btn" style="padding: 5px 8px;">
+        <option value="">➡️ To Day...</option>
+        <option value="Monday">Monday</option>
+        <option value="Tuesday">Tuesday</option>
+        <option value="Wednesday">Wednesday</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Friday">Friday</option>
+      </select>
+      <button type="button" class="tt-tb-btn" onclick="executeCopyDay()">Copy Day</button>
+
+      <div style="height: 18px; width: 1px; background: #cbd5e1; margin: 0 4px;"></div>
+
+      <button type="button" class="tt-tb-btn" onclick="autoFillVacant('LIBRARY')">✨ Fill Vacant with Library</button>
+      <button type="button" class="tt-tb-btn" onclick="clearAllTT()" style="color: #dc2626;">🗑️ Clear All Slots</button>
+
+      <div style="margin-left: auto;">
+        <button type="submit" class="action-btn action-btn-primary" style="padding: 8px 20px;">
           💾 Save Timetable Grid
         </button>
       </div>
+    </div>
+
+    <!-- MAIN TIMETABLE GRID TABLE -->
+    <div class="section-card">
+      <div class="section-card-header" style="justify-content: space-between;">
+        <div class="section-card-title">
+          <span>📅 Semester {{ selected_semester }} Timetable Grid ({% if selected_batch == 'All' %}Combined{% else %}Batch {{ selected_batch }}{% endif %})</span>
+        </div>
+      </div>
 
       <div style="overflow-x: auto; padding: 16px;">
-        <table class="alloc-table" style="width: 100%;">
+        <table class="alloc-table" style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr>
-              <th style="width: 10%;">Day</th>
-              <th>P1 (08:30-09:30)</th>
-              <th>P2 (09:30-10:30)</th>
-              <th>P3 (10:40-11:40)</th>
-              <th>P4 (11:40-12:40)</th>
-              <th>P5 (13:30-14:30)</th>
-              <th>P6 (14:30-15:30)</th>
-              <th>P7 (15:30-16:30)</th>
+              <th style="width: 9%; background: #e2e8f0; color: #1e293b;">Day \ Time</th>
+              <th style="width: 13%;">P1<br><span style="font-size:0.7rem; font-weight:normal;">08:30–09:30</span></th>
+              <th style="width: 13%;">P2<br><span style="font-size:0.7rem; font-weight:normal;">09:30–10:30</span></th>
+              <th style="width: 13%;">P3<br><span style="font-size:0.7rem; font-weight:normal;">10:40–11:40</span></th>
+              <th style="width: 13%;">P4<br><span style="font-size:0.7rem; font-weight:normal;">11:40–12:40</span></th>
+              <th style="width: 13%;">P5<br><span style="font-size:0.7rem; font-weight:normal;">01:30–02:30</span></th>
+              <th style="width: 13%;">P6<br><span style="font-size:0.7rem; font-weight:normal;">02:30–03:30</span></th>
+              <th style="width: 13%;">P7<br><span style="font-size:0.7rem; font-weight:normal;">03:30–04:30</span></th>
             </tr>
           </thead>
           <tbody>
             {% for day, p_slots in edit_timetable_rows %}
-            <tr>
-              <td style="font-weight: 700; background: #f8fafc; text-align: center; vertical-align: middle;">{{ day }}</td>
+            <tr id="row-{{ day }}">
+              <td style="font-weight: 700; background: #f8fafc; text-align: center; vertical-align: middle; border-right: 2px solid #cbd5e1;">
+                {{ day }}
+              </td>
               {% for entry in p_slots %}
               {% with period=forloop.counter %}
-              <td style="padding: 6px; vertical-align: top;">
-                <select name="subject_{{ day }}_{{ period }}" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem;">
-                  <option value="">— Vacant —</option>
+              <td id="cell-td-{{ day }}-{{ period }}" style="padding: 6px; vertical-align: top; transition: all 0.2s ease; position: relative;" ondragover="handleGridDragOver(event)" ondrop="handleGridDrop(event, '{{ day }}', {{ period }})" onclick="onGridCellClick(event, '{{ day }}', {{ period }})">
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                  <span id="type-tag-{{ day }}-{{ period }}" style="font-size: 0.62rem; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: #f1f5f9; color: #64748b;">Vacant</span>
+                  <button type="button" onclick="clearSingleCell('{{ day }}', {{ period }}, event)" style="background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 0.95rem; line-height: 1; padding: 0 3px;" title="Clear period">×</button>
+                </div>
+
+                <select name="subject_{{ day }}_{{ period }}" id="sel_{{ day }}_{{ period }}" class="tt-grid-select" data-day="{{ day }}" data-period="{{ period }}" onchange="handleGridSelectChange('{{ day }}', {{ period }})" style="width: 100%; padding: 5px 4px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.78rem; background: #fff;">
+                  <option value="" data-is-lab="false">— Vacant —</option>
                   {% for s in subjects_list %}
-                  <option value="{{ s.id }}" {% if entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>
-                    {{ s.code }} ({{ s.subject_type }})
+                  <option value="{{ s.id }}" data-is-lab="{% if s.subject_type == 'Lab' %}true{% else %}false{% endif %}" {% if entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>
+                    {% if s.subject_type == 'Lab' %}🔬 {% else %}📖 {% endif %}{{ s.code }} ({{ s.subject_type }})
                   </option>
                   {% endfor %}
-                  <option value="LAB_SESSION" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION' %}selected{% endif %}>🔬 LAB SESSION (Split A/B)</option>
-                  <option value="PLACEMENT" {% if entry and entry.subject and entry.subject.id == 'PLACEMENT' %}selected{% endif %}>💼 PLACEMENT</option>
-                  <option value="LIBRARY" {% if entry and entry.subject and entry.subject.id == 'LIBRARY' %}selected{% endif %}>📚 LIBRARY</option>
+                  <optgroup label="Special Slots">
+                    <option value="LAB_SESSION" data-is-lab="true" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION' %}selected{% endif %}>🔬 LAB SESSION (Split A/B)</option>
+                    <option value="PLACEMENT" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'PLACEMENT' %}selected{% endif %}>💼 PLACEMENT</option>
+                    <option value="LIBRARY" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'LIBRARY' %}selected{% endif %}>📚 LIBRARY</option>
+                  </optgroup>
                 </select>
+
+                <!-- FACULTY CHIP -->
+                <div id="chip_{{ day }}_{{ period }}" style="font-size: 0.68rem; color: #475569; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic;"></div>
+
+                <!-- LAB MERGE TAG OVERLAY -->
+                <div id="badge_{{ day }}_{{ period }}" class="lab-merge-tag" style="display: none; margin-top: 4px; font-size: 0.68rem; font-weight: 700; background: #dcfce7; color: #166534; padding: 2px 5px; border-radius: 4px; text-align: center; border: 1px solid #bbf7d0;"></div>
+
+                <!-- FACULTY CONFLICT ALERT BADGE -->
+                <div id="conflict_{{ day }}_{{ period }}" class="tt-conflict-alert-box" style="display: none;"></div>
+
               </td>
               {% endwith %}
               {% endfor %}
@@ -948,5 +1277,449 @@
       }
     }
   }
+
+  function isLabOption(selElem) {
+    if (!selElem || !selElem.value) return false;
+    if (selElem.value === 'LAB_SESSION') return true;
+    const selectedOpt = selElem.options[selElem.selectedIndex];
+    return selectedOpt && selectedOpt.getAttribute('data-is-lab') === 'true';
+  }
+
+  /* Data from Django */
+  const SUBJECT_MAP = {% if subject_staff_map_json %}{{ subject_staff_map_json|safe }}{% else %}{}{% endif %};
+  const FACULTY_OCCUPANCY = {% if faculty_occupancy_json %}{{ faculty_occupancy_json|safe }}{% else %}{}{% endif %};
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+  /* Undo / Redo History Engine */
+  const historyStack = [];
+  const redoStack = [];
+  let isUndoingRedoing = false;
+
+  function captureSnapshot() {
+    const snapshot = {};
+    DAYS.forEach(d => {
+      for (let p = 1; p <= 7; p++) {
+        const sel = document.getElementById(`sel_${d}_${p}`);
+        if (sel) snapshot[`${d}_${p}`] = sel.value;
+      }
+    });
+    return snapshot;
+  }
+
+  function pushState() {
+    if (isUndoingRedoing) return;
+    const snap = captureSnapshot();
+    if (historyStack.length > 0) {
+      const last = historyStack[historyStack.length - 1];
+      if (JSON.stringify(last) === JSON.stringify(snap)) return;
+    }
+    historyStack.push(snap);
+    redoStack.length = 0;
+    updateUndoRedoButtons();
+  }
+
+  function applySnapshot(snap) {
+    isUndoingRedoing = true;
+    DAYS.forEach(d => {
+      for (let p = 1; p <= 7; p++) {
+        const sel = document.getElementById(`sel_${d}_${p}`);
+        if (sel && snap[`${d}_${p}`] !== undefined) {
+          sel.value = snap[`${d}_${p}`];
+          updateCellVisuals(d, p);
+        }
+      }
+      updateRowLabHighlights(d);
+    });
+    isUndoingRedoing = false;
+    updateStatsAndQuotas();
+    validateAllConflicts();
+    updateUndoRedoButtons();
+  }
+
+  function undoTT() {
+    if (historyStack.length <= 1) return;
+    historyStack.pop(); // Remove current
+    const prev = historyStack[historyStack.length - 1];
+    applySnapshot(prev);
+  }
+
+  function redoTT() {
+    if (redoStack.length === 0) return;
+    const next = redoStack.pop();
+    historyStack.push(next);
+    applySnapshot(next);
+  }
+
+  function updateUndoRedoButtons() {
+    const btnUndo = document.getElementById('btn-undo');
+    const btnRedo = document.getElementById('btn-redo');
+    if (btnUndo) btnUndo.disabled = historyStack.length <= 1;
+    if (btnRedo) btnRedo.disabled = redoStack.length === 0;
+  }
+
+  /* Paint Mode Engine */
+  let activePaintSubjId = null;
+  let activePaintSubjCode = '';
+
+  function activatePaintMode(subjId, subjCode) {
+    if (activePaintSubjId === subjId) {
+      activePaintSubjId = null;
+      activePaintSubjCode = '';
+      document.body.classList.remove('paint-cursor');
+    } else {
+      activePaintSubjId = subjId;
+      activePaintSubjCode = subjCode;
+      document.body.classList.add('paint-cursor');
+    }
+    updatePaletteVisuals();
+  }
+
+  function updatePaletteVisuals() {
+    const cards = document.querySelectorAll('.tt-subject-card');
+    cards.forEach(c => {
+      const id = c.getAttribute('data-subj-id');
+      if (activePaintSubjId !== null && id === activePaintSubjId) {
+        c.classList.add('paint-active');
+      } else {
+        c.classList.remove('paint-active');
+      }
+    });
+
+    const pill = document.getElementById('paint-status-pill');
+    const pillName = document.getElementById('paint-status-name');
+    if (pill) {
+      if (activePaintSubjId !== null) {
+        pill.style.display = 'inline-flex';
+        if (pillName) pillName.textContent = activePaintSubjCode || 'Selected';
+      } else {
+        pill.style.display = 'none';
+      }
+    }
+  }
+
+  function onGridCellClick(event, day, period) {
+    if (activePaintSubjId === null) return;
+    const sel = document.getElementById(`sel_${day}_${period}`);
+    if (!sel) return;
+
+    sel.value = activePaintSubjId;
+    handleGridSelectChange(day, period);
+  }
+
+  /* Drag and Drop Engine */
+  function handlePaletteDragStart(event, subjId) {
+    event.dataTransfer.setData('text/plain', subjId);
+  }
+
+  function handleGridDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }
+
+  function handleGridDrop(event, day, period) {
+    event.preventDefault();
+    const subjId = event.dataTransfer.getData('text/plain');
+    if (subjId !== undefined) {
+      const sel = document.getElementById(`sel_${day}_${period}`);
+      if (sel) {
+        sel.value = subjId;
+        handleGridSelectChange(day, period);
+      }
+    }
+  }
+
+  /* Grid Change Handler */
+  function handleGridSelectChange(day, period) {
+    const leaderSel = document.getElementById(`sel_${day}_${period}`);
+    if (!leaderSel) return;
+
+    const val = leaderSel.value;
+    const isLab = isLabOption(leaderSel);
+
+    let targetPeriods = [];
+    if (isLab) {
+      if (period === 1) targetPeriods = [1, 2, 3];
+      else if (period === 2) targetPeriods = [2, 3, 4];
+      else if (period === 5) targetPeriods = [5, 6, 7];
+    }
+
+    if (targetPeriods.length > 0) {
+      targetPeriods.forEach(p => {
+        const sel = document.getElementById(`sel_${day}_${p}`);
+        if (sel) {
+          sel.value = val;
+          updateCellVisuals(day, p);
+        }
+      });
+    } else {
+      updateCellVisuals(day, period);
+    }
+
+    updateRowLabHighlights(day);
+    pushState();
+    updateStatsAndQuotas();
+    validateAllConflicts();
+  }
+
+  function clearSingleCell(day, period, event) {
+    if (event) event.stopPropagation();
+    const sel = document.getElementById(`sel_${day}_${period}`);
+    if (sel) {
+      sel.value = '';
+      handleGridSelectChange(day, period);
+    }
+  }
+
+  function updateCellVisuals(day, period) {
+    const sel = document.getElementById(`sel_${day}_${period}`);
+    const chip = document.getElementById(`chip_${day}_${period}`);
+    const typeTag = document.getElementById(`type-tag-${day}-${period}`);
+    const td = document.getElementById(`cell-td-${day}-${period}`);
+
+    if (!sel || !td) return;
+    const val = sel.value;
+
+    if (!val) {
+      td.style.background = '';
+      td.style.borderLeft = '';
+      if (chip) chip.textContent = '';
+      if (typeTag) { typeTag.textContent = 'Vacant'; typeTag.style.background = '#f1f5f9'; typeTag.style.color = '#64748b'; }
+    } else if (SUBJECT_MAP[val]) {
+      const info = SUBJECT_MAP[val];
+      if (chip) chip.textContent = info.staff && info.staff !== '—' ? `👤 ${info.staff}` : '';
+      if (typeTag) {
+        typeTag.textContent = info.type;
+        if (info.type === 'Lab') { typeTag.style.background = '#fce7f3'; typeTag.style.color = '#be185d'; }
+        else { typeTag.style.background = '#e0f2fe'; typeTag.style.color = '#0369a1'; }
+      }
+      td.style.background = info.type === 'Lab' ? '#fdf2f8' : '#f0f9ff';
+      td.style.borderLeft = info.type === 'Lab' ? '3px solid #ec4899' : '3px solid #0284c7';
+    } else {
+      if (chip) chip.textContent = '';
+      if (typeTag) { typeTag.textContent = 'Special'; typeTag.style.background = '#fef3c7'; typeTag.style.color = '#92400e'; }
+      td.style.background = '#fffbeb';
+      td.style.borderLeft = '3px solid #f59e0b';
+    }
+  }
+
+  function updateRowLabHighlights(day) {
+    const periods = [1, 2, 3, 4, 5, 6, 7];
+    periods.forEach(p => {
+      const badge = document.getElementById(`badge_${day}_${p}`);
+      if (badge) {
+        badge.style.display = 'none';
+        badge.innerText = '';
+      }
+    });
+
+    function applyBlockHighlight(pList, labelText) {
+      const firstSel = document.getElementById(`sel_${day}_${pList[0]}`);
+      if (!firstSel || !firstSel.value) return;
+
+      pList.forEach((p, idx) => {
+        const badge = document.getElementById(`badge_${day}_${p}`);
+        if (badge) {
+          badge.style.display = 'block';
+          badge.innerText = idx === 0 ? `🔬 3-Hr Lab (${labelText})` : `↳ Lab Block`;
+        }
+      });
+    }
+
+    const p1Sel = document.getElementById(`sel_${day}_1`);
+    if (isLabOption(p1Sel)) {
+      applyBlockHighlight([1, 2, 3], 'P1–P3');
+    } else {
+      const p2Sel = document.getElementById(`sel_${day}_2`);
+      if (isLabOption(p2Sel)) {
+        applyBlockHighlight([2, 3, 4], 'P2–P4');
+      }
+    }
+
+    const p5Sel = document.getElementById(`sel_${day}_5`);
+    if (isLabOption(p5Sel)) {
+      applyBlockHighlight([5, 6, 7], 'P5–P7');
+    }
+  }
+
+  /* Faculty Overbooking & Conflict Detector */
+  function validateAllConflicts() {
+    let conflictCount = 0;
+    const currentSem = {{ selected_semester|default:1 }};
+
+    DAYS.forEach(day => {
+      for (let p = 1; p <= 7; p++) {
+        const sel = document.getElementById(`sel_${day}_${p}`);
+        const alertBox = document.getElementById(`conflict_${day}_${p}`);
+        if (!sel || !alertBox) continue;
+
+        alertBox.style.display = 'none';
+        alertBox.textContent = '';
+
+        const val = sel.value;
+        if (val && SUBJECT_MAP[val] && SUBJECT_MAP[val].staff_id) {
+          const staffId = SUBJECT_MAP[val].staff_id;
+          const key = `${day}_${p}_${staffId}`;
+          const existing = FACULTY_OCCUPANCY[key];
+
+          if (existing && existing.length > 0) {
+            const externalConflict = existing.find(e => e.semester !== currentSem);
+            if (externalConflict) {
+              conflictCount++;
+              alertBox.style.display = 'block';
+              alertBox.innerHTML = `⚠️ Conflict: ${externalConflict.staff_name || 'Staff'} in Sem ${externalConflict.semester} (${externalConflict.subject_code})`;
+            }
+          }
+        }
+      }
+    });
+
+    const statVal = document.getElementById('stat-conflict-val');
+    const statLbl = document.getElementById('stat-conflict-lbl');
+    const statIcon = document.getElementById('stat-conflict-icon');
+
+    if (statVal) {
+      statVal.textContent = conflictCount;
+      if (conflictCount > 0) {
+        statVal.style.color = '#ef4444';
+        if (statLbl) statLbl.textContent = 'Conflicts Found!';
+        if (statIcon) statIcon.textContent = '🚨';
+      } else {
+        statVal.style.color = '#059669';
+        if (statLbl) statLbl.textContent = 'Faculty Conflicts';
+        if (statIcon) statIcon.textContent = '🛡️';
+      }
+    }
+  }
+
+  /* Stats & Subject Quotas Update */
+  function updateStatsAndQuotas() {
+    const counts = {};
+    let filled = 0;
+    let labs = 0;
+
+    DAYS.forEach(day => {
+      for (let p = 1; p <= 7; p++) {
+        const sel = document.getElementById(`sel_${day}_${p}`);
+        if (sel && sel.value) {
+          filled++;
+          const val = sel.value;
+          counts[val] = (counts[val] || 0) + 1;
+          if (isLabOption(sel)) labs++;
+        }
+      }
+    });
+
+    const filledVal = document.getElementById('stat-filled-val');
+    const vacantVal = document.getElementById('stat-vacant-val');
+    const labsVal = document.getElementById('stat-labs-val');
+
+    if (filledVal) filledVal.textContent = `${filled} / 35`;
+    if (vacantVal) vacantVal.textContent = 35 - filled;
+    if (labsVal) labsVal.textContent = labs;
+
+    Object.keys(SUBJECT_MAP).forEach(sid => {
+      const badge = document.getElementById(`quota-badge-${sid}`);
+      if (badge) {
+        const target = SUBJECT_MAP[sid].target_hours || 3;
+        const actual = counts[sid] || 0;
+        badge.textContent = `${actual}/${target} hrs`;
+        if (actual === target) {
+          badge.className = 'tt-badge-met';
+          badge.textContent = `${actual}/${target} hrs ✅`;
+        } else if (actual > target) {
+          badge.className = 'tt-badge-over';
+          badge.textContent = `${actual}/${target} hrs ⚠️`;
+        } else {
+          badge.className = 'tt-badge-pending';
+        }
+      }
+    });
+  }
+
+  /* Bulk Tools */
+  function executeCopyDay() {
+    const src = document.getElementById('copy-src-day').value;
+    const dst = document.getElementById('copy-dst-day').value;
+    if (!src || !dst) { alert('Please select both Source and Target Day.'); return; }
+    if (src === dst) { alert('Source and Target Day cannot be the same.'); return; }
+
+    for (let p = 1; p <= 7; p++) {
+      const srcSel = document.getElementById(`sel_${src}_${p}`);
+      const dstSel = document.getElementById(`sel_${dst}_${p}`);
+      if (srcSel && dstSel) {
+        dstSel.value = srcSel.value;
+        updateCellVisuals(dst, p);
+      }
+    }
+    updateRowLabHighlights(dst);
+    pushState();
+    updateStatsAndQuotas();
+    validateAllConflicts();
+  }
+
+  function autoFillVacant(val) {
+    let filledAny = false;
+    DAYS.forEach(day => {
+      for (let p = 1; p <= 7; p++) {
+        const sel = document.getElementById(`sel_${day}_${p}`);
+        if (sel && !sel.value) {
+          sel.value = val;
+          updateCellVisuals(day, p);
+          filledAny = true;
+        }
+      }
+      updateRowLabHighlights(day);
+    });
+    if (filledAny) {
+      pushState();
+      updateStatsAndQuotas();
+      validateAllConflicts();
+    }
+  }
+
+  function clearAllTT() {
+    if (!confirm('Clear all 35 slots for this timetable?')) return;
+    DAYS.forEach(day => {
+      for (let p = 1; p <= 7; p++) {
+        const sel = document.getElementById(`sel_${day}_${p}`);
+        if (sel) {
+          sel.value = '';
+          updateCellVisuals(day, p);
+        }
+      }
+      updateRowLabHighlights(day);
+    });
+    pushState();
+    updateStatsAndQuotas();
+    validateAllConflicts();
+  }
+
+  /* Keyboard Hotkeys */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && activePaintSubjId !== null) {
+      activatePaintMode(null, '');
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      undoTT();
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+      e.preventDefault();
+      redoTT();
+    }
+  });
+
+  /* Initialization */
+  document.addEventListener('DOMContentLoaded', function() {
+    DAYS.forEach(day => {
+      for (let p = 1; p <= 7; p++) {
+        updateCellVisuals(day, p);
+      }
+      updateRowLabHighlights(day);
+    });
+    pushState();
+    updateStatsAndQuotas();
+    validateAllConflicts();
+  });
 </script>
 {% endblock %}

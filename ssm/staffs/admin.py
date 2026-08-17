@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Staff, Subject, ExamSchedule, Timetable, News, StaffLeaveRequest, AuditLog, StaffGenerator, AdminSettings, Lab, ClassMapping, PublishedTimetableVersion
+from .models import Staff, Subject, ExamSchedule, Timetable, News, StaffLeaveRequest, AuditLog, StaffGenerator, AdminSettings, Lab, ClassMapping, PublishedTimetableVersion, DepartmentTask
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
@@ -15,10 +15,11 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('staff_id', 'name', 'designation', 'role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'department')
+    list_display = ('staff_id', 'name', 'designation', 'role', 'get_assigned_department_tasks', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'department')
     list_editable = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester')
     search_fields = ('staff_id', 'name', 'email')
-    list_filter = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'department', 'designation')
+    list_filter = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'department', 'designation', 'assigned_department_tasks')
+    actions = ['export_staff_tasks_csv', 'export_staff_allocation_matrix_csv']
     fieldsets = (
         ('Basic Info', {
             'fields': ('staff_id', 'name', 'email', 'photo')
@@ -40,6 +41,61 @@ class StaffAdmin(admin.ModelAdmin):
             'fields': ('is_active',)
         }),
     )
+
+    def get_assigned_department_tasks(self, obj):
+        tasks = obj.assigned_department_tasks.all()
+        if not tasks.exists():
+            return "—"
+        return ", ".join([f"{t.task_number}. {t.name}" for t in tasks[:3]]) + ("..." if tasks.count() > 3 else "")
+    get_assigned_department_tasks.short_description = 'Assigned Tasks / Roles'
+
+    @admin.action(description="📥 Export Selected Staff List with Assigned Tasks/Roles (CSV)")
+    def export_staff_tasks_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="staff_assigned_roles_report.csv"'
+        response.write('\ufeff')
+        writer = csv.writer(response)
+        writer.writerow(['Staff ID', 'Salutation', 'Name', 'Designation', 'Department', 'Email', 'Mobile', 'Primary Role', 'Assigned Department Tasks / Roles'])
+
+        for staff in queryset.prefetch_related('assigned_department_tasks'):
+            tasks = [f"{t.task_number}. {t.name}" for t in staff.assigned_department_tasks.all()]
+            writer.writerow([
+                staff.staff_id,
+                staff.salutation or '',
+                staff.name,
+                staff.designation or '',
+                staff.department or '',
+                staff.email or '',
+                staff.mobile_number or '',
+                staff.role,
+                "; ".join(tasks) if tasks else "No additional tasks assigned"
+            ])
+        return response
+
+    @admin.action(description="📊 Export Complete Task Allocation Matrix (CSV)")
+    def export_staff_allocation_matrix_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="department_task_allocation_matrix.csv"'
+        response.write('\ufeff')
+        writer = csv.writer(response)
+
+        all_tasks = DepartmentTask.objects.all().order_by('task_number')
+        header = ['Staff ID', 'Staff Name', 'Designation', 'Role'] + [f"Task {t.task_number}: {t.name}" for t in all_tasks]
+        writer.writerow(header)
+
+        for staff in queryset.prefetch_related('assigned_department_tasks'):
+            assigned_ids = set(staff.assigned_department_tasks.values_list('id', flat=True))
+            row = [
+                staff.staff_id,
+                staff.name,
+                staff.designation or '',
+                staff.role
+            ]
+            for task in all_tasks:
+                row.append("YES" if task.id in assigned_ids else "NO")
+            writer.writerow(row)
+
+        return response
     
     def get_logged_in_staff(self, request):
         if not request.user or not request.user.is_authenticated:
@@ -305,13 +361,54 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                     response.set_cookie('download_complete', 'true', max_age=20)
                     return response
 
-                    response.set_cookie('download_complete', 'true', max_age=20)
-                    return response
-
             except Exception as e:
-                messages.error(request, f"Error: {str(e)}")
+                messages.error(request, f"Error generating staff: {str(e)}")
+                return redirect('admin:staffs_staffgenerator_changelist')
 
-        return render(request, 'staff/generate_staff.html', {})
+        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_role': 'Course Incharge'})
+
+
+@admin.register(DepartmentTask)
+class DepartmentTaskAdmin(admin.ModelAdmin):
+    list_display = ('task_number', 'name', 'category', 'get_assigned_staff_count', 'get_assigned_staff_list')
+    list_filter = ('category',)
+    search_fields = ('task_number', 'name', 'category', 'assigned_staff__name', 'assigned_staff__staff_id')
+    filter_horizontal = ('assigned_staff',)
+    ordering = ('task_number',)
+    actions = ['export_tasks_csv', 'seed_missing_tasks']
+
+    def get_assigned_staff_count(self, obj):
+        return obj.assigned_staff.count()
+    get_assigned_staff_count.short_description = 'Staff Count'
+
+    def get_assigned_staff_list(self, obj):
+        names = [s.name for s in obj.assigned_staff.all()]
+        return ", ".join(names) if names else "Unassigned"
+    get_assigned_staff_list.short_description = 'Assigned Staff Members'
+
+    @admin.action(description="📥 Export Selected Tasks & Assigned Staff (CSV)")
+    def export_tasks_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="department_tasks_assignment_report.csv"'
+        response.write('\ufeff')
+        writer = csv.writer(response)
+        writer.writerow(['Task No', 'Task / Role Name', 'Category', 'Assigned Staff Count', 'Assigned Staff (IDs & Names)'])
+
+        for task in queryset.prefetch_related('assigned_staff'):
+            staff_details = [f"{s.name} ({s.staff_id})" for s in task.assigned_staff.all()]
+            writer.writerow([
+                task.task_number,
+                task.name,
+                task.category,
+                task.assigned_staff.count(),
+                "; ".join(staff_details) if staff_details else "Unassigned"
+            ])
+        return response
+
+    @admin.action(description="🌱 Seed / Reset 58 Default Department Tasks")
+    def seed_missing_tasks(self, request, queryset):
+        DepartmentTask.seed_default_tasks()
+        self.message_user(request, "Successfully seeded default 58 Department Tasks & Roles.", messages.SUCCESS)
 
 
 @admin.register(AdminSettings)
@@ -334,9 +431,9 @@ class LabAdmin(admin.ModelAdmin):
 
 @admin.register(ClassMapping)
 class ClassMappingAdmin(admin.ModelAdmin):
-    list_display = ('class_name', 'room_name', 'semester', 'staff', 'from_date', 'to_date')
+    list_display = ('class_name', 'room_name', 'semester', 'from_date', 'to_date')
     search_fields = ('class_name', 'room_name')
-    list_filter = ('semester', 'staff', 'from_date', 'to_date')
+    list_filter = ('semester', 'from_date', 'to_date')
 
 
 @admin.register(PublishedTimetableVersion)

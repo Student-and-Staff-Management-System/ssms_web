@@ -273,6 +273,12 @@
                         <span class="nav-group-chevron">▶</span>
                     </div>
                     <div class="nav-group-content" style="display: block;">
+                        <a href="{% url 'staffs:office_manage_bonafide' %}" class="nav-item" data-tooltip="Bonafide Requests">
+                            <span class="nav-icon">📜</span> <span class="nav-text">Bonafide Certificates</span>
+                        </a>
+                        <a href="{% url 'staffs:office_manage_document_requests' %}" class="nav-item" data-tooltip="Original Document Requests">
+                            <span class="nav-icon">📁</span> <span class="nav-text">Original Document Requests</span>
+                        </a>
                         <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item" data-tooltip="Broadcast Notice">
                             <span class="nav-icon">📢</span> <span class="nav-text">Broadcast Notice</span>
                         </a>
@@ -287,6 +293,66 @@
                         </a>
                         <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="nav-item" data-tooltip="Live Class Visualiser">
                             <span class="nav-icon">📡</span> <span class="nav-text">Live Class Visualiser</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Category Group: SYSTEM -->
+                <div class="sidebar-category-header">System</div>
+                {% if staff.is_admin %}
+                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer" data-tooltip="Admin Portal">
+                    <span class="nav-icon">⚙️</span> <span class="nav-text">Admin Portal</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'staffs:staff_logout' %}" class="nav-item" data-tooltip="Logout" style="color: #ef4444;">
+                    <span class="nav-icon">🚪</span> <span class="nav-text">Logout</span>
+                </a>
+                {% elif staff.role == 'Technical Officer' %}
+                <!-- Category Group: MAIN (NON-TEACHING) -->
+                <div class="sidebar-category-header">Non-Teaching Operations</div>
+                <div class="nav-group open" data-group-id="technical-workspace">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="My Workspace">
+                        <div class="nav-group-header-left">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-text">My Workspace</span>
+                        </div>
+                        <span class="nav-group-chevron">▶</span>
+                    </div>
+                    <div class="nav-group-content" style="display: block;">
+                        <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item" data-tooltip="Dashboard">
+                            <span class="nav-icon">📊</span> <span class="nav-text">Dashboard Overview</span>
+                        </a>
+                        <a href="{% url 'staffs:staff_profile' %}" class="nav-item" data-tooltip="Profile Overview">
+                            <span class="nav-icon">👤</span> <span class="nav-text">Profile Overview</span>
+                        </a>
+                        <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item" data-tooltip="Apply for Leave">
+                            <span class="nav-icon">✈️</span> <span class="nav-text">Apply for Leave</span>
+                        </a>
+                        <a href="{% url 'staffs:staff_leave_history' %}" class="nav-item" data-tooltip="Leave History">
+                            <span class="nav-icon">📜</span> <span class="nav-text">Leave History</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Category Group: LAB & TIMETABLE SERVICES -->
+                <div class="sidebar-category-header">Labs & Timetables</div>
+                <div class="nav-group open" data-group-id="technical-labs">
+                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Lab Operations">
+                        <div class="nav-group-header-left">
+                            <span class="nav-icon">🔬</span>
+                            <span class="nav-text">Lab Operations</span>
+                        </div>
+                        <span class="nav-group-chevron">▶</span>
+                    </div>
+                    <div class="nav-group-content" style="display: block;">
+                        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="nav-item" data-tooltip="Live Class & Lab Visualiser">
+                            <span class="nav-icon">📡</span> <span class="nav-text">Live Class Visualiser</span>
+                        </a>
+                        <a href="{% url 'staffs:timetable' %}" class="nav-item" data-tooltip="Master Timetable Hub">
+                            <span class="nav-icon">📅</span> <span class="nav-text">Master Timetable Hub</span>
+                        </a>
+                        <a href="{% url 'staffs:student_list' %}" class="nav-item" data-tooltip="Student Directory">
+                            <span class="nav-icon">👨‍🎓</span> <span class="nav-text">Student Directory</span>
                         </a>
                     </div>
                 </div>
@@ -471,6 +537,9 @@
                             {% if pending_bonafide_count %}
                             <span class="badge-count">{{ pending_bonafide_count }}</span>
                             {% endif %}
+                        </a>
+                        <a href="{% url 'staffs:manage_department_tasks' %}" class="nav-item" data-tooltip="Department Tasks & Roles">
+                            <span class="nav-icon">📋</span> <span class="nav-text">Department Tasks & Roles</span>
                         </a>
                         <a href="{% url 'staffs:manage_semesters' %}" class="nav-item" data-tooltip="Manage Semesters">
                             <span class="nav-icon">📅</span> <span class="nav-text">Manage Semesters</span>

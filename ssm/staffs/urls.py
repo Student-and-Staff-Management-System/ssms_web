@@ -114,6 +114,7 @@ urlpatterns = [
     path('hod/bonafide-fix/', bonafide_views.hod_bonafide_list, name='hod_manage_bonafide'),
     path('hod/bonafide/print/<int:request_id>/', bonafide_views.generate_bonafide_request_pdf, name='generate_bonafide_request_pdf'),
     path('office/bonafide-requests/', bonafide_views.office_bonafide_list, name='office_manage_bonafide'),
+    path('office/document-requests/', views.office_manage_document_requests, name='office_manage_document_requests'),
     path('admin-portal/', views.admin_portal_login, name='admin_portal_login'),
     path('risk-students/', views.risk_students, name='risk_students'),
     path('risk-students/export/<int:subject_id>/', views.export_risk_list, name='export_risk_list'),
@@ -151,6 +152,11 @@ urlpatterns = [
     path('attendance-deficit/', views.attendance_deficit_list, name='attendance_deficit_list'),
     path('attendance-deficit/send/', views.send_deficit_email, name='send_deficit_email'),
     
+    # Department Tasks & Roles Management
+    path('department-tasks/', views.manage_department_tasks, name='manage_department_tasks'),
+    path('department-tasks/export-staff/', views.export_staff_tasks_csv, name='export_staff_tasks_csv'),
+    path('department-tasks/export-matrix/', views.export_task_matrix_csv, name='export_task_matrix_csv'),
+
     # Web Push
     path('webpush/', include('webpush.urls')),
     path('send-notification/', views.send_custom_notification, name='send_custom_notification'),

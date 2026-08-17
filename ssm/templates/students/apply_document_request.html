@@ -1,0 +1,183 @@
+{% extends 'stddash.html' %}
+{% load static %}
+
+{% block page_title %}Original Document Requests | {{ student.student_name }}{% endblock %}
+
+{% block header_title %}
+<div style="display: flex; align-items: center; gap: 15px;">
+    <a href="{% url 'student_dashboard' %}"
+        style="text-decoration: none; color: #64748b; font-size: 1.5rem; line-height: 1; transition: color 0.2s;"
+        onmouseover="this.style.color='#1e293b'" onmouseout="this.style.color='#64748b'" title="Back to Dashboard">
+        &larr;
+    </a>
+    <h1 style="margin: 0; font-size: 1.5rem; color: var(--text-main, #0f172a);">📁 Original Marksheet & TC Borrow Requests</h1>
+</div>
+{% endblock %}
+
+{% block header_actions %}
+<button onclick="toggleDocumentModal(true)" class="action-btn"
+    style="background: #5a7d7c; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(90, 125, 124, 0.25);">
+    <span>+ Apply New Request</span>
+</button>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 20px 0; font-family: 'Poppins', sans-serif;">
+
+    <!-- Unreturned Alert Box if any -->
+    {% if unreturned_count > 0 %}
+    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);">
+        <div style="background: #fef3c7; color: #b45309; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">⚠️</div>
+        <div>
+            <h4 style="margin: 0; color: #b45309; font-size: 0.98rem; font-weight: 700;">Borrowed Document Notice</h4>
+            <p style="margin: 3px 0 0 0; color: #92400e; font-size: 0.88rem;">
+                You currently have <strong>{{ unreturned_count }}</strong> original document(s) borrowed from the office. Please remember to return them to the Department Office once your task is completed.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Django Messages -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" style="padding: 14px 18px; margin-bottom: 24px; border-radius: 8px; font-size: 0.9rem; background: #e0f2f1; color: #00695c; border: 1px solid #b2dfdb;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Request Form Section -->
+    <div id="requestFormSection" style="background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+        <h3 style="margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+            <span>📄</span> Request Original Document (10th, 12th Marksheet, TC)
+        </h3>
+        <p style="margin: 0 0 20px 0; font-size: 0.85rem; color: #64748b;">
+            Submit a formal request to borrow your original certificates (10th/12th Marksheets, TC, Diploma, Community certificates) for verification, Passport, or Higher Education purposes.
+        </p>
+
+        <form method="POST" action="{% url 'apply_document_request' %}">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <!-- Document Type Select -->
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px;">Which Original Marksheet / Document? <span style="color: #ef4444;">*</span></label>
+                    <select name="document_type" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: #f8fafc; font-family: inherit; color: #0f172a;">
+                        <option value="" disabled selected>-- Select Document --</option>
+                        {% for code, label in document_choices %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Expected Return Date -->
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px;">Expected Return Date (Optional)</label>
+                    <input type="date" name="expected_return_date" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: #f8fafc; font-family: inherit; color: #0f172a;">
+                </div>
+            </div>
+
+            <!-- Reason / Purpose -->
+            <div style="margin-bottom: 22px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px;">Reason & Purpose for Borrowing <span style="color: #ef4444;">*</span></label>
+                <textarea name="reason" rows="3" required placeholder="e.g. Required for Passport verification / Bank Education Loan / Higher Education application..." style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: #f8fafc; font-family: inherit; resize: vertical; color: #0f172a;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="submit" style="background: #5a7d7c; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.92rem; cursor: pointer; transition: background 0.2s;">
+                    Submit Request to Office →
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- History / Track Status Table -->
+    <div style="background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+        <h3 style="margin: 0 0 16px 0; font-size: 1.15rem; font-weight: 700; color: #1e293b;">📜 My Request History & Live Status</h3>
+
+        {% if requests_list %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                        <th style="padding: 12px 14px;">Requested Document</th>
+                        <th style="padding: 12px 14px;">Purpose / Reason</th>
+                        <th style="padding: 12px 14px;">Submitted Date</th>
+                        <th style="padding: 12px 14px;">Status</th>
+                        <th style="padding: 12px 14px;">Office Notes / Instructions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests_list %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 16px 14px; font-weight: 700; color: #0f172a;">
+                            📜 {{ req.get_document_type_display }}
+                            {% if req.expected_return_date %}
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 400; margin-top: 2px;">Exp Return: {{ req.expected_return_date|date:"M d, Y" }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 16px 14px; color: #334155; max-width: 250px;">
+                            {{ req.reason }}
+                        </td>
+                        <td style="padding: 16px 14px; color: #64748b; font-size: 0.82rem; white-space: nowrap;">
+                            {{ req.created_at|date:"M d, Y" }}
+                            <div style="font-size: 0.74rem; color: #94a3b8;">{{ req.created_at|date:"h:i A" }}</div>
+                        </td>
+                        <td style="padding: 16px 14px; white-space: nowrap;">
+                            {% if req.status == 'Pending' %}
+                            <span style="background: #e0f2fe; color: #0369a1; padding: 5px 12px; border-radius: 12px; font-weight: 600; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;">
+                                ⏳ Pending Office Review
+                            </span>
+                            {% elif req.status == 'Ready for Collection' %}
+                            <span style="background: #dcfce7; color: #15803d; padding: 5px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;">
+                                🎉 Ready for Collection
+                            </span>
+                            {% elif req.status == 'Collected (Not Returned)' %}
+                            <span style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 5px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;">
+                                ⚠️ Borrowed (Not Returned)
+                            </span>
+                            {% elif req.status == 'Returned' %}
+                            <span style="background: #e0f2f1; color: #00695c; padding: 5px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;">
+                                ✅ Returned & Closed
+                            </span>
+                            {% elif req.status == 'Rejected' %}
+                            <span style="background: #fee2e2; color: #b91c1c; padding: 5px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;">
+                                ❌ Rejected
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 16px 14px; color: #475569; font-size: 0.82rem;">
+                            {% if req.status == 'Ready for Collection' %}
+                            <div style="color: #15803d; font-weight: 600;">Please collect from Department Office.</div>
+                            {% elif req.status == 'Collected (Not Returned)' %}
+                            <div style="color: #b45309; font-weight: 600;">Document in your possession. Return to office after use.</div>
+                            {% elif req.rejection_reason %}
+                            <div style="color: #b91c1c;">Reason: {{ req.rejection_reason }}</div>
+                            {% else %}
+                            {{ req.office_remarks|default:"--" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">📄</div>
+            <h4 style="margin: 0 0 4px 0; font-weight: 600; color: #1e293b;">No Document Requests Submitted Yet</h4>
+            <p style="margin: 0; font-size: 0.85rem;">Use the form above to submit a request for borrowing original marksheets or TC.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    function toggleDocumentModal(show) {
+        const sec = document.getElementById('requestFormSection');
+        if (sec) {
+            sec.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+</script>
+{% endblock %}

@@ -172,21 +172,14 @@ class LabManagementTestCase(TestCase):
             'action': 'create_class',
             'class_name': 'III Year IT - Sem 5',
             'room_name': 'LH-201',
-            'semester': '5',
-            'staff_id': self.staff_member.staff_id
+            'semester': '5'
         }
         response = self.client.post(reverse('staffs:hod_manage_labs'), post_data)
         self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
         self.assertTrue(ClassMapping.objects.filter(room_name='LH-201').exists())
         cm = ClassMapping.objects.get(room_name='LH-201')
         self.assertEqual(cm.class_name, 'III Year IT - Sem 5')
-        self.assertEqual(cm.staff, self.staff_member)
         self.assertEqual(cm.semester, 5)
-
-        # Verify staff role was auto updated to Class Incharge
-        self.staff_member.refresh_from_db()
-        self.assertEqual(self.staff_member.role, 'Class Incharge')
-        self.assertEqual(self.staff_member.assigned_semester, 5)
 
         # 2. Edit Class Mapping via POST
         edit_data = {
@@ -194,15 +187,13 @@ class LabManagementTestCase(TestCase):
             'class_id': cm.id,
             'class_name': 'Updated III Year IT',
             'room_name': 'LH-202',
-            'semester': '6',
-            'staff_id': '' # Unassign
+            'semester': '6'
         }
         response = self.client.post(reverse('staffs:hod_manage_labs'), edit_data)
         self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
         cm.refresh_from_db()
         self.assertEqual(cm.class_name, 'Updated III Year IT')
         self.assertEqual(cm.room_name, 'LH-202')
-        self.assertIsNone(cm.staff)
 
         # 3. Delete Class Mapping via GET delete route
         response = self.client.get(reverse('staffs:hod_delete_class_mapping', args=[cm.id]))
@@ -234,6 +225,42 @@ class LabManagementTestCase(TestCase):
         response = self.client.get(reverse('staffs:hod_live_class_visualisation'))
         self.assertEqual(response.status_code, 200)
         self.assertIn('room_cards', response.context)
+
+    def test_3hr_lab_merging_and_propagation(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        # Create a Lab subject
+        lab_subj = Subject.objects.create(
+            code='CS302L',
+            name='OS Laboratory',
+            semester=5,
+            subject_type='Lab',
+            staff=self.hod
+        )
+
+        # Submit POST with Lab subject selected ONLY in Period 1
+        post_data = {
+            'academic_year': '2026-2027',
+            'current_batch': 'All',
+            'subject_Monday_1': str(lab_subj.id),
+        }
+        response = self.client.post(reverse('staffs:edit_timetable', args=[5]), post_data)
+        self.assertRedirects(response, '/staffs/hod/published-timetables/?semester=5&academic_year=2026-2027&tab=edit')
+
+        # Verify backend auto-propagated the 3-hour lab across Period 1, 2, and 3
+        from staffs.models import Timetable
+        p1_entry = Timetable.objects.filter(semester=5, day='Monday', period=1).first()
+        p2_entry = Timetable.objects.filter(semester=5, day='Monday', period=2).first()
+        p3_entry = Timetable.objects.filter(semester=5, day='Monday', period=3).first()
+
+        self.assertIsNotNone(p1_entry)
+        self.assertIsNotNone(p2_entry)
+        self.assertIsNotNone(p3_entry)
+        self.assertEqual(p1_entry.subject, lab_subj)
+        self.assertEqual(p2_entry.subject, lab_subj)
+        self.assertEqual(p3_entry.subject, lab_subj)
 
     def test_published_timetable_versioning_and_effect_dates(self):
         session = self.client.session
@@ -442,7 +469,7 @@ class BatchAndRepresentativeTestCase(TestCase):
             f'subject_Monday_1': str(self.subject.id),
         }
         response = self.client.post(reverse('staffs:edit_timetable', args=[5]), post_data)
-        self.assertRedirects(response, '/staffs/timetable/?semester=5')
+        self.assertRedirects(response, '/staffs/hod/published-timetables/?semester=5&academic_year=2026-2027&tab=edit')
 
         from staffs.models import Timetable
         self.assertTrue(Timetable.objects.filter(semester=5, day='Monday', period=1, batch='All').exists())
@@ -463,7 +490,7 @@ class BatchAndRepresentativeTestCase(TestCase):
             f'subject_Monday_1': str(override_subject.id),
         }
         response = self.client.post(reverse('staffs:edit_timetable', args=[5]), post_override)
-        self.assertRedirects(response, '/staffs/timetable/?semester=5')
+        self.assertRedirects(response, '/staffs/hod/published-timetables/?semester=5&academic_year=2026-2027&tab=edit')
 
         # 'All' entry should be split/deleted, Batch A should have CS8502, Batch B should have original CS8501
         self.assertFalse(Timetable.objects.filter(semester=5, day='Monday', period=1, batch='All').exists())
@@ -607,6 +634,274 @@ class StaffPortfolioTestCase(TestCase):
         self.assertEqual(awards.count(), 1)
         award = awards.first()
         self.assertIn(self.staff, award.staff.all())
+
+
+class DepartmentTaskTestCase(TestCase):
+    def setUp(self):
+        from django.contrib.auth.hashers import make_password
+        from staffs.models import DepartmentTask
+        self.hod = Staff.objects.create(
+            staff_id="HOD_TASK_TEST",
+            name="HOD Task Admin",
+            email="hodtaskadmin@example.com",
+            password=make_password("password123"),
+            role="HOD",
+            is_profile_complete=True
+        )
+        self.faculty1 = Staff.objects.create(
+            staff_id="FACULTY1_TASK",
+            name="Faculty Member One",
+            email="fac1task@example.com",
+            password=make_password("password123"),
+            role="Course Incharge",
+            is_profile_complete=True
+        )
+        self.faculty2 = Staff.objects.create(
+            staff_id="FACULTY2_TASK",
+            name="Faculty Member Two",
+            email="fac2task@example.com",
+            password=make_password("password123"),
+            role="Course Incharge",
+            is_profile_complete=True
+        )
+        DepartmentTask.seed_default_tasks()
+
+    def test_seed_tasks_count(self):
+        from staffs.models import DepartmentTask
+        self.assertEqual(DepartmentTask.objects.count(), 58)
+
+    def test_manage_department_tasks_get_and_post(self):
+        from staffs.models import DepartmentTask
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        # GET request
+        response = self.client.get(reverse('staffs:manage_department_tasks'))
+        self.assertEqual(response.status_code, 200)
+
+        # Assign Task 1 (Department Administration) to both faculty members via checkboxes
+        task1 = DepartmentTask.objects.get(task_number=1)
+        post_data = {
+            f'task_{task1.id}': [self.faculty1.staff_id, self.faculty2.staff_id]
+        }
+        post_response = self.client.post(reverse('staffs:manage_department_tasks'), post_data)
+        self.assertRedirects(post_response, reverse('staffs:manage_department_tasks'))
+
+        # Verify task 1 is assigned to both faculty members
+        task1.refresh_from_db()
+        self.assertEqual(task1.assigned_staff.count(), 2)
+        self.assertIn(self.faculty1, task1.assigned_staff.all())
+        self.assertIn(self.faculty2, task1.assigned_staff.all())
+
+    def test_export_staff_tasks_csv(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        response = self.client.get(reverse('staffs:export_staff_tasks_csv'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv; charset=utf-8')
+
+    def test_export_task_matrix_csv(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+    def test_technical_officer_role_dashboard_and_live_visualisation(self):
+        to_staff = Staff.objects.create(
+            staff_id="TECH001",
+            name="Tech Officer",
+            email="tech001@example.com",
+            role="Technical Officer",
+            is_profile_complete=True
+        )
+        session = self.client.session
+        session['staff_id'] = to_staff.staff_id
+        session.save()
+
+        # Test Dashboard render using staffdash_technical.html
+        response = self.client.get(reverse('staffs:staff_dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'staff/staffdash_technical.html')
+
+        # Test Access to Live Class Visualisation for Technical Officer
+        vis_response = self.client.get(reverse('staffs:hod_live_class_visualisation'))
+        self.assertEqual(vis_response.status_code, 200)
+
+    def test_document_request_borrow_and_return_workflow(self):
+        from students.models import DocumentRequest, Student
+        
+        # 1. Create Student & Office Staff
+        student = Student.objects.create(
+            roll_number="DOCSTUD01",
+            student_name="Document Student",
+            student_email="docstud@example.com",
+            current_semester=4
+        )
+        office_staff = Staff.objects.create(
+            staff_id="OFFICE01",
+            name="Office Staff Member",
+            email="office@example.com",
+            role="Office Staff",
+            is_profile_complete=True
+        )
+
+        # 2. Student applies for 10th Marksheet request
+        session = self.client.session
+        session['student_id'] = student.pk
+        session['student_roll_number'] = student.roll_number
+        session.save()
+
+        apply_resp = self.client.post(reverse('apply_document_request'), {
+            'document_type': '10th Marksheet',
+            'reason': 'Required for Passport application',
+            'expected_return_date': '2026-09-01'
+        })
+        self.assertEqual(apply_resp.status_code, 302)
+
+        # Verify DocumentRequest created with status='Pending'
+        doc_req = DocumentRequest.objects.get(student=student, document_type='10th Marksheet')
+        self.assertEqual(doc_req.status, 'Pending')
+        self.assertEqual(doc_req.reason, 'Required for Passport application')
+
+        # 3. Office Staff views and marks as Ready for Collection
+        session['staff_id'] = office_staff.staff_id
+        session.save()
+
+        ready_resp = self.client.post(reverse('staffs:office_manage_document_requests'), {
+            'action': 'ready',
+            'request_id': doc_req.id,
+            'office_remarks': 'Document ready at counter 2'
+        })
+        self.assertEqual(ready_resp.status_code, 302)
+        doc_req.refresh_from_db()
+        self.assertEqual(doc_req.status, 'Ready for Collection')
+        self.assertIsNotNone(doc_req.ready_at)
+
+        # 4. Office Staff marks as Collected (Handed over to student)
+        collected_resp = self.client.post(reverse('staffs:office_manage_document_requests'), {
+            'action': 'collected',
+            'request_id': doc_req.id
+        })
+        self.assertEqual(collected_resp.status_code, 302)
+        doc_req.refresh_from_db()
+        self.assertEqual(doc_req.status, 'Collected (Not Returned)')
+        self.assertIsNotNone(doc_req.collected_at)
+
+        # 5. Student returns physical document to office -> Office marks as Returned
+        returned_resp = self.client.post(reverse('staffs:office_manage_document_requests'), {
+            'action': 'returned',
+            'request_id': doc_req.id
+        })
+        self.assertEqual(returned_resp.status_code, 302)
+        doc_req.refresh_from_db()
+        self.assertEqual(doc_req.status, 'Returned')
+        self.assertIsNotNone(doc_req.returned_at)
+
+    def test_scholarship_application_and_multi_filter_workflow(self):
+        from students.models import ScholarshipApplication, Student, PersonalInfo, ScholarshipInfo
+        
+        # 1. Create Student & Scholarship Officer
+        student = Student.objects.create(
+            roll_number="SCHSTUD01",
+            student_name="Scholarship Student",
+            student_email="schstud@example.com",
+            program_level="UG",
+            current_semester=3
+        )
+        PersonalInfo.objects.create(
+            student=student,
+            community="BC",
+            gender="Female",
+            is_hosteler=True
+        )
+        officer = Staff.objects.create(
+            staff_id="SCHOFF01",
+            name="Scholarship Officer",
+            email="schoff@example.com",
+            role="Scholarship Officer",
+            is_profile_complete=True
+        )
+
+        # 2. Student applies for BC/MBC Scholarship
+        session = self.client.session
+        session['student_pk'] = student.pk
+        session['student_roll_number'] = student.roll_number
+        session.save()
+
+        apply_resp = self.client.post(reverse('apply_scholarship'), {
+            'scholarship_type': 'BCMBC',
+            'application_no': 'BC20269988',
+            'annual_income': '180000',
+            'income_certificate_no': 'INC-2026-99',
+            'bank_account_no': '1234567890',
+            'bank_ifsc': 'SBIN0001234'
+        })
+        self.assertEqual(apply_resp.status_code, 302)
+
+        # Verify application created
+        app = ScholarshipApplication.objects.get(student=student, scholarship_type='BCMBC')
+        self.assertEqual(app.status, 'Pending Office Verification')
+        self.assertEqual(app.annual_income, 180000)
+
+        # 3. Test duplicate active application prevention
+        dup_resp = self.client.post(reverse('apply_scholarship'), {
+            'scholarship_type': 'BCMBC',
+            'application_no': 'BC20269988'
+        })
+        self.assertEqual(dup_resp.status_code, 302)
+        self.assertEqual(ScholarshipApplication.objects.filter(student=student, scholarship_type='BCMBC').count(), 1)
+
+        # 4. Scholarship Officer uses multi-combination filter
+        session['staff_id'] = officer.staff_id
+        session.save()
+
+        filter_url = reverse('staffs:scholarship_manager') + '?scholarship_types=BCMBC&community=BC&status=Pending+Office+Verification&max_income=250000'
+        filter_resp = self.client.get(filter_url)
+        self.assertEqual(filter_resp.status_code, 200)
+        self.assertIn(app, filter_resp.context['applications'])
+
+        # 5. Scholarship Officer approves application
+        approve_resp = self.client.post(reverse('staffs:scholarship_manager'), {
+            'action': 'approve',
+            'app_id': app.id,
+            'office_remarks': 'Verified against income certificate'
+        })
+        self.assertEqual(approve_resp.status_code, 302)
+
+        app.refresh_from_db()
+        self.assertEqual(app.status, 'Verified & Recommended')
+        self.assertIsNotNone(app.verified_at)
+
+        # Verify sync to ScholarshipInfo model
+        sch_info = ScholarshipInfo.objects.get(student=student)
+        self.assertTrue(sch_info.sch_bcmbc)
+
+        # 6. Student receives Govt money and marks status as Amount Received
+        session['student_pk'] = student.pk
+        session['student_roll_number'] = student.roll_number
+        session.save()
+
+        rec_resp = self.client.post(reverse('apply_scholarship'), {
+            'action': 'update_student_status',
+            'app_id': app.id,
+            'student_status': 'received'
+        })
+        self.assertEqual(rec_resp.status_code, 302)
+        app.refresh_from_db()
+        self.assertEqual(app.status, 'Govt Sanctioned / Amount Received')
+        self.assertIsNotNone(app.disbursed_at)
+
+        # 7. Export filtered CSV
+        session['staff_id'] = officer.staff_id
+        session.save()
+        csv_resp = self.client.get(reverse('staffs:scholarship_manager') + '?scholarship_types=BCMBC&export=csv')
+        self.assertEqual(csv_resp.status_code, 200)
+        self.assertEqual(csv_resp['Content-Type'], 'text/csv')
+
+
+
 
 
 

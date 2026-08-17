@@ -48,10 +48,10 @@
     <!-- Horizontal Grid Matrix -->
     <div class="tsw-grid">
         {% for slot in today_schedule %}
-        <a href="{% if slot.subject %}{% url 'staffs:manage_attendance' slot.subject.id %}?date={{ today_date }}&time={{ slot.start }}&end_time={{ slot.end }}{% else %}javascript:void(0);{% endif %}" 
+        <a href="{% if slot.subject and staff.role != 'Technical Officer' and staff.role != 'Office Staff' %}{% url 'staffs:manage_attendance' slot.subject.id %}?date={{ today_date }}&time={{ slot.start }}&end_time={{ slot.end }}{% else %}{% url 'staffs:my_timetable' %}{% endif %}" 
            class="tsw-card tsw-{{ slot.status }}{% if slot.status == 'done' and not slot.is_marked %} tsw-unmarked{% elif slot.is_marked %} tsw-marked{% endif %}" 
            style="--i: {{ forloop.counter0 }}; text-decoration: none;"
-           {% if slot.subject %}title="{% if slot.status == 'done' and not slot.is_marked %}⚠️ Attendance not marked for {{ slot.subject.name }} (P{{ slot.period }}). Click to mark!{% else %}Click to manage attendance for {{ slot.subject.name }} (P{{ slot.period }}){% endif %}"{% endif %}>
+           {% if slot.subject and staff.role != 'Technical Officer' and staff.role != 'Office Staff' %}title="{% if slot.status == 'done' and not slot.is_marked %}⚠️ Attendance not marked for {{ slot.subject.name }} (P{{ slot.period }}). Click to mark!{% else %}Click to manage attendance for {{ slot.subject.name }} (P{{ slot.period }}){% endif %}"{% else %}title="View Timetable Schedule"{% endif %}>
             
             <div class="tsw-card-top">
                 <div class="tsw-badges-left">

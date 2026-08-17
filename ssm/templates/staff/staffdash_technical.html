@@ -1,0 +1,169 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Technical Officer Dashboard | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block body_class %}dashboard-portal{% endblock %}
+
+{% block page_title %}
+    Hello, {{ staff.name }} {{ staff.initial|default:"" }} 👋
+    <span style="font-size: 0.75rem; background: var(--primary-light, #eef2f2); color: var(--primary-dark, #4a6b69); border: 1px solid rgba(90, 125, 124, 0.25); padding: 4px 12px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">🛠️ Non-Teaching Staff (Technical Officer)</span>
+    {% for task in staff.assigned_department_tasks.all %}
+    <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📌 {{ task.name }}</span>
+    {% endfor %}
+{% endblock %}
+
+{% block page_subtitle %}Department Laboratories, Technical Infrastructure & Timetable Monitoring{% endblock %}
+
+{% block content %}
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 15px; margin-bottom: 24px; border-radius: 8px; font-family: 'Poppins', sans-serif;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Assigned Departmental Tasks & Roles Widget -->
+    {% include 'staff/includes/dept_tasks_widget.html' %}
+
+    <!-- Top Key Metrics Row -->
+    <div class="stats-column" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px;">
+        <!-- Assigned Labs -->
+        <a href="#assigned-labs-section" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div class="stat-icon" style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">🔬</div>
+            <div class="stat-info">
+                <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ assigned_labs.count|default:0 }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted, #64748b);">Assigned Labs</span>
+            </div>
+        </a>
+
+        <!-- Live Lab Visualiser Status -->
+        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-left: 4px solid var(--primary, #5a7d7c); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div class="stat-icon" style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; position: relative;">
+                📡
+                <span style="position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--primary, #5a7d7c); border-radius: 50%; animation: pulseRing 1.5s infinite;"></span>
+            </div>
+            <div class="stat-info">
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--primary-dark, #4a6b69);">Live Monitor</h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted, #64748b);">Class & Lab Stream</span>
+            </div>
+        </a>
+
+        <!-- Leave Portal -->
+        <a href="{% url 'staffs:staff_apply_leave' %}" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div class="stat-icon" style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">✈️</div>
+            <div class="stat-info">
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--primary-dark, #4a6b69);">Staff Leave</h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted, #64748b);">Apply & History</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Live Lab Visualization Hero Banner (Harmonized Brand Palette) -->
+    <div style="background: linear-gradient(135deg, var(--primary, #5a7d7c) 0%, var(--primary-dark, #4a6b69) 100%); border-radius: 16px; padding: 24px 28px; color: #ffffff; margin-bottom: 32px; box-shadow: 0 10px 25px -5px rgba(90, 125, 124, 0.3); border: 1px solid rgba(255, 255, 255, 0.15); position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -20px; bottom: -20px; font-size: 140px; opacity: 0.08; pointer-events: none;">📡</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; position: relative; z-index: 2;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <span style="background: rgba(255, 255, 255, 0.2); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <span style="width: 7px; height: 7px; background: #ffffff; border-radius: 50%; display: inline-block;"></span> LIVE STREAM
+                    </span>
+                    <span style="color: rgba(255, 255, 255, 0.85); font-size: 0.85rem; font-weight: 500;">Real-time Lab & Room Monitor</span>
+                </div>
+                <h2 style="margin: 0 0 6px 0; font-size: 1.45rem; font-weight: 700; color: #ffffff;">Live Lab & Classroom Visualiser</h2>
+                <p style="margin: 0; font-size: 0.88rem; color: rgba(255, 255, 255, 0.9); max-width: 600px;">Monitor active lab sessions, lab equipment usage, and live period statuses across the department in real-time.</p>
+            </div>
+            <div>
+                <a href="{% url 'staffs:hod_live_class_visualisation' %}" style="display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: var(--primary-dark, #4a6b69); font-weight: 700; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-size: 0.92rem; transition: all 0.2s; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);">
+                    <span>Launch Live Visualiser</span>
+                    <span>📡 →</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Assigned Laboratories Section -->
+    <section id="assigned-labs-section" style="margin-bottom: 36px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">🔬 Assigned Laboratories</h3>
+                <p style="margin: 3px 0 0 0; font-size: 0.84rem; color: var(--text-muted, #64748b);">Laboratories assigned under your technical supervision</p>
+            </div>
+        </div>
+
+        {% if assigned_labs %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px;">
+            {% for lab in assigned_labs %}
+            <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-left: 4px solid var(--primary, #5a7d7c); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                    <div>
+                        <span style="font-size: 0.72rem; background: var(--primary-light, #eef2f2); color: var(--primary-dark, #4a6b69); border: 1px solid rgba(90, 125, 124, 0.2); padding: 3px 10px; border-radius: 6px; font-weight: 700; letter-spacing: 0.02em;">{{ lab.short_name }}</span>
+                    </div>
+                    <span style="font-size: 1.5rem;">🔬</span>
+                </div>
+                <h4 style="font-size: 1.1rem; margin: 0 0 6px 0; font-weight: 700; color: var(--text-main, #0f172a);">{{ lab.name }}</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0 0 14px 0;">Technical Officer / Lab Incharge</p>
+                
+                <div style="display: flex; gap: 8px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 12px; margin-top: 8px;">
+                    <a href="{% url 'staffs:hod_live_class_visualisation' %}" style="font-size: 0.8rem; color: var(--primary-dark, #4a6b69); text-decoration: none; font-weight: 600; background: var(--primary-light, #eef2f2); border: 1px solid rgba(90, 125, 124, 0.25); padding: 6px 12px; border-radius: 6px; flex: 1; text-align: center;">Live Monitor</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="background: var(--surface, #ffffff); border: 1px dashed var(--border, #e2e8f0); border-radius: 12px; padding: 32px; text-align: center; color: var(--text-muted, #64748b);">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🔬</div>
+            <h4 style="margin: 0 0 4px 0; font-weight: 600; color: var(--text-main, #0f172a);">No specific lab assigned yet</h4>
+            <p style="margin: 0; font-size: 0.85rem;">Assigned laboratories will appear here once allocated by the HOD.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Quick Technical Actions Grid -->
+    <section style="margin-bottom: 32px;">
+        <div class="section-header" style="margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">⚡ Technical Operations Hub</h3>
+        </div>
+        <div class="actions-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+            <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="action-tile" style="border: 1px solid rgba(90, 125, 124, 0.3); text-decoration: none; background: var(--surface, #ffffff); padding: 20px; border-radius: 12px; display: block;">
+                <div class="action-tile-icon" style="font-size: 24px; margin-bottom: 8px;">📡</div>
+                <h4 style="margin: 0 0 4px 0; font-weight: 600; color: var(--text-main, #0f172a);">Live Class & Lab Visualiser</h4>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted, #64748b);">Real-time visual monitoring for active labs & theory classrooms.</p>
+            </a>
+
+            <a href="{% url 'staffs:my_timetable' %}" class="action-tile" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); padding: 20px; border-radius: 12px; display: block;">
+                <div class="action-tile-icon" style="font-size: 24px; margin-bottom: 8px;">🗓️</div>
+                <h4 style="margin: 0 0 4px 0; font-weight: 600; color: var(--text-main, #0f172a);">My Timetable</h4>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted, #64748b);">View daily and weekly assigned technical duties.</p>
+            </a>
+
+            <a href="{% url 'staffs:timetable' %}" class="action-tile" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); padding: 20px; border-radius: 12px; display: block;">
+                <div class="action-tile-icon" style="font-size: 24px; margin-bottom: 8px;">📅</div>
+                <h4 style="margin: 0 0 4px 0; font-weight: 600; color: var(--text-main, #0f172a);">Master Timetable Hub</h4>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted, #64748b);">View complete department timetable grids & lab batches.</p>
+            </a>
+
+            <a href="{% url 'staffs:student_list' %}" class="action-tile" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); padding: 20px; border-radius: 12px; display: block;">
+                <div class="action-tile-icon" style="font-size: 24px; margin-bottom: 8px;">👨‍🎓</div>
+                <h4 style="margin: 0 0 4px 0; font-weight: 600; color: var(--text-main, #0f172a);">Student Directory</h4>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted, #64748b);">Access student list and lab batch distributions.</p>
+            </a>
+
+            <a href="{% url 'staffs:staff_apply_leave' %}" class="action-tile" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); padding: 20px; border-radius: 12px; display: block;">
+                <div class="action-tile-icon" style="font-size: 24px; margin-bottom: 8px;">✈️</div>
+                <h4 style="margin: 0 0 4px 0; font-weight: 600; color: var(--text-main, #0f172a);">Leave Management</h4>
+                <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted, #64748b);">Apply for leave and track historical approvals.</p>
+            </a>
+        </div>
+    </section>
+
+    <style>
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); opacity: 1; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,455 @@
+{% extends 'base2.html' %}
+
+{% block title %}Department Tasks & Roles Management - Annamalai University{% endblock %}
+
+{% block content %}
+<style>
+    .tasks-container {
+        max-width: 1400px;
+        margin: 25px auto;
+        padding: 0 20px;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 24px 30px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header p {
+        margin: 6px 0 0 0;
+        color: #94a3b8;
+        font-size: 0.95rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-export-staff {
+        background: #0ea5e9;
+        color: white;
+    }
+    .btn-export-staff:hover {
+        background: #0284c7;
+        color: white;
+    }
+
+    .btn-export-matrix {
+        background: #10b981;
+        color: white;
+    }
+    .btn-export-matrix:hover {
+        background: #059669;
+        color: white;
+    }
+
+    .btn-save-main {
+        background: #6366f1;
+        color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .btn-save-main:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+        color: white;
+    }
+
+    .filter-bar {
+        background: white;
+        padding: 18px 24px;
+        border-radius: 14px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        margin-bottom: 24px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 260px;
+        padding: 10px 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .search-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .cat-select {
+        padding: 10px 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        outline: none;
+        background-color: #f8fafc;
+    }
+
+    .stats-summary {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        flex: 1;
+        min-width: 200px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        border-left: 4px solid #6366f1;
+    }
+    .stat-card.green { border-left-color: #10b981; }
+    .stat-card.blue { border-left-color: #0ea5e9; }
+
+    .stat-card .num {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #1e293b;
+    }
+    .stat-card .label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+
+    }
+
+    .task-table-wrapper {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .task-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .task-table th {
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 14px 18px;
+        text-align: left;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .task-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+        font-size: 0.93rem;
+    }
+
+    .task-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .task-num-badge {
+        display: inline-block;
+        background: #e0e7ff;
+        color: #3730a3;
+        font-weight: 700;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        text-align: center;
+        border-radius: 50%;
+        font-size: 0.85rem;
+    }
+
+    .cat-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .staff-checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 8px 12px;
+    }
+
+    .staff-check-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8fafc;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+    .staff-check-item:hover {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+    }
+    .staff-check-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #6366f1;
+        cursor: pointer;
+    }
+    .staff-check-item span {
+        font-size: 0.88rem;
+        color: #1e293b;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .count-badge {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .row-tools {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+    }
+    .btn-tiny {
+        padding: 2px 8px;
+        font-size: 0.72rem;
+        border-radius: 4px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #475569;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .btn-tiny:hover {
+        background: #e2e8f0;
+    }
+
+    .sticky-footer {
+        position: sticky;
+        bottom: 20px;
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 14px 24px;
+        border-radius: 14px;
+        margin-top: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+    }
+</style>
+
+<div class="tasks-container">
+    <div class="page-header">
+        <div>
+            <h2>📋 Department Tasks & Roles Management</h2>
+            <p>Assign official department tasks & responsibilities to staff members and export assignment reports.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'staffs:export_staff_tasks_csv' %}" class="btn-action btn-export-staff" title="Export Staff List with Assigned Roles">
+                📥 Export Staff Roles (CSV)
+            </a>
+            <a href="{% url 'staffs:export_task_matrix_csv' %}" class="btn-action btn-export-matrix" title="Export Complete Staff vs Task Matrix">
+                📊 Export Task Matrix (CSV)
+            </a>
+            <button type="submit" form="tasks-form" class="btn-action btn-save-main">
+                💾 Save All Allocations
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats Summary -->
+    <div class="stats-summary">
+        <div class="stat-card">
+            <div class="num">{{ tasks|length }}</div>
+            <div class="label">Total Department Tasks & Roles</div>
+        </div>
+        <div class="stat-card green">
+            <div class="num">{{ staff_members|length }}</div>
+            <div class="label">Active Staff Members</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="num">{{ categories|length }}</div>
+            <div class="label">Task Categories</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <input type="text" id="taskSearch" class="search-input" placeholder="🔍 Search tasks by number, title, or assigned staff..." onkeyup="filterTasks()">
+        <select id="catFilter" class="cat-select" onchange="filterTasks()">
+            <option value="ALL">All Categories ({{ categories|length }})</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <button type="button" class="btn-tiny" onclick="resetFilters()">Reset Search</button>
+    </div>
+
+    <form method="POST" id="tasks-form">
+        {% csrf_token %}
+        <div class="task-table-wrapper">
+            <table class="task-table" id="tasksTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">No.</th>
+                        <th style="width: 280px;">Task / Role Name</th>
+                        <th style="width: 160px;">Category</th>
+                        <th>Assigned Staff Members (Select Checkboxes)</th>
+                        <th style="width: 80px; text-align: center;">Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                        <tr class="task-row" data-category="{{ task.category }}" data-search="{{ task.task_number }} {{ task.name|lower }} {{ task.category|lower }} {% for s in task.assigned_staff.all %}{{ s.name|lower }} {% endfor %}">
+                            <td>
+                                <span class="task-num-badge">{{ task.task_number }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ task.name }}</strong>
+                                <div class="row-tools">
+                                    <button type="button" class="btn-tiny" onclick="selectAllInRow('task_{{ task.id }}', true)">Select All</button>
+                                    <button type="button" class="btn-tiny" onclick="selectAllInRow('task_{{ task.id }}', false)">Clear All</button>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="cat-badge">{{ task.category }}</span>
+                            </td>
+                            <td>
+                                <div class="staff-checkbox-grid" id="grid_{{ task.id }}">
+                                    {% for member in staff_members %}
+                                        <label class="staff-check-item">
+                                            <input type="checkbox" 
+                                                   name="task_{{ task.id }}" 
+                                                   value="{{ member.staff_id }}" 
+                                                   {% if member in task.assigned_staff.all %}checked{% endif %}
+                                                   onchange="updateRowCount({{ task.id }})">
+                                            <span title="{{ member.name }} ({{ member.staff_id }})">{{ member.name }}</span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="count-badge" id="count_{{ task.id }}">{{ task.assigned_staff_count }}</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="sticky-footer">
+            <div>
+                <strong>💡 Tip:</strong> Checkboxes allow multiple staff members to be assigned to the same task/role.
+            </div>
+            <div>
+                <button type="submit" class="btn-action btn-save-main">
+                    💾 Save All Allocations
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function filterTasks() {
+        const query = document.getElementById('taskSearch').value.toLowerCase().trim();
+        const selectedCat = document.getElementById('catFilter').value;
+        const rows = document.querySelectorAll('.task-row');
+
+        rows.forEach(row => {
+            const rowSearch = row.getAttribute('data-search') || '';
+            const rowCat = row.getAttribute('data-category') || '';
+
+            const matchesQuery = !query || rowSearch.includes(query);
+            const matchesCat = (selectedCat === 'ALL') || (rowCat === selectedCat);
+
+            if (matchesQuery && matchesCat) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function resetFilters() {
+        document.getElementById('taskSearch').value = '';
+        document.getElementById('catFilter').value = 'ALL';
+        filterTasks();
+    }
+
+    function selectAllInRow(taskFieldName, checkState) {
+        const checkboxes = document.querySelectorAll(`input[name="${taskFieldName}"]`);
+        checkboxes.forEach(cb => {
+            cb.checked = checkState;
+        });
+        const taskId = taskFieldName.replace('task_', '');
+        updateRowCount(taskId);
+    }
+
+    function updateRowCount(taskId) {
+        const checkboxes = document.querySelectorAll(`input[name="task_${taskId}"]:checked`);
+        const badge = document.getElementById(`count_${taskId}`);
+        if (badge) {
+            badge.textContent = checkboxes.length;
+        }
+    }
+</script>
+{% endblock %}

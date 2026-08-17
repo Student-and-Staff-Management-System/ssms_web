@@ -267,6 +267,49 @@ class ScholarshipInfo(models.Model):
     private_scholarship_name = models.CharField(max_length=100, blank=True)
     is_7_5_reservation = models.BooleanField(default=False)
 
+SCHOLARSHIP_TYPE_CHOICES = [
+    ('FG', 'First Graduate Scholarship'),
+    ('BCMBC', 'BC / MBC Welfare Scholarship'),
+    ('POSTMATRIC', 'Post-Matric Scholarship (SC / ST / SCC)'),
+    ('PM', 'Prime Minister (PM) Central Scholarship'),
+    ('GOVT_7_5', 'Govt 7.5% School Reservation Scheme'),
+    ('PUDHUMAI', 'Pudhumai Penn Scheme (Higher Ed for Girls)'),
+    ('TAMIZH', 'Tamizh Puthalvan Scheme'),
+    ('PRIVATE', 'Private / Endowment Scholarship'),
+]
+
+SCHOLARSHIP_STATUS_CHOICES = [
+    ('Pending Office Verification', 'Pending Office Verification'),
+    ('Verified & Recommended', 'Verified & Recommended'),
+    ('Govt Sanctioned / Amount Received', 'Govt Sanctioned / Amount Received'),
+    ('Not Received / Pending Govt', 'Not Received / Pending Govt'),
+    ('Rejected / Ineligible', 'Rejected / Ineligible'),
+]
+
+class ScholarshipApplication(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='scholarship_applications')
+    scholarship_type = models.CharField(max_length=30, choices=SCHOLARSHIP_TYPE_CHOICES)
+    private_scholarship_name = models.CharField(max_length=150, blank=True)
+    application_no = models.CharField(max_length=100, blank=True, help_text="Portal application/registration ref number")
+    academic_year = models.CharField(max_length=20, default='2026-2027')
+    annual_income = models.PositiveIntegerField(null=True, blank=True, help_text="Annual Family Income in INR")
+    income_certificate_no = models.CharField(max_length=100, blank=True)
+    bank_account_no = models.CharField(max_length=50, blank=True)
+    bank_ifsc = models.CharField(max_length=20, blank=True)
+    supporting_document = models.FileField(upload_to='scholarship_docs/', blank=True, null=True, help_text="Application acknowledgment receipt / income certificate / supporting proof PDF")
+    status = models.CharField(max_length=50, choices=SCHOLARSHIP_STATUS_CHOICES, default='Pending Office Verification')
+    rejection_reason = models.TextField(blank=True)
+    office_remarks = models.TextField(blank=True)
+    applied_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    disbursed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-applied_at']
+
+    def __str__(self):
+        return f"{self.student.student_name} - {self.get_scholarship_type_display()} ({self.status})"
+
 class StudentDocuments(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
     student_photo = models.ImageField(
@@ -517,6 +560,44 @@ class BonafideRequest(models.Model):
 
     def __str__(self):
         return f"{self.student.student_name} - Bonafide ({self.status})"
+
+class DocumentRequest(models.Model):
+    DOCUMENT_CHOICES = [
+        ('10th Marksheet', '10th Marksheet (SSLC)'),
+        ('12th Marksheet', '12th Marksheet (HSC)'),
+        ('Transfer Certificate', 'Transfer Certificate (TC)'),
+        ('Diploma Certificate', 'Diploma Certificate'),
+        ('Community Certificate', 'Community Certificate'),
+        ('Other Certificate', 'Other Original Certificate'),
+    ]
+
+    STATUS_CHOICES = [
+        ('Pending', 'Pending Office Review'),
+        ('Ready for Collection', 'Ready for Collection'),
+        ('Collected (Not Returned)', 'Collected / Borrowed (Not Returned)'),
+        ('Returned', 'Returned (Completed)'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='document_requests')
+    document_type = models.CharField(max_length=50, choices=DOCUMENT_CHOICES)
+    reason = models.TextField()
+    expected_return_date = models.DateField(blank=True, null=True)
+    status = models.CharField(max_length=35, choices=STATUS_CHOICES, default='Pending')
+    rejection_reason = models.TextField(blank=True, null=True)
+    office_remarks = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    ready_at = models.DateTimeField(blank=True, null=True)
+    collected_at = models.DateTimeField(blank=True, null=True)
+    returned_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.student.student_name} - {self.document_type} ({self.status})"
 
 class ScholarAttendance(models.Model):
     STATUS_CHOICES = [

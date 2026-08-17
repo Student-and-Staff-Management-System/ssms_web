@@ -7,7 +7,10 @@
 
 {% block page_title %}
     Hello, {{ staff.name }} {{ staff.initial|default:"" }} 👋
-    <span style="font-size: 0.75rem; background: var(--primary-light, #eff6ff); color: var(--primary, #0284c7); border: 1px solid var(--border, #cbd5e1); padding: 4px 12px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">🏢 Non-Teaching Office Staff</span>
+    <span style="font-size: 0.75rem; background: var(--primary-light, #eff6ff); color: var(--primary, #0284c7); border: 1px solid var(--border, #cbd5e1); padding: 4px 12px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">🏢 Non-Teaching Staff (Office Staff)</span>
+    {% for task in staff.assigned_department_tasks.all %}
+    <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📌 {{ task.name }}</span>
+    {% endfor %}
 {% endblock %}
 
 {% block page_subtitle %}Department Administration & Student Services Hub{% endblock %}
@@ -23,6 +26,9 @@
     {% endfor %}
     {% endif %}
 
+    <!-- Assigned Departmental Tasks & Roles Widget -->
+    {% include 'staff/includes/dept_tasks_widget.html' %}
+
     <!-- Top Key Metrics Row -->
     <div class="stats-column" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px;">
         <!-- Bonafide Requests -->
@@ -31,6 +37,15 @@
             <div class="stat-info">
                 <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700;">{{ pending_bonafide_count }}</h3>
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Bonafide Requests</span>
+            </div>
+        </a>
+
+        <!-- Original Document Requests (10th/12th/TC) -->
+        <a href="{% url 'staffs:office_manage_document_requests' %}" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #5a7d7c; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div class="stat-icon" style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">📁</div>
+            <div class="stat-info">
+                <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark, #4a6b69);">{{ pending_doc_count }} <span style="font-size: 0.85rem; color: #d97706; font-weight: 600;">({{ unreturned_doc_count }} unreturned)</span></h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Document Requests</span>
             </div>
         </a>
 
@@ -51,10 +66,67 @@
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Enrolled Students</span>
             </div>
         </a>
-
     </div>
 
+    <!-- Recent Original Document Requests Section -->
+    <section style="background: var(--surface); border-radius: 12px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--text-main);">📁 Original Marksheet & TC Borrow Requests</h3>
+                <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">Track requests for 10th/12th marksheets, TC, collection status, and returned documents</p>
+            </div>
+            <a href="{% url 'staffs:office_manage_document_requests' %}" style="font-size: 0.85rem; color: var(--primary, #5a7d7c); text-decoration: none; font-weight: 600; padding: 8px 14px; background: var(--primary-light, #eef2f2); border-radius: 8px;">Manage All Documents →</a>
+        </div>
 
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-family: 'Poppins', sans-serif;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border); text-align: left; font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase;">
+                        <th style="padding: 12px 10px;">Student Name</th>
+                        <th style="padding: 12px 10px;">Requested Document</th>
+                        <th style="padding: 12px 10px;">Purpose / Reason</th>
+                        <th style="padding: 12px 10px;">Status</th>
+                        <th style="padding: 12px 10px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in recent_doc_requests %}
+                    <tr style="border-bottom: 1px solid var(--border, #f1f5f9);">
+                        <td style="padding: 14px 10px; font-weight: 600; color: var(--text-main);">
+                            {{ req.student.student_name }}
+                            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 400;">Roll: {{ req.student.roll_number }}</div>
+                        </td>
+                        <td style="padding: 14px 10px; font-size: 0.9rem; font-weight: 600; color: var(--text-main);">
+                            📜 {{ req.get_document_type_display }}
+                        </td>
+                        <td style="padding: 14px 10px; font-size: 0.88rem; color: var(--text-muted);">
+                            {{ req.reason|truncatechars:35 }}
+                        </td>
+                        <td style="padding: 14px 10px;">
+                            <span style="padding: 4px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; 
+                            {% if req.status == 'Ready for Collection' %}background: #dcfce7; color: #166534;
+                            {% elif req.status == 'Collected (Not Returned)' %}background: #fef3c7; color: #b45309;
+                            {% elif req.status == 'Returned' %}background: #e0f2f1; color: #00695c;
+                            {% elif req.status == 'Rejected' %}background: #fee2e2; color: #991b1b;
+                            {% else %}background: #e0f2fe; color: #075985;{% endif %}">
+                                {{ req.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="padding: 14px 10px; text-align: right;">
+                            <a href="{% url 'staffs:office_manage_document_requests' %}" style="font-size: 0.82rem; color: var(--primary, #5a7d7c); text-decoration: none; font-weight: 600; background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px;">Process Request</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted); font-style: italic;">
+                            No recent document borrow requests at this time.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     <!-- Recent Bonafide Requests Section -->
     <section style="background: var(--surface); border-radius: 12px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 32px;">

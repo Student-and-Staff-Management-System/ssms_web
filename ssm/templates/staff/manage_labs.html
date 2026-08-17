@@ -482,16 +482,6 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="class_staff">Assigned Class Incharge</label>
-                    <select id="class_staff" name="staff_id" class="form-control">
-                        <option value="">-- Select Staff (Optional) --</option>
-                        {% for s in all_staff %}
-                        <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
                         <label for="class_from_date">From Date</label>
@@ -509,8 +499,8 @@
 
         <!-- Right Side: Existing Class Mappings List -->
         <div class="card">
-            <h3 class="card-title" style="margin-bottom: 6px;">🏫 Class Mappings & Incharges</h3>
-            <p style="color: var(--text-muted, #64748b); margin: 0 0 20px 0; font-size: 0.9rem;">View and manage class room assignments and class incharges below.</p>
+            <h3 class="card-title" style="margin-bottom: 6px;">🏫 Class Mappings</h3>
+            <p style="color: var(--text-muted, #64748b); margin: 0 0 20px 0; font-size: 0.9rem;">View and manage class room assignments below.</p>
 
             <div class="search-container">
                 <span class="search-icon">🔍</span>
@@ -524,7 +514,6 @@
                             <th>Class Room Name</th>
                             <th>Class Name</th>
                             <th>Semester</th>
-                            <th>Assigned Incharge</th>
                             <th>From Date</th>
                             <th>To Date</th>
                             <th>Actions</th>
@@ -543,23 +532,6 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if cm.staff %}
-                                <div class="staff-info">
-                                    {% if cm.staff.photo %}
-                                    <img src="{{ cm.staff.photo.url }}" alt="Profile" class="staff-avatar">
-                                    {% else %}
-                                    <img src="https://ui-avatars.com/api/?name={{ cm.staff.name }}" alt="Profile" class="staff-avatar">
-                                    {% endif %}
-                                    <div class="staff-details">
-                                        <span class="staff-name">{{ cm.staff.name }}</span>
-                                        <span class="staff-id">ID: {{ cm.staff.staff_id }}</span>
-                                    </div>
-                                </div>
-                                {% else %}
-                                <span class="unassigned">Unassigned</span>
-                                {% endif %}
-                            </td>
-                            <td>
                                 {% if cm.from_date %}
                                 <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ cm.from_date|date:"d-M-Y" }}</span>
                                 {% else %}
@@ -575,7 +547,7 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-action btn-edit" onclick="openEditClassModal('{{ cm.id }}', '{{ cm.class_name|escapejs }}', '{{ cm.room_name|escapejs }}', '{{ cm.semester|default_if_none:'' }}', '{{ cm.staff.staff_id|default_if_none:'' }}', '{{ cm.from_date|date:'Y-m-d' }}', '{{ cm.to_date|date:'Y-m-d' }}')">
+                                    <button class="btn-action btn-edit" onclick="openEditClassModal('{{ cm.id }}', '{{ cm.class_name|escapejs }}', '{{ cm.room_name|escapejs }}', '{{ cm.semester|default_if_none:'' }}', '{{ cm.from_date|date:'Y-m-d' }}', '{{ cm.to_date|date:'Y-m-d' }}')">
                                         ✏️ Edit
                                     </button>
                                     <a href="{% url 'staffs:hod_delete_class_mapping' cm.id %}" class="btn-action btn-delete" onclick="return confirm('Are you sure you want to delete class mapping: {{ cm.class_name|escapejs }}?')">
@@ -586,7 +558,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" style="text-align: center; color: var(--text-muted, #64748b); padding: 40px;">
+                            <td colspan="6" style="text-align: center; color: var(--text-muted, #64748b); padding: 40px;">
                                 No class mappings added yet.
                             </td>
                         </tr>
@@ -679,16 +651,6 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="edit_class_staff">Assigned Class Incharge</label>
-                <select id="edit_class_staff" name="staff_id" class="form-control">
-                    <option value="">-- Select Staff (Optional) --</option>
-                    {% for s in all_staff %}
-                    <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
                     <label for="edit_class_from_date">From Date</label>
@@ -760,12 +722,10 @@
         for (let i = 0; i < rows.length; i++) {
             const roomNameCell = rows[i].getElementsByClassName('code-badge')[0];
             const classNameCell = rows[i].getElementsByClassName('class-name-cell')[0];
-            const staffCell = rows[i].getElementsByClassName('staff-name')[0];
             
             let textValue = "";
             if (roomNameCell) textValue += roomNameCell.innerText + " ";
-            if (classNameCell) textValue += classNameCell.innerText + " ";
-            if (staffCell) textValue += staffCell.innerText;
+            if (classNameCell) textValue += classNameCell.innerText;
 
             if (textValue.toLowerCase().indexOf(filter) > -1) {
                 rows[i].style.display = "";
@@ -790,12 +750,11 @@
         document.getElementById('editModal').style.display = 'none';
     }
 
-    function openEditClassModal(id, className, roomName, semester, staffId, fromDate, toDate) {
+    function openEditClassModal(id, className, roomName, semester, fromDate, toDate) {
         document.getElementById('edit_class_id').value = id;
         document.getElementById('edit_class_name').value = className;
         document.getElementById('edit_room_name').value = roomName;
         document.getElementById('edit_class_semester').value = semester || '';
-        document.getElementById('edit_class_staff').value = staffId;
         document.getElementById('edit_class_from_date').value = fromDate || '';
         document.getElementById('edit_class_to_date').value = toDate || '';
 

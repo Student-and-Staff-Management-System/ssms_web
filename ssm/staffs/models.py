@@ -37,11 +37,16 @@ class Staff(models.Model):
     specialization = models.CharField(max_length=255, blank=True)
     
     ROLE_CHOICES = [
-        ('HOD', 'HOD'),
-        ('Class Incharge', 'Class Incharge'),
-        ('Course Incharge', 'Course Incharge'),
-        ('Scholarship Officer', 'Scholarship Officer'),
-        ('Office Staff', 'Office Staff'),
+        ('Teaching Staff', (
+            ('HOD', 'HOD'),
+            ('Class Incharge', 'Class Incharge'),
+            ('Course Incharge', 'Course Incharge'),
+            ('Scholarship Officer', 'Scholarship Officer'),
+        )),
+        ('Non-Teaching Staff', (
+            ('Office Staff', 'Office Staff'),
+            ('Technical Officer', 'Technical Officer'),
+        )),
     ]
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='Course Incharge')
     assigned_semester = models.IntegerField(null=True, blank=True, help_text="For Class Incharge: Specify which semester they manage (1-8).")
@@ -262,15 +267,6 @@ class ClassMapping(models.Model):
     class_name = models.CharField(max_length=255, verbose_name="Class Name", help_text="e.g. III Year IT - Sem 5")
     room_name = models.CharField(max_length=100, verbose_name="Class Room Name", help_text="e.g. LH-201, Room 102")
     semester = models.IntegerField(null=True, blank=True, verbose_name="Semester (1-8)")
-    staff = models.ForeignKey(
-        Staff, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='assigned_class_mappings',
-        verbose_name="Class Incharge",
-        help_text="The staff member in charge of this class."
-    )
     from_date = models.DateField(null=True, blank=True, verbose_name="From Date")
     to_date = models.DateField(null=True, blank=True, verbose_name="To Date")
 
@@ -1106,4 +1102,107 @@ class ClassSubstitutionRequest(models.Model):
 
     def __str__(self):
         return f"{self.requester.name} -> {self.substitute.name} on {self.date} (P{self.period})"
+
+
+DEFAULT_DEPARTMENT_TASKS = [
+    (1, "Department Administration", "Administration"),
+    (2, "Board of Studies", "Academic & Governance"),
+    (3, "Department Advisory Committee (Retd. Staff)", "Governance & Advisory"),
+    (4, "All India Council for Technical Education (AICTE)", "Accreditation & Approvals"),
+    (5, "Internal Quality Assurance Cell (IQAC)", "Quality Assurance"),
+    (6, "National Assessment and Accreditation Council (NAAC)", "Accreditation & Approvals"),
+    (7, "National Board of Accreditation (NBA)", "Accreditation & Approvals"),
+    (8, "Department Research Committee (DRC)", "Research & Higher Studies"),
+    (9, "Department Planning Board", "Administration & Planning"),
+    (10, "Curriculum and Syllabus", "Curriculum & Academics"),
+    (11, "Timetable", "Academic Management"),
+    (12, "Value Added Course (VAC)", "Curriculum & Academics"),
+    (13, "SWAYAM Courses", "Online & E-Learning"),
+    (14, "I Year – Department Coordinator", "Academic Coordination"),
+    (15, "2025 – 2029 Batch Class in Charge", "Class Incharge"),
+    (16, "2024 – 2028 Batch Class in Charge", "Class Incharge"),
+    (17, "2023 – 2027 Batch Class in Charge", "Class Incharge"),
+    (18, "Class Monitoring Committee", "Student Affairs"),
+    (19, "Research Activities and PhD Programme Coordination", "Research & Higher Studies"),
+    (20, "Students Attendance and Remedial Coaching", "Student Support"),
+    (21, "Mentor - Mentee", "Student Support & Counseling"),
+    (22, "Continuous Assessment Test (CAT)", "Examinations & Assessment"),
+    (23, "University Examinations", "Examinations & Assessment"),
+    (24, "Placement Activities", "Career & Placement"),
+    (25, "Career Guidance & Counselling", "Career & Placement"),
+    (26, "Skill Development", "Student Support"),
+    (27, "Internship Activities", "Career & Placement"),
+    (28, "Institution of Engineers - India (IEI) Association", "Professional Societies"),
+    (29, "Alumni Association", "Alumni & Outreach"),
+    (30, "Institution Innovation Council (IIC)", "Innovation & Entrepreneurship"),
+    (31, "Sports and Games Activities", "Student Co-Curricular"),
+    (32, "Website & Social Media Maintenance", "IT & Infrastructure"),
+    (33, "Laboratory Maintenance & Incharges", "IT & Infrastructure"),
+    (34, "Professional Societies & Student Chapters", "Professional Societies"),
+    (35, "Entrepreneurship Development Cell (EDC)", "Innovation & Entrepreneurship"),
+    (36, "Higher Education Cell", "Research & Higher Studies"),
+    (37, "Discipline & Anti-Ragging Committee", "Student Welfare & Conduct"),
+    (38, "Red Cross / NSS / Social Service", "Student Co-Curricular"),
+    (39, "Women Empowerment Cell", "Student Welfare & Conduct"),
+    (40, "Consultancy & Testing Services", "Industry & Consultancy"),
+    (41, "Industry Institute Interaction Cell (IIIC)", "Industry & Consultancy"),
+    (42, "Prevention of Sexual Harassment", "Student Welfare & Conduct"),
+    (43, "Help Desk", "Administration & Support"),
+    (44, "Staff Welfare Committee", "Staff Welfare & Development"),
+    (45, "Staff Professional Development Committee", "Staff Welfare & Development"),
+    (46, "Budget", "Finance & Maintenance"),
+    (47, "Department Fund Maintenance", "Finance & Maintenance"),
+    (48, "RUSA Library Grant for Book Purchase", "Library & Learning Resources"),
+    (49, "Stock Maintenance", "Finance & Maintenance"),
+    (50, "Infrastructure & Facilities Management", "IT & Infrastructure"),
+    (51, "Classroom Maintenance", "IT & Infrastructure"),
+    (52, "Department File Maintenance", "Administration & Support"),
+    (53, "Annual Report Preparation and Maintenance", "Administration & Support"),
+    (54, "Class Committee Arrangements, Staff Meeting Arrangements, Minutes of Meeting Preparation and Maintenance", "Administration & Support"),
+    (55, "Magazine Preparation", "Publications & Media"),
+    (56, "Pledge Coordination", "Student Co-Curricular"),
+    (57, "Cultural & Festivals", "Student Co-Curricular"),
+    (58, "Literary Activities", "Student Co-Curricular")
+]
+
+
+class DepartmentTask(models.Model):
+    task_number = models.IntegerField(unique=True, help_text="Task number e.g. 1, 2, 3...")
+    name = models.CharField(max_length=255, verbose_name="Task / Role Name")
+    category = models.CharField(max_length=100, default="Department Administration", blank=True)
+    assigned_staff = models.ManyToManyField(
+        Staff,
+        blank=True,
+        related_name='assigned_department_tasks',
+        verbose_name="Assigned Staff Members"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['task_number']
+        verbose_name = "Department Task / Role"
+        verbose_name_plural = "Department Tasks & Roles"
+
+    def __str__(self):
+        return f"{self.task_number}. {self.name}"
+
+    @property
+    def assigned_staff_count(self):
+        return self.assigned_staff.count()
+
+    @property
+    def assigned_staff_names_display(self):
+        names = [s.name for s in self.assigned_staff.all()]
+        return ", ".join(names) if names else "Unassigned"
+
+    @classmethod
+    def seed_default_tasks(cls):
+        """Ensures all default 58 tasks exist in the database."""
+        for num, name, cat in DEFAULT_DEPARTMENT_TASKS:
+            cls.objects.get_or_create(
+                task_number=num,
+                defaults={'name': name, 'category': cat}
+            )
+
 

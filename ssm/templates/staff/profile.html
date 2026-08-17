@@ -920,6 +920,22 @@
                             <span class="info-label">Total Academic Service</span>
                             <span class="info-value">{% if experience_years %}{{ experience_years }} Years {{ experience_months }} Months{% else %}Newly Joined{% endif %}</span>
                         </div>
+                        <div class="info-item" style="grid-column: 1 / -1;">
+                            <span class="info-label">Assigned Departmental Roles & Tasks</span>
+                            <span class="info-value">
+                                {% if staff.assigned_department_tasks.exists %}
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                                        {% for t in staff.assigned_department_tasks.all %}
+                                        <span style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;">
+                                            #{{ t.task_number }} {{ t.name }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-style: italic;">No additional departmental tasks assigned</span>
+                                {% endif %}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

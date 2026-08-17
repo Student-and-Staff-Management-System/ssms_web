@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 from .models import (
     Student, PersonalInfo, BankDetails, AcademicHistory, DiplomaDetails, UGDetails, PGDetails, PhDDetails,
     ScholarshipInfo, StudentDocuments, OtherDetails, Caste, StudentMarks, StudentAttendance,
-    StudentSkill, StudentProject, LeaveRequest, StudentGPA, BonafideRequest
+    StudentSkill, StudentProject, LeaveRequest, StudentGPA, BonafideRequest, DocumentRequest, ScholarshipApplication
 )
 from . import ai_utils
 from django.template.loader import get_template
@@ -2310,3 +2310,211 @@ def upload_fee_challan(request):
         return redirect('student_dashboard')
 
     return redirect('student_dashboard')
+
+
+def apply_document_request(request):
+    """
+    Student view to apply for original marksheets (X, XII), TC, or other certificates,
+    and track borrowing / return status.
+    """
+    if 'student_id' not in request.session and 'student_roll_number' not in request.session:
+        return redirect('students:student_login')
+
+    student_id = request.session.get('student_id')
+    roll_number = request.session.get('student_roll_number')
+
+    if student_id:
+        student = get_object_or_404(Student, pk=student_id)
+    else:
+        student = get_object_or_404(Student, roll_number=roll_number)
+
+    if request.method == 'POST':
+        document_type = request.POST.get('document_type', '').strip()
+        reason = request.POST.get('reason', '').strip()
+        expected_return_date = request.POST.get('expected_return_date', '').strip() or None
+
+        if not document_type or not reason:
+            messages.error(request, 'Please specify both the document type and purpose/reason.')
+            return redirect('apply_document_request')
+
+        # Check for existing active/unreturned request for the same document type
+        existing = DocumentRequest.objects.filter(
+            student=student,
+            document_type=document_type,
+            status__in=['Pending', 'Ready for Collection', 'Collected (Not Returned)']
+        ).first()
+
+        if existing:
+            messages.warning(
+                request,
+                f"You already have an active request or borrowed instance for '{document_type}' (Status: {existing.get_status_display()}). "
+                f"Please clear or return the previous document first."
+            )
+            return redirect('apply_document_request')
+
+        # Create new DocumentRequest
+        doc_req = DocumentRequest.objects.create(
+            student=student,
+            document_type=document_type,
+            reason=reason,
+            expected_return_date=expected_return_date,
+            status='Pending'
+        )
+
+        messages.success(
+            request,
+            f"Your request for '{doc_req.get_document_type_display()}' has been submitted to the Department Office."
+        )
+        return redirect('apply_document_request')
+
+    requests_list = DocumentRequest.objects.filter(student=student).order_by('-created_at')
+    unreturned_count = requests_list.filter(status='Collected (Not Returned)').count()
+
+    context = {
+        'student': student,
+        'requests_list': requests_list,
+        'unreturned_count': unreturned_count,
+        'document_choices': DocumentRequest.DOCUMENT_CHOICES,
+    }
+    return render(request, 'students/apply_document_request.html', context)
+
+
+def apply_scholarship(request):
+    """View for students to view and apply for various institutional and Govt scholarships."""
+    student_id = request.session.get('student_id')
+    roll_number = request.session.get('student_roll_number')
+
+    if student_id:
+        student = get_object_or_404(Student, pk=student_id)
+    elif roll_number:
+        student = get_object_or_404(Student, roll_number=roll_number)
+    else:
+        messages.error(request, 'Please log in to access the scholarship application portal.')
+        return redirect('student_login')
+
+    from .models import ScholarshipApplication, BankDetails, SCHOLARSHIP_TYPE_CHOICES
+    from staffs.models import Staff
+    from django.core.mail import send_mail
+    from django.conf import settings
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # Handle Student updating sanction/receipt status
+        if action == 'update_student_status':
+            app_id = request.POST.get('app_id')
+            student_status = request.POST.get('student_status')
+            sch_app = get_object_or_404(ScholarshipApplication, id=app_id, student=student)
+
+            if student_status == 'received':
+                sch_app.status = 'Govt Sanctioned / Amount Received'
+                sch_app.disbursed_at = timezone.now()
+                sch_app.save()
+                messages.success(request, f"Status for '{sch_app.get_scholarship_type_display()}' updated to 'Govt Sanctioned / Amount Received' 🎉")
+            elif student_status == 'not_received':
+                sch_app.status = 'Not Received / Pending Govt'
+                sch_app.save()
+                messages.info(request, f"Status for '{sch_app.get_scholarship_type_display()}' updated to 'Not Received / Pending Govt'.")
+            
+            return redirect('apply_scholarship')
+
+        scholarship_type = request.POST.get('scholarship_type', '').strip()
+        private_name = request.POST.get('private_scholarship_name', '').strip()
+        application_no = request.POST.get('application_no', '').strip()
+        annual_income = request.POST.get('annual_income', '').strip()
+        income_cert_no = request.POST.get('income_certificate_no', '').strip()
+        bank_acc = request.POST.get('bank_account_no', '').strip()
+        bank_ifsc = request.POST.get('bank_ifsc', '').strip()
+
+        if not scholarship_type:
+            messages.error(request, 'Please select a scholarship scheme.')
+            return redirect('apply_scholarship')
+
+        if scholarship_type == 'PRIVATE' and not private_name:
+            messages.error(request, 'Please specify the name of the Private / Endowment scholarship.')
+            return redirect('apply_scholarship')
+
+        # Check duplicate active/pending request for same scholarship type
+        existing = ScholarshipApplication.objects.filter(
+            student=student,
+            scholarship_type=scholarship_type,
+            status__in=['Pending Office Verification', 'Verified & Recommended']
+        ).first()
+
+        if existing:
+            messages.warning(
+                request,
+                f"You already have an active declaration for '{existing.get_scholarship_type_display()}' "
+                f"(Status: {existing.get_status_display()}). Simultaneous duplicate entries for the same scheme are not allowed."
+            )
+            return redirect('apply_scholarship')
+
+        # Parse income
+        income_val = None
+        if annual_income:
+            try:
+                income_val = int(annual_income.replace(',', '').strip())
+            except ValueError:
+                income_val = None
+
+        # Supporting document
+        supp_doc = request.FILES.get('supporting_document')
+
+        # Create application record
+        sch_app = ScholarshipApplication.objects.create(
+            student=student,
+            scholarship_type=scholarship_type,
+            private_scholarship_name=private_name if scholarship_type == 'PRIVATE' else '',
+            application_no=application_no,
+            academic_year='2026-2027',
+            annual_income=income_val,
+            income_certificate_no=income_cert_no,
+            bank_account_no=bank_acc,
+            bank_ifsc=bank_ifsc,
+            supporting_document=supp_doc,
+            status='Pending Office Verification'
+        )
+
+        # Notify Scholarship Officers & Office Staff
+        officers = Staff.objects.filter(
+            Q(is_scholarship_officer=True) | Q(role__in=['Scholarship Officer', 'Office Staff'])
+        ).values_list('email', flat=True)
+
+        recipient_emails = [e for e in officers if e]
+        if recipient_emails:
+            try:
+                send_mail(
+                    subject=f"New Scholarship Declaration: {student.student_name} ({student.roll_number})",
+                    message=(
+                        f"A new scholarship application record has been declared by {student.student_name} ({student.roll_number}).\n\n"
+                        f"Scholarship Scheme: {sch_app.get_scholarship_type_display()}\n"
+                        f"Application Ref No: {application_no or 'N/A'}\n"
+                        f"Annual Income: ₹{income_val or 'N/A'}\n\n"
+                        f"Please log in to the SSMS Scholarship Verification Manager to verify and record."
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=recipient_emails,
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Failed to send email notification to scholarship officers: {e}")
+
+        messages.success(
+            request,
+            f"Your scholarship declaration for '{sch_app.get_scholarship_type_display()}' has been recorded successfully for Office Verification!"
+        )
+        return redirect('apply_scholarship')
+
+    # GET handling
+    applications = ScholarshipApplication.objects.filter(student=student).order_by('-applied_at')
+    
+    # Try pre-filling bank details
+    bank_info = BankDetails.objects.filter(student=student).first()
+
+    context = {
+        'student': student,
+        'applications': applications,
+        'bank_info': bank_info,
+        'type_choices': SCHOLARSHIP_TYPE_CHOICES,
+    }
+    return render(request, 'students/apply_scholarship.html', context)

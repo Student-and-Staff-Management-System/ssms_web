@@ -1,0 +1,45 @@
+<!-- Assigned Departmental Tasks & Roles Widget -->
+<div style="background: var(--surface, #ffffff); border-radius: 16px; padding: 20px 24px; border: 1px solid var(--border, #e2e8f0); box-shadow: 0 4px 16px rgba(0,0,0,0.03); margin-bottom: 24px; font-family: 'Poppins', sans-serif;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border, #f1f5f9); padding-bottom: 12px;">
+        <div>
+            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); display: flex; align-items: center; gap: 8px;">
+                <span>📌 Assigned Departmental Tasks & Roles</span>
+            </h3>
+            <p style="margin: 2px 0 0 0; font-size: 0.78rem; color: var(--text-muted, #64748b);">Official departmental responsibilities assigned by Head of Department / Admin</p>
+        </div>
+        <span style="font-size: 0.76rem; background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); padding: 4px 12px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(90,125,124,0.2);">
+            {{ staff.assigned_department_tasks.count }} Task{{ staff.assigned_department_tasks.count|pluralize }}
+        </span>
+    </div>
+
+    {% if staff.assigned_department_tasks.exists %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+        {% for task in staff.assigned_department_tasks.all %}
+        <div style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border, #e2e8f0); padding: 14px 16px; border-radius: 12px; display: flex; align-items: center; gap: 14px; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--primary, #5a7d7c)'" onmouseout="this.style.borderColor='var(--border, #e2e8f0)'">
+            <div style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 40px; height: 40px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(90,125,124,0.2);">
+                #{{ task.task_number }}
+            </div>
+            <div style="overflow: hidden; flex: 1;">
+                <h4 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--text-main, #0f172a); text-overflow: ellipsis; white-space: nowrap; overflow: hidden;" title="{{ task.name }}">
+                    {{ task.name }}
+                </h4>
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
+                    <span style="font-size: 0.74rem; color: var(--text-muted, #64748b);">Category:</span>
+                    <span style="font-size: 0.72rem; background: #ffffff; color: var(--text-main, #0f172a); border: 1px solid #cbd5e1; padding: 1px 8px; border-radius: 10px; font-weight: 600;">
+                        {{ task.category|default:"Departmental Duty" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background: var(--bg-body, #f8fafc); border: 1px dashed var(--border, #cbd5e1); padding: 18px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; color: var(--text-muted, #64748b); font-size: 0.86rem;">
+        <span style="font-size: 20px;">ℹ️</span>
+        <div>
+            <strong>No specific departmental tasks assigned.</strong>
+            <div style="font-size: 0.78rem; margin-top: 2px;">Your main role is set to <strong>{{ staff.role }}</strong>. Additional departmental committee / accreditation duties can be assigned by HOD in Admin.</div>
+        </div>
+    </div>
+    {% endif %}
+</div>

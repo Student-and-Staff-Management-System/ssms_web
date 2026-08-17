@@ -1,0 +1,379 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Original Document Requests | Office Staff Portal{% endblock %}
+
+{% block body_class %}dashboard-portal{% endblock %}
+
+{% block page_title %}
+    📜 Original Document Borrow & Return Requests
+    <span style="font-size: 0.75rem; background: var(--primary-light, #eef2f2); color: var(--primary-dark, #4a6b69); border: 1px solid rgba(90, 125, 124, 0.25); padding: 4px 12px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">🏢 Office Staff Management</span>
+{% endblock %}
+
+{% block page_subtitle %}Review student requests for 10th/12th marksheets & TC, track collection, and manage unreturned physical documents.{% endblock %}
+
+{% block content %}
+<div style="font-family: 'Poppins', sans-serif;">
+
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 15px 20px; margin-bottom: 24px; border-radius: 10px; font-family: inherit;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Top Key Metrics Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px;">
+        <!-- Pending Review -->
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div style="background: #e0f2fe; color: #0284c7; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">⏳</div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ pending_count }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted, #64748b);">Pending Review</span>
+            </div>
+        </div>
+
+        <!-- Ready for Collection -->
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div style="background: #dcfce7; color: #16a34a; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">🎉</div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ ready_count }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted, #64748b);">Ready for Collection</span>
+            </div>
+        </div>
+
+        <!-- Borrowed / Not Returned -->
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-left: 4px solid #d97706; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div style="background: #fef3c7; color: #d97706; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">⚠️</div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: #d97706;">{{ borrowed_count }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted, #64748b); font-weight: 600;">Borrowed (Not Returned)</span>
+            </div>
+        </div>
+
+        <!-- Completed / Returned -->
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
+            <div style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">✅</div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ completed_list.count }}</h3>
+                <span style="font-size: 0.85rem; color: var(--text-muted, #64748b);">Returned / Completed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Tab Filter Bar -->
+    <div style="background: var(--surface, #ffffff); border-radius: 14px; border: 1px solid var(--border, #e2e8f0); padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <!-- Tabs -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="docTabs">
+                <button onclick="switchTab('pending')" id="tab-pending" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--primary, #5a7d7c); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                    ⏳ Pending Review ({{ pending_count }})
+                </button>
+                <button onclick="switchTab('ready')" id="tab-ready" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body, #f8fafc); color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                    🎉 Ready for Collection ({{ ready_count }})
+                </button>
+                <button onclick="switchTab('borrowed')" id="tab-borrowed" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body, #f8fafc); color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                    ⚠️ Borrowed / Not Returned ({{ borrowed_count }})
+                </button>
+                <button onclick="switchTab('completed')" id="tab-completed" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body, #f8fafc); color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                    ✅ Returned & Closed ({{ completed_list.count }})
+                </button>
+                <button onclick="switchTab('all')" id="tab-all" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body, #f8fafc); color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                    📋 All Requests ({{ all_requests.count }})
+                </button>
+            </div>
+
+            <!-- Search Input -->
+            <div style="min-width: 250px;">
+                <input type="text" id="docSearchInput" onkeyup="filterDocTable()" placeholder="🔍 Search student name, roll no, or document..." style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Table Container -->
+    <div style="background: var(--surface, #ffffff); border-radius: 14px; border: 1px solid var(--border, #e2e8f0); padding: 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+        
+        <!-- Table -->
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;" id="docRequestsTable">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                        <th style="padding: 12px 14px;">Student Info</th>
+                        <th style="padding: 12px 14px;">Requested Document</th>
+                        <th style="padding: 12px 14px;">Reason / Purpose</th>
+                        <th style="padding: 12px 14px;">Status & Dates</th>
+                        <th style="padding: 12px 14px; text-align: right;">Office Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in all_requests %}
+                    <tr class="doc-row doc-status-{{ req.status|slugify }}" data-status="{% if req.status == 'Pending' %}pending{% elif req.status == 'Ready for Collection' %}ready{% elif req.status == 'Collected (Not Returned)' %}borrowed{% else %}completed{% endif %}" style="border-bottom: 1px solid var(--border, #f1f5f9);">
+                        
+                        <!-- Student Info -->
+                        <td style="padding: 16px 14px;">
+                            <div style="font-weight: 700; color: var(--text-main, #0f172a); font-size: 0.95rem;">
+                                {{ req.student.student_name }}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted, #64748b);">
+                                Roll: <strong>{{ req.student.roll_number }}</strong>
+                                {% if req.student.current_semester %}| Sem {{ req.student.current_semester }}{% endif %}
+                            </div>
+                            {% if req.student.student_email %}
+                            <div style="font-size: 0.76rem; color: var(--primary, #5a7d7c);">✉️ {{ req.student.student_email }}</div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Requested Document -->
+                        <td style="padding: 16px 14px; font-weight: 600; color: var(--text-main);">
+                            📜 {{ req.get_document_type_display }}
+                            {% if req.expected_return_date %}
+                            <div style="font-size: 0.76rem; color: #b45309; font-weight: 500; margin-top: 2px;">Exp Return: {{ req.expected_return_date|date:"M d, Y" }}</div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Reason / Purpose -->
+                        <td style="padding: 16px 14px; color: var(--text-main); max-width: 260px;">
+                            {{ req.reason }}
+                        </td>
+
+                        <!-- Status & Dates -->
+                        <td style="padding: 16px 14px; white-space: nowrap;">
+                            {% if req.status == 'Pending' %}
+                            <span style="background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 0.78rem;">
+                                ⏳ Pending Review
+                            </span>
+                            {% elif req.status == 'Ready for Collection' %}
+                            <span style="background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
+                                🎉 Ready for Collection
+                            </span>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">Notified via Email</div>
+                            {% elif req.status == 'Collected (Not Returned)' %}
+                            <span style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
+                                ⚠️ Borrowed (Not Returned)
+                            </span>
+                            <div style="font-size: 0.72rem; color: #b45309; margin-top: 3px;">Collected: {{ req.collected_at|date:"M d, Y" }}</div>
+                            {% elif req.status == 'Returned' %}
+                            <span style="background: #e0f2f1; color: #00695c; padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
+                                ✅ Returned & Closed
+                            </span>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">Returned: {{ req.returned_at|date:"M d, Y" }}</div>
+                            {% elif req.status == 'Rejected' %}
+                            <span style="background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
+                                ❌ Rejected
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Office Action Buttons -->
+                        <td style="padding: 16px 14px; text-align: right; white-space: nowrap;">
+                            
+                            {% if req.status == 'Pending' %}
+                            <!-- Action 1: Mark Ready for Collection -->
+                            <form id="readyForm-{{ req.id }}" method="POST" action="{% url 'staffs:office_manage_document_requests' %}" style="display: inline-block; margin-right: 4px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <input type="hidden" name="action" value="ready">
+                                <button type="button" onclick="confirmAction('readyForm-{{ req.id }}', 'Mark Document Ready?', 'Mark {{ req.student.student_name|escapejs }}\'s {{ req.get_document_type_display|escapejs }} as Ready for Collection? An automated email notification will be sent to the student.', '🎉', 'Mark Ready & Notify ✉️', '#16a34a')" style="background: #16a34a; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2); transition: transform 0.15s;">
+                                    Mark Ready & Notify ✉️
+                                </button>
+                            </form>
+
+                            <!-- Action 2: Reject -->
+                            <button type="button" onclick="openRejectModal({{ req.id }}, '{{ req.student.student_name|escapejs }}', '{{ req.get_document_type_display|escapejs }}')" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: transform 0.15s;">
+                                Reject
+                            </button>
+
+                            {% elif req.status == 'Ready for Collection' %}
+                            <!-- Action: Mark as Collected -->
+                            <form id="collectedForm-{{ req.id }}" method="POST" action="{% url 'staffs:office_manage_document_requests' %}" style="display: inline-block;">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <input type="hidden" name="action" value="collected">
+                                <button type="button" onclick="confirmAction('collectedForm-{{ req.id }}', 'Confirm Document Handover', 'Confirm physical {{ req.get_document_type_display|escapejs }} handed over to {{ req.student.student_name|escapejs }}? Status will change to Collected (Not Returned).', '🤝', 'Mark Collected (Handed Over)', '#d97706')" style="background: #d97706; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.2); transition: transform 0.15s;">
+                                    Mark Collected (Handed Over) 🤝
+                                </button>
+                            </form>
+
+                            {% elif req.status == 'Collected (Not Returned)' %}
+                            <!-- Action: Mark as Returned -->
+                            <form id="returnedForm-{{ req.id }}" method="POST" action="{% url 'staffs:office_manage_document_requests' %}" style="display: inline-block;">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <input type="hidden" name="action" value="returned">
+                                <button type="button" onclick="confirmAction('returnedForm-{{ req.id }}', 'Confirm Document Returned', 'Confirm student {{ req.student.student_name|escapejs }} has returned the physical original {{ req.get_document_type_display|escapejs }} to office?', '✅', 'Mark Returned to Office', 'var(--primary, #5a7d7c)')" style="background: var(--primary, #5a7d7c); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(90, 125, 124, 0.2); transition: transform 0.15s;">
+                                    Mark Returned to Office ✅
+                                </button>
+                            </form>
+
+                            {% else %}
+                            <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: 500;">No action needed</span>
+                            {% endif %}
+
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 32px; text-align: center; color: var(--text-muted);">
+                            No original document requests found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- Custom Keyframe Animation -->
+<style>
+    @keyframes modalPop {
+        0% { opacity: 0; transform: scale(0.92); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+</style>
+
+<!-- Custom Action Confirmation Modal -->
+<div id="customConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding: 28px 28px 20px 28px; text-align: center;">
+            <div id="modalIconWrap" style="width: 64px; height: 64px; border-radius: 50%; background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                📡
+            </div>
+            <h3 id="modalConfirmTitle" style="margin: 0 0 10px 0; font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">Confirm Action</h3>
+            <p id="modalConfirmMessage" style="margin: 0; font-size: 0.9rem; color: var(--text-muted, #64748b); line-height: 1.5;"></p>
+        </div>
+        <div style="background: var(--bg-body, #f8fafc); padding: 16px 28px; border-top: 1px solid var(--border, #e2e8f0); display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" onclick="closeConfirmModal()" style="background: #ffffff; color: var(--text-main, #0f172a); border: 1px solid var(--border, #cbd5e1); padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.2s;">
+                Cancel
+            </button>
+            <button type="button" id="modalConfirmBtn" onclick="submitConfirmedForm()" style="background: var(--primary, #5a7d7c); color: #ffffff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s;">
+                Confirm Action
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Rejection Modal -->
+<div id="rejectModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding: 22px 28px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: #fff5f5;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: #fee2e2; color: #dc2626; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">⚠️</div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #991b1b;">Reject Document Request</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: #7f1d1d;">Notify student regarding application decision</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeRejectModal()" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 4px;">&times;</button>
+        </div>
+        
+        <form method="POST" action="{% url 'staffs:office_manage_document_requests' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <input type="hidden" name="request_id" id="rejectRequestId">
+            
+            <div style="padding: 24px 28px;">
+                <div style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border, #e2e8f0); padding: 12px 16px; border-radius: 10px; font-size: 0.86rem; color: var(--text-main, #0f172a); margin-bottom: 18px;" id="rejectModalSub"></div>
+
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main, #0f172a); margin-bottom: 8px;">
+                        Reason for Rejection <span style="color: #ef4444;">*</span>
+                    </label>
+                    <textarea name="rejection_reason" rows="3" required placeholder="Specify why the original document cannot be issued or borrowed at this time..." style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-family: inherit; resize: vertical; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary, #5a7d7c)'" onblur="this.style.borderColor='#cbd5e1'"></textarea>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-body, #f8fafc); padding: 16px 28px; border-top: 1px solid var(--border, #e2e8f0); display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="closeRejectModal()" style="background: #ffffff; color: var(--text-main, #0f172a); border: 1px solid var(--border, #cbd5e1); padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">Cancel</button>
+                <button type="submit" style="background: #dc2626; color: white; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">Reject Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentTab = 'pending';
+    let pendingFormToSubmit = null;
+
+    function switchTab(tab) {
+        currentTab = tab;
+        const buttons = document.querySelectorAll('#docTabs button');
+        buttons.forEach(btn => {
+            btn.style.background = 'var(--bg-body, #f8fafc)';
+            btn.style.color = 'var(--text-main, #0f172a)';
+        });
+        
+        const activeBtn = document.getElementById('tab-' + tab);
+        if (activeBtn) {
+            activeBtn.style.background = 'var(--primary, #5a7d7c)';
+            activeBtn.style.color = 'white';
+        }
+
+        filterDocTable();
+    }
+
+    function filterDocTable() {
+        const query = document.getElementById('docSearchInput').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#docRequestsTable .doc-row');
+
+        rows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            const text = row.innerText.toLowerCase();
+
+            const matchesTab = (currentTab === 'all') || (status === currentTab);
+            const matchesQuery = !query || text.includes(query);
+
+            if (matchesTab && matchesQuery) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function confirmAction(formId, title, message, icon, confirmBtnText, confirmBtnBg) {
+        pendingFormToSubmit = document.getElementById(formId);
+        document.getElementById('modalConfirmTitle').innerText = title;
+        document.getElementById('modalConfirmMessage').innerText = message;
+        document.getElementById('modalIconWrap').innerText = icon || '📡';
+        
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        confirmBtn.innerText = confirmBtnText || 'Confirm Action';
+        confirmBtn.style.background = confirmBtnBg || 'var(--primary, #5a7d7c)';
+        confirmBtn.style.boxShadow = `0 4px 14px ${confirmBtnBg}44`;
+
+        const modal = document.getElementById('customConfirmModal');
+        modal.style.display = 'flex';
+    }
+
+    function submitConfirmedForm() {
+        if (pendingFormToSubmit) {
+            pendingFormToSubmit.submit();
+        }
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('customConfirmModal').style.display = 'none';
+        pendingFormToSubmit = null;
+    }
+
+    function openRejectModal(id, name, doc) {
+        document.getElementById('rejectRequestId').value = id;
+        document.getElementById('rejectModalSub').innerHTML = `Student: <strong>${name}</strong> | Requested: <strong>${doc}</strong>`;
+        document.getElementById('rejectModal').style.display = 'flex';
+    }
+
+    function closeRejectModal() {
+        document.getElementById('rejectModal').style.display = 'none';
+    }
+
+    // Initialize default tab
+    document.addEventListener('DOMContentLoaded', () => {
+        switchTab('pending');
+    });
+</script>
+{% endblock %}

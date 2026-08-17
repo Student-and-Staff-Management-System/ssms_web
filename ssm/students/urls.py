@@ -90,6 +90,8 @@ urlpatterns = [
     path('request/bonafide/', views.request_bonafide, name='request_bonafide'),
     path('bonafide/history/', views.bonafide_list, name='bonafide_list'),
     path('bonafide/download/<int:request_id>/', views.download_bonafide, name='download_bonafide'),
+    path('document-request/apply/', views.apply_document_request, name='apply_document_request'),
+    path('scholarships/apply/', views.apply_scholarship, name='apply_scholarship'),
     
     # Scholar URLs
     path('scholar/login/', scholars_views.scholar_login, name='scholar_login'),

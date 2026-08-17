@@ -329,6 +329,12 @@
                 <a href="{% url 'bonafide_list' %}" class="nav-link">
                     <span class="icon">📜</span> Request Bonafide
                 </a>
+                <a href="{% url 'apply_document_request' %}" class="nav-link">
+                    <span class="icon">📁</span> Request Marksheets / TC
+                </a>
+                <a href="{% url 'apply_scholarship' %}" class="nav-link">
+                    <span class="icon">🎓</span> Apply for Scholarship
+                </a>
                 <a href="#" onclick="openFeeChallanModal(); return false;" class="nav-link">
                     <span class="icon">💳</span> Fee Challans
                 </a>
@@ -1006,34 +1012,40 @@
         style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;">
     </div>
 
-    <!-- Bonafide Modal -->
+    <!-- Bonafide Modal (Custom Brand Glassmorphism) -->
     <div id="bonafideModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
         <div
-            style="background: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; position: relative;">
-            <button onclick="closeBonafideModal()"
-                style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-            <h3 style="margin-top: 0; color: #333; margin-bottom: 15px;">Request Bonafide</h3>
+            style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="padding: 22px 28px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: var(--primary-light, #eef2f2);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="background: var(--surface, #ffffff); color: var(--primary, #5a7d7c); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">📜</div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--primary-dark, #4a6b69);">Request Bonafide Certificate</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted, #64748b);">Official Institutional Certificate Application</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeBonafideModal()"
+                    style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 4px;">&times;</button>
+            </div>
 
-            <form method="post" action="{% url 'request_bonafide' %}" id="bonafideForm">
+            <form method="post" action="{% url 'request_bonafide' %}" id="bonafideForm" style="padding: 24px 28px;">
                 {% csrf_token %}
 
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #475569;">Purpose of
-                        Request:</label>
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.86rem; color: var(--text-main, #0f172a);">
+                        Purpose of Request <span style="color: #ef4444;">*</span>
+                    </label>
                     <select name="bonafide_type" id="bonafideType" onchange="toggleBonafideFields()" required
-                        style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; background: white; color: #334155;">
+                        style="width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-family: inherit; background: white; color: var(--text-main, #0f172a); font-size: 0.88rem; outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='var(--primary, #5a7d7c)'" onblur="this.style.borderColor='#cbd5e1'">
                         <option value="" disabled selected>-- Select a Reason --</option>
-                        <option value="Applying for First Graduate Scholarship">Applying for First Graduate Scholarship
-                        </option>
-                        <option value="Applying for Post Matric Scholarship">Applying for Post Matric Scholarship
-                        </option>
-                        <option value="First Graduate Scholarship Not Availed">He/She has not availed First Graduate
-                            Scholarship from this institution</option>
+                        <option value="Applying for First Graduate Scholarship">Applying for First Graduate Scholarship</option>
+                        <option value="Applying for Post Matric Scholarship">Applying for Post Matric Scholarship</option>
+                        <option value="First Graduate Scholarship Not Availed">He/She has not availed First Graduate Scholarship from this institution</option>
                         <option value="Passport Verification">Passport Verification</option>
                         <option value="Applying for Passport">Applying for Passport (Govt. of India)</option>
-                        <option value="7.5% Reservation / Puthumai Penn / Thamil Pudhalvan Scheme">7.5% Reservation /
-                            Puthumai Penn / Thamil Pudhalvan Scheme</option>
+                        <option value="7.5% Reservation / Puthumai Penn / Thamil Pudhalvan Scheme">7.5% Reservation / Puthumai Penn / Thamil Pudhalvan Scheme</option>
                         <option value="Nalavariyam / Uzhavar Scholarship">Nalavariyam / Uzhavar Scholarship</option>
                         <option value="Educational Loan">Educational Loan</option>
                         <option value="Other">Other (Type Manually)</option>
@@ -1042,34 +1054,37 @@
 
                 <!-- Conditional: Educational Loan -->
                 <div id="loanFields"
-                    style="display: none; margin-bottom: 15px; border-left: 3px solid #5a7d7c; padding-left: 10px;">
-                    <div style="margin-bottom: 10px;">
-                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #64748b;">Bank
-                            Name:</label>
+                    style="display: none; margin-bottom: 18px; border-left: 4px solid var(--primary, #5a7d7c); padding-left: 14px; background: var(--bg-body, #f8fafc); padding: 14px; border-radius: 0 10px 10px 0;">
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 0.84rem; font-weight: 600; color: var(--text-main, #0f172a);">Bank Name:</label>
                         <input type="text" name="bank_name" placeholder="e.g. State Bank of India"
-                            style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;">
                     </div>
                     <div>
-                        <label style="display: block; margin-bottom: 5px; font-size: 0.9rem; color: #64748b;">Branch
-                            Name:</label>
+                        <label style="display: block; margin-bottom: 4px; font-size: 0.84rem; font-weight: 600; color: var(--text-main, #0f172a);">Branch Name:</label>
                         <input type="text" name="branch_name" placeholder="e.g. Annamalai Nagar"
-                            style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;">
                     </div>
                 </div>
 
                 <!-- Conditional: Other Reason -->
-                <div id="otherField" style="display: none; margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #475569;">Enter
-                        Reason:</label>
+                <div id="otherField" style="display: none; margin-bottom: 18px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.86rem; color: var(--text-main, #0f172a);">Enter Reason:</label>
                     <textarea name="custom_reason" rows="3"
-                        style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit;"
-                        placeholder="Type your specific reason here... [1 line Maximum]"></textarea>
+                        style="width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.88rem; box-sizing: border-box; resize: vertical;"
+                        placeholder="Type your specific reason here..."></textarea>
                 </div>
 
-                <button type="submit"
-                    style="width: 100%; background: #5a7d7c; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 1rem; margin-top: 5px;">
-                    Submit Request
-                </button>
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" onclick="closeBonafideModal()"
+                        style="background: #ffffff; color: var(--text-main, #0f172a); border: 1px solid var(--border, #cbd5e1); padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        style="background: var(--primary, #5a7d7c); color: white; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(90, 125, 124, 0.3); transition: all 0.2s;">
+                        Submit Request
+                    </button>
+                </div>
             </form>
         </div>
     </div>

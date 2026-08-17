@@ -458,7 +458,36 @@
 <script>
 /* ── Data from Django ── */
 const SUBJECT_MAP = {{ subject_staff_map_json|safe }};
+const FACULTY_OCCUPANCY = {% if faculty_occupancy_json %}{{ faculty_occupancy_json|safe }}{% else %}{}{% endif %};
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+/* ── Faculty Conflict Detection ── */
+function validateAllConflicts() {
+    const currentSem = {{ semester|default:1 }};
+    DAYS.forEach(day => {
+        for (let p = 1; p <= 7; p++) {
+            const sel = document.getElementById(`sel-${day}-${p}`);
+            const chip = document.getElementById(`chip-${day}-${p}`);
+            if (!sel || !chip) continue;
+
+            const val = sel.value;
+            if (val && SUBJECT_MAP[val] && SUBJECT_MAP[val].staff_id) {
+                const staffId = SUBJECT_MAP[val].staff_id;
+                const key = `${day}_${p}_${staffId}`;
+                const existing = FACULTY_OCCUPANCY[key];
+
+                if (existing && existing.length > 0) {
+                    const externalConflict = existing.find(e => e.semester !== currentSem);
+                    if (externalConflict) {
+                        chip.innerHTML = `⚠️ Conflict: ${externalConflict.staff_name || 'Staff'} in Sem ${externalConflict.semester} (${externalConflict.subject_code})`;
+                        chip.style.color = '#dc2626';
+                        chip.style.fontWeight = 'bold';
+                    }
+                }
+            }
+        }
+    });
+}
 
 /* ── Colour palette ── */
 const PAL = [
@@ -764,7 +793,7 @@ function setLabSubjectBatch(day, startP, batch, subjId) {
         }
     }
 
-    markDirty(); updateStats();
+    markDirty(); updateStats(); validateAllConflicts();
 }
 
 /* ── Main change handler ── */
@@ -782,7 +811,7 @@ function onSel(day, period){
     } else {
         applyNormal(day, period, val);
     }
-    markDirty(); updateStats();
+    markDirty(); updateStats(); validateAllConflicts();
 }
 
 function clearCell(day, period){
@@ -824,7 +853,7 @@ function clearCell(day, period){
         if (sel) sel.value = '';
         applyNormal(day, period, '');
     }
-    markDirty(); updateStats();
+    markDirty(); updateStats(); validateAllConflicts();
 }
 
 function clearAll(){
@@ -847,7 +876,7 @@ function clearAll(){
             if(sel){ sel.value=''; applyNormal(d,p,''); }
         }
     });
-    markDirty(); updateStats();
+    markDirty(); updateStats(); validateAllConflicts();
 }
 
 let dirty=false;
@@ -883,7 +912,7 @@ function initPage(){
             }
         }
     });
-    buildLegend(); updateStats();
+    buildLegend(); updateStats(); validateAllConflicts();
 }
 
 window.addEventListener('beforeunload',e=>{ if(dirty){e.preventDefault();e.returnValue='';} });
