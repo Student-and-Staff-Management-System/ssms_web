@@ -391,6 +391,14 @@ class DepartmentTaskAdmin(admin.ModelAdmin):
     ordering = ('task_number',)
     actions = ['export_tasks_csv', 'seed_missing_tasks']
 
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        from django.db.models import Max
+        max_num = DepartmentTask.objects.aggregate(Max('task_number'))['task_number__max'] or 0
+        initial['task_number'] = max_num + 1
+        return initial
+
+
     def get_assigned_staff_count(self, obj):
         return obj.assigned_staff.count()
     get_assigned_staff_count.short_description = 'Staff Count'

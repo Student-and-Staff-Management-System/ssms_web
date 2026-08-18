@@ -1295,8 +1295,14 @@ DEFAULT_DEPARTMENT_TASKS = [
 
 
 class DepartmentTask(models.Model):
-    task_number = models.IntegerField(unique=True, help_text="Task number e.g. 1, 2, 3...")
+    task_number = models.IntegerField(
+        unique=True,
+        blank=True,
+        null=True,
+        help_text="Task number e.g. 1, 2, 3... (Leave blank to automatically assign the next number)"
+    )
     name = models.CharField(max_length=255, verbose_name="Task / Role Name")
+
     category = models.CharField(max_length=100, default="Department Administration", blank=True)
     assigned_staff = models.ManyToManyField(
         Staff,
@@ -1314,6 +1320,13 @@ class DepartmentTask(models.Model):
 
     def __str__(self):
         return f"{self.task_number}. {self.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.task_number:
+            from django.db.models import Max
+            max_num = DepartmentTask.objects.aggregate(Max('task_number'))['task_number__max'] or 0
+            self.task_number = max_num + 1
+        super().save(*args, **kwargs)
 
     @property
     def assigned_staff_count(self):
