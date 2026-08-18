@@ -556,7 +556,7 @@
                     <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-weight: 600; color: #334155;">{{ class_incharge.name }}</span>
-                            <span style="font-size: 0.75rem; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Class Incharge</span>
+                            <span style="font-size: 0.75rem; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Class Incharge{% if class_incharge.assigned_batch and class_incharge.assigned_batch != 'All' %} (Batch {{ class_incharge.assigned_batch }}){% endif %}</span>
                         </div>
                         {% if class_incharge.mobile_number %}
                         <div style="font-size: 0.8rem; color: #64748b;">📞 {{ class_incharge.mobile_number }}</div>

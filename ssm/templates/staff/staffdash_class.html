@@ -5,7 +5,7 @@
 
 {% block page_title %}
     Hello, {{ staff.name }} {{ staff.initial|default:"" }} 👋
-    <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">Class Incharge (Sem {{ staff.assigned_semester }})</span>
+    <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">Class Incharge (Sem {{ staff.assigned_semester }}{% if staff.assigned_batch and staff.assigned_batch != 'All' %} - Batch {{ staff.assigned_batch }}{% endif %})</span>
     {% if staff.is_timetable_incharge %}
     <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📅 Timetable Incharge</span>
     {% endif %}
@@ -85,7 +85,7 @@
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #fef3c7; color: #d97706;">🏛️</div>
                     <div class="stat-info">
-                        <h3>{{ staff.assigned_semester }}</h3>
+                        <h3>Sem {{ staff.assigned_semester }}{% if staff.assigned_batch and staff.assigned_batch != 'All' %} (Batch {{ staff.assigned_batch }}){% endif %}</h3>
                         <span>Current Semester</span>
                     </div>
                 </div>

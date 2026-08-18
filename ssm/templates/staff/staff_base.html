@@ -198,7 +198,7 @@
                 <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">☰</button>
                 <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo">
                 <h1 class="nav-text">
-                    {% if staff.role == 'HOD' %}Head of Dept{% else %}IT Portal{% endif %}
+                    {% if staff.is_hod %}Head of Dept / Admin{% else %}IT Portal{% endif %}
                 </h1>
             </div>
 

@@ -380,7 +380,7 @@
             <!-- TABS NAVIGATION & CONTENT BASED ON ROLE -->
 
             <!-- HOD VIEW -->
-            {% if staff.role == 'HOD' %}
+            {% if staff.is_hod %}
             <div class="tabs">
                 <button class="tab-btn active" id="btn-hod-pending" onclick="openTab('hod-pending')">Approval
                     Queue</button>

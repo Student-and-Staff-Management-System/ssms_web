@@ -540,7 +540,20 @@ def student_dashboard(request):
     from staffs.models import Staff
     timetable_incharges = Staff.objects.filter(is_timetable_incharge=True).only('name', 'mobile_number')
     scholarship_officers = Staff.objects.filter(is_scholarship_officer=True).only('name', 'mobile_number')
-    class_incharge = Staff.objects.filter(role='Class Incharge', assigned_semester=student.current_semester).first()
+    class_incharge = None
+    if student.current_semester:
+        from django.db.models import Q
+        ci_qs = Staff.objects.filter(
+            assigned_semester=student.current_semester
+        ).filter(
+            Q(role='Class Incharge') | Q(secondary_roles__icontains='Class Incharge')
+        )
+        if student.lab_batch:
+            class_incharge = ci_qs.filter(assigned_batch=student.lab_batch).first()
+        if not class_incharge:
+            class_incharge = ci_qs.filter(Q(assigned_batch='All') | Q(assigned_batch__isnull=True) | Q(assigned_batch='')).first()
+        if not class_incharge:
+            class_incharge = ci_qs.first()
 
     # Helper for calendar data
     calendar_data = get_attendance_calendar_data(student)

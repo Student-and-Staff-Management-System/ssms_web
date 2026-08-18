@@ -234,8 +234,8 @@
                 <div class="staff-name">{{ staff.salutation }} {{ staff.name }}{% if staff.initial %} {{ staff.initial }}{% endif %}</div>
                 <div class="staff-role">
                     {{ staff.designation|default:"Faculty" }}
-                    {% if staff.role == 'Class Incharge' and staff.assigned_semester %}
-                    <span style="font-size: 0.8em; margin-left: 5px;">(Sem {{ staff.assigned_semester }})</span>
+                    {% if staff.assigned_semester and 'Class Incharge' in staff.get_roles_list %}
+                    <span style="font-size: 0.8em; margin-left: 5px;">(Sem {{ staff.assigned_semester }}{% if staff.assigned_batch and staff.assigned_batch != 'All' %} - Batch {{ staff.assigned_batch }}{% endif %})</span>
                     {% endif %}
                     {% if staff.additional_designation %}
                     <div style="font-size: 0.85em; color: var(--primary-color); font-weight: 600; margin-top: 4px;">
@@ -266,7 +266,7 @@
                 <div style="margin-top: 15px; width: 100%; display: flex; gap: 8px;">
                     <a href="{% url 'staffs:view_faculty_profile' staff.staff_id %}" class="back-btn" style="flex: 1; text-align: center;">View Profile</a>
                     {% if logged_in_staff.is_hod or logged_in_staff.is_admin %}
-                    <button type="button" onclick="openRoleEditModal('{{ staff.staff_id }}', '{{ staff.salutation }} {{ staff.name }}', [{% for r in staff.get_roles_list %}'{{ r|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}])" style="background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Manage Staff Roles">
+                    <button type="button" onclick="openRoleEditModal('{{ staff.staff_id }}', '{{ staff.salutation }} {{ staff.name }}', [{% for r in staff.get_roles_list %}'{{ r|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}], '{{ staff.assigned_semester|default:"" }}', '{{ staff.assigned_batch|default:"All" }}')" style="background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Manage Staff Roles">
                         ✏️ Edit Roles
                     </button>
                     {% endif %}
@@ -296,8 +296,37 @@
                             ➕ Add Role
                         </button>
                     </div>
-                    <div id="modalRolesContainer" style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; max-height: 280px; overflow-y: auto;">
+                    <div id="modalRolesContainer" style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; max-height: 200px; overflow-y: auto;">
                         <!-- Dynamic role dropdown rows inserted via JS -->
+                    </div>
+
+                    <!-- Class Incharge specific settings -->
+                    <div id="classInchargeFields" style="display: none; margin-top: 14px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+                        <div style="font-weight: 600; font-size: 0.85rem; color: #1e40af; margin-bottom: 8px;">🎓 Class Incharge Assignment Settings:</div>
+                        <div style="display: flex; gap: 12px;">
+                            <div style="flex: 1;">
+                                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 4px;">Assigned Semester *</label>
+                                <select name="assigned_semester" id="modalAssignedSemester" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+                                    <option value="">-- Select Sem --</option>
+                                    <option value="1">Semester 1</option>
+                                    <option value="2">Semester 2</option>
+                                    <option value="3">Semester 3</option>
+                                    <option value="4">Semester 4</option>
+                                    <option value="5">Semester 5</option>
+                                    <option value="6">Semester 6</option>
+                                    <option value="7">Semester 7</option>
+                                    <option value="8">Semester 8</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 4px;">Batch Scope *</label>
+                                <select name="assigned_batch" id="modalAssignedBatch" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+                                    <option value="All">Whole Semester (Both A & B)</option>
+                                    <option value="A">Batch A Only</option>
+                                    <option value="B">Batch B Only</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div style="padding: 14px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
@@ -310,7 +339,7 @@
 
     <script>
         const roleDropdownHtml = `
-            <select name="staff_roles" class="input" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+            <select name="staff_roles" class="input" onchange="checkClassInchargeVisibility()" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
                 <optgroup label="Teaching Staff">
                     <option value="Course Incharge">Course Incharge (Faculty)</option>
                     <option value="Class Incharge">Class Incharge</option>
@@ -326,8 +355,17 @@
                     <option value="Technical Officer">Technical Officer</option>
                 </optgroup>
             </select>
-            <button type="button" onclick="this.parentElement.remove()" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold;" title="Remove Role">✕</button>
+            <button type="button" onclick="this.parentElement.remove(); checkClassInchargeVisibility();" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold;" title="Remove Role">✕</button>
         `;
+
+        function checkClassInchargeVisibility() {
+            const selects = document.querySelectorAll('#modalRolesContainer select');
+            let isCI = false;
+            selects.forEach(s => {
+                if (s.value === 'Class Incharge') isCI = true;
+            });
+            document.getElementById('classInchargeFields').style.display = isCI ? 'block' : 'none';
+        }
 
         function addModalRoleDropdown(selectedVal = '') {
             const container = document.getElementById('modalRolesContainer');
@@ -339,9 +377,10 @@
             if (selectedVal) {
                 div.querySelector('select').value = selectedVal;
             }
+            checkClassInchargeVisibility();
         }
 
-        function openRoleEditModal(staffId, staffName, currentRoles) {
+        function openRoleEditModal(staffId, staffName, currentRoles, assignedSem = '', assignedBatch = 'All') {
             document.getElementById('modalStaffTitle').innerText = `Manage Roles: ${staffName} (${staffId})`;
             const form = document.getElementById('roleEditForm');
             form.action = `/staffs/staff/update-roles/${staffId}/`;
@@ -361,6 +400,10 @@
             } else {
                 addModalRoleDropdown('Course Incharge');
             }
+
+            document.getElementById('modalAssignedSemester').value = assignedSem || '';
+            document.getElementById('modalAssignedBatch').value = assignedBatch || 'All';
+            checkClassInchargeVisibility();
 
             document.getElementById('roleEditModal').style.display = 'flex';
         }

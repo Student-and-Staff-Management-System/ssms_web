@@ -738,7 +738,7 @@
 
                     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start;">
                         <!-- HOD-only: Assign Guide Panel -->
-                        {% if staff.role == 'HOD' %}
+                        {% if staff.is_hod %}
                         <div style="background:#f8fafc; border:1.5px solid var(--border); border-radius:10px; padding:14px 16px; min-width:260px;">
                             <div style="font-size:0.75rem; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">📋 Assign / Change Guide</div>
                             <form method="POST" action="{% url 'staffs:assign_phd_guide' %}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">

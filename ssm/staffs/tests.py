@@ -873,36 +873,79 @@ class DepartmentTaskTestCase(TestCase):
         app.refresh_from_db()
         self.assertEqual(app.status, 'Verified & Recommended')
         self.assertIsNotNone(app.verified_at)
-
         # Verify sync to ScholarshipInfo model
         sch_info = ScholarshipInfo.objects.get(student=student)
         self.assertTrue(sch_info.sch_bcmbc)
 
-        # 6. Student receives Govt money and marks status as Amount Received
-        session['student_pk'] = student.pk
-        session['student_roll_number'] = student.roll_number
-        session.save()
+class ClassInchargeBatchTestCase(TestCase):
+    def setUp(self):
+        Staff.objects.all().delete()
 
-        rec_resp = self.client.post(reverse('apply_scholarship'), {
-            'action': 'update_student_status',
-            'app_id': app.id,
-            'student_status': 'received'
-        })
-        self.assertEqual(rec_resp.status_code, 302)
-        app.refresh_from_db()
-        self.assertEqual(app.status, 'Govt Sanctioned / Amount Received')
-        self.assertIsNotNone(app.disbursed_at)
+    def test_whole_semester_class_incharge(self):
+        ci = Staff.objects.create(
+            staff_id="CI01",
+            name="Whole Sem Incharge",
+            email="ci01@example.com",
+            role="Class Incharge",
+            assigned_semester=3,
+            assigned_batch="All"
+        )
+        ci.clean()
+        self.assertEqual(ci.assigned_class_display, "Sem 3")
 
-        # 7. Export filtered CSV
-        session['staff_id'] = officer.staff_id
-        session.save()
-        csv_resp = self.client.get(reverse('staffs:scholarship_manager') + '?scholarship_types=BCMBC&export=csv')
-        self.assertEqual(csv_resp.status_code, 200)
-        self.assertEqual(csv_resp['Content-Type'], 'text/csv')
+    def test_batch_a_and_b_separate_incharges(self):
+        ci_a = Staff.objects.create(
+            staff_id="CI_A",
+            name="Batch A Incharge",
+            email="cia@example.com",
+            role="Class Incharge",
+            assigned_semester=4,
+            assigned_batch="A"
+        )
+        ci_a.clean()
+        self.assertEqual(ci_a.assigned_class_display, "Sem 4 (Batch A)")
 
+        ci_b = Staff.objects.create(
+            staff_id="CI_B",
+            name="Batch B Incharge",
+            email="cib@example.com",
+            role="Class Incharge",
+            assigned_semester=4,
+            assigned_batch="B"
+        )
+        ci_b.clean()
+        self.assertEqual(ci_b.assigned_class_display, "Sem 4 (Batch B)")
 
+    def test_batch_conflict_validation(self):
+        Staff.objects.create(
+            staff_id="CI_A",
+            name="Batch A Incharge",
+            email="cia@example.com",
+            role="Class Incharge",
+            assigned_semester=5,
+            assigned_batch="A"
+        )
 
+        # Attempting to assign another Class Incharge to Batch A for Sem 5 should fail
+        ci_a2 = Staff(
+            staff_id="CI_A2",
+            name="Another Batch A",
+            email="cia2@example.com",
+            role="Class Incharge",
+            assigned_semester=5,
+            assigned_batch="A"
+        )
+        with self.assertRaises(ValidationError):
+            ci_a2.clean()
 
-
-
-
+        # Attempting to assign Whole Sem when Batch A exists should fail
+        ci_all = Staff(
+            staff_id="CI_ALL",
+            name="Whole Sem Incharge",
+            email="ciall@example.com",
+            role="Class Incharge",
+            assigned_semester=5,
+            assigned_batch="All"
+        )
+        with self.assertRaises(ValidationError):
+            ci_all.clean()

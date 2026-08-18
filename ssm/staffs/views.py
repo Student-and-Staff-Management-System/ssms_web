@@ -69,7 +69,10 @@ def staff_dashboard(request):
     if active_role == 'Class Incharge':
         template_name = 'staff/staffdash_class.html'
         if staff.assigned_semester:
-            student_count = Student.objects.filter(current_semester=staff.assigned_semester).count()
+            student_qs = Student.objects.filter(current_semester=staff.assigned_semester)
+            if staff.assigned_batch in ['A', 'B']:
+                student_qs = student_qs.filter(lab_batch=staff.assigned_batch)
+            student_count = student_qs.count()
         else:
             student_count = 0 
     elif active_role == 'Course Incharge':
@@ -80,7 +83,7 @@ def staff_dashboard(request):
         template_name = 'staff/staffdash_office.html'
     elif active_role == 'Technical Officer':
         template_name = 'staff/staffdash_technical.html'
-    elif active_role == 'HOD':
+    elif active_role in ['HOD', 'Admin'] or (staff.is_staff_admin and active_role not in ['Course Incharge', 'Class Incharge', 'Scholarship Officer', 'Office Staff', 'Technical Officer']):
         template_name = 'staff/staffdash_hod.html'
     else:
         template_name = 'staff/staffdash_course.html'
@@ -124,7 +127,7 @@ def staff_dashboard(request):
         (Q(end_date__isnull=True) | Q(end_date__gte=today))
     ).order_by('-date', '-id')
     
-    if staff.role == 'HOD':
+    if staff.is_staff_admin:
         pending_leaves_count = LeaveRequest.objects.filter(status='Pending HOD').count()
         pending_staff_leaves_count = StaffLeaveRequest.objects.filter(status='Pending').count()
         # HOD sees requests waiting for sign
@@ -153,11 +156,14 @@ def staff_dashboard(request):
          # Ensure other counts are 0
          pending_leaves_count = 0
          pending_staff_leaves_count = 0
-    elif staff.role == 'Class Incharge' and staff.assigned_semester:
-        pending_leaves_count = LeaveRequest.objects.filter(
+    elif staff.has_role('Class Incharge') and staff.assigned_semester:
+        leave_qs = LeaveRequest.objects.filter(
             status='Pending Class Incharge',
             student__current_semester=staff.assigned_semester
-        ).count()
+        )
+        if staff.assigned_batch in ['A', 'B']:
+            leave_qs = leave_qs.filter(student__lab_batch=staff.assigned_batch)
+        pending_leaves_count = leave_qs.count()
 
     # Scholarship Officer Specific Logic
     scholarship_students = []
@@ -201,8 +207,8 @@ def staff_dashboard(request):
     # ── Research Scholar (RS) data ──────────────────────────────────────────
     from students.models import ResearchScholarProfile, ScholarAttendance, LeaveRequest, PhDProgress
     
-    if staff.role == 'HOD':
-        # HOD sees all scholars and all pending requests
+    if staff.is_staff_admin:
+        # HOD / Admin sees all scholars and all pending requests
         rs_scholars = Student.objects.filter(program_level='PHD').select_related('scholar_profile', 'phd_progress')
         rs_pending_leaves = LeaveRequest.objects.filter(student__program_level='PHD', status='Pending Guide').count()
         rs_pending_attendance = ScholarAttendance.objects.filter(scholar__program_level='PHD', status='Pending').count()
@@ -814,8 +820,10 @@ def student_list(request):
     # Restrict view for Class Incharge
     try:
         current_staff = Staff.objects.get(staff_id=request.session['staff_id'])
-        if current_staff.role == 'Class Incharge' and current_staff.assigned_semester:
+        if current_staff.has_role('Class Incharge') and current_staff.assigned_semester:
             students = students.filter(current_semester=current_staff.assigned_semester)
+            if current_staff.assigned_batch in ['A', 'B']:
+                students = students.filter(lab_batch=current_staff.assigned_batch)
             # Override semester filter to be the assigned one (or hide the filter in template)
             semester = str(current_staff.assigned_semester) 
     except Staff.DoesNotExist:
@@ -1067,7 +1075,7 @@ def manage_subjects(request):
     # Check if HOD
     try:
         current_staff = Staff.objects.get(staff_id=request.session['staff_id'])
-        if current_staff.role != 'HOD':
+        if not current_staff.is_staff_admin:
              messages.error(request, "Access Denied: Only HOD can manage courses.")
              return redirect('staffs:staff_dashboard')
     except Staff.DoesNotExist:
@@ -1445,7 +1453,7 @@ def manage_marks(request, subject_id):
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
 
     # Access Control: HOD or Assigned Staff
-    if current_staff.role != 'HOD' and subject.staff != current_staff:
+    if not current_staff.is_staff_admin and subject.staff != current_staff:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
@@ -1488,7 +1496,7 @@ def manage_marks(request, subject_id):
     # Determine if read-only
     # HOD can view all, but should only edit if they are the assigned staff
     is_readonly = False
-    if current_staff.role == 'HOD' and subject.staff != current_staff:
+    if current_staff.is_staff_admin and subject.staff != current_staff:
         is_readonly = True
 
     # Pre-fetch existing marks for display
@@ -1560,7 +1568,7 @@ def manage_attendance(request, subject_id):
     ).exists()
 
     # Access Control
-    if current_staff.role != 'HOD' and subject.staff != current_staff and not is_substitute:
+    if not current_staff.is_staff_admin and subject.staff != current_staff and not is_substitute:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
@@ -1569,7 +1577,7 @@ def manage_attendance(request, subject_id):
 
     # Determine if read-only
     is_readonly = False
-    if current_staff.role == 'HOD' and subject.staff != current_staff and not is_substitute:
+    if current_staff.is_staff_admin and subject.staff != current_staff and not is_substitute:
         is_readonly = True
 
     # --- POST Handler (Saving Attendance) ---
@@ -1822,7 +1830,7 @@ def attendance_calendar(request, subject_id):
         status='Approved'
     ).exists()
 
-    if current_staff.role != 'HOD' and subject.staff != current_staff and not is_substitute:
+    if not current_staff.is_staff_admin and subject.staff != current_staff and not is_substitute:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
@@ -1982,7 +1990,7 @@ def overall_attendance_calendar(request):
     if selected_subject_id and selected_subject_id != 'all':
         try:
             selected_subject = Subject.objects.get(id=selected_subject_id)
-            if selected_subject not in assigned_subjects and current_staff.role != 'HOD':
+            if selected_subject not in assigned_subjects and not current_staff.is_staff_admin:
                 selected_subject = None
         except (Subject.DoesNotExist, ValueError):
             selected_subject = None
@@ -2157,7 +2165,7 @@ def attendance_report(request, subject_id):
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
 
     # Access Control
-    if current_staff.role != 'HOD' and subject.staff != current_staff:
+    if not current_staff.is_staff_admin and subject.staff != current_staff:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
@@ -2396,8 +2404,8 @@ def passed_out_batches(request):
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
     # Simple access check: Only HOD should ideally access this, but can be open to staff
-    if staff.role != 'HOD':
-         messages.error(request, "Access Restricted to HOD.")
+    if not staff.is_staff_admin:
+         messages.error(request, "Access Restricted to HOD / Admin.")
          return redirect('staffs:staff_dashboard')
 
     # Get distinct ending years
@@ -2451,7 +2459,7 @@ def timetable(request):
         return redirect('staffs:stafflogin')
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
-    if staff.role == 'HOD' or staff.is_timetable_incharge:
+    if staff.is_staff_admin or staff.is_timetable_incharge:
         return hod_published_timetables(request)
     
     selected_semester = request.GET.get('semester', 1)
@@ -2530,7 +2538,7 @@ def assign_lab_batches(request):
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
-    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+    if not staff.is_staff_admin and not staff.is_timetable_incharge:
         messages.error(request, "Access Denied: Only HOD or Timetable Incharge can assign batches.")
         return redirect('staffs:staff_dashboard')
 
@@ -2600,7 +2608,7 @@ def edit_timetable(request, semester):
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
-    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+    if not staff.is_staff_admin and not staff.is_timetable_incharge:
         messages.error(request, 'Access Denied: Only HOD or Timetable Incharge can edit the timetable.')
         return redirect('staffs:timetable')
         
@@ -3045,7 +3053,7 @@ def hod_published_timetables(request):
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
-    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+    if not staff.is_staff_admin and not staff.is_timetable_incharge:
         messages.error(request, "Access Denied: Only HOD or Timetable Incharge can view Master Published Timetables.")
         return redirect('staffs:staff_dashboard')
 
@@ -3396,7 +3404,7 @@ def toggle_publish_timetable(request, semester):
         
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
-    if staff.role != 'HOD' and not staff.is_timetable_incharge:
+    if not staff.is_staff_admin and not staff.is_timetable_incharge:
         messages.error(request, "Access Denied: Only HOD or Timetable Incharge can publish/unpublish timetables.")
         return redirect('staffs:staff_dashboard')
         
@@ -3480,7 +3488,7 @@ def risk_students(request):
     risk_insights = []
     subjects_to_analyze = []
 
-    if staff.role == 'HOD':
+    if staff.is_staff_admin:
         # HOD sees all subjects
         subjects_to_analyze = Subject.objects.all().order_by('semester', 'code')
     
@@ -3531,7 +3539,7 @@ def export_risk_list(request, subject_id):
     # (Or if Class Incharge and subject in semester... simpler to stick to "can view risk page logic")
     
     can_access = False
-    if staff.role == 'HOD':
+    if staff.is_staff_admin:
         can_access = True
     elif staff.role == 'Class Incharge' and staff.assigned_semester:
         # Allow if subject is in their assigned semester OR if they teach it
@@ -3542,7 +3550,7 @@ def export_risk_list(request, subject_id):
             can_access = True
             
     # If HOD, access is True. If strict access needed:
-    if not can_access and staff.role != 'HOD':
+    if not can_access and not staff.is_staff_admin:
          messages.error(request, "Access Denied.")
          return redirect('staffs:risk_students')
 
@@ -3587,13 +3595,16 @@ def view_leave_requests(request):
     from students.models import LeaveRequest
     
     # Filter requests based on role
-    if staff.role == 'Class Incharge' and staff.assigned_semester:
-        # Class Incharge sees 'Pending Class Incharge' for their semester
-        leave_requests = LeaveRequest.objects.filter(
+    if staff.has_role('Class Incharge') and staff.assigned_semester:
+        # Class Incharge sees 'Pending Class Incharge' for their semester/batch
+        leave_qs = LeaveRequest.objects.filter(
             status='Pending Class Incharge',
             student__current_semester=staff.assigned_semester
-        ).order_by('created_at')
-    elif staff.role == 'HOD':
+        )
+        if staff.assigned_batch in ['A', 'B']:
+            leave_qs = leave_qs.filter(student__lab_batch=staff.assigned_batch)
+        leave_requests = leave_qs.order_by('created_at')
+    elif staff.is_staff_admin:
         # HOD sees 'Pending HOD' (approved by Class Incharge)
         leave_requests = LeaveRequest.objects.filter(
             status='Pending HOD'
@@ -3643,7 +3654,7 @@ def update_leave_status(request, request_id):
                      print(f"Error sending leave email: {e}")
                  # ---------------------------
 
-            elif staff.role == 'HOD':
+            elif staff.is_staff_admin:
                 leave_request.status = 'Approved'
                 messages.success(request, f"Leave approved for {leave_request.student.student_name}.")
                 # Notify Student
@@ -3666,7 +3677,18 @@ def update_leave_status(request, request_id):
                 # ---------------------------
                 
                 # Notify Class Incharges
-                class_incharges = Staff.objects.filter(role='Class Incharge', assigned_semester=leave_request.student.current_semester)
+                from django.db.models import Q
+                ci_qs = Staff.objects.filter(assigned_semester=leave_request.student.current_semester).filter(
+                    Q(role='Class Incharge') | Q(secondary_roles__icontains='Class Incharge')
+                )
+                if leave_request.student.lab_batch:
+                    ci_batch = ci_qs.filter(assigned_batch=leave_request.student.lab_batch)
+                    if ci_batch.exists():
+                        class_incharges = ci_batch
+                    else:
+                        class_incharges = ci_qs.filter(Q(assigned_batch='All') | Q(assigned_batch__isnull=True) | Q(assigned_batch=''))
+                else:
+                    class_incharges = ci_qs
                 for ci in class_incharges:
                     send_staff_notification(ci, "Student Leave Approved", f"{leave_request.student.student_name} (Sem {leave_request.student.current_semester}) leave approved.", url="/staffs/view_leave_requests/")
                 
@@ -3779,7 +3801,7 @@ def hod_leave_dashboard(request):
     current_staff = Staff.objects.get(staff_id=request.session['staff_id'])
     
     # Strictly for HOD
-    if current_staff.role != 'HOD':
+    if not current_staff.is_staff_admin:
         messages.error(request, "Access Restricted to HOD.")
         return redirect('staffs:staff_dashboard')
         
@@ -3804,7 +3826,7 @@ def hod_update_leave_status(request, request_id):
         
         # Verify HOD access again for security
         current_staff = Staff.objects.get(staff_id=request.session['staff_id'])
-        if current_staff.role != 'HOD':
+        if not current_staff.is_staff_admin:
              messages.error(request, "Unauthorized action.")
              return redirect('staffs:staff_dashboard')
 
@@ -3840,7 +3862,7 @@ def admin_portal_login(request):
     except Staff.DoesNotExist:
         return redirect('staffs:stafflogin')
 
-    if staff.role != 'HOD' and not staff.is_admin:
+    if not staff.is_staff_admin:
         messages.error(request, "Access Denied: Only HOD and Admin can access Admin Portal.")
         return redirect('staffs:staff_dashboard')
 
@@ -6127,15 +6149,18 @@ def manage_semesters(request):
     # Restrict for Class Incharge
     try:
         current_staff = Staff.objects.get(staff_id=request.session['staff_id'])
-        if current_staff.role == 'Class Incharge' and current_staff.assigned_semester:
+        if current_staff.has_role('Class Incharge') and current_staff.assigned_semester:
             selected_semester = str(current_staff.assigned_semester)
             display_semester_selector = False
-            header_text = f"Managing Semester {selected_semester} (Assigned)"
+            batch_str = f" (Batch {current_staff.assigned_batch})" if current_staff.assigned_batch in ['A', 'B'] else ""
+            header_text = f"Managing Semester {selected_semester}{batch_str} (Assigned)"
     except Staff.DoesNotExist:
         pass
 
     if selected_semester:
         students = Student.objects.filter(current_semester=selected_semester)
+        if 'current_staff' in locals() and current_staff and current_staff.has_role('Class Incharge') and current_staff.assigned_batch in ['A', 'B']:
+            students = students.filter(lab_batch=current_staff.assigned_batch)
     
     return render(request, 'staff/manage_semesters.html', {
         'students': students, 
@@ -6605,15 +6630,18 @@ def remark_student_list(request):
     
     # Security: Ensure only Class Incharge (or HOD/authorized roles) triggers this
     # For now, we assume Class Incharge logic as per request.
-    if staff.role != 'Class Incharge' and staff.role != 'HOD':
-         messages.error(request, "Access restricted to Class Incharges.")
+    if not staff.has_role('Class Incharge') and not staff.is_staff_admin:
+         messages.error(request, "Access restricted to Class Incharges and Admins.")
          return redirect('staffs:staff_dashboard')
 
     students = Student.objects.none()
     
-    if staff.role == 'Class Incharge' and staff.assigned_semester:
-        students = Student.objects.filter(current_semester=staff.assigned_semester).order_by('roll_number')
-    elif staff.role == 'HOD':
+    if staff.has_role('Class Incharge') and staff.assigned_semester:
+        students = Student.objects.filter(current_semester=staff.assigned_semester)
+        if staff.assigned_batch in ['A', 'B']:
+            students = students.filter(lab_batch=staff.assigned_batch)
+        students = students.order_by('roll_number')
+    elif staff.is_staff_admin:
         # HOD can see all? Or filter by sem? Let's show all for now or maybe a filter
         students = Student.objects.all().order_by('roll_number')
 
@@ -6698,7 +6726,7 @@ def attendance_deficit_list(request):
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
     
     # Access Control: Class Incharge Only
-    if staff.role != 'Class Incharge' or not staff.assigned_semester:
+    if not staff.has_role('Class Incharge') or not staff.assigned_semester:
         messages.error(request, "Access Restricted to Class Incharge.")
         return redirect('staffs:staff_dashboard')
         
@@ -6723,7 +6751,10 @@ def attendance_deficit_list(request):
     
     # --- Logic ---
     # 1. Get Students in Assigned Semester
-    students = Student.objects.filter(current_semester=staff.assigned_semester).select_related('personalinfo')
+    students = Student.objects.filter(current_semester=staff.assigned_semester)
+    if staff.assigned_batch in ['A', 'B']:
+        students = students.filter(lab_batch=staff.assigned_batch)
+    students = students.select_related('personalinfo')
     
     # 2. Get Subjects for this Semester
     subjects = Subject.objects.filter(semester=staff.assigned_semester)
@@ -6891,8 +6922,10 @@ def send_custom_notification(request):
 
     # Get student list (filtered by role)
     students = Student.objects.all().order_by('roll_number')
-    if staff.role == 'Class Incharge' and staff.assigned_semester:
+    if staff.has_role('Class Incharge') and staff.assigned_semester:
         students = students.filter(current_semester=staff.assigned_semester)
+        if staff.assigned_batch in ['A', 'B']:
+            students = students.filter(lab_batch=staff.assigned_batch)
 
     if request.method == 'POST':
         message = request.POST.get('message')
@@ -7113,8 +7146,8 @@ def staff_view_scholar_profile(request, roll_number):
 
     profile = get_or_none(ResearchScholarProfile, student=student)
     
-    # Security: HOD sees all, others see only their assigned scholars
-    if staff.role != 'HOD' and (not profile or profile.supervisor != staff):
+    # Security: HOD / Admin sees all, others see only their assigned scholars
+    if not staff.is_staff_admin and (not profile or profile.supervisor != staff):
         messages.error(request, "You are not authorised to view this scholar's profile.")
         return redirect('staffs:staff_dashboard')
 
@@ -7142,8 +7175,8 @@ def hod_portfolio_approvals(request):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: HOD only.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: HOD / Admin only.")
         return redirect('staffs:staff_dashboard')
     
     from .models import StaffPastDesignation
@@ -7162,8 +7195,8 @@ def approve_qualification(request, pk):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: HOD only.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: HOD / Admin only.")
         return redirect('staffs:staff_dashboard')
     
     from .models import StaffQualification
@@ -7177,8 +7210,8 @@ def reject_qualification(request, pk):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: HOD only.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: HOD / Admin only.")
         return redirect('staffs:staff_dashboard')
     
     from .models import StaffQualification
@@ -7192,8 +7225,8 @@ def approve_designation(request, pk):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: HOD only.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: HOD / Admin only.")
         return redirect('staffs:staff_dashboard')
     
     from .models import StaffPastDesignation
@@ -7211,8 +7244,8 @@ def reject_designation(request, pk):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: HOD only.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: HOD / Admin only.")
         return redirect('staffs:staff_dashboard')
     
     from .models import StaffPastDesignation
@@ -7240,8 +7273,8 @@ def hod_manage_labs(request):
     except Staff.DoesNotExist:
         return redirect('staffs:stafflogin')
         
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: Only HOD can manage labs and classes.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: Only HOD or Admin can manage labs and classes.")
         return redirect('staffs:staff_dashboard')
 
     if request.method == 'POST':
@@ -7375,8 +7408,8 @@ def hod_delete_lab(request, lab_id):
     except Staff.DoesNotExist:
         return redirect('staffs:stafflogin')
         
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: Only HOD can delete labs.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: Only HOD or Admin can delete labs.")
         return redirect('staffs:staff_dashboard')
         
     try:
@@ -7400,8 +7433,8 @@ def hod_delete_class_mapping(request, class_id):
     except Staff.DoesNotExist:
         return redirect('staffs:stafflogin')
         
-    if staff.role != 'HOD':
-        messages.error(request, "Access Denied: Only HOD can delete class mappings.")
+    if not staff.is_staff_admin:
+        messages.error(request, "Access Denied: Only HOD or Admin can delete class mappings.")
         return redirect('staffs:staff_dashboard')
         
     try:
@@ -7429,7 +7462,7 @@ def manage_phd_stages(request):
     from django.db.models import Q
     
     # Scholars matching query and supervisor status
-    if staff.role == 'HOD':
+    if staff.is_staff_admin:
         students_qs = Student.objects.filter(program_level='PHD').select_related('scholar_profile', 'phd_progress')
     else:
         students_qs = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile', 'phd_progress')
@@ -7447,7 +7480,7 @@ def manage_phd_stages(request):
     for choice, name in stage_choices:
         # We need to compute counts using the supervisor/HOD restricted set
         count_qs = Student.objects.filter(program_level='PHD')
-        if staff.role != 'HOD':
+        if not staff.is_staff_admin:
             count_qs = count_qs.filter(scholar_profile__supervisor=staff)
         if q:
             count_qs = count_qs.filter(
@@ -7557,8 +7590,8 @@ def manage_phd_stages(request):
         selected_rcw_reviews = selected_student.rcw_reviews.all().order_by('-date', '-time')
 
     # Staff list for guide assignment (HOD only)
-    guide_staff_list = Staff.objects.filter(is_active=True).order_by('name') if staff.role == 'HOD' else []
-    rs_count = Student.objects.filter(program_level='PHD').count() if staff.role == 'HOD' else students_qs.count()
+    guide_staff_list = Staff.objects.filter(is_active=True).order_by('name') if staff.is_staff_admin else []
+    rs_count = Student.objects.filter(program_level='PHD').count() if staff.is_staff_admin else students_qs.count()
 
     context = {
         'staff': staff,
@@ -7584,8 +7617,8 @@ def assign_phd_guide(request):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     hod = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if hod.role != 'HOD':
-        messages.error(request, 'Only HOD can assign guides.')
+    if not hod.is_staff_admin:
+        messages.error(request, 'Only HOD or Admin can assign guides.')
         return redirect('staffs:manage_phd_stages')
     if request.method != 'POST':
         return redirect('staffs:manage_phd_stages')
@@ -7934,8 +7967,30 @@ def update_staff_roles(request, staff_id):
         if 'HOD' in roles_set:
             target_staff.is_admin = True
 
-        target_staff.save()
-        messages.success(request, f"Roles updated successfully for {target_staff.salutation} {target_staff.name}!")
+        if 'Class Incharge' in roles_set:
+            assigned_sem = request.POST.get('assigned_semester')
+            assigned_b = request.POST.get('assigned_batch', 'All')
+            target_staff.assigned_semester = int(assigned_sem) if (assigned_sem and assigned_sem.isdigit()) else None
+            target_staff.assigned_batch = assigned_b if assigned_b in ['All', 'A', 'B'] else 'All'
+        else:
+            target_staff.assigned_semester = None
+            target_staff.assigned_batch = 'All'
+
+        from django.core.exceptions import ValidationError
+        try:
+            target_staff.full_clean()
+            target_staff.save()
+            messages.success(request, f"Roles updated successfully for {target_staff.salutation} {target_staff.name}!")
+        except ValidationError as e:
+            msg_str = ""
+            if hasattr(e, 'message_dict'):
+                msg_str = "; ".join([f"{k}: {', '.join(v)}" for k, v in e.message_dict.items()])
+            elif hasattr(e, 'messages'):
+                msg_str = "; ".join(e.messages)
+            else:
+                msg_str = str(e)
+            messages.error(request, f"Cannot update roles: {msg_str}")
+
         return redirect(request.META.get('HTTP_REFERER', 'staffs:staff_list'))
 
     return redirect('staffs:staff_list')

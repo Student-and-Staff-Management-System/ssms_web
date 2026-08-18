@@ -144,7 +144,7 @@
 <div class="remarks-header-card">
     <div>
         <h2>Student Remarks</h2>
-        <p>Manage remarks for Semester {{ staff.assigned_semester|default:"-" }}</p>
+        <p>Manage remarks for Semester {{ staff.assigned_semester|default:"-" }}{% if staff.assigned_batch and staff.assigned_batch != 'All' %} (Batch {{ staff.assigned_batch }}){% endif %}</p>
     </div>
     <div>
         <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn-link">

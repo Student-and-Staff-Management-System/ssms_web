@@ -58,6 +58,20 @@ class Staff(models.Model):
     )
     assigned_semester = models.IntegerField(null=True, blank=True, help_text="For Class Incharge: Specify which semester they manage (1-8).")
     
+    ASSIGNED_BATCH_CHOICES = [
+        ('All', 'Whole Semester'),
+        ('A', 'Batch A'),
+        ('B', 'Batch B'),
+    ]
+    assigned_batch = models.CharField(
+        max_length=10,
+        choices=ASSIGNED_BATCH_CHOICES,
+        default='All',
+        blank=True,
+        null=True,
+        help_text="For Class Incharge: Specify batch assignment (Whole Semester, Batch A, or Batch B)."
+    )
+    
     # Personal & Employment Dates
     date_of_birth = models.DateField(null=True, blank=True)
     date_of_joining = models.DateField(null=True, blank=True)
@@ -129,7 +143,7 @@ class Staff(models.Model):
 
     @property
     def is_hod(self):
-        return self.has_role('HOD')
+        return self.has_role('HOD') or self.is_admin
 
     @property
     def is_class_incharge(self):
@@ -189,6 +203,14 @@ class Staff(models.Model):
             Q(staff=self) | Q(staff_batch_b=self)
         ).distinct().order_by('semester', 'code')
 
+    @property
+    def assigned_class_display(self):
+        if self.assigned_semester:
+            if self.assigned_batch and self.assigned_batch != 'All':
+                return f"Sem {self.assigned_semester} (Batch {self.assigned_batch})"
+            return f"Sem {self.assigned_semester}"
+        return ""
+
     def clean(self):
         """Validate staff role assignments."""
         from django.core.exceptions import ValidationError
@@ -213,23 +235,51 @@ class Staff(models.Model):
                     'is_admin': f'Cannot assign admin role. The maximum limit of additional admins ({max_allowed}) has been reached.'
                 })
         
-        # Validate Class Incharge semester uniqueness
-        if self.role == 'Class Incharge' and self.assigned_semester:
+        # Validate Class Incharge semester & batch uniqueness
+        if not self.has_role('Class Incharge'):
+            self.assigned_semester = None
+            self.assigned_batch = None
+        else:
+            if not self.assigned_semester:
+                raise ValidationError({
+                    'assigned_semester': 'Class Incharge must be assigned to a specific semester (1-8).'
+                })
+            
+            if not self.assigned_batch:
+                self.assigned_batch = 'All'
+            
+            batch = self.assigned_batch
+            from django.db.models import Q
             existing_ci = Staff.objects.filter(
-                role='Class Incharge',
                 assigned_semester=self.assigned_semester
+            ).filter(
+                Q(role='Class Incharge') | Q(secondary_roles__icontains='Class Incharge')
             ).exclude(staff_id=self.staff_id)
             
-            if existing_ci.exists():
-                raise ValidationError({
-                    'assigned_semester': f'Semester {self.assigned_semester} already has a Class Incharge: {existing_ci.first().name} ({existing_ci.first().staff_id})'
-                })
-        
-        # Require assigned_semester for Class Incharge
-        if self.role == 'Class Incharge' and not self.assigned_semester:
-            raise ValidationError({
-                'assigned_semester': 'Class Incharge must be assigned to a specific semester (1-8).'
-            })
+            if batch == 'All':
+                if existing_ci.exists():
+                    c_incharge = existing_ci.first()
+                    raise ValidationError({
+                        'assigned_semester': f'Semester {self.assigned_semester} already has a Class Incharge: {c_incharge.name} ({c_incharge.staff_id})'
+                    })
+            elif batch == 'A':
+                conflicting = existing_ci.filter(Q(assigned_batch__in=['All', 'A']) | Q(assigned_batch__isnull=True) | Q(assigned_batch=''))
+                if conflicting.exists():
+                    c_incharge = conflicting.first()
+                    batch_str = f"Batch {c_incharge.assigned_batch}" if (c_incharge.assigned_batch and c_incharge.assigned_batch != 'All') else "Whole Semester"
+                    raise ValidationError({
+                        'assigned_semester': f'Semester {self.assigned_semester} Batch A conflicts with existing Class Incharge: {c_incharge.name} ({batch_str})'
+                    })
+            elif batch == 'B':
+                conflicting = existing_ci.filter(Q(assigned_batch__in=['All', 'B']) | Q(assigned_batch__isnull=True) | Q(assigned_batch=''))
+                if conflicting.exists():
+                    c_incharge = conflicting.first()
+                    batch_str = f"Batch {c_incharge.assigned_batch}" if (c_incharge.assigned_batch and c_incharge.assigned_batch != 'All') else "Whole Semester"
+                    raise ValidationError({
+                        'assigned_semester': f'Semester {self.assigned_semester} Batch B conflicts with existing Class Incharge: {c_incharge.name} ({batch_str})'
+                    })
+
+
 
         # Validate timetable incharge limit (max 2)
         if self.is_timetable_incharge:

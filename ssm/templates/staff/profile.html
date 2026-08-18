@@ -902,7 +902,7 @@
                     <div class="info-list" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                         <div class="info-item">
                             <span class="info-label">Role</span>
-                            <span class="info-value">{{ staff.role }}{% if staff.assigned_semester %} (Sem {{ staff.assigned_semester }}){% endif %}</span>
+                            <span class="info-value">{{ staff.role }}{% if staff.assigned_semester %} (Sem {{ staff.assigned_semester }}{% if staff.assigned_batch and staff.assigned_batch != 'All' %}, Batch {{ staff.assigned_batch }}{% endif %}){% endif %}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Approved Designation</span>

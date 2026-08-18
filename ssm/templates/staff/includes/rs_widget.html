@@ -6,7 +6,7 @@
             <div>
                 <h3 style="margin: 0; font-size: 1.1rem; color: var(--primary-dark);">Research Scholar Management</h3>
                 <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">
-                    {% if staff.role == 'HOD' %}Department-wide overview{% else %}Your assigned scholars{% endif %}
+                    {% if staff.is_hod %}Department-wide overview{% else %}Your assigned scholars{% endif %}
                 </p>
             </div>
         </div>

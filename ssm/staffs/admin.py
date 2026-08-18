@@ -15,17 +15,17 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('staff_id', 'name', 'designation', 'role', 'get_all_assigned_roles', 'get_assigned_department_tasks', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'department')
-    list_editable = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester')
+    list_display = ('staff_id', 'name', 'designation', 'role', 'get_all_assigned_roles', 'get_assigned_department_tasks', 'get_class_incharge_assignment', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'department')
+    list_editable = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer')
     search_fields = ('staff_id', 'name', 'email')
-    list_filter = ('role', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'department', 'designation', 'assigned_department_tasks')
+    list_filter = ('role', 'assigned_batch', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'department', 'designation', 'assigned_department_tasks')
     actions = ['export_staff_tasks_csv', 'export_staff_allocation_matrix_csv']
     fieldsets = (
         ('Basic Info', {
             'fields': ('staff_id', 'name', 'email', 'photo')
         }),
         ('Role & Designation', {
-            'fields': ('role', 'secondary_roles', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'salutation', 'designation', 'department'),
+            'fields': ('role', 'secondary_roles', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'assigned_batch', 'salutation', 'designation', 'department'),
             'description': 'Specify Primary Role, Secondary Roles (comma-separated, e.g. "Class Incharge, Scholarship Officer"), and Role Flags below.'
         }),
         ('Professional Details', {
@@ -42,10 +42,19 @@ class StaffAdmin(admin.ModelAdmin):
         }),
     )
 
+    def get_class_incharge_assignment(self, obj):
+        if obj.has_role('Class Incharge') and obj.assigned_semester:
+            if obj.assigned_batch and obj.assigned_batch != 'All':
+                return f"Sem {obj.assigned_semester} (Batch {obj.assigned_batch})"
+            return f"Sem {obj.assigned_semester} (Whole Sem)"
+        return "—"
+    get_class_incharge_assignment.short_description = 'Class Incharge Scope'
+
     def get_all_assigned_roles(self, obj):
         roles = obj.get_roles_list()
         return ", ".join(roles) if roles else "—"
     get_all_assigned_roles.short_description = 'All Assigned Roles'
+
 
     def get_assigned_department_tasks(self, obj):
         tasks = obj.assigned_department_tasks.all()
