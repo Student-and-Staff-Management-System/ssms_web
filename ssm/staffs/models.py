@@ -42,6 +42,7 @@ class Staff(models.Model):
             ('Class Incharge', 'Class Incharge'),
             ('Course Incharge', 'Course Incharge'),
             ('Scholarship Officer', 'Scholarship Officer'),
+            ('Placement Officer', 'Placement Officer'),
         )),
         ('Non-Teaching Staff', (
             ('Office Staff', 'Office Staff'),
@@ -49,6 +50,12 @@ class Staff(models.Model):
         )),
     ]
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='Course Incharge')
+    secondary_roles = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Comma-separated secondary roles (e.g. 'Class Incharge, Scholarship Officer')."
+    )
     assigned_semester = models.IntegerField(null=True, blank=True, help_text="For Class Incharge: Specify which semester they manage (1-8).")
     
     # Personal & Employment Dates
@@ -100,9 +107,80 @@ class Staff(models.Model):
         help_text="Designates whether this staff member is a scholarship officer."
     )
 
+    def get_roles_list(self):
+        roles = []
+        if self.role:
+            roles.append(self.role)
+        if self.secondary_roles:
+            for r in self.secondary_roles.split(','):
+                r_clean = r.strip()
+                if r_clean and r_clean not in roles:
+                    roles.append(r_clean)
+        if self.is_scholarship_officer and 'Scholarship Officer' not in roles:
+            roles.append('Scholarship Officer')
+        if self.is_timetable_incharge and 'Timetable Incharge' not in roles:
+            roles.append('Timetable Incharge')
+        if self.is_admin and 'Admin' not in roles:
+            roles.append('Admin')
+        return roles
+
+    def has_role(self, role_name):
+        return role_name in self.get_roles_list()
+
+    @property
+    def is_hod(self):
+        return self.has_role('HOD')
+
+    @property
+    def is_class_incharge(self):
+        return self.has_role('Class Incharge')
+
+    @property
+    def is_course_incharge(self):
+        return self.has_role('Course Incharge')
+
+    @property
+    def is_office_staff(self):
+        return self.has_role('Office Staff')
+
+    @property
+    def is_technical_officer(self):
+        return self.has_role('Technical Officer')
+
+    @property
+    def is_placement_officer(self):
+        return self.has_role('Placement Officer')
+
+    @property
+    def phone(self):
+        return self.mobile_number
+
+    @property
+    def can_manage_bonafide(self):
+        return self.is_hod or self.is_admin or self.is_office_staff or self.has_role('Bonafide Issuing')
+
+    @property
+    def can_manage_documents(self):
+        return self.is_hod or self.is_admin or self.is_office_staff or self.has_role('Marksheet & Document Requests')
+
+    @property
+    def can_manage_scholarships(self):
+        return self.is_hod or self.is_admin or self.is_scholarship_officer or self.is_office_staff or self.has_role('Scholarship Management')
+
+    @property
+    def office_sub_tasks(self):
+        tasks = []
+        if self.has_role('Bonafide Issuing'):
+            tasks.append('Bonafide Issuing')
+        if self.has_role('Marksheet & Document Requests'):
+            tasks.append('Marksheet Requests')
+        if self.has_role('Scholarship Management'):
+            tasks.append('Scholarship Management')
+        return tasks
+
     @property
     def is_staff_admin(self):
-        return self.role == 'HOD' or self.is_admin
+        return self.is_hod or self.is_admin
 
     def get_teaching_subjects(self):
         from .models import Subject

@@ -8,8 +8,11 @@
 {% block page_title %}
     Hello, {{ staff.name }} {{ staff.initial|default:"" }} 👋
     <span style="font-size: 0.75rem; background: var(--primary-light, #eff6ff); color: var(--primary, #0284c7); border: 1px solid var(--border, #cbd5e1); padding: 4px 12px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">🏢 Non-Teaching Staff (Office Staff)</span>
+    {% for sub_task in staff.office_sub_tasks %}
+    <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📌 {{ sub_task }}</span>
+    {% endfor %}
     {% for task in staff.assigned_department_tasks.all %}
-    <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📌 {{ task.name }}</span>
+    <span style="font-size: 0.75rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📋 {{ task.name }}</span>
     {% endfor %}
 {% endblock %}
 

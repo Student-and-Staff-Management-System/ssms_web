@@ -105,6 +105,7 @@ urlpatterns = [
     path('hod/portfolio-approvals/designation/<int:pk>/approve/', views.approve_designation, name='approve_designation'),
     path('hod/portfolio-approvals/designation/<int:pk>/reject/', views.reject_designation, name='reject_designation'),
     path('hod/assign-post/<str:staff_id>/', views.hod_assign_post, name='hod_assign_post'),
+    path('staff/update-roles/<str:staff_id>/', views.update_staff_roles, name='update_staff_roles'),
     path('hod/manage-labs/', views.hod_manage_labs, name='hod_manage_labs'),
     path('hod/manage-labs/delete/<int:lab_id>/', views.hod_delete_lab, name='hod_delete_lab'),
     path('hod/manage-class-mapping/delete/<int:class_id>/', views.hod_delete_class_mapping, name='hod_delete_class_mapping'),

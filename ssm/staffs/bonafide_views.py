@@ -317,17 +317,21 @@ def office_bonafide_list(request):
             # ---------------------------
         
         elif action == 'mark_collected':
-             # SIGNED -> COLLECTED
+             # SIGNED / UNCLAIMED -> COLLECTED
              bonafide_req.status = 'Collected'
              bonafide_req.save()
-             messages.success(request, "Marked as Collected.")
+             messages.success(request, f"Marked request for {bonafide_req.student.student_name} as Handed Over to student.")
+             
+             # Notify Student via Push Notification
+             from .utils import send_push_notification
+             send_push_notification(bonafide_req.student, "Bonafide Certificate Handed Over 📜", "Your bonafide certificate has been handed over.")
              
              # --- EMAIL NOTIFICATION ---
              try:
                  from django.core.mail import send_mail
                  from django.conf import settings
                  subject = "Bonafide Certificate Collected"
-                 message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Certificate has been marked as Collected.\n\nLogin to the portal to view the details."
+                 message = f"Hello {bonafide_req.student.student_name},\n\nYour Bonafide Certificate has been marked as Handed Over / Collected.\n\nLogin to the portal to view the details."
                  if bonafide_req.student.student_email:
                      send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [bonafide_req.student.student_email], fail_silently=True)
              except Exception as e:

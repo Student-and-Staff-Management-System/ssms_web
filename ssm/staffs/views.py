@@ -56,28 +56,36 @@ def staff_dashboard(request):
         return redirect('staffs:stafflogin')
 
     student_count = Student.objects.count()
-    
-    
-    if staff.role == 'Class Incharge':
+    all_assigned_roles = staff.get_roles_list()
+    req_active_role = request.GET.get('active_role')
+    if req_active_role and req_active_role in all_assigned_roles:
+        active_role = req_active_role
+        request.session['active_role'] = active_role
+    else:
+        active_role = request.session.get('active_role')
+        if not active_role or active_role not in all_assigned_roles:
+            active_role = staff.role
+
+    if active_role == 'Class Incharge':
         template_name = 'staff/staffdash_class.html'
-        # Filter students relevant to this class incharge
         if staff.assigned_semester:
             student_count = Student.objects.filter(current_semester=staff.assigned_semester).count()
         else:
             student_count = 0 
-            
-    elif staff.role == 'Course Incharge':
+    elif active_role == 'Course Incharge':
         template_name = 'staff/staffdash_course.html'
-    elif staff.role == 'Scholarship Officer':
+    elif active_role == 'Scholarship Officer':
         template_name = 'staff/staffdash_scholarship.html'
-    elif staff.role == 'Office Staff':
+    elif active_role == 'Office Staff':
         template_name = 'staff/staffdash_office.html'
-    elif staff.role == 'Technical Officer':
+    elif active_role == 'Technical Officer':
         template_name = 'staff/staffdash_technical.html'
-    else:
+    elif active_role == 'HOD':
         template_name = 'staff/staffdash_hod.html'
+    else:
+        template_name = 'staff/staffdash_course.html'
         
-    print(f"DEBUG: staff_dashboard - Role: '{staff.role}' -> Template: '{template_name}'")
+    print(f"DEBUG: staff_dashboard - Active Role: '{active_role}' -> Template: '{template_name}'")
         
     assigned_subjects = []
     _completion_data = get_staff_profile_completion_data(staff)
@@ -417,6 +425,8 @@ def staff_dashboard(request):
         'schedule_mood_text': schedule_mood_text,
         'unmarked_done_count': unmarked_done_count,
         'has_unmarked_done': has_unmarked_done,
+        'all_assigned_roles': all_assigned_roles,
+        'active_role': active_role,
     }
     dashboard_context.update(_get_portfolio_summary_stats(staff))
     return render(request, template_name, dashboard_context)
@@ -646,13 +656,34 @@ def generate_staff(request):
             email_candidate = f"{staff_id.lower()}{suffix}@temp.staff.local"
         return email_candidate
 
-    def upsert_staff_identity(staff_id, name, role='Course Incharge'):
+    OFFICE_DUTIES = {'Office Staff', 'Bonafide Issuing', 'Marksheet & Document Requests', 'Scholarship Management'}
+
+    def upsert_staff_identity(staff_id, name, roles=None):
+        if not roles:
+            roles = ['Course Incharge']
+        roles_list = list(roles) if isinstance(roles, list) else [roles]
+        
+        has_office_duty = any(r in OFFICE_DUTIES for r in roles_list)
+        if has_office_duty:
+            primary_role = 'Office Staff'
+            sec_roles = [r for r in roles_list if r != 'Office Staff']
+            secondary_roles_str = ", ".join(sec_roles)
+        else:
+            primary_role = roles_list[0]
+            secondary_roles_str = ", ".join(roles_list[1:]) if len(roles_list) > 1 else ""
+
+        roles_set = set(roles_list)
         email_candidate = next_temp_email(staff_id)
-        is_office = (role == 'Office Staff')
+        is_office = ('Office Staff' in roles_set or has_office_duty)
+
         defaults = {
             'name': name,
             'email': email_candidate,
-            'role': role,
+            'role': primary_role,
+            'secondary_roles': secondary_roles_str,
+            'is_scholarship_officer': ('Scholarship Officer' in roles_set or 'Scholarship Management' in roles_set),
+            'is_timetable_incharge': 'Timetable Incharge' in roles_set,
+            'is_admin': 'HOD' in roles_set,
             'salutation': 'Mr.' if is_office else 'Dr.',
             'designation': 'Office Assistant' if is_office else 'Assistant Professor',
             'qualification': 'Graduate' if is_office else 'Ph.D.',
@@ -662,39 +693,44 @@ def generate_staff(request):
         }
         staff_obj, created = Staff.objects.get_or_create(staff_id=staff_id, defaults=defaults)
         if not created:
-            update_fields = []
+            staff_obj.role = primary_role
+            staff_obj.secondary_roles = secondary_roles_str
+            if 'Scholarship Officer' in roles_set or 'Scholarship Management' in roles_set:
+                staff_obj.is_scholarship_officer = True
+            if 'Timetable Incharge' in roles_set:
+                staff_obj.is_timetable_incharge = True
+            if 'HOD' in roles_set:
+                staff_obj.is_admin = True
             if staff_obj.name != name:
                 staff_obj.name = name
-                update_fields.append('name')
-            if role and staff_obj.role != role:
-                staff_obj.role = role
-                update_fields.append('role')
-            if update_fields:
-                staff_obj.save(update_fields=update_fields)
+            staff_obj.save()
         return staff_obj, created
 
     if request.method == 'POST':
         action = request.POST.get('action', 'preview_bulk')
-        staff_role = request.POST.get('staff_role', 'Course Incharge')
+        staff_roles = request.POST.getlist('staff_roles')
+        if not staff_roles:
+            single_role = request.POST.get('staff_role', 'Course Incharge')
+            staff_roles = [single_role]
 
         if action == 'preview_bulk':
             bulk_input = (request.POST.get('bulk_input') or '').strip()
             if not bulk_input:
                 messages.error(request, "Please enter at least one 'StaffID, Name' row.")
-                return render(request, 'staff/generate_staff.html', {'staff_role': staff_role})
+                return render(request, 'staff/generate_staff.html', {'staff_role': staff_roles[0], 'staff_roles': staff_roles})
 
             preview_list = []
             lines = [line.strip() for line in bulk_input.splitlines() if line.strip()]
             for idx, line in enumerate(lines, start=1):
                 if ',' not in line:
                     messages.error(request, f"Row {idx} invalid. Use format: STAFF_ID, Staff Name")
-                    return render(request, 'staff/generate_staff.html', {'staff_role': staff_role})
+                    return render(request, 'staff/generate_staff.html', {'staff_role': staff_roles[0], 'staff_roles': staff_roles})
                 raw_id, raw_name = line.split(',', 1)
                 staff_id = raw_id.strip()
                 name = raw_name.strip()
                 if not staff_id or not name:
                     messages.error(request, f"Row {idx} invalid. Staff ID and Name are required.")
-                    return render(request, 'staff/generate_staff.html', {'staff_role': staff_role})
+                    return render(request, 'staff/generate_staff.html', {'staff_role': staff_roles[0], 'staff_roles': staff_roles})
                 exists = Staff.objects.filter(staff_id=staff_id).exists()
                 preview_list.append({'staff_id': staff_id, 'name': name, 'exists': exists})
 
@@ -702,7 +738,8 @@ def generate_staff(request):
                 'show_preview': True,
                 'preview_list': preview_list,
                 'bulk_input': bulk_input,
-                'staff_role': staff_role,
+                'staff_role': staff_roles[0],
+                'staff_roles': staff_roles,
             })
 
         if action == 'generate_bulk':
@@ -714,7 +751,7 @@ def generate_staff(request):
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="generated_staff_credentials.csv"'
             writer = csv.writer(response)
-            writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
+            writer.writerow(['Staff ID', 'Name', 'Primary Role', 'All Roles', 'Temp Password'])
 
             with transaction.atomic():
                 for entry in selected_entries:
@@ -724,7 +761,7 @@ def generate_staff(request):
                         continue
 
                     already_exists = Staff.objects.filter(staff_id=staff_id).exists()
-                    staff_obj, _ = upsert_staff_identity(staff_id, name, role=staff_role)
+                    staff_obj, _ = upsert_staff_identity(staff_id, name, roles=staff_roles)
                     if already_exists:
                         pass_label = "Existing Password"
                     else:
@@ -732,7 +769,7 @@ def generate_staff(request):
                         staff_obj.set_password(temp_pass)
                         staff_obj.save(update_fields=['password'])
                         pass_label = temp_pass
-                    writer.writerow([staff_id, name, staff_obj.role, pass_label])
+                    writer.writerow([staff_id, name, staff_obj.role, ", ".join(staff_obj.get_roles_list()), pass_label])
 
             response.set_cookie('download_complete', 'true', max_age=20)
             return response
@@ -747,17 +784,14 @@ def generate_staff(request):
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = f'attachment; filename="generated_staff_{staff_id}.csv"'
             writer = csv.writer(response)
-            writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
+            writer.writerow(['Staff ID', 'Name', 'Primary Role', 'All Roles', 'Temp Password'])
 
             with transaction.atomic():
-                staff_obj, _ = upsert_staff_identity(staff_id, name, role=staff_role)
+                staff_obj, _ = upsert_staff_identity(staff_id, name, roles=staff_roles)
                 temp_pass = "Tmp" + ''.join(random.choices(string.digits, k=5))
                 staff_obj.set_password(temp_pass)
                 staff_obj.save(update_fields=['password'])
-                writer.writerow([staff_id, name, staff_obj.role, temp_pass])
-
-            response.set_cookie('download_complete', 'true', max_age=20)
-            return response
+                writer.writerow([staff_id, name, staff_obj.role, ", ".join(staff_obj.get_roles_list()), temp_pass])
 
             response.set_cookie('download_complete', 'true', max_age=20)
             return response
@@ -4947,12 +4981,14 @@ def portfolio_edit_seminar(request, pk):
 
 def _get_guided_scholars_for_staff(staff):
     """
-    Helper to fetch ALL students/scholars guided by this staff member:
-    1. Current PhD Scholars supervised by staff (PhDProfile).
-    2. All Guided Students recorded in StaffStudentGuided (both Previous and Current PG/PhD).
-    Ensures every guided student has a linkable Student instance.
+    Helper to fetch ALL students/scholars guided by or linked to this staff member:
+    1. Current PhD Scholars supervised by staff (ResearchScholarProfile).
+    2. PhD Scholars where staff is a RAC Committee Member (RACMember).
+    3. All Guided Students recorded in StaffStudentGuided (both Previous and Current PG/PhD).
+    4. Department PhD Scholars and Students.
     """
-    from students.models import Student
+    from students.models import Student, ResearchScholarProfile, RACMember
+    from django.db.models import Q
     guided_scholars = []
     seen_pks = set()
 
@@ -4969,7 +5005,24 @@ def _get_guided_scholars_for_staff(staff):
                 'status': profile.status
             })
 
-    # 2. Students guided by this staff (from StaffStudentGuided - Previous & Current)
+    # 2. PhD Scholars where staff is a RAC Committee Member
+    rac_memberships = RACMember.objects.filter(staff=staff).select_related('scholar')
+    for rac in rac_memberships:
+        student = rac.scholar
+        if student and student.pk not in seen_pks:
+            seen_pks.add(student.pk)
+            status = 'Ongoing'
+            if hasattr(student, 'scholar_profile') and student.scholar_profile:
+                status = student.scholar_profile.status
+            guided_scholars.append({
+                'pk': student.pk,
+                'student_name': student.student_name,
+                'roll_number': student.roll_number or '',
+                'type': f"PhD Scholar (RAC Member - {status})",
+                'status': status
+            })
+
+    # 3. Students guided by this staff (from StaffStudentGuided - Previous & Current)
     for g in staff.student_guided_list.all():
         stu_match = None
         if g.roll_number and g.roll_number.strip():
@@ -5003,6 +5056,20 @@ def _get_guided_scholars_for_staff(staff):
                 'roll_number': g.roll_number.strip() if (g.roll_number and g.roll_number.strip()) else (stu_match.roll_number or ''),
                 'type': f"{g.degree_type}{spec_str} ({g.status})",
                 'status': g.status
+            })
+
+    # 4. All PhD Scholars & registered Students
+    all_phd_scholars = Student.objects.filter(program_level='PHD').order_by('student_name')
+    for student in all_phd_scholars:
+        if student.pk not in seen_pks:
+            seen_pks.add(student.pk)
+            prog = student.program_level or 'PhD'
+            guided_scholars.append({
+                'pk': student.pk,
+                'student_name': student.student_name,
+                'roll_number': student.roll_number or '',
+                'type': f"{prog} Scholar",
+                'status': 'Active'
             })
 
     return guided_scholars
@@ -7827,5 +7894,50 @@ def office_manage_document_requests(request):
         'borrowed_count': borrowed_list.count(),
     }
     return render(request, 'staff/office_document_requests.html', context)
+
+
+def update_staff_roles(request, staff_id):
+    """Allows HOD or Admin to dynamically update assigned roles for any staff member at any time."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    current_staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not current_staff or (current_staff.role != 'HOD' and not current_staff.is_admin):
+        messages.error(request, "Access Denied: Only HOD or Admin can manage staff roles.")
+        return redirect('staffs:staff_list')
+
+    target_staff = get_object_or_404(Staff, staff_id=staff_id)
+
+    if request.method == 'POST':
+        roles_list = request.POST.getlist('staff_roles')
+        if not roles_list:
+            messages.error(request, "Please select at least one role for the staff member.")
+            return redirect(request.META.get('HTTP_REFERER', 'staffs:staff_list'))
+
+        OFFICE_DUTIES = {'Office Staff', 'Bonafide Issuing', 'Marksheet & Document Requests', 'Scholarship Management'}
+        has_office_duty = any(r in OFFICE_DUTIES for r in roles_list)
+
+        if has_office_duty:
+            primary_role = 'Office Staff'
+            sec_roles = [r for r in roles_list if r != 'Office Staff']
+            secondary_roles_str = ", ".join(sec_roles)
+        else:
+            primary_role = roles_list[0]
+            secondary_roles_str = ", ".join(roles_list[1:]) if len(roles_list) > 1 else ""
+
+        roles_set = set(roles_list)
+
+        target_staff.role = primary_role
+        target_staff.secondary_roles = secondary_roles_str
+        target_staff.is_scholarship_officer = ('Scholarship Officer' in roles_set or 'Scholarship Management' in roles_set)
+        target_staff.is_timetable_incharge = ('Timetable Incharge' in roles_set)
+        if 'HOD' in roles_set:
+            target_staff.is_admin = True
+
+        target_staff.save()
+        messages.success(request, f"Roles updated successfully for {target_staff.salutation} {target_staff.name}!")
+        return redirect(request.META.get('HTTP_REFERER', 'staffs:staff_list'))
+
+    return redirect('staffs:staff_list')
 
 

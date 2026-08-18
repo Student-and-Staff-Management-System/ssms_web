@@ -648,7 +648,8 @@
                         <th>Student Details</th>
                         <th>Application Purpose</th>
                         <th>Unclaimed Reason</th>
-                        <th style="text-align: right;">Date Marked Unclaimed</th>
+                        <th>Date Marked Unclaimed</th>
+                        <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -665,11 +666,20 @@
                         </td>
                         <td>{{ req.reason }}</td>
                         <td><span style="color: #b45309; font-weight: 500;">{{ req.rejection_reason|default:"Unclaimed / Not collected by student" }}</span></td>
-                        <td style="text-align: right;">{{ req.updated_at|date:"d M Y, h:i A" }}</td>
+                        <td>{{ req.updated_at|date:"d M Y, h:i A" }}</td>
+                        <td style="text-align: right;">
+                            <form method="post" action="{% url 'staffs:office_manage_bonafide' %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <button type="submit" name="action" value="mark_collected" class="btn-action btn-handover">
+                                    ✅ Handed Over to Student
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
                             No unclaimed or expired certificate records found.
                         </td>
                     </tr>

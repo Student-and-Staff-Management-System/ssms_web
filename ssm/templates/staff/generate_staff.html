@@ -103,18 +103,32 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="preview_bulk">
                     <div class="group">
-                        <label for="bulk_staff_role">Staff Role / Type</label>
-                        <select id="bulk_staff_role" name="staff_role" class="input">
-                            <optgroup label="Teaching Staff">
-                                <option value="Course Incharge">Teaching Staff (Faculty / Course Incharge)</option>
-                                <option value="Class Incharge">Teaching Staff (Class Incharge)</option>
-                                <option value="Scholarship Officer">Teaching Staff (Scholarship Officer)</option>
-                            </optgroup>
-                            <optgroup label="Non-Teaching Staff">
-                                <option value="Office Staff">Non-Teaching Staff (Office Staff)</option>
-                                <option value="Technical Officer">Non-Teaching Staff (Technical Officer)</option>
-                            </optgroup>
-                        </select>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <label style="margin-bottom: 0; font-weight: 600;">Assigned Staff Roles (Add as many roles as needed)</label>
+                            <button type="button" onclick="addRoleDropdown('bulkRolesContainer')" style="background: #0284c7; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                ➕ Add Role
+                            </button>
+                        </div>
+                        <div id="bulkRolesContainer" style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <div class="role-row" style="display: flex; align-items: center; gap: 8px;">
+                                <select name="staff_roles" class="input" style="flex: 1;">
+                                    <optgroup label="Teaching Staff">
+                                        <option value="Course Incharge">Course Incharge (Faculty)</option>
+                                        <option value="Class Incharge">Class Incharge</option>
+                                        <option value="Scholarship Officer">Scholarship Officer</option>
+                                        <option value="Placement Officer">Placement Officer</option>
+                                        <option value="HOD">HOD (Head of Dept)</option>
+                                    </optgroup>
+                                    <optgroup label="Non-Teaching Staff">
+                                        <option value="Office Staff">Office Staff (General Administration)</option>
+                                        <option value="Bonafide Issuing">Office Duty: Bonafide Issuing</option>
+                                        <option value="Marksheet & Document Requests">Office Duty: Marksheet & Document Requests</option>
+                                        <option value="Scholarship Management">Office Duty: Scholarship Management</option>
+                                        <option value="Technical Officer">Technical Officer</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="group">
                         <label for="bulk_input">Paste one row per line: <code>STAFF_ID, Staff Name</code></label>
@@ -127,18 +141,32 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="generate_single">
                     <div class="group">
-                        <label for="single_staff_role">Staff Role / Type</label>
-                        <select id="single_staff_role" name="staff_role" class="input">
-                            <optgroup label="Teaching Staff">
-                                <option value="Course Incharge">Teaching Staff (Faculty / Course Incharge)</option>
-                                <option value="Class Incharge">Teaching Staff (Class Incharge)</option>
-                                <option value="Scholarship Officer">Teaching Staff (Scholarship Officer)</option>
-                            </optgroup>
-                            <optgroup label="Non-Teaching Staff">
-                                <option value="Office Staff">Non-Teaching Staff (Office Staff)</option>
-                                <option value="Technical Officer">Non-Teaching Staff (Technical Officer)</option>
-                            </optgroup>
-                        </select>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <label style="margin-bottom: 0; font-weight: 600;">Assigned Staff Roles (Add as many roles as needed)</label>
+                            <button type="button" onclick="addRoleDropdown('singleRolesContainer')" style="background: #0284c7; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                ➕ Add Role
+                            </button>
+                        </div>
+                        <div id="singleRolesContainer" style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <div class="role-row" style="display: flex; align-items: center; gap: 8px;">
+                                <select name="staff_roles" class="input" style="flex: 1;">
+                                    <optgroup label="Teaching Staff">
+                                        <option value="Course Incharge">Course Incharge (Faculty)</option>
+                                        <option value="Class Incharge">Class Incharge</option>
+                                        <option value="Scholarship Officer">Scholarship Officer</option>
+                                        <option value="Placement Officer">Placement Officer</option>
+                                        <option value="HOD">HOD (Head of Dept)</option>
+                                    </optgroup>
+                                    <optgroup label="Non-Teaching Staff">
+                                        <option value="Office Staff">Office Staff (General Administration)</option>
+                                        <option value="Bonafide Issuing">Office Duty: Bonafide Issuing</option>
+                                        <option value="Marksheet & Document Requests">Office Duty: Marksheet & Document Requests</option>
+                                        <option value="Scholarship Management">Office Duty: Scholarship Management</option>
+                                        <option value="Technical Officer">Technical Officer</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="row2">
                         <div class="group">
@@ -163,6 +191,37 @@
     </div>
 
     <script>
+        function addRoleDropdown(containerId, selectedVal = '') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const div = document.createElement('div');
+            div.className = 'role-row';
+            div.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+            div.innerHTML = `
+                <select name="staff_roles" class="input" style="flex: 1;">
+                    <optgroup label="Teaching Staff">
+                        <option value="Course Incharge">Course Incharge (Faculty)</option>
+                        <option value="Class Incharge">Class Incharge</option>
+                        <option value="Scholarship Officer">Scholarship Officer</option>
+                        <option value="Placement Officer">Placement Officer</option>
+                        <option value="HOD">HOD (Head of Dept)</option>
+                    </optgroup>
+                    <optgroup label="Non-Teaching Staff">
+                        <option value="Office Staff">Office Staff (General Administration)</option>
+                        <option value="Bonafide Issuing">Office Duty: Bonafide Issuing</option>
+                        <option value="Marksheet & Document Requests">Office Duty: Marksheet & Document Requests</option>
+                        <option value="Scholarship Management">Office Duty: Scholarship Management</option>
+                        <option value="Technical Officer">Technical Officer</option>
+                    </optgroup>
+                </select>
+                <button type="button" onclick="this.parentElement.remove()" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold;" title="Remove Role">✕</button>
+            `;
+            container.appendChild(div);
+            if (selectedVal) {
+                div.querySelector('select').value = selectedVal;
+            }
+        }
+
         function switchTab(tab) {
             const bulk = document.getElementById('form-bulk');
             const single = document.getElementById('form-single');
