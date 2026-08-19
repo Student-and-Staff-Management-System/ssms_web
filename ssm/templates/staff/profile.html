@@ -908,17 +908,17 @@
                 {% endif %}
 
                 <div class="hero-badges">
-                    <div class="badge"><i class="ri-id-card-line"></i> {{ staff.staff_id }}</div>
+                    <div class="badge"><i class="ri-id-card-fill"></i> {{ staff.staff_id }}</div>
                     <div class="badge"><i class="ri-mail-line"></i> {{ staff.email }}</div>
                     <div class="badge"><i class="ri-phone-line"></i> {{ staff.mobile_number|default:"--" }}</div>
 
                     {% if staff.linkedin_link %}
                     <a href="{{ staff.linkedin_link }}" target="_blank" class="badge"
-                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-linkedin-box-line"></i> LinkedIn</a>
+                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-linkedin-box-fill"></i> LinkedIn</a>
                     {% endif %}
                     {% if staff.google_scholar_link %}
                     <a href="{{ staff.google_scholar_link }}" target="_blank" class="badge"
-                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-graduation-cap-line"></i> Scholar</a>
+                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-google-fill"></i> Scholar</a>
                     {% endif %}
                     {% if staff.orcid_link %}
                     <a href="{{ staff.orcid_link }}" target="_blank" class="badge"
