@@ -29,12 +29,6 @@
                 </div>
                 <div class="tsw-sub-meta-row">
                     <p class="tsw-subtitle">{{ today_weekday }}{% if today_schedule %} • {{ today_schedule|length }} Class{{ today_schedule|length|pluralize:"es" }}{% endif %}</p>
-                    {% if schedule_mood_text %}
-                    <div class="tsw-mood-ribbon">
-                        <span class="tsw-mood-sparkle">✨</span>
-                        <span class="tsw-mood-quote">"{{ schedule_mood_text }}"</span>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -45,6 +39,12 @@
     </div>
 
     {% if today_schedule %}
+    {% if schedule_mood_text %}
+    <div class="tsw-mood-ribbon" style="margin-bottom: 12px;">
+        <span class="tsw-mood-sparkle">✨</span>
+        <span class="tsw-mood-quote">"{{ schedule_mood_text }}"</span>
+    </div>
+    {% endif %}
     <!-- Horizontal Grid Matrix -->
     <div class="tsw-grid">
         {% for slot in today_schedule %}
@@ -102,21 +102,19 @@
     </div>
 
     {% else %}
-    <!-- Empty / Weekend State -->
-    <div class="tsw-empty">
-        <div class="tsw-empty-icon">
-            {% if today_weekday == "Saturday" or today_weekday == "Sunday" %}🌅{% else %}📭{% endif %}
+    <!-- Clean Spacious Empty State -->
+    <div class="tsw-empty-banner">
+        <div class="tsw-empty-icon-wrap">
+            <span class="tsw-empty-emoji">{% if today_weekday == "Saturday" or today_weekday == "Sunday" %}🌅{% else %}🌴{% endif %}</span>
         </div>
         <div class="tsw-empty-content">
-            {% if today_weekday == "Saturday" or today_weekday == "Sunday" %}
-            <p class="tsw-empty-title">Enjoy your weekend!</p>
-            <p class="tsw-empty-sub">No classes scheduled on {{ today_weekday }}.</p>
+            <p class="tsw-empty-title">{% if today_weekday == "Saturday" or today_weekday == "Sunday" %}Enjoy your weekend!{% else %}No classes scheduled today{% endif %}</p>
+            {% if schedule_mood_text %}
+            <p class="tsw-empty-quote">"{{ schedule_mood_text }}"</p>
             {% else %}
-            <p class="tsw-empty-title">No classes today</p>
             <p class="tsw-empty-sub">Your timetable for {{ today_weekday }} is clear.</p>
             {% endif %}
         </div>
-        <a href="{% url 'staffs:my_timetable' %}" class="tsw-setup-link">View Timetable</a>
     </div>
     {% endif %}
 </div>
@@ -660,16 +658,32 @@
     border-color: var(--primary, #5a7d7c);
 }
 
-/* Empty State */
-.tsw-empty {
+/* Clean Spacious Empty State Banner */
+.tsw-empty-banner {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 8px 4px 6px;
+    padding: 14px 16px;
+    background: var(--bg-body, #f8fafc);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 12px;
+    margin-top: 4px;
 }
 
-.tsw-empty-icon {
-    font-size: 1.7rem;
+body.dark-theme .tsw-empty-banner {
+    background: rgba(30, 41, 59, 0.4);
+    border-color: #334155;
+}
+
+.tsw-empty-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--primary-light, #eef2f2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
@@ -678,37 +692,24 @@
 }
 
 .tsw-empty-title {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--text-main, #0f172a);
-    margin: 0 0 2px;
+    margin: 0 0 2px 0;
+}
+
+.tsw-empty-quote {
+    font-size: 0.82rem;
+    font-style: italic;
+    color: var(--primary, #0d9488);
+    margin: 0;
+    font-weight: 500;
 }
 
 .tsw-empty-sub {
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     color: var(--text-muted, #64748b);
     margin: 0;
-}
-
-.tsw-setup-link {
-    display: inline-block;
-    font-size: 0.74rem;
-    font-weight: 600;
-    color: var(--primary, #5a7d7c);
-    text-decoration: none;
-    padding: 5px 12px;
-    border-radius: var(--radius-sm, 8px);
-    border: 1.5px solid var(--primary, #5a7d7c);
-    transition: var(--transition, all 0.2s ease);
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-left: auto;
-}
-
-.tsw-setup-link:hover {
-    background: var(--primary, #5a7d7c);
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(90, 125, 124, 0.2);
 }
 
 /* ─── RESPONSIVE MOBILE OPTIMIZATION ─── */

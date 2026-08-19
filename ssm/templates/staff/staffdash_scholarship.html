@@ -51,19 +51,19 @@
 
     <!-- Tabbed Dashboard Navigation -->
     <div class="dash-tabs">
-        <button class="dash-tab-btn active" onclick="switchDashboardTab('tab-overview')">📊 Overview</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('tab-profile-stats')">📈 My Profile Stats</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('tab-academics')">📖 Academics</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('tab-scholarships')">💰 Scholarships</button>
+        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)">📊 Overview</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)">📈 My Profile Stats</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)">📖 Academics</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholarships', this)">💰 Scholarships</button>
     </div>
 
     <!-- ================= TAB: MY PROFILE STATS ================= -->
-    <div id="tab-profile-stats" class="dash-tab-content">
+    <div id="dash-tab-profile-stats" class="dash-tab-content">
         {% include 'staff/includes/my_profile_stats.html' %}
     </div>
 
     <!-- ================= TAB 1: OVERVIEW ================= -->
-    <div id="tab-overview" class="dash-tab-content active">
+    <div id="dash-tab-overview" class="dash-tab-content active">
 
         <!-- Assigned Departmental Tasks & Roles Widget -->
         {% include 'staff/includes/dept_tasks_widget.html' %}
@@ -97,7 +97,7 @@
     </div>
 
     <!-- ================= TAB 2: ACADEMICS ================= -->
-    <div id="tab-academics" class="dash-tab-content">
+    <div id="dash-tab-academics" class="dash-tab-content">
         <!-- My Teaching Courses Quick Actions -->
         <section class="actions-section" style="margin-top: 0;">
             <div class="section-header">
@@ -167,7 +167,7 @@
     </div>
 
     <!-- ================= TAB 3: SCHOLARSHIPS ================= -->
-    <div id="tab-scholarships" class="dash-tab-content">
+    <div id="dash-tab-scholarships" class="dash-tab-content">
         <!-- Scholarship Management Link -->
         <section class="actions-section" style="margin-top: 0;">
             <div class="section-header">

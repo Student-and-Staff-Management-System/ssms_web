@@ -956,6 +956,7 @@ class AuditLog(models.Model):
 class ConferenceParticipation(models.Model):
     staff = models.ManyToManyField(Staff, related_name='conferences', blank=True)
     student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_conferences')
+    students = models.ManyToManyField('students.Student', blank=True, related_name='scholar_m2m_conferences')
     national_international = models.CharField(max_length=20, choices=[('National', 'National'), ('International', 'International')], default='National')
     participation_type = models.CharField(max_length=20, choices=[('Presented', 'Presented'), ('Attended', 'Attended')], default='Presented')
     author_name = models.CharField(max_length=255, blank=True)
@@ -1015,6 +1016,7 @@ class ConferenceParticipation(models.Model):
 class JournalPublication(models.Model):
     staff = models.ManyToManyField(Staff, related_name='journals', blank=True)
     student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_journals')
+    students = models.ManyToManyField('students.Student', blank=True, related_name='scholar_m2m_journals')
     national_international = models.CharField(max_length=20, choices=[('National', 'National'), ('International', 'International')], default='National')
     published_month = models.CharField(max_length=20, blank=True)
     published_year = models.CharField(max_length=20, blank=True)
@@ -1090,6 +1092,7 @@ class JournalPublication(models.Model):
 class BookPublication(models.Model):
     staff = models.ManyToManyField(Staff, related_name='books', blank=True)
     student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_books')
+    students = models.ManyToManyField('students.Student', blank=True, related_name='scholar_m2m_books')
     type = models.CharField(max_length=20, choices=[('Book', 'Book'), ('Popular Article', 'Popular Article')], default='Book')
     author_name = models.CharField(max_length=255)
     title_of_book = models.CharField(max_length=500)
@@ -1160,6 +1163,7 @@ class StaffPatent(models.Model):
 
     staff = models.ManyToManyField(Staff, related_name='patents', blank=True)
     student = models.ForeignKey('students.Student', on_delete=models.SET_NULL, null=True, blank=True, related_name='scholar_patents')
+    students = models.ManyToManyField('students.Student', blank=True, related_name='scholar_m2m_patents')
     title = models.CharField(max_length=500, verbose_name='Title of Invention')
     application_number = models.CharField(max_length=100, blank=True, verbose_name='Application Number')
     patent_type = models.CharField(max_length=20, choices=PATENT_TYPE_CHOICES, default='Indian', verbose_name='Patent Type')

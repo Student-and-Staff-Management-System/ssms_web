@@ -55,30 +55,29 @@
         @media (max-width: 480px) { .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; } }
         
         .scrollable-checklist {
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            gap: 6px 12px;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-wrap: nowrap !important;
+            gap: 6px !important;
             padding: 10px 12px;
             border: 1.5px solid var(--border);
             border-radius: 9px;
-            height: 150px;
-            overflow-y: scroll;
+            max-height: 220px;
+            height: auto;
+            min-height: 80px;
+            overflow-y: auto;
             overflow-x: hidden;
             background: white;
             box-sizing: border-box;
         }
         .scrollable-checklist label {
-            display: flex;
+            display: flex !important;
             align-items: center;
-            gap: 6px;
-            font-size: 0.85rem;
+            gap: 8px;
+            font-size: 0.88rem;
             cursor: pointer;
-            width: calc(50% - 6px);
-            min-width: 140px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            width: 100% !important;
+            white-space: normal;
         }
         .scrollable-checklist::-webkit-scrollbar {
             width: 7px;

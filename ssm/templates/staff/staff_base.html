@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Staff Portal | Annamalai University{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
     <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}?v=2.0">
     <style>
@@ -107,12 +109,13 @@
         .nav-tabs-bar {
             background: var(--surface, #ffffff);
             border-top: 1px solid var(--border, #e2e8f0);
-            padding: 0 24px;
+            padding: 4px 28px;
             display: flex;
             align-items: center;
             gap: 6px;
             overflow-x: auto;
             scrollbar-width: none;
+            position: relative;
         }
 
         .nav-tabs-bar::-webkit-scrollbar {
@@ -123,42 +126,62 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 20px;
+            padding: 7px 16px;
             color: var(--text-secondary, #475569);
             text-decoration: none;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            border: none;
-            background: none;
+            border: 1px solid transparent;
+            background: transparent;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s ease;
             position: relative;
-            border-radius: 10px 10px 0 0;
+            border-radius: 8px;
+            margin: 4px 0;
             user-select: none;
         }
 
-        .nav-tab-btn:hover,
+        .nav-tab-btn:hover {
+            color: var(--text-main, #0f172a);
+            background: var(--primary-light, #f1f5f9);
+        }
+
         .nav-tab-btn.active {
-            color: var(--primary-dark, #4a6b69);
-            background: var(--primary-light, #eef2f2);
+            color: #0369a1;
+            background: #e0f2fe;
+            font-weight: 700;
+            border-color: #bae6fd;
+            box-shadow: 0 1px 3px rgba(3, 105, 161, 0.1);
         }
 
-        .nav-tab-btn.active::after {
-            content: '';
-            position: absolute;
+        /* Native Sheet & Popover Dark Backdrop */
+        .sheet-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             bottom: 0;
-            left: 12px;
-            right: 12px;
-            height: 3px;
-            background: var(--primary, #5a7d7c);
-            border-radius: 3px 3px 0 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s ease;
+            z-index: 1070;
         }
 
-        /* Mega Dropdown Box (Placed directly inside .portal-header, NOT inside .nav-tabs-bar) */
+        .sheet-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        /* Mega Dropdown Box (Hardware Accelerated Spring Transitions) */
         .mega-dropdown {
-            position: absolute;
-            top: 100%;
+            position: fixed;
+            top: 104px;
             left: 0;
             right: 0;
             background: rgba(255, 255, 255, 0.98);
@@ -167,8 +190,13 @@
             border-bottom: 2px solid var(--primary, #5a7d7c);
             box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
             padding: 24px 32px;
-            display: none;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.99);
+            pointer-events: none;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, visibility 0.25s ease;
             z-index: 1080;
+            will-change: transform, opacity;
         }
 
         body.dark-theme .mega-dropdown {
@@ -177,9 +205,9 @@
 
         .mega-dropdown.open-dropdown,
         .mega-dropdown.active {
-            display: block !important;
             opacity: 1 !important;
-            transform: translateY(0) !important;
+            visibility: visible !important;
+            transform: translateY(0) scale(1) !important;
             pointer-events: auto !important;
         }
 
@@ -196,12 +224,12 @@
             align-items: center;
             gap: 12px;
             padding: 14px 18px;
-            border-radius: 12px;
+            border-radius: 14px;
             background: var(--bg-body, #f8fafc);
             border: 1px solid var(--border, #e2e8f0);
             text-decoration: none;
             color: var(--text-main, #0f172a);
-            transition: all 0.2s ease;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
         .mega-item:hover {
@@ -211,17 +239,44 @@
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
         }
 
-        .mega-item .icon {
-            font-size: 1.3rem;
-            width: 36px;
-            height: 36px;
+        .mega-item:active {
+            transform: scale(0.97) translateY(0) !important;
+            background: var(--primary-light, #eef2f2) !important;
+        }
+
+        .mega-item .icon-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--surface, #ffffff);
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-size: 1.15rem;
+            background: var(--primary-light, #eef2f2);
+            border: 1px solid rgba(13, 148, 136, 0.18);
+            color: var(--primary, #0d9488);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
             flex-shrink: 0;
+            transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        body.dark-theme .mega-item .icon-badge {
+            background: rgba(56, 189, 248, 0.12);
+            border-color: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+        }
+
+        .mega-item:hover .icon-badge {
+            background: var(--primary, #0d9488);
+            color: #ffffff;
+            border-color: var(--primary, #0d9488);
+            transform: scale(1.1);
+        }
+
+        body.dark-theme .mega-item:hover .icon-badge {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
         }
 
         .mega-item .title {
@@ -266,30 +321,96 @@
             display: block !important;
         }
 
+        .brand-title {
+            white-space: nowrap;
+        }
+
         @media (max-width: 992px) {
             .nav-tabs-bar {
                 display: none !important;
             }
+            .brand-title {
+                font-size: 0.92rem;
+            }
             .portal-main-body {
                 padding: 16px 16px 84px 16px;
             }
+            .mega-dropdown {
+                position: fixed !important;
+                bottom: 86px !important;
+                top: auto !important;
+                left: 14px !important;
+                right: 14px !important;
+                border-radius: 24px !important;
+                max-height: 70vh !important;
+                overflow-y: auto !important;
+                overscroll-behavior: contain !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding: 14px 18px 20px 18px !important;
+                background: rgba(255, 255, 255, 0.94) !important;
+                backdrop-filter: blur(24px) saturate(180%) !important;
+                -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.6) !important;
+                box-shadow: 0 20px 48px -8px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+                z-index: 1079 !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                transform: translateY(24px) scale(0.96) !important;
+                pointer-events: none !important;
+                transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease, visibility 0.28s ease !important;
+                will-change: transform, opacity !important;
+            }
+            .mega-dropdown.active {
+                opacity: 1 !important;
+                visibility: visible !important;
+                transform: translateY(0) scale(1) !important;
+                pointer-events: auto !important;
+            }
+            .mega-dropdown::before {
+                content: '';
+                display: block;
+                width: 40px;
+                height: 4px;
+                background: rgba(148, 163, 184, 0.4);
+                border-radius: 10px;
+                margin: 0 auto 14px auto;
+                cursor: pointer;
+            }
+            body.dark-theme .mega-dropdown {
+                background: rgba(15, 23, 42, 0.92) !important;
+                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+            }
+            body.dark-theme .mega-dropdown::before {
+                background: rgba(148, 163, 184, 0.3);
+            }
+            .mega-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
             .mobile-bottom-bar {
                 position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
+                bottom: 12px;
+                left: 14px;
+                right: 14px;
                 height: 64px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(16px);
-                border-top: 1px solid var(--border, #e2e8f0);
+                background: rgba(255, 255, 255, 0.88);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                border: 1px solid rgba(255, 255, 255, 0.6);
+                border-radius: 24px;
                 display: flex;
                 align-items: center;
                 justify-content: space-around;
-                z-index: 1050;
-                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+                z-index: 1080;
+                box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
+                padding: 0 6px;
+                transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
             }
             body.dark-theme .mobile-bottom-bar {
-                background: rgba(17, 24, 39, 0.95);
+                background: rgba(15, 23, 42, 0.86);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
             }
             .mobile-btn {
                 display: flex;
@@ -299,20 +420,101 @@
                 gap: 3px;
                 color: var(--text-muted, #64748b);
                 text-decoration: none;
-                font-size: 0.68rem;
+                font-size: 0.65rem;
                 font-weight: 600;
+                letter-spacing: 0.02em;
                 flex: 1;
                 height: 100%;
                 background: none;
                 border: none;
                 cursor: pointer;
+                position: relative;
+                transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+            }
+            .mobile-btn .icon-wrap {
+                width: 36px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 14px;
+                font-size: 1.15rem;
+                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                color: #64748b;
+            }
+            body.dark-theme .mobile-btn .icon-wrap {
+                color: #94a3b8;
+            }
+            .mobile-btn:active {
+                transform: scale(0.9);
             }
             .mobile-btn.active {
-                color: var(--primary, #5a7d7c);
+                color: var(--primary, #0d9488);
+                font-weight: 700;
             }
-            .mobile-btn .icon {
-                font-size: 1.25rem;
+            .mobile-btn.active .icon-wrap {
+                background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(20, 184, 166, 0.22));
+                color: var(--primary, #0d9488);
+                transform: translateY(-2px) scale(1.08);
+                box-shadow: 0 4px 12px rgba(13, 148, 136, 0.18);
             }
+            body.dark-theme .mobile-btn.active {
+                color: #38bdf8;
+            }
+            body.dark-theme .mobile-btn.active .icon-wrap {
+                background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(14, 165, 233, 0.28));
+                color: #38bdf8;
+                box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
+            }
+            .mobile-btn::after {
+                content: '';
+                position: absolute;
+                bottom: 4px;
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background: var(--primary, #0d9488);
+                opacity: 0;
+                transform: scale(0);
+                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            body.dark-theme .mobile-btn::after {
+                background: #38bdf8;
+            }
+            .mobile-btn.active::after {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .header-search-box {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-top-row {
+                padding: 0 16px !important;
+                gap: 12px !important;
+            }
+            .clock-badge {
+                display: none !important;
+            }
+            .theme-text {
+                display: none !important;
+            }
+            .user-name-text {
+                display: none !important;
+            }
+            .brand-title {
+                font-size: 0.95rem !important;
+            }
+        }
+
+        @keyframes slideUpSheet {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         @media (min-width: 993px) {
@@ -351,7 +553,7 @@
             </div>
 
             <!-- Header Controls: Theme, Clock, Profile Button -->
-            <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                 <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Dark Mode">
                     <span class="theme-icon">🌙</span>
                     <span class="theme-text">Dark Mode</span>
@@ -362,14 +564,14 @@
                 </div>
 
                 <!-- Profile Trigger -->
-                <div style="position: relative;">
-                    <button onclick="toggleProfileMenu()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 4px;">
+                <div style="position: relative; flex-shrink: 0;">
+                    <button onclick="toggleProfileMenu()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px;">
                         {% if staff.photo %}
-                        <img src="{{ staff.photo.url }}" alt="Profile" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light);">
+                        <img src="{{ staff.photo.url }}" alt="Profile" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light); flex-shrink: 0;">
                         {% else %}
-                        <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem;">{{ staff.name|slice:":1"|upper }}</div>
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0;">{{ staff.name|slice:":1"|upper }}</div>
                         {% endif %}
-                        <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ staff.name }} ▾</span>
+                        <span class="user-name-text" style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ staff.name }} ▾</span>
                     </button>
 
                     <!-- Profile Dropdown -->
@@ -392,51 +594,52 @@
         <!-- Horizontal Tab Category Navigation Bar -->
         <nav class="nav-tabs-bar" id="navTabsBar">
             <button class="nav-tab-btn" data-tab="tab-workspace" onclick="switchTab('tab-workspace', this)">
-                <span>📊</span> <span>My Desk</span>
+                <i class="ri-dashboard-3-line"></i> <span>My Desk</span>
             </button>
             <button class="nav-tab-btn" data-tab="tab-academics" onclick="switchTab('tab-academics', this)">
-                <span>📚</span> <span>Teaching & Students</span>
+                <i class="ri-book-open-line"></i> <span>Teaching & Students</span>
             </button>
             <button class="nav-tab-btn" data-tab="tab-research" onclick="switchTab('tab-research', this)">
-                <span>🎓</span> <span>Research & PhD</span>
+                <i class="ri-microscope-line"></i> <span>Research & PhD</span>
             </button>
             {% if staff.is_staff_admin or staff.is_timetable_incharge or staff.is_office_staff %}
             <button class="nav-tab-btn" data-tab="tab-admin" onclick="switchTab('tab-admin', this)">
-                <span>🏢</span> <span>Department Admin</span>
+                <i class="ri-building-4-line"></i> <span>Department Admin</span>
             </button>
             {% endif %}
             <button class="nav-tab-btn" data-tab="tab-all" onclick="switchTab('tab-all', this)" style="margin-left: auto; background: var(--primary-light); color: var(--primary-dark); border-radius: 8px;">
-                <span>🚀</span> <span>All Services Directory</span>
+                <i class="ri-apps-2-line"></i> <span>All Services Directory</span>
             </button>
         </nav>
+    </header>
 
         <!-- MEGA DROPDOWNS (Outside .nav-tabs-bar to avoid overflow clipping) -->
         <!-- Mega Menu Dropdown 1: My Desk -->
         <div class="mega-dropdown" id="tab-workspace">
             <div class="mega-grid">
                 <a href="{% url 'staffs:staff_dashboard' %}" class="mega-item">
-                    <span class="icon">📊</span> <span class="title">Dashboard Overview</span>
+                    <span class="icon-badge"><i class="ri-line-chart-line"></i></span> <span class="title">Dashboard Overview</span>
                 </a>
                 <a href="{% url 'staffs:staff_profile' %}" class="mega-item">
-                    <span class="icon">👤</span> <span class="title">My Profile</span>
+                    <span class="icon-badge"><i class="ri-user-3-line"></i></span> <span class="title">My Profile</span>
                 </a>
                 <a href="{% url 'staffs:staff_portfolio' %}" class="mega-item">
-                    <span class="icon">📄</span> <span class="title">My Portfolio</span>
+                    <span class="icon-badge"><i class="ri-briefcase-4-line"></i></span> <span class="title">My Portfolio</span>
                 </a>
                 <a href="{% url 'staffs:my_timetable' %}" class="mega-item">
-                    <span class="icon">🗓️</span> <span class="title">My Timetable</span>
+                    <span class="icon-badge"><i class="ri-calendar-schedule-line"></i></span> <span class="title">My Timetable</span>
                 </a>
                 <a href="{% url 'staffs:overall_attendance_calendar' %}" class="mega-item">
-                    <span class="icon">📅</span> <span class="title">Attendance Calendar</span>
+                    <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Attendance Calendar</span>
                 </a>
                 <a href="{% url 'staffs:staff_apply_leave' %}" class="mega-item">
-                    <span class="icon">✈️</span> <span class="title">Apply for Leave</span>
+                    <span class="icon-badge"><i class="ri-send-plane-line"></i></span> <span class="title">Apply for Leave</span>
                 </a>
                 <a href="{% url 'staffs:staff_leave_history' %}" class="mega-item">
-                    <span class="icon">📜</span> <span class="title">Leave History</span>
+                    <span class="icon-badge"><i class="ri-history-line"></i></span> <span class="title">Leave History</span>
                 </a>
                 <a href="{% url 'staffs:exam_schedule' %}" class="mega-item">
-                    <span class="icon">📝</span> <span class="title">Exam Duties</span>
+                    <span class="icon-badge"><i class="ri-file-list-3-line"></i></span> <span class="title">Exam Duties</span>
                 </a>
             </div>
         </div>
@@ -445,34 +648,34 @@
         <div class="mega-dropdown" id="tab-academics">
             <div class="mega-grid">
                 <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item">
-                    <span class="icon">🔄</span> <span class="title">Request Alternate</span>
+                    <span class="icon-badge"><i class="ri-user-shared-line"></i></span> <span class="title">Request Alternate</span>
                 </a>
                 <a href="{% url 'staffs:incoming_substitutions' %}" class="mega-item">
-                    <span class="icon">📥</span> <span class="title">Incoming Requests</span>
+                    <span class="icon-badge"><i class="ri-inbox-archive-line"></i></span> <span class="title">Incoming Requests</span>
                 </a>
                 <a href="{% url 'staffs:assigned_substitutions' %}" class="mega-item">
-                    <span class="icon">👩‍🏫</span> <span class="title">Assigned Classes</span>
+                    <span class="icon-badge"><i class="ri-presentation-line"></i></span> <span class="title">Assigned Classes</span>
                 </a>
                 <a href="{% url 'staffs:student_list' %}" class="mega-item">
-                    <span class="icon">👨‍🎓</span> <span class="title">Student Directory</span>
+                    <span class="icon-badge"><i class="ri-group-line"></i></span> <span class="title">Student Directory</span>
                 </a>
                 <a href="{% url 'staffs:risk_students' %}" class="mega-item">
-                    <span class="icon">⚠️</span> <span class="title">Risk Insights</span>
+                    <span class="icon-badge"><i class="ri-alert-line"></i></span> <span class="title">Risk Insights</span>
                 </a>
                 <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item">
-                    <span class="icon">📝</span> <span class="title">Student Leaves</span>
+                    <span class="icon-badge"><i class="ri-user-received-2-line"></i></span> <span class="title">Student Leaves</span>
                     {% if pending_leaves_count %}
                     <span class="badge">{{ pending_leaves_count }}</span>
                     {% endif %}
                 </a>
                 <a href="{% url 'staffs:remark_student_list' %}" class="mega-item">
-                    <span class="icon">💬</span> <span class="title">Student Remarks</span>
+                    <span class="icon-badge"><i class="ri-chat-smile-2-line"></i></span> <span class="title">Student Remarks</span>
                 </a>
                 <a href="{% url 'staffs:attendance_deficit_list' %}" class="mega-item">
-                    <span class="icon">📊</span> <span class="title">Deficit Mailer</span>
+                    <span class="icon-badge"><i class="ri-mail-send-line"></i></span> <span class="title">Deficit Mailer</span>
                 </a>
                 <a href="{% url 'staffs:assign_lab_batches' %}" class="mega-item">
-                    <span class="icon">👥</span> <span class="title">Assign Lab Batches</span>
+                    <span class="icon-badge"><i class="ri-team-line"></i></span> <span class="title">Assign Lab Batches</span>
                 </a>
             </div>
         </div>
@@ -481,19 +684,19 @@
         <div class="mega-dropdown" id="tab-research">
             <div class="mega-grid">
                 <a href="{% url 'staffs:manage_scholar_attendance' %}" class="mega-item">
-                    <span class="icon">🗓️</span> <span class="title">Scholar Attendance</span>
+                    <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Scholar Attendance</span>
                     {% if rs_pending_attendance %}
                     <span class="badge">{{ rs_pending_attendance }}</span>
                     {% endif %}
                 </a>
                 <a href="{% url 'staffs:manage_scholar_leave' %}" class="mega-item">
-                    <span class="icon">✈️</span> <span class="title">Scholar Leaves</span>
+                    <span class="icon-badge"><i class="ri-send-plane-line"></i></span> <span class="title">Scholar Leaves</span>
                     {% if rs_pending_leaves %}
                     <span class="badge">{{ rs_pending_leaves }}</span>
                     {% endif %}
                 </a>
                 <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item">
-                    <span class="icon">📈</span> <span class="title">PhD Stages Tracker</span>
+                    <span class="icon-badge"><i class="ri-git-merge-line"></i></span> <span class="title">PhD Stages Tracker</span>
                 </a>
             </div>
         </div>
@@ -503,57 +706,57 @@
         <div class="mega-dropdown" id="tab-admin">
             <div class="mega-grid">
                 <a href="{% url 'staffs:staff_list' %}" class="mega-item">
-                    <span class="icon">👨‍🏫</span> <span class="title">Faculty Directory</span>
+                    <span class="icon-badge"><i class="ri-contacts-book-line"></i></span> <span class="title">Faculty Directory</span>
                 </a>
                 <a href="{% url 'staffs:hod_leave_dashboard' %}" class="mega-item">
-                    <span class="icon">👔</span> <span class="title">Faculty Leaves</span>
+                    <span class="icon-badge"><i class="ri-file-user-line"></i></span> <span class="title">Faculty Leaves</span>
                     {% if pending_staff_leaves_count %}
                     <span class="badge">{{ pending_staff_leaves_count }}</span>
                     {% endif %}
                 </a>
                 <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="mega-item">
-                    <span class="icon">✔️</span> <span class="title">Portfolio Approvals</span>
+                    <span class="icon-badge"><i class="ri-checkbox-circle-line"></i></span> <span class="title">Portfolio Approvals</span>
                     {% if pending_portfolio_count %}
                     <span class="badge">{{ pending_portfolio_count }}</span>
                     {% endif %}
                 </a>
                 <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item">
-                    <span class="icon">🔬</span> <span class="title">Lab & Class Mapping</span>
+                    <span class="icon-badge"><i class="ri-computer-line"></i></span> <span class="title">Lab & Class Mapping</span>
                 </a>
                 <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="mega-item">
-                    <span class="icon">📡</span> <span class="title">Live Class Visualiser</span>
+                    <span class="icon-badge"><i class="ri-live-line"></i></span> <span class="title">Live Class Visualiser</span>
                 </a>
                 <a href="{% url 'staffs:send_custom_notification' %}" class="mega-item">
-                    <span class="icon">📢</span> <span class="title">Broadcast Notice</span>
+                    <span class="icon-badge"><i class="ri-notification-line"></i></span> <span class="title">Broadcast Notice</span>
                 </a>
                 <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item">
-                    <span class="icon">📜</span> <span class="title">Bonafide Requests</span>
+                    <span class="icon-badge"><i class="ri-award-line"></i></span> <span class="title">Bonafide Requests</span>
                     {% if pending_bonafide_count %}
                     <span class="badge">{{ pending_bonafide_count }}</span>
                     {% endif %}
                 </a>
                 {% if staff.is_office_staff or staff.is_staff_admin %}
                 <a href="{% url 'staffs:office_manage_document_requests' %}" class="mega-item">
-                    <span class="icon">📁</span> <span class="title">Original Document Requests</span>
+                    <span class="icon-badge"><i class="ri-folder-user-line"></i></span> <span class="title">Original Document Requests</span>
                 </a>
                 {% endif %}
                 <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item">
-                    <span class="icon">📋</span> <span class="title">Department Tasks & Roles</span>
+                    <span class="icon-badge"><i class="ri-task-line"></i></span> <span class="title">Department Tasks & Roles</span>
                 </a>
                 <a href="{% url 'staffs:manage_semesters' %}" class="mega-item">
-                    <span class="icon">📅</span> <span class="title">Manage Semesters</span>
+                    <span class="icon-badge"><i class="ri-stack-line"></i></span> <span class="title">Manage Semesters</span>
                 </a>
                 <a href="{% url 'staffs:manage_subjects' %}" class="mega-item">
-                    <span class="icon">📚</span> <span class="title">Manage Subjects</span>
+                    <span class="icon-badge"><i class="ri-bookmark-line"></i></span> <span class="title">Manage Subjects</span>
                 </a>
                 <a href="{% url 'staffs:timetable' %}" class="mega-item">
-                    <span class="icon">📅</span> <span class="title">Master Timetable Hub</span>
+                    <span class="icon-badge"><i class="ri-calendar-2-line"></i></span> <span class="title">Master Timetable Hub</span>
                 </a>
                 <a href="{% url 'staffs:passed_out_batches' %}" class="mega-item">
-                    <span class="icon">🗄️</span> <span class="title">Passed Out Archives</span>
+                    <span class="icon-badge"><i class="ri-archive-line"></i></span> <span class="title">Passed Out Archives</span>
                 </a>
                 <a href="{% url 'staffs:scholarship_manager' %}" class="mega-item">
-                    <span class="icon">💰</span> <span class="title">Scholarship Manager</span>
+                    <span class="icon-badge"><i class="ri-funds-line"></i></span> <span class="title">Scholarship Manager</span>
                 </a>
             </div>
         </div>
@@ -562,24 +765,22 @@
         <!-- Mega Menu Dropdown 5: All Services Directory -->
         <div class="mega-dropdown" id="tab-all">
             <div class="mega-grid">
-                <a href="{% url 'staffs:staff_dashboard' %}" class="mega-item"><span class="icon">📊</span> <span class="title">Dashboard</span></a>
-                <a href="{% url 'staffs:staff_profile' %}" class="mega-item"><span class="icon">👤</span> <span class="title">My Profile</span></a>
-                <a href="{% url 'staffs:my_timetable' %}" class="mega-item"><span class="icon">🗓️</span> <span class="title">My Timetable</span></a>
-                <a href="{% url 'staffs:student_list' %}" class="mega-item"><span class="icon">👨‍🎓</span> <span class="title">Student Directory</span></a>
-                <a href="{% url 'staffs:staff_apply_leave' %}" class="mega-item"><span class="icon">✈️</span> <span class="title">Apply for Leave</span></a>
-                <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item"><span class="icon">🔄</span> <span class="title">Request Alternate</span></a>
-                <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item"><span class="icon">📝</span> <span class="title">Student Leaves</span></a>
-                <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item"><span class="icon">📈</span> <span class="title">PhD Tracker</span></a>
+                <a href="{% url 'staffs:staff_dashboard' %}" class="mega-item"><span class="icon-badge"><i class="ri-line-chart-line"></i></span> <span class="title">Dashboard</span></a>
+                <a href="{% url 'staffs:staff_profile' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-3-line"></i></span> <span class="title">My Profile</span></a>
+                <a href="{% url 'staffs:my_timetable' %}" class="mega-item"><span class="icon-badge"><i class="ri-calendar-schedule-line"></i></span> <span class="title">My Timetable</span></a>
+                <a href="{% url 'staffs:student_list' %}" class="mega-item"><span class="icon-badge"><i class="ri-group-line"></i></span> <span class="title">Student Directory</span></a>
+                <a href="{% url 'staffs:staff_apply_leave' %}" class="mega-item"><span class="icon-badge"><i class="ri-send-plane-line"></i></span> <span class="title">Apply for Leave</span></a>
+                <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-shared-line"></i></span> <span class="title">Request Alternate</span></a>
+                <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-received-line"></i></span> <span class="title">Student Leaves</span></a>
+                <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item"><span class="icon-badge"><i class="ri-git-merge-line"></i></span> <span class="title">PhD Tracker</span></a>
                 {% if staff.is_staff_admin or staff.is_office_staff %}
-                <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item"><span class="icon">🔬</span> <span class="title">Lab Mapping</span></a>
-                <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item"><span class="icon">📋</span> <span class="title">Department Tasks</span></a>
-                <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item"><span class="icon">📜</span> <span class="title">Bonafide Requests</span></a>
+                <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item"><span class="icon-badge"><i class="ri-computer-line"></i></span> <span class="title">Lab Mapping</span></a>
+                <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item"><span class="icon-badge"><i class="ri-task-line"></i></span> <span class="title">Department Tasks</span></a>
+                <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item"><span class="icon-badge"><i class="ri-award-line"></i></span> <span class="title">Bonafide Requests</span></a>
                 {% endif %}
-                <a href="{% url 'staffs:timetable' %}" class="mega-item"><span class="icon">📅</span> <span class="title">Master Timetable</span></a>
+                <a href="{% url 'staffs:timetable' %}" class="mega-item"><span class="icon-badge"><i class="ri-calendar-2-line"></i></span> <span class="title">Master Timetable</span></a>
             </div>
         </div>
-
-    </header>
 
     <!-- Main Page Content -->
     <div class="portal-main-body">
@@ -588,23 +789,32 @@
 
     <!-- Native Mobile Bottom Bar -->
     <nav class="mobile-bottom-bar">
-        <a href="{% url 'staffs:staff_dashboard' %}" class="mobile-btn {% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
-            <span class="icon">📊</span>
-            <span>Home</span>
-        </a>
-        <a href="{% url 'staffs:my_timetable' %}" class="mobile-btn {% if request.resolver_match.url_name == 'my_timetable' %}active{% endif %}">
-            <span class="icon">🗓️</span>
-            <span>Timetable</span>
-        </a>
-        <a href="{% url 'staffs:student_list' %}" class="mobile-btn {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">
-            <span class="icon">👨‍🎓</span>
-            <span>Students</span>
-        </a>
-        <button onclick="switchTab('tab-all')" class="mobile-btn">
-            <span class="icon">🚀</span>
+        <button onclick="switchTab('tab-workspace', this)" class="mobile-btn" data-tab="tab-workspace">
+            <div class="icon-wrap"><i class="ri-dashboard-3-line"></i></div>
+            <span>Desk</span>
+        </button>
+        <button onclick="switchTab('tab-academics', this)" class="mobile-btn" data-tab="tab-academics">
+            <div class="icon-wrap"><i class="ri-book-open-line"></i></div>
+            <span>Teaching</span>
+        </button>
+        <button onclick="switchTab('tab-research', this)" class="mobile-btn" data-tab="tab-research">
+            <div class="icon-wrap"><i class="ri-microscope-line"></i></div>
+            <span>Research</span>
+        </button>
+        {% if staff.is_staff_admin or staff.is_timetable_incharge or staff.is_office_staff %}
+        <button onclick="switchTab('tab-admin', this)" class="mobile-btn" data-tab="tab-admin">
+            <div class="icon-wrap"><i class="ri-building-4-line"></i></div>
+            <span>Admin</span>
+        </button>
+        {% endif %}
+        <button onclick="switchTab('tab-all', this)" class="mobile-btn" data-tab="tab-all">
+            <div class="icon-wrap"><i class="ri-apps-2-line"></i></div>
             <span>All Apps</span>
         </button>
     </nav>
+
+    <!-- Native Sheet & Popover Dark Backdrop -->
+    <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeAllDropdowns()"></div>
 
     <!-- Rock-Solid Navigation JS -->
     <script>
@@ -616,9 +826,15 @@
                 el.classList.remove('active');
             });
             document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.mobile-btn').forEach(btn => btn.classList.remove('active'));
+            const backdrop = document.getElementById('sheetBackdrop');
+            if (backdrop) backdrop.classList.remove('active');
         }
 
         function switchTab(tabId, btnElement) {
+            if (window.event) {
+                window.event.stopPropagation();
+            }
             clearTimeout(hoverTimer);
             const target = document.getElementById(tabId);
             if (!target) return;
@@ -629,7 +845,37 @@
             if (!isOpen) {
                 target.classList.add('open-dropdown');
                 target.classList.add('active');
-                if (btnElement) btnElement.classList.add('active');
+                if (btnElement) {
+                    btnElement.classList.add('active');
+                }
+                const matchingBtns = document.querySelectorAll(`[data-tab="${tabId}"]`);
+                matchingBtns.forEach(btn => btn.classList.add('active'));
+
+                const backdrop = document.getElementById('sheetBackdrop');
+                if (backdrop) backdrop.classList.add('active');
+            }
+        }
+
+        function switchDashboardTab(tabId, btnElement) {
+            document.querySelectorAll('.dash-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.dash-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+
+            if (btnElement) {
+                btnElement.classList.add('active');
+            } else if (window.event && window.event.currentTarget && window.event.currentTarget.classList.contains('dash-tab-btn')) {
+                window.event.currentTarget.classList.add('active');
+            } else {
+                const matchingBtn = document.querySelector(`.dash-tab-btn[onclick*="${tabId}"]`);
+                if (matchingBtn) matchingBtn.classList.add('active');
             }
         }
 
@@ -679,10 +925,15 @@
             });
         });
 
-        // Close Dropdown when clicking outside header
+        // Close Dropdown when clicking outside header, bottom bar, or mega dropdowns
         document.addEventListener('click', function(e) {
             const header = document.getElementById('portalHeader');
-            if (header && !header.contains(e.target)) {
+            const bottomBar = document.querySelector('.mobile-bottom-bar');
+            const isClickInsideHeader = header && header.contains(e.target);
+            const isClickInsideBottomBar = bottomBar && bottomBar.contains(e.target);
+            const isClickInsideMegaDropdown = e.target.closest('.mega-dropdown');
+
+            if (!isClickInsideHeader && !isClickInsideBottomBar && !isClickInsideMegaDropdown) {
                 closeAllDropdowns();
                 const profileDropdown = document.getElementById('profileDropdown');
                 if (profileDropdown) profileDropdown.classList.remove('open-dropdown');

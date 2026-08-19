@@ -83,14 +83,16 @@
             color: var(--accent);
         }
 
-        /* --- Hero Section --- */
+        /* --- Hero Section (Full-Width Bleed to Edge) --- */
         .hero {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             padding: 60px 0 100px;
-            /* Extra bottom padding for overlap */
             position: relative;
             overflow: hidden;
+            margin-left: -28px;
+            margin-right: -28px;
+            margin-top: -24px;
         }
 
         .hero::after {
@@ -746,23 +748,107 @@
             color: var(--text-light);
         }
 
-        /* Responsive */
+        /* Responsive Mobile Refactor */
         @media (max-width: 900px) {
+            .hero {
+                padding: 30px 0 70px;
+                margin-left: -16px;
+                margin-right: -16px;
+                margin-top: -16px;
+            }
             .hero-container {
                 flex-direction: column;
                 text-align: center;
-                gap: 20px;
+                gap: 16px;
+                padding: 0 16px;
             }
-
-            .hero-info .designation,
+            .avatar-container {
+                width: 120px;
+                height: 120px;
+            }
+            .hero-info h1 {
+                font-size: 1.6rem;
+                margin-bottom: 6px;
+                word-break: break-word;
+            }
+            .hero-info .designation {
+                font-size: 0.92rem;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
             .hero-badges {
                 justify-content: center;
+                gap: 6px;
+                margin-top: 12px;
             }
-
+            .badge {
+                font-size: 0.78rem;
+                padding: 5px 10px;
+                max-width: 100%;
+                word-break: break-all;
+                white-space: normal;
+                text-align: center;
+            }
+            .profile-completion-box {
+                margin-top: 12px !important;
+                padding: 6px 14px !important;
+                font-size: 0.78rem !important;
+                max-width: 100%;
+                box-sizing: border-box;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .hero-actions {
+                margin-top: 18px !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 8px !important;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .hero-actions .hero-action-btn {
+                flex: 1 1 auto;
+                min-width: 120px;
+                justify-content: center;
+                text-align: center;
+                font-size: 0.82rem !important;
+                padding: 8px 14px !important;
+                box-sizing: border-box;
+            }
+            .tabs-container {
+                margin: -35px auto 20px;
+                padding: 0 12px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .tabs {
+                padding: 4px;
+                gap: 4px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .tab-btn {
+                padding: 8px 14px;
+                font-size: 0.84rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            .content-container {
+                padding: 0 12px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .card {
+                padding: 16px;
+                border-radius: 14px;
+                margin-bottom: 16px;
+            }
             .overview-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
             }
-
             .stats-row,
             .info-list {
                 grid-template-columns: 1fr 1fr;
@@ -773,11 +859,10 @@
             .stats-row {
                 grid-template-columns: 1fr;
             }
-
             .info-list {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
             }
-
             .tabs {
                 border-radius: var(--radius-lg);
             }
@@ -800,7 +885,7 @@
                 {% endif %}
                 {% if is_own_profile %}
                 <a href="{% url 'staffs:staff_edit_profile' %}" class="avatar-overlay">
-                    <span style="font-size: 1.5rem;">📷</span>
+                    <i class="ri-camera-3-line" style="font-size: 1.5rem;"></i>
                     <span>Update Photo</span>
                 </a>
                 {% endif %}
@@ -816,58 +901,59 @@
                 </div>
                 {% if staff.additional_designation %}
                 <div style="margin-top: 6px;">
-                    <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,224,178,0.18); border: 1px solid rgba(255,200,120,0.35); border-radius: 100px; padding: 3px 12px; font-size: 0.82em; font-weight: 600; color: #ffe0b2; letter-spacing: 0.01em;">
-                        ⭐ Additional Post: {{ staff.additional_designation }}
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,224,178,0.18); border: 1px solid rgba(255,200,120,0.35); border-radius: 100px; padding: 3px 12px; font-size: 0.82em; font-weight: 600; color: #ffe0b2; letter-spacing: 0.01em;">
+                        <i class="ri-star-fill" style="color: #fbbf24; font-size: 0.95rem;"></i> Additional Post: {{ staff.additional_designation }}
                     </span>
                 </div>
                 {% endif %}
 
                 <div class="hero-badges">
-                    <div class="badge">🆔 {{ staff.staff_id }}</div>
-                    <div class="badge">📧 {{ staff.email }}</div>
-                    <div class="badge">📱 {{ staff.mobile_number|default:"--" }}</div>
+                    <div class="badge"><i class="ri-id-card-line"></i> {{ staff.staff_id }}</div>
+                    <div class="badge"><i class="ri-mail-line"></i> {{ staff.email }}</div>
+                    <div class="badge"><i class="ri-phone-line"></i> {{ staff.mobile_number|default:"--" }}</div>
 
                     {% if staff.linkedin_link %}
                     <a href="{{ staff.linkedin_link }}" target="_blank" class="badge"
-                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;">🔗 LinkedIn</a>
+                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-linkedin-box-line"></i> LinkedIn</a>
                     {% endif %}
                     {% if staff.google_scholar_link %}
                     <a href="{{ staff.google_scholar_link }}" target="_blank" class="badge"
-                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;">🎓 Scholar</a>
+                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-graduation-cap-line"></i> Scholar</a>
                     {% endif %}
                     {% if staff.orcid_link %}
                     <a href="{{ staff.orcid_link }}" target="_blank" class="badge"
-                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;">🆔 ORCID</a>
+                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-fingerprint-line"></i> ORCID</a>
                     {% endif %}
                     {% if staff.research_gate_link %}
                     <a href="{{ staff.research_gate_link }}" target="_blank" class="badge"
-                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;">🔬
-                        ResearchGate</a>
+                        style="background: rgba(255,255,255,0.15); text-decoration: none; color: white;"><i class="ri-flask-line"></i> ResearchGate</a>
                     {% endif %}
                 </div>
 
                 <!-- Profile Completion Percentage Badge & Progress Bar -->
-                <div style="margin-top: 14px; display: inline-flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 50px; padding: 6px 16px; backdrop-filter: blur(4px);">
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">📊 Profile Completion: <strong>{{ profile_completion_percentage }}%</strong></span>
+                <div class="profile-completion-box" style="margin-top: 14px; display: inline-flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 50px; padding: 6px 16px; backdrop-filter: blur(4px);">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #ffffff; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="ri-pie-chart-2-line" style="font-size: 1rem;"></i> Profile Completion: <strong>{{ profile_completion_percentage }}%</strong>
+                    </span>
                     <div style="width: 110px; height: 8px; background: rgba(255,255,255,0.25); border-radius: 4px; overflow: hidden; display: inline-block;">
                         <div style="height: 100%; width: {{ profile_completion_percentage }}%; background: #10b981; border-radius: 4px; transition: width 0.5s ease;"></div>
                     </div>
                 </div>
 
-                <div style="margin-top: 25px; display: flex; gap: 12px;">
+                <div class="hero-actions" style="margin-top: 25px; display: flex; gap: 12px;">
                     {% if is_own_profile %}
-                    <a href="{% url 'staffs:staff_edit_profile' %}" class="tab-btn"
+                    <a href="{% url 'staffs:staff_edit_profile' %}" class="tab-btn hero-action-btn"
                         style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
-                        <span>✏️</span> Edit Profile
+                        <i class="ri-edit-box-line" style="font-size: 1rem;"></i> Edit Profile
                     </a>
-                    <a href="{% url 'staffs:staff_portfolio' %}" class="tab-btn"
+                    <a href="{% url 'staffs:staff_portfolio' %}" class="tab-btn hero-action-btn"
                         style="background: white; color: var(--primary); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
-                        <span>💼</span> Manage Portfolio
+                        <i class="ri-briefcase-line" style="font-size: 1rem; color: var(--primary);"></i> Manage Portfolio
                     </a>
                     {% endif %}
-                    <a href="{% url 'staffs:generate_biodata_pdf' %}?staff_id={{ staff.staff_id }}" class="tab-btn"
+                    <a href="{% url 'staffs:generate_biodata_pdf' %}?staff_id={{ staff.staff_id }}" class="tab-btn hero-action-btn"
                         style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); text-decoration: none; padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
-                        <span>📄</span> Download Bio Data
+                        <i class="ri-file-download-line" style="font-size: 1rem;"></i> Download Bio Data
                     </a>
                 </div>
             </div>

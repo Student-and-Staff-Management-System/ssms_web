@@ -5003,18 +5003,17 @@ def portfolio_edit_seminar(request, pk):
 
 def _get_guided_scholars_for_staff(staff):
     """
-    Helper to fetch ALL students/scholars guided by or linked to this staff member:
-    1. Current PhD Scholars supervised by staff (ResearchScholarProfile).
+    Helper to fetch ONLY students/scholars guided by or assigned to this staff member:
+    1. Current & Completed PhD Scholars supervised by staff (ResearchScholarProfile).
     2. PhD Scholars where staff is a RAC Committee Member (RACMember).
     3. All Guided Students recorded in StaffStudentGuided (both Previous and Current PG/PhD).
-    4. Department PhD Scholars and Students.
     """
     from students.models import Student, ResearchScholarProfile, RACMember
     from django.db.models import Q
     guided_scholars = []
     seen_pks = set()
 
-    # 1. PhD Scholars supervised by this staff
+    # 1. PhD Scholars supervised by this staff (Current & Completed)
     for profile in staff.supervised_scholars.select_related('student').all():
         student = profile.student
         if student and student.pk not in seen_pks:
@@ -5080,21 +5079,33 @@ def _get_guided_scholars_for_staff(staff):
                 'status': g.status
             })
 
-    # 4. All PhD Scholars & registered Students
-    all_phd_scholars = Student.objects.filter(program_level='PHD').order_by('student_name')
-    for student in all_phd_scholars:
-        if student.pk not in seen_pks:
-            seen_pks.add(student.pk)
-            prog = student.program_level or 'PhD'
-            guided_scholars.append({
-                'pk': student.pk,
-                'student_name': student.student_name,
-                'roll_number': student.roll_number or '',
-                'type': f"{prog} Scholar",
-                'status': 'Active'
-            })
-
     return guided_scholars
+
+def _save_item_students(item, request):
+    co_students = request.POST.getlist('co_students') or request.POST.getlist('student') or request.POST.getlist('students')
+    selected_students = []
+    from students.models import Student
+    for sid in co_students:
+        if sid:
+            try:
+                stu = Student.objects.get(pk=sid)
+                if stu not in selected_students:
+                    selected_students.append(stu)
+            except (Student.DoesNotExist, ValueError):
+                pass
+    item.student = selected_students[0] if selected_students else None
+    item.save()
+    if hasattr(item, 'students'):
+        item.students.set(selected_students)
+
+def _get_item_student_pks(item):
+    if not item:
+        return set()
+    if hasattr(item, 'students') and item.students.exists():
+        return set(item.students.values_list('pk', flat=True))
+    if item.student:
+        return {item.student.pk}
+    return set()
 
 def portfolio_add_conference(request):
     staff = _get_staff_for_portfolio(request)
@@ -5117,16 +5128,9 @@ def portfolio_add_conference(request):
             publisher_proceedings=request.POST.get('publisher_proceedings', ''),
             supporting_document=request.FILES.get('supporting_document'),
         )
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        if student_id:
-            try:
-                from students.models import Student
-                item.student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                pass
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Link co-authors and auto-generate author_name
         co_authors = request.POST.getlist('co_authors')
@@ -5148,7 +5152,7 @@ def portfolio_add_conference(request):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'conference', 'item': None, 'title': 'Add Conference Participation', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'conference', 'item': None, 'title': 'Add Conference Participation', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': set(),
     })
 
 def portfolio_add_journal(request):
@@ -5175,16 +5179,9 @@ def portfolio_add_journal(request):
             is_ugc=request.POST.get('is_ugc') == 'on',
             supporting_document=request.FILES.get('supporting_document'),
         )
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        if student_id:
-            try:
-                from students.models import Student
-                item.student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                pass
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Link co-authors and auto-generate author_name
         co_authors = request.POST.getlist('co_authors')
@@ -5206,7 +5203,7 @@ def portfolio_add_journal(request):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'journal', 'item': None, 'title': 'Add Journal Publication', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'journal', 'item': None, 'title': 'Add Journal Publication', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': set(),
     })
 
 def portfolio_add_book(request):
@@ -5228,16 +5225,9 @@ def portfolio_add_book(request):
             url_address=request.POST.get('url_address') or None,
             supporting_document=request.FILES.get('supporting_document'),
         )
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        if student_id:
-            try:
-                from students.models import Student
-                item.student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                pass
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Link co-authors and auto-generate author_name
         co_authors = request.POST.getlist('co_authors')
@@ -5259,7 +5249,7 @@ def portfolio_add_book(request):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Article', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'book', 'item': None, 'title': 'Add Book / Article', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': set(),
     })
 
 from .forms import StaffQualificationForm, StaffPastDesignationForm, StaffMembershipForm, StaffResearchProjectForm
@@ -5490,16 +5480,6 @@ def portfolio_add_patent(request):
 
     if request.method == 'POST':
         from .models import StaffPatent
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        linked_student = None
-        if student_id:
-            try:
-                from students.models import Student
-                linked_student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                linked_student = None
-
         item = StaffPatent(
             title=request.POST.get('title', '').strip(),
             application_number=request.POST.get('application_number', '').strip(),
@@ -5509,12 +5489,12 @@ def portfolio_add_patent(request):
             grant_year=request.POST.get('grant_year', '').strip(),
             funding_agency=request.POST.get('funding_agency', '').strip(),
             description=request.POST.get('description', '').strip(),
-            student=linked_student,
         )
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Link co-inventors and auto-generate inventors field
         co_authors = request.POST.getlist('co_authors')
@@ -5536,7 +5516,7 @@ def portfolio_add_patent(request):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'patent', 'item': None, 'title': 'Add Patent', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'patent', 'item': None, 'title': 'Add Patent', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': set(),
     })
 
 
@@ -5557,21 +5537,11 @@ def portfolio_edit_patent(request, pk):
         item.funding_agency = request.POST.get('funding_agency', '').strip()
         item.description = request.POST.get('description', '').strip()
 
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        if student_id:
-            try:
-                from students.models import Student
-                item.student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                item.student = None
-        else:
-            item.student = None
-
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Update co-inventors and inventors field
         co_authors = request.POST.getlist('co_authors')
@@ -5593,7 +5563,7 @@ def portfolio_edit_patent(request, pk):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'patent', 'item': item, 'title': 'Edit Patent', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'patent', 'item': item, 'title': 'Edit Patent', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': _get_item_student_pks(item),
     })
 
 
@@ -5621,20 +5591,10 @@ def portfolio_edit_conference(request, pk):
         
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
-        
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        if student_id:
-            try:
-                from students.models import Student
-                item.student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                item.student = None
-        else:
-            item.student = None
             
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Link co-authors and auto-generate author_name
         co_authors = request.POST.getlist('co_authors')
@@ -5659,7 +5619,7 @@ def portfolio_edit_conference(request, pk):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'conference', 'item': item, 'title': 'Edit Conference Participation', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'conference', 'item': item, 'title': 'Edit Conference Participation', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': _get_item_student_pks(item),
     })
 
 
@@ -5690,20 +5650,10 @@ def portfolio_edit_journal(request, pk):
         
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
-        
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        if student_id:
-            try:
-                from students.models import Student
-                item.student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                item.student = None
-        else:
-            item.student = None
 
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Update ManyToMany co-authors and auto-generate author_name
         co_authors = request.POST.getlist('co_authors')
@@ -5728,7 +5678,7 @@ def portfolio_edit_journal(request, pk):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'journal', 'item': item, 'title': 'Edit Journal Publication', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'journal', 'item': item, 'title': 'Edit Journal Publication', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': _get_item_student_pks(item),
     })
 
 
@@ -5754,20 +5704,10 @@ def portfolio_edit_book(request, pk):
         
         if 'supporting_document' in request.FILES:
             item.supporting_document = request.FILES['supporting_document']
-        
-        student_ids = request.POST.getlist('student') or request.POST.getlist('students')
-        student_id = next((sid for sid in student_ids if sid), None)
-        if student_id:
-            try:
-                from students.models import Student
-                item.student = Student.objects.get(pk=student_id)
-            except (Student.DoesNotExist, ValueError):
-                item.student = None
-        else:
-            item.student = None
 
         item._temp_staff_id = staff.staff_id
         item.save()
+        _save_item_students(item, request)
         
         # Update ManyToMany co-authors and auto-generate author_name
         co_authors = request.POST.getlist('co_authors')
@@ -5792,7 +5732,7 @@ def portfolio_edit_book(request, pk):
     all_staffs = Staff.objects.all().order_by('name')
     guided_scholars = _get_guided_scholars_for_staff(staff)
     return render(request, 'staff/portfolio_form.html', {
-        'staff': staff, 'form_type': 'book', 'item': item, 'title': 'Edit Book / Popular Article', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars,
+        'staff': staff, 'form_type': 'book', 'item': item, 'title': 'Edit Book / Popular Article', 'all_staffs': all_staffs, 'guided_scholars': guided_scholars, 'item_student_pks': _get_item_student_pks(item),
     })
 
 

@@ -36,55 +36,72 @@
         @media (max-width: 480px) { .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; } }
         
         .scrollable-checklist {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 8px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            max-height: 320px;
-            overflow-y: auto;
-            background: #f8fafc;
-            box-sizing: border-box;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-wrap: nowrap !important;
+            gap: 8px !important;
+            padding: 10px !important;
+            border: 1.5px solid var(--border) !important;
+            border-radius: 10px !important;
+            max-height: 320px !important;
+            height: auto !important;
+            min-height: 80px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            background: #f8fafc !important;
+            box-sizing: border-box !important;
+        }
+
+        .scrollable-checklist label {
+            display: flex !important;
+            align-items: center !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 0 !important;
+            box-sizing: border-box !important;
+            white-space: normal !important;
         }
 
         .scholar-select-card {
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
-            gap: 12px;
-            padding: 8px 12px !important;
-            border-radius: 8px !important;
+            gap: 12px !important;
+            padding: 10px 14px !important;
+            border-radius: 9px !important;
             background: #ffffff !important;
             border: 1.5px solid #e2e8f0 !important;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            cursor: pointer !important;
+            transition: all 0.18s ease-in-out !important;
             width: 100% !important;
+            min-width: 100% !important;
             box-sizing: border-box !important;
+            margin: 0 !important;
         }
 
         .scholar-select-card:hover {
             border-color: var(--primary) !important;
-            background: #ffffff !important;
-            box-shadow: 0 2px 8px rgba(15,23,42,0.06);
-            transform: translateY(-1px);
+            background: #f1f5f9 !important;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.06) !important;
+            transform: translateY(-1px) !important;
         }
 
         .scholar-select-card:has(input:checked) {
             background: #f0fdf4 !important;
             border-color: #10b981 !important;
-            box-shadow: 0 0 0 2px rgba(16,185,129,0.18);
+            box-shadow: 0 0 0 2px rgba(16,185,129,0.18) !important;
         }
 
         .scholar-type-badge {
-            font-size: 0.74rem;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 6px;
-            background: #eef4f4;
-            color: var(--primary-dark);
-            border: 1px solid rgba(90,125,124,0.25);
-            white-space: nowrap;
+            font-size: 0.76rem !important;
+            font-weight: 600 !important;
+            padding: 3px 9px !important;
+            border-radius: 6px !important;
+            background: #f1f5f9 !important;
+            color: #334155 !important;
+            border: 1px solid #cbd5e1 !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
         }
 
         .scrollable-checklist::-webkit-scrollbar {
@@ -485,25 +502,19 @@
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
-                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>
                 <input type="text" onkeyup="filterScholarChecklist(this)" placeholder="🔍 Search scholar by name or roll number..." style="margin-bottom: 6px; padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 0.85rem; width: 100%; box-sizing: border-box; background: #ffffff;">
                 <div class="scrollable-checklist">
-                    <label class="scholar-select-card">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
-                        </div>
-                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
                             <label class="scholar-select-card">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="radio" name="student" value="{{ s.pk }}"
-                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                                    <div>
+                                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                    <input type="checkbox" name="co_students" value="{{ s.pk }}"
+                                        {% if s.pk in item_student_pks %}checked{% endif %} style="width: 16px; height: 16px; margin: 0; accent-color: var(--primary); flex-shrink: 0; cursor: pointer;"> 
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
                                         <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
                                         {% if s.roll_number %}
-                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px;">{{ s.roll_number }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -600,25 +611,19 @@
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
-                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>
                 <input type="text" onkeyup="filterScholarChecklist(this)" placeholder="🔍 Search scholar by name or roll number..." style="margin-bottom: 6px; padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 0.85rem; width: 100%; box-sizing: border-box; background: #ffffff;">
                 <div class="scrollable-checklist">
-                    <label class="scholar-select-card">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
-                        </div>
-                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
                             <label class="scholar-select-card">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="radio" name="student" value="{{ s.pk }}"
-                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                                    <div>
+                                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                    <input type="checkbox" name="co_students" value="{{ s.pk }}"
+                                        {% if s.pk in item_student_pks %}checked{% endif %} style="width: 16px; height: 16px; margin: 0; accent-color: var(--primary); flex-shrink: 0; cursor: pointer;"> 
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
                                         <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
                                         {% if s.roll_number %}
-                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px;">{{ s.roll_number }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -729,25 +734,19 @@
                 <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
             </div>
             <div class="form-group">
-                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>
                 <input type="text" onkeyup="filterScholarChecklist(this)" placeholder="🔍 Search scholar by name or roll number..." style="margin-bottom: 6px; padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 0.85rem; width: 100%; box-sizing: border-box; background: #ffffff;">
                 <div class="scrollable-checklist">
-                    <label class="scholar-select-card">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
-                        </div>
-                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
                             <label class="scholar-select-card">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="radio" name="student" value="{{ s.pk }}"
-                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                                    <div>
+                                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                    <input type="checkbox" name="co_students" value="{{ s.pk }}"
+                                        {% if s.pk in item_student_pks %}checked{% endif %} style="width: 16px; height: 16px; margin: 0; accent-color: var(--primary); flex-shrink: 0; cursor: pointer;"> 
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
                                         <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
                                         {% if s.roll_number %}
-                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px;">{{ s.roll_number }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -831,25 +830,19 @@
                 <div class="form-help">Select all co-inventors. This will appear in their portfolios too.</div>
             </div>
             <div class="form-group">
-                <label>Linked Student Scholar (Guided Scholars & Students)</label>
+                <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>
                 <input type="text" onkeyup="filterScholarChecklist(this)" placeholder="🔍 Search scholar by name or roll number..." style="margin-bottom: 6px; padding: 7px 12px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 0.85rem; width: 100%; box-sizing: border-box; background: #ffffff;">
                 <div class="scrollable-checklist">
-                    <label class="scholar-select-card">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="radio" name="student" value="" {% if not item or not item.student %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                            <span style="font-weight: 600; color: var(--text-muted); font-size: 0.86rem;">None (No Student Scholar Linked)</span>
-                        </div>
-                    </label>
                     {% if guided_scholars %}
                         {% for s in guided_scholars %}
                             <label class="scholar-select-card">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="radio" name="student" value="{{ s.pk }}"
-                                        {% if item and item.student and item.student.pk == s.pk %}checked{% endif %} style="width: auto; margin: 0; accent-color: var(--primary);"> 
-                                    <div>
+                                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                    <input type="checkbox" name="co_students" value="{{ s.pk }}"
+                                        {% if s.pk in item_student_pks %}checked{% endif %} style="width: 16px; height: 16px; margin: 0; accent-color: var(--primary); flex-shrink: 0; cursor: pointer;"> 
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0;">
                                         <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{{ s.student_name }}</span>
                                         {% if s.roll_number %}
-                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px;">{{ s.roll_number }}</span>
+                                            <span style="font-size: 0.74rem; font-weight: 600; background: #e2e8f0; color: #475569; padding: 1px 6px; border-radius: 4px;">{{ s.roll_number }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
