@@ -542,7 +542,6 @@ def student_dashboard(request):
     scholarship_officers = Staff.objects.filter(is_scholarship_officer=True).only('name', 'mobile_number')
     class_incharge = None
     if student.current_semester:
-        from django.db.models import Q
         ci_qs = Staff.objects.filter(
             assigned_semester=student.current_semester
         ).filter(

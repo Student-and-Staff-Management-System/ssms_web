@@ -8,177 +8,324 @@
     <title>{% block title %}Staff Portal | Annamalai University{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
-    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}?v=1.5">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}?v=2.0">
     <style>
-        /* Ensure sidebar sits above mobile backdrop overlay */
-        .sidebar {
-            z-index: 1050 !important;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
+        /* =========================================================
+           TOP APP NAVIGATION SYSTEM - FIXED OVERFLOW & CLICK BUG
+           ========================================================= */
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-body, #f8fafc);
+            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-main, #0f172a);
         }
 
-        /* Clean Collapsed Sidebar Strip & Premium Hover Expansion (Desktop) */
-        @media (min-width: 993px) {
-            /* Collapsed State: Narrow icon strip */
-            .sidebar:not(.expanded) {
-                width: 74px !important;
-                overflow-x: hidden !important;
-            }
-
-            /* Hide sub-items completely when sidebar is collapsed & not hovered */
-            .sidebar:not(.expanded):not(:hover) .nav-group-content {
-                display: none !important;
-                height: 0 !important;
-                overflow: hidden !important;
-                opacity: 0 !important;
-            }
-
-            /* Center icons cleanly when collapsed */
-            .sidebar:not(.expanded):not(:hover) .nav-group-header {
-                justify-content: center !important;
-                padding: 10px 0 !important;
-                margin: 4px 8px !important;
-                border-radius: 12px !important;
-            }
-
-            .sidebar:not(.expanded):not(:hover) .nav-item {
-                display: none !important;
-            }
-
-            .sidebar:not(.expanded):not(:hover) .nav-icon {
-                margin: 0 !important;
-                font-size: 1.25rem !important;
-            }
-
-            /* Hide text labels, category headers, and chevrons when collapsed & not hovered */
-            .sidebar:not(.expanded):not(:hover) .nav-text,
-            .sidebar:not(.expanded):not(:hover) .profile-mini-details,
-            .sidebar:not(.expanded):not(:hover) .profile-mini-logout,
-            .sidebar:not(.expanded):not(:hover) .sidebar-category-header,
-            .sidebar:not(.expanded):not(:hover) .nav-group-chevron {
-                opacity: 0 !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-                width: 0 !important;
-                overflow: hidden !important;
-            }
-
-            .sidebar:not(.expanded):not(:hover) .sidebar-category-header {
-                height: 0 !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            /* === PREMIUM SMOOTH HOVER EXPANSION (MAIN MENU ONLY) === */
-            .sidebar:not(.expanded):hover {
-                width: 260px !important;
-                box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-                z-index: 1060 !important;
-            }
-
-            .sidebar:not(.expanded):hover .nav-group-header,
-            .sidebar:not(.expanded):hover .nav-item {
-                justify-content: flex-start !important;
-                padding: 10px 14px !important;
-                margin: 2px 10px !important;
-                border-radius: 10px !important;
-            }
-
-            .sidebar:not(.expanded):hover .nav-icon {
-                margin-right: 10px !important;
-                font-size: 1.1rem !important;
-            }
-
-            .sidebar:not(.expanded):hover .nav-text,
-            .sidebar:not(.expanded):hover .profile-mini-details,
-            .sidebar:not(.expanded):hover .profile-mini-logout,
-            .sidebar:not(.expanded):hover .sidebar-category-header,
-            .sidebar:not(.expanded):hover .nav-group-chevron {
-                opacity: 1 !important;
-                visibility: visible !important;
-                pointer-events: auto !important;
-                width: auto !important;
-                transition: opacity 0.25s ease 0.05s !important;
-            }
-
-            .sidebar:not(.expanded):hover .sidebar-category-header {
-                height: 38px !important;
-                padding: 16px 16px 8px 16px !important;
-            }
+        .portal-header {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
         }
 
-        /* Disable black tooltip box popups when sidebar is hovered or expanded */
-        .sidebar:hover .nav-item[data-tooltip]::after,
-        .sidebar:hover .nav-group-header[data-tooltip]::after,
-        .sidebar.expanded .nav-item[data-tooltip]::after,
-        .sidebar.expanded .nav-group-header[data-tooltip]::after {
-            display: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-            pointer-events: none !important;
+        body.dark-theme .portal-header {
+            background: rgba(17, 24, 39, 0.96);
         }
 
-        /* === NAV GROUP DROPDOWN ACCORDION DISPLAY STYLING === */
-        .nav-group-content {
+        .header-top-row {
+            height: 64px;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-box img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+        }
+
+        .brand-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-dark, #4a6b69);
+            margin: 0;
+        }
+
+        .header-search-box {
+            position: relative;
+            flex: 1;
+            max-width: 420px;
+        }
+
+        .header-search-input {
+            width: 100%;
+            padding: 9px 16px 9px 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border, #e2e8f0);
+            background: var(--bg-body, #f8fafc);
+            font-size: 0.85rem;
+            font-family: inherit;
+            color: var(--text-main, #0f172a);
+            transition: all 0.2s ease;
+        }
+
+        .header-search-input:focus {
+            outline: none;
+            border-color: var(--primary, #5a7d7c);
+            background: var(--surface, #ffffff);
+            box-shadow: 0 0 0 4px var(--primary-light, #eef2f2);
+        }
+
+        .header-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.95rem;
+            color: var(--text-muted, #64748b);
+            pointer-events: none;
+        }
+
+        .nav-tabs-bar {
+            background: var(--surface, #ffffff);
+            border-top: 1px solid var(--border, #e2e8f0);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .nav-tabs-bar::-webkit-scrollbar {
             display: none;
-            padding-left: 8px;
-            margin-top: 2px;
-            margin-bottom: 6px;
         }
 
-        .nav-group.open .nav-group-content {
+        .nav-tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            color: var(--text-secondary, #475569);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border: none;
+            background: none;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            position: relative;
+            border-radius: 10px 10px 0 0;
+            user-select: none;
+        }
+
+        .nav-tab-btn:hover,
+        .nav-tab-btn.active {
+            color: var(--primary-dark, #4a6b69);
+            background: var(--primary-light, #eef2f2);
+        }
+
+        .nav-tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 12px;
+            right: 12px;
+            height: 3px;
+            background: var(--primary, #5a7d7c);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Mega Dropdown Box (Placed directly inside .portal-header, NOT inside .nav-tabs-bar) */
+        .mega-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 2px solid var(--primary, #5a7d7c);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            padding: 24px 32px;
+            display: none;
+            z-index: 1080;
+        }
+
+        body.dark-theme .mega-dropdown {
+            background: rgba(17, 24, 39, 0.98);
+        }
+
+        .mega-dropdown.open-dropdown,
+        .mega-dropdown.active {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            pointer-events: auto !important;
+        }
+
+        .mega-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+        }
+
+        .mega-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: var(--bg-body, #f8fafc);
+            border: 1px solid var(--border, #e2e8f0);
+            text-decoration: none;
+            color: var(--text-main, #0f172a);
+            transition: all 0.2s ease;
+        }
+
+        .mega-item:hover {
+            background: var(--primary-light, #eef2f2);
+            border-color: var(--primary, #5a7d7c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .mega-item .icon {
+            font-size: 1.3rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface, #ffffff);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+
+        .mega-item .title {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .mega-item .badge {
+            background: var(--danger, #ef4444);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: auto;
+        }
+
+        .portal-main-body {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 28px 24px;
+            box-sizing: border-box;
+        }
+
+        .profile-dropdown-menu {
+            position: absolute;
+            right: 28px;
+            top: 60px;
+            width: 270px;
+            background: var(--surface, #ffffff);
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 16px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+            padding: 18px;
+            display: none;
+            z-index: 1090;
+        }
+
+        .profile-dropdown-menu.open-dropdown {
             display: block !important;
         }
 
-        .nav-group.open .nav-group-content .nav-item {
-            display: flex !important;
+        @media (max-width: 992px) {
+            .nav-tabs-bar {
+                display: none !important;
+            }
+            .portal-main-body {
+                padding: 16px 16px 84px 16px;
+            }
+            .mobile-bottom-bar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 64px;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(16px);
+                border-top: 1px solid var(--border, #e2e8f0);
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                z-index: 1050;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            }
+            body.dark-theme .mobile-bottom-bar {
+                background: rgba(17, 24, 39, 0.95);
+            }
+            .mobile-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                color: var(--text-muted, #64748b);
+                text-decoration: none;
+                font-size: 0.68rem;
+                font-weight: 600;
+                flex: 1;
+                height: 100%;
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+            .mobile-btn.active {
+                color: var(--primary, #5a7d7c);
+            }
+            .mobile-btn .icon {
+                font-size: 1.25rem;
+            }
         }
 
-        /* === DROPDOWN CHEVRON ARROW STYLING & ROTATION ANIMATION === */
-        .nav-group-header {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-            cursor: pointer !important;
-        }
-
-        .nav-group-header-left {
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-            flex: 1 !important;
-            min-width: 0 !important;
-        }
-
-        .nav-group-chevron {
-            font-size: 0.75rem !important;
-            font-weight: 700 !important;
-            color: #64748b !important;
-            margin-left: auto !important;
-            margin-right: 4px !important;
-            transition: transform 0.25s ease, color 0.2s ease, opacity 0.2s ease !important;
-            display: inline-block !important;
-        }
-
-        .sidebar:hover .nav-group-chevron,
-        .sidebar.expanded .nav-group-chevron {
-            opacity: 1 !important;
-            visibility: visible !important;
-            pointer-events: auto !important;
-            display: inline-block !important;
-        }
-
-        .nav-group.open .nav-group-chevron {
-            transform: rotate(90deg) !important;
-            color: var(--primary, #5a7d7c) !important;
+        @media (min-width: 993px) {
+            .mobile-bottom-bar {
+                display: none !important;
+            }
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 
-<body class="{% block body_class %}{% endblock %}">
-    <!-- Theme Initializer (Blocking to prevent flash) -->
+<body>
+    <!-- Theme Initializer -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
@@ -188,672 +335,388 @@
         })();
     </script>
 
-    <!-- Sidebar Drawer Backdrop overlay for Mobile -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+    <!-- Top Fixed Portal Header -->
+    <header class="portal-header" id="portalHeader">
+        <!-- Top Row: Brand, Search, User Quick Profile -->
+        <div class="header-top-row">
+            <a href="{% url 'staffs:staff_dashboard' %}" class="brand-box">
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Annamalai University">
+                <h1 class="brand-title">{% if staff.is_hod %}Head of Dept Portal{% else %}Staff Portal{% endif %}</h1>
+            </a>
 
-    <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="appSidebar">
-            <div class="brand">
-                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">☰</button>
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo">
-                <h1 class="nav-text">
-                    {% if staff.is_hod %}Head of Dept / Admin{% else %}IT Portal{% endif %}
-                </h1>
+            <!-- Quick Global Search Bar -->
+            <div class="header-search-box">
+                <span class="header-search-icon">🔍</span>
+                <input type="text" id="globalToolSearch" class="header-search-input" placeholder="Search any tool (e.g. Leave, Timetable, Marks)..." onkeyup="searchPortalTools()" aria-label="Search tools">
             </div>
 
-            <!-- Sidebar Navigation Links -->
-            <div class="nav-section" style="flex: 1; overflow-y: auto; margin-bottom: 0;">
-                
-                {% if staff.role == 'Office Staff' %}
-                <!-- Category Group: MAIN -->
-                <div class="sidebar-category-header">Main</div>
-                <div class="nav-group open" data-group-id="office-workspace">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="My Workspace">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">👤</span>
-                            <span class="nav-text">My Workspace</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content" style="display: block;">
-                        <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item" data-tooltip="Dashboard">
-                            <span class="nav-icon">📊</span> <span class="nav-text">Dashboard Overview</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_profile' %}" class="nav-item" data-tooltip="Profile Overview">
-                            <span class="nav-icon">👤</span> <span class="nav-text">Profile Overview</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item" data-tooltip="Apply for Leave">
-                            <span class="nav-icon">✈️</span> <span class="nav-text">Apply for Leave</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_leave_history' %}" class="nav-item" data-tooltip="Leave History">
-                            <span class="nav-icon">📜</span> <span class="nav-text">Leave History</span>
-                        </a>
-                    </div>
+            <!-- Header Controls: Theme, Clock, Profile Button -->
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                    <span class="theme-text">Dark Mode</span>
+                </button>
+
+                <div class="clock-badge" style="background: var(--bg-body); padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border);">
+                    🕒 <span id="portalClock">12:00 PM</span>
                 </div>
 
-                <!-- Category Group: STUDENT SERVICES -->
-                <div class="sidebar-category-header">Student Services</div>
-                <div class="nav-group open" data-group-id="office-services">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Student Services">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">📜</span>
-                            <span class="nav-text">Student Services</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content" style="display: block;">
-                        <a href="{% url 'staffs:office_manage_bonafide' %}" class="nav-item" data-tooltip="Bonafide Requests">
-                            <span class="nav-icon">📜</span> 
-                            <span class="nav-text">Bonafide Requests</span>
-                            {% if pending_bonafide_count %}
-                            <span class="badge-count">{{ pending_bonafide_count }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item" data-tooltip="Scholarship Portal">
-                            <span class="nav-icon">💰</span> <span class="nav-text">Scholarship Portal</span>
-                        </a>
-                        <a href="{% url 'staffs:student_list' %}" class="nav-item" data-tooltip="Student Directory">
-                            <span class="nav-icon">👨‍🎓</span> <span class="nav-text">Student Directory</span>
-                        </a>
-                        <a href="{% url 'staffs:passed_out_batches' %}" class="nav-item" data-tooltip="Passed Out Archives">
-                            <span class="nav-icon">🗄️</span> <span class="nav-text">Passed Out Archives</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Category Group: ADMINISTRATION -->
-                <div class="sidebar-category-header">Administration</div>
-                <div class="nav-group open" data-group-id="office-admin">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Administration">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">🏢</span>
-                            <span class="nav-text">Administration</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content" style="display: block;">
-                        <a href="{% url 'staffs:office_manage_bonafide' %}" class="nav-item" data-tooltip="Bonafide Requests">
-                            <span class="nav-icon">📜</span> <span class="nav-text">Bonafide Certificates</span>
-                        </a>
-                        <a href="{% url 'staffs:office_manage_document_requests' %}" class="nav-item" data-tooltip="Original Document Requests">
-                            <span class="nav-icon">📁</span> <span class="nav-text">Original Document Requests</span>
-                        </a>
-                        <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item" data-tooltip="Broadcast Notice">
-                            <span class="nav-icon">📢</span> <span class="nav-text">Broadcast Notice</span>
-                        </a>
-                        <a href="{% url 'staffs:manage_semesters' %}" class="nav-item" data-tooltip="Manage Semesters">
-                            <span class="nav-icon">📅</span> <span class="nav-text">Manage Semesters</span>
-                        </a>
-                        <a href="{% url 'staffs:manage_subjects' %}" class="nav-item" data-tooltip="Manage Subjects">
-                            <span class="nav-icon">📚</span> <span class="nav-text">Manage Subjects</span>
-                        </a>
-                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab & Class Mapping">
-                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab & Class Mapping</span>
-                        </a>
-                        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="nav-item" data-tooltip="Live Class Visualiser">
-                            <span class="nav-icon">📡</span> <span class="nav-text">Live Class Visualiser</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Category Group: SYSTEM -->
-                <div class="sidebar-category-header">System</div>
-                {% if staff.is_admin %}
-                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer" data-tooltip="Admin Portal">
-                    <span class="nav-icon">⚙️</span> <span class="nav-text">Admin Portal</span>
-                </a>
-                {% endif %}
-                <a href="{% url 'staffs:staff_logout' %}" class="nav-item" data-tooltip="Logout" style="color: #ef4444;">
-                    <span class="nav-icon">🚪</span> <span class="nav-text">Logout</span>
-                </a>
-                {% elif staff.role == 'Technical Officer' %}
-                <!-- Category Group: MAIN (NON-TEACHING) -->
-                <div class="sidebar-category-header">Non-Teaching Operations</div>
-                <div class="nav-group open" data-group-id="technical-workspace">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="My Workspace">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">👤</span>
-                            <span class="nav-text">My Workspace</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content" style="display: block;">
-                        <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item" data-tooltip="Dashboard">
-                            <span class="nav-icon">📊</span> <span class="nav-text">Dashboard Overview</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_profile' %}" class="nav-item" data-tooltip="Profile Overview">
-                            <span class="nav-icon">👤</span> <span class="nav-text">Profile Overview</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item" data-tooltip="Apply for Leave">
-                            <span class="nav-icon">✈️</span> <span class="nav-text">Apply for Leave</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_leave_history' %}" class="nav-item" data-tooltip="Leave History">
-                            <span class="nav-icon">📜</span> <span class="nav-text">Leave History</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Category Group: LAB & TIMETABLE SERVICES -->
-                <div class="sidebar-category-header">Labs & Timetables</div>
-                <div class="nav-group open" data-group-id="technical-labs">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Lab Operations">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">🔬</span>
-                            <span class="nav-text">Lab Operations</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content" style="display: block;">
-                        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="nav-item" data-tooltip="Live Class & Lab Visualiser">
-                            <span class="nav-icon">📡</span> <span class="nav-text">Live Class Visualiser</span>
-                        </a>
-                        <a href="{% url 'staffs:timetable' %}" class="nav-item" data-tooltip="Master Timetable Hub">
-                            <span class="nav-icon">📅</span> <span class="nav-text">Master Timetable Hub</span>
-                        </a>
-                        <a href="{% url 'staffs:student_list' %}" class="nav-item" data-tooltip="Student Directory">
-                            <span class="nav-icon">👨‍🎓</span> <span class="nav-text">Student Directory</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Category Group: SYSTEM -->
-                <div class="sidebar-category-header">System</div>
-                {% if staff.is_admin %}
-                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer" data-tooltip="Admin Portal">
-                    <span class="nav-icon">⚙️</span> <span class="nav-text">Admin Portal</span>
-                </a>
-                {% endif %}
-                <a href="{% url 'staffs:staff_logout' %}" class="nav-item" data-tooltip="Logout" style="color: #ef4444;">
-                    <span class="nav-icon">🚪</span> <span class="nav-text">Logout</span>
-                </a>
-                {% else %}
-                <!-- Category Group: MAIN -->
-                <div class="sidebar-category-header">Main</div>
-                <div class="nav-group" data-group-id="workspace">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="My Workspace">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">👤</span>
-                            <span class="nav-text">My Workspace</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content">
-                        <a href="{% url 'staffs:staff_dashboard' %}" class="nav-item" data-tooltip="Dashboard">
-                            <span class="nav-icon">📊</span> <span class="nav-text">Dashboard</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_profile' %}" class="nav-item" data-tooltip="Profile Overview">
-                            <span class="nav-icon">👤</span> <span class="nav-text">Profile Overview</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_portfolio' %}" class="nav-item" data-tooltip="My Portfolio">
-                            <span class="nav-icon">📄</span> <span class="nav-text">My Portfolio</span>
-                        </a>
-                        <a href="{% url 'staffs:my_timetable' %}" class="nav-item" data-tooltip="My Timetable">
-                            <span class="nav-icon">🗓️</span> <span class="nav-text">My Timetable</span>
-                        </a>
-                        <a href="{% url 'staffs:overall_attendance_calendar' %}" class="nav-item" data-tooltip="Attendance Calendar">
-                            <span class="nav-icon">📅</span> <span class="nav-text">Attendance Calendar</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_apply_leave' %}" class="nav-item" data-tooltip="Apply for Leave">
-                            <span class="nav-icon">✈️</span> <span class="nav-text">Apply for Leave</span>
-                        </a>
-                        <a href="{% url 'staffs:staff_leave_history' %}" class="nav-item" data-tooltip="Leave History">
-                            <span class="nav-icon">📜</span> <span class="nav-text">Leave History</span>
-                        </a>
-                        <a href="{% url 'staffs:exam_schedule' %}" class="nav-item" data-tooltip="Exam Duties">
-                            <span class="nav-icon">📝</span> <span class="nav-text">Exam Duties</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Category Group: ACADEMICS -->
-                <div class="sidebar-category-header">Academics</div>
-                
-                <div class="nav-group" data-group-id="substitutions">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Alternates">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">🔄</span>
-                            <span class="nav-text">Alternates</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content">
-                        <a href="{% url 'staffs:manage_substitutions' %}" class="nav-item" data-tooltip="Request Alternate">
-                            <span class="nav-icon">➕</span> <span class="nav-text">Request Alternate</span>
-                        </a>
-                        <a href="{% url 'staffs:incoming_substitutions' %}" class="nav-item" data-tooltip="Incoming Requests">
-                            <span class="nav-icon">📥</span> <span class="nav-text">Incoming Requests</span>
-                        </a>
-                        <a href="{% url 'staffs:assigned_substitutions' %}" class="nav-item" data-tooltip="Assigned Classes">
-                            <span class="nav-icon">👩‍🏫</span> <span class="nav-text">Assigned Classes</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="nav-group" data-group-id="students">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Students">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">👨‍🎓</span>
-                            <span class="nav-text">Students</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content">
-                        <a href="{% url 'staffs:student_list' %}" class="nav-item" data-tooltip="Database Directory">
-                            <span class="nav-icon">📁</span> <span class="nav-text">Database Directory</span>
-                        </a>
-                        <a href="{% url 'staffs:risk_students' %}" class="nav-item" data-tooltip="Risk Insights">
-                            <span class="nav-icon">⚠️</span> <span class="nav-text">Risk Insights</span>
-                        </a>
-                        <a href="{% url 'staffs:view_leave_requests' %}" class="nav-item" data-tooltip="Student Leaves">
-                            <span class="nav-icon">📝</span> 
-                            <span class="nav-text">Student Leaves</span>
-                            {% if pending_leaves_count %}
-                            <span class="badge-count">{{ pending_leaves_count }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'staffs:remark_student_list' %}" class="nav-item" data-tooltip="Student Remarks">
-                            <span class="nav-icon">💬</span> <span class="nav-text">Student Remarks</span>
-                        </a>
-                        <a href="{% url 'staffs:attendance_deficit_list' %}" class="nav-item" data-tooltip="Deficit Mailer">
-                            <span class="nav-icon">📊</span> <span class="nav-text">Deficit Mailer</span>
-                        </a>
-                        <a href="{% url 'staffs:assign_lab_batches' %}" class="nav-item" data-tooltip="Assign Lab Batches">
-                            <span class="nav-icon">👥</span> <span class="nav-text">Assign Lab Batches</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Category Group: MANAGEMENT -->
-                <div class="sidebar-category-header">Management</div>
-                
-                <div class="nav-group" data-group-id="scholars">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Research Scholars">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">🎓</span>
-                            <span class="nav-text">Research Scholars</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content">
-                        <a href="{% url 'staffs:manage_scholar_attendance' %}" class="nav-item" data-tooltip="Attendance">
-                            <span class="nav-icon">🗓️</span> 
-                            <span class="nav-text">Attendance</span>
-                            {% if rs_pending_attendance %}
-                            <span class="badge-count">{{ rs_pending_attendance }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'staffs:manage_scholar_leave' %}" class="nav-item" data-tooltip="Leave Requests">
-                            <span class="nav-icon">✈️</span> 
-                            <span class="nav-text">Leave Requests</span>
-                            {% if rs_pending_leaves %}
-                            <span class="badge-count">{{ rs_pending_leaves }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'staffs:manage_phd_stages' %}" class="nav-item" data-tooltip="PhD Stages Tracker">
-                            <span class="nav-icon">📈</span> <span class="nav-text">PhD Stages Tracker</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="nav-group" data-group-id="admin">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Administration">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">🏢</span>
-                            <span class="nav-text">Administration</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content">
-                        <a href="{% url 'staffs:staff_list' %}" class="nav-item" data-tooltip="Faculty Directory">
-                            <span class="nav-icon">👨‍🏫</span> <span class="nav-text">Faculty Directory</span>
-                        </a>
-                        <a href="{% url 'staffs:hod_leave_dashboard' %}" class="nav-item" data-tooltip="Faculty Leaves">
-                            <span class="nav-icon">👔</span> 
-                            <span class="nav-text">Faculty Leaves</span>
-                            {% if pending_staff_leaves_count %}
-                            <span class="badge-count">{{ pending_staff_leaves_count }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="nav-item" data-tooltip="Portfolio Approvals">
-                            <span class="nav-icon">✔️</span> 
-                            <span class="nav-text">Portfolio Approvals</span>
-                            {% if pending_portfolio_count %}
-                            <span class="badge-count">{{ pending_portfolio_count }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'staffs:hod_manage_labs' %}" class="nav-item" data-tooltip="Lab & Class Mapping">
-                            <span class="nav-icon">🔬</span> <span class="nav-text">Lab & Class Mapping</span>
-                        </a>
-                        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="nav-item" data-tooltip="Live Class Visualiser">
-                            <span class="nav-icon">📡</span> <span class="nav-text">Live Class Visualiser</span>
-                        </a>
-                        <a href="{% url 'staffs:send_custom_notification' %}" class="nav-item" data-tooltip="Send Notification">
-                            <span class="nav-icon">📢</span> <span class="nav-text">Send Notification</span>
-                        </a>
-                        <a href="{% url 'staffs:hod_manage_bonafide' %}" class="nav-item" data-tooltip="Bonafide Requests">
-                            <span class="nav-icon">📜</span> 
-                            <span class="nav-text">Bonafide Requests</span>
-                            {% if pending_bonafide_count %}
-                            <span class="badge-count">{{ pending_bonafide_count }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'staffs:manage_department_tasks' %}" class="nav-item" data-tooltip="Department Tasks & Roles">
-                            <span class="nav-icon">📋</span> <span class="nav-text">Department Tasks & Roles</span>
-                        </a>
-                        <a href="{% url 'staffs:manage_semesters' %}" class="nav-item" data-tooltip="Manage Semesters">
-                            <span class="nav-icon">📅</span> <span class="nav-text">Manage Semesters</span>
-                        </a>
-                        <a href="{% url 'staffs:manage_subjects' %}" class="nav-item" data-tooltip="Manage Subjects">
-                            <span class="nav-icon">📚</span> <span class="nav-text">Manage Subjects</span>
-                        </a>
-                        <a href="{% url 'staffs:timetable' %}" class="nav-item" data-tooltip="Master Timetable Hub">
-                            <span class="nav-icon">📅</span> <span class="nav-text">Master Timetable Hub</span>
-                        </a>
-                        <a href="{% url 'staffs:passed_out_batches' %}" class="nav-item" data-tooltip="Passed Out Batches">
-                            <span class="nav-icon">🗄️</span> <span class="nav-text">Passed Out Batches</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="nav-group" data-group-id="scholarships">
-                    <div class="nav-group-header" onclick="toggleNavGroup(this)" data-tooltip="Scholarships">
-                        <div class="nav-group-header-left">
-                            <span class="nav-icon">💰</span>
-                            <span class="nav-text">Scholarships</span>
-                        </div>
-                        <span class="nav-group-chevron">▶</span>
-                    </div>
-                    <div class="nav-group-content">
-                        <a href="{% url 'staffs:scholarship_manager' %}" class="nav-item" data-tooltip="Scholarship Manager">
-                            <span class="nav-icon">🎓</span> <span class="nav-text">Scholarship Manager</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Category Group: SYSTEM -->
-                <div class="sidebar-category-header">System</div>
-                <a href="{% url 'staffs:admin_portal_login' %}" class="nav-item" target="_blank" rel="noopener noreferrer" data-tooltip="Admin Portal">
-                    <span class="nav-icon">⚙️</span> <span class="nav-text">Admin Portal</span>
-                </a>
-                <a href="{% url 'staffs:staff_logout' %}" class="nav-item" data-tooltip="Logout" style="color: #ef4444;">
-                    <span class="nav-icon">🚪</span> <span class="nav-text">Logout</span>
-                </a>
-                {% endif %}
-
-            </div>
-
-            <!-- Profile miniature widget at sidebar bottom -->
-            <div class="profile-mini">
-                {% if staff.photo %}
-                <img src="{{ staff.photo.url }}" alt="Profile Photo">
-                {% else %}
-                <div class="avatar-placeholder">{{ staff.name|slice:":1"|upper }}</div>
-                {% endif %}
-                <div style="flex: 1; min-width: 0;" class="profile-mini-details">
-                    <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
-                        {{ staff.name }} <span style="font-size:0.78rem; opacity:0.65; font-weight:500;">({% for word in staff.name.split %}{{ word|slice:":1"|upper }}{% endfor %})</span>
-                    </div>
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">
-                        {{ staff.role }}
-                    </div>
-                </div>
-                <a href="{% url 'staffs:staff_logout' %}" class="profile-mini-logout" title="Logout" style="color: #ef4444; font-size: 0.9rem; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-left: auto;">
-                    🚪
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Dynamic Top Header Bar -->
-            <div class="top-bar">
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;">
-                    <!-- Menu Toggle Hamburger Button (visible on mobile, and on dashboard portal on desktop) -->
-                    <button class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle Menu">☰</button>
-                    
-                    <!-- Unified top navbar brand logo & name -->
-                    <div class="top-bar-brand">
-                        <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo" class="top-bar-logo">
-                        <span class="top-bar-title">AU IT</span>
-                    </div>
-
-                    <!-- Dynamic Breadcrumbs -->
-                    <div class="breadcrumbs-container">
-                        {% block breadcrumbs %}
-                        <a href="{% url 'staffs:staff_dashboard' %}" class="breadcrumb-item">Dashboard</a>
-                        {% endblock %}
-                    </div>
-                </div>
-
-                <!-- Floating Search bar in top navigation -->
-                <div class="top-bar-search">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" placeholder="Search students, staff or resources..." id="portalSearch" aria-label="Search students, staff or resources">
-                </div>
-
-                <!-- Action controls on the right side of header -->
-                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <!-- Theme Mode Toggle -->
-                    <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Dark/Light Mode">
-                        <span class="theme-icon">🌙</span>
-                        <span class="theme-text">Dark Mode</span>
+                <!-- Profile Trigger -->
+                <div style="position: relative;">
+                    <button onclick="toggleProfileMenu()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 4px;">
+                        {% if staff.photo %}
+                        <img src="{{ staff.photo.url }}" alt="Profile" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light);">
+                        {% else %}
+                        <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem;">{{ staff.name|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <span style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ staff.name }} ▾</span>
                     </button>
 
-                    <!-- Clock Badge -->
-                    <div class="clock-badge">
-                        🕒 <span id="portalClock">12:00:00 PM</span>
+                    <!-- Profile Dropdown -->
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div style="text-align: center; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary-dark);">{{ staff.name }}</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ staff.role }}</div>
+                        </div>
+                        <div style="padding-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <a href="{% url 'staffs:staff_profile' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">👤 My Profile</a>
+                            <a href="{% url 'staffs:staff_portfolio' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">📄 My Portfolio</a>
+                            <a href="{% url 'staffs:staff_apply_leave' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">✈️ Apply for Leave</a>
+                            <a href="{% url 'staffs:staff_logout' %}" style="padding: 8px 12px; border-radius: 8px; color: #ef4444; text-decoration: none; font-size: 0.88rem; font-weight: 600; margin-top: 6px; border-top: 1px solid var(--border);">🚪 Logout</a>
+                        </div>
                     </div>
-
-                    <!-- User Profile Quick Badge -->
-                    <a href="{% url 'staffs:staff_profile' %}" class="user-profile-badge" title="Go to Profile Overview">
-                        {% if staff.photo %}
-                        <img src="{{ staff.photo.url }}" alt="Avatar" class="avatar-img">
-                        {% else %}
-                        <div class="avatar-placeholder small-avatar">{{ staff.name|slice:":1"|upper }}</div>
-                        {% endif %}
-                        <span class="user-profile-name">{{ staff.name }} <span class="user-profile-initials">({% for word in staff.name.split %}{{ word|slice:":1"|upper }}{% endfor %})</span></span>
-                    </a>
                 </div>
             </div>
+        </div>
 
-            <!-- Content Area Block -->
-            {% block content %}{% endblock %}
-        </main>
+        <!-- Horizontal Tab Category Navigation Bar -->
+        <nav class="nav-tabs-bar" id="navTabsBar">
+            <button class="nav-tab-btn" data-tab="tab-workspace" onclick="switchTab('tab-workspace', this)">
+                <span>📊</span> <span>My Desk</span>
+            </button>
+            <button class="nav-tab-btn" data-tab="tab-academics" onclick="switchTab('tab-academics', this)">
+                <span>📚</span> <span>Teaching & Students</span>
+            </button>
+            <button class="nav-tab-btn" data-tab="tab-research" onclick="switchTab('tab-research', this)">
+                <span>🎓</span> <span>Research & PhD</span>
+            </button>
+            {% if staff.is_staff_admin or staff.is_timetable_incharge or staff.is_office_staff %}
+            <button class="nav-tab-btn" data-tab="tab-admin" onclick="switchTab('tab-admin', this)">
+                <span>🏢</span> <span>Department Admin</span>
+            </button>
+            {% endif %}
+            <button class="nav-tab-btn" data-tab="tab-all" onclick="switchTab('tab-all', this)" style="margin-left: auto; background: var(--primary-light); color: var(--primary-dark); border-radius: 8px;">
+                <span>🚀</span> <span>All Services Directory</span>
+            </button>
+        </nav>
+
+        <!-- MEGA DROPDOWNS (Outside .nav-tabs-bar to avoid overflow clipping) -->
+        <!-- Mega Menu Dropdown 1: My Desk -->
+        <div class="mega-dropdown" id="tab-workspace">
+            <div class="mega-grid">
+                <a href="{% url 'staffs:staff_dashboard' %}" class="mega-item">
+                    <span class="icon">📊</span> <span class="title">Dashboard Overview</span>
+                </a>
+                <a href="{% url 'staffs:staff_profile' %}" class="mega-item">
+                    <span class="icon">👤</span> <span class="title">My Profile</span>
+                </a>
+                <a href="{% url 'staffs:staff_portfolio' %}" class="mega-item">
+                    <span class="icon">📄</span> <span class="title">My Portfolio</span>
+                </a>
+                <a href="{% url 'staffs:my_timetable' %}" class="mega-item">
+                    <span class="icon">🗓️</span> <span class="title">My Timetable</span>
+                </a>
+                <a href="{% url 'staffs:overall_attendance_calendar' %}" class="mega-item">
+                    <span class="icon">📅</span> <span class="title">Attendance Calendar</span>
+                </a>
+                <a href="{% url 'staffs:staff_apply_leave' %}" class="mega-item">
+                    <span class="icon">✈️</span> <span class="title">Apply for Leave</span>
+                </a>
+                <a href="{% url 'staffs:staff_leave_history' %}" class="mega-item">
+                    <span class="icon">📜</span> <span class="title">Leave History</span>
+                </a>
+                <a href="{% url 'staffs:exam_schedule' %}" class="mega-item">
+                    <span class="icon">📝</span> <span class="title">Exam Duties</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mega Menu Dropdown 2: Teaching & Students -->
+        <div class="mega-dropdown" id="tab-academics">
+            <div class="mega-grid">
+                <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item">
+                    <span class="icon">🔄</span> <span class="title">Request Alternate</span>
+                </a>
+                <a href="{% url 'staffs:incoming_substitutions' %}" class="mega-item">
+                    <span class="icon">📥</span> <span class="title">Incoming Requests</span>
+                </a>
+                <a href="{% url 'staffs:assigned_substitutions' %}" class="mega-item">
+                    <span class="icon">👩‍🏫</span> <span class="title">Assigned Classes</span>
+                </a>
+                <a href="{% url 'staffs:student_list' %}" class="mega-item">
+                    <span class="icon">👨‍🎓</span> <span class="title">Student Directory</span>
+                </a>
+                <a href="{% url 'staffs:risk_students' %}" class="mega-item">
+                    <span class="icon">⚠️</span> <span class="title">Risk Insights</span>
+                </a>
+                <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item">
+                    <span class="icon">📝</span> <span class="title">Student Leaves</span>
+                    {% if pending_leaves_count %}
+                    <span class="badge">{{ pending_leaves_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'staffs:remark_student_list' %}" class="mega-item">
+                    <span class="icon">💬</span> <span class="title">Student Remarks</span>
+                </a>
+                <a href="{% url 'staffs:attendance_deficit_list' %}" class="mega-item">
+                    <span class="icon">📊</span> <span class="title">Deficit Mailer</span>
+                </a>
+                <a href="{% url 'staffs:assign_lab_batches' %}" class="mega-item">
+                    <span class="icon">👥</span> <span class="title">Assign Lab Batches</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mega Menu Dropdown 3: Research Scholars -->
+        <div class="mega-dropdown" id="tab-research">
+            <div class="mega-grid">
+                <a href="{% url 'staffs:manage_scholar_attendance' %}" class="mega-item">
+                    <span class="icon">🗓️</span> <span class="title">Scholar Attendance</span>
+                    {% if rs_pending_attendance %}
+                    <span class="badge">{{ rs_pending_attendance }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'staffs:manage_scholar_leave' %}" class="mega-item">
+                    <span class="icon">✈️</span> <span class="title">Scholar Leaves</span>
+                    {% if rs_pending_leaves %}
+                    <span class="badge">{{ rs_pending_leaves }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item">
+                    <span class="icon">📈</span> <span class="title">PhD Stages Tracker</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mega Menu Dropdown 4: Department Admin -->
+        {% if staff.is_staff_admin or staff.is_timetable_incharge or staff.is_office_staff %}
+        <div class="mega-dropdown" id="tab-admin">
+            <div class="mega-grid">
+                <a href="{% url 'staffs:staff_list' %}" class="mega-item">
+                    <span class="icon">👨‍🏫</span> <span class="title">Faculty Directory</span>
+                </a>
+                <a href="{% url 'staffs:hod_leave_dashboard' %}" class="mega-item">
+                    <span class="icon">👔</span> <span class="title">Faculty Leaves</span>
+                    {% if pending_staff_leaves_count %}
+                    <span class="badge">{{ pending_staff_leaves_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="mega-item">
+                    <span class="icon">✔️</span> <span class="title">Portfolio Approvals</span>
+                    {% if pending_portfolio_count %}
+                    <span class="badge">{{ pending_portfolio_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item">
+                    <span class="icon">🔬</span> <span class="title">Lab & Class Mapping</span>
+                </a>
+                <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="mega-item">
+                    <span class="icon">📡</span> <span class="title">Live Class Visualiser</span>
+                </a>
+                <a href="{% url 'staffs:send_custom_notification' %}" class="mega-item">
+                    <span class="icon">📢</span> <span class="title">Broadcast Notice</span>
+                </a>
+                <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item">
+                    <span class="icon">📜</span> <span class="title">Bonafide Requests</span>
+                    {% if pending_bonafide_count %}
+                    <span class="badge">{{ pending_bonafide_count }}</span>
+                    {% endif %}
+                </a>
+                {% if staff.is_office_staff or staff.is_staff_admin %}
+                <a href="{% url 'staffs:office_manage_document_requests' %}" class="mega-item">
+                    <span class="icon">📁</span> <span class="title">Original Document Requests</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item">
+                    <span class="icon">📋</span> <span class="title">Department Tasks & Roles</span>
+                </a>
+                <a href="{% url 'staffs:manage_semesters' %}" class="mega-item">
+                    <span class="icon">📅</span> <span class="title">Manage Semesters</span>
+                </a>
+                <a href="{% url 'staffs:manage_subjects' %}" class="mega-item">
+                    <span class="icon">📚</span> <span class="title">Manage Subjects</span>
+                </a>
+                <a href="{% url 'staffs:timetable' %}" class="mega-item">
+                    <span class="icon">📅</span> <span class="title">Master Timetable Hub</span>
+                </a>
+                <a href="{% url 'staffs:passed_out_batches' %}" class="mega-item">
+                    <span class="icon">🗄️</span> <span class="title">Passed Out Archives</span>
+                </a>
+                <a href="{% url 'staffs:scholarship_manager' %}" class="mega-item">
+                    <span class="icon">💰</span> <span class="title">Scholarship Manager</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Mega Menu Dropdown 5: All Services Directory -->
+        <div class="mega-dropdown" id="tab-all">
+            <div class="mega-grid">
+                <a href="{% url 'staffs:staff_dashboard' %}" class="mega-item"><span class="icon">📊</span> <span class="title">Dashboard</span></a>
+                <a href="{% url 'staffs:staff_profile' %}" class="mega-item"><span class="icon">👤</span> <span class="title">My Profile</span></a>
+                <a href="{% url 'staffs:my_timetable' %}" class="mega-item"><span class="icon">🗓️</span> <span class="title">My Timetable</span></a>
+                <a href="{% url 'staffs:student_list' %}" class="mega-item"><span class="icon">👨‍🎓</span> <span class="title">Student Directory</span></a>
+                <a href="{% url 'staffs:staff_apply_leave' %}" class="mega-item"><span class="icon">✈️</span> <span class="title">Apply for Leave</span></a>
+                <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item"><span class="icon">🔄</span> <span class="title">Request Alternate</span></a>
+                <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item"><span class="icon">📝</span> <span class="title">Student Leaves</span></a>
+                <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item"><span class="icon">📈</span> <span class="title">PhD Tracker</span></a>
+                {% if staff.is_staff_admin or staff.is_office_staff %}
+                <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item"><span class="icon">🔬</span> <span class="title">Lab Mapping</span></a>
+                <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item"><span class="icon">📋</span> <span class="title">Department Tasks</span></a>
+                <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item"><span class="icon">📜</span> <span class="title">Bonafide Requests</span></a>
+                {% endif %}
+                <a href="{% url 'staffs:timetable' %}" class="mega-item"><span class="icon">📅</span> <span class="title">Master Timetable</span></a>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- Main Page Content -->
+    <div class="portal-main-body">
+        {% block content %}{% endblock %}
     </div>
 
-    <!-- Portal Base Layout Scripts -->
+    <!-- Native Mobile Bottom Bar -->
+    <nav class="mobile-bottom-bar">
+        <a href="{% url 'staffs:staff_dashboard' %}" class="mobile-btn {% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
+            <span class="icon">📊</span>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'staffs:my_timetable' %}" class="mobile-btn {% if request.resolver_match.url_name == 'my_timetable' %}active{% endif %}">
+            <span class="icon">🗓️</span>
+            <span>Timetable</span>
+        </a>
+        <a href="{% url 'staffs:student_list' %}" class="mobile-btn {% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">
+            <span class="icon">👨‍🎓</span>
+            <span>Students</span>
+        </a>
+        <button onclick="switchTab('tab-all')" class="mobile-btn">
+            <span class="icon">🚀</span>
+            <span>All Apps</span>
+        </button>
+    </nav>
+
+    <!-- Rock-Solid Navigation JS -->
     <script>
-        // Single Accordion Mode: Clicking a Category Dropdown opens ONLY that group and closes all others
-        function toggleNavGroup(header) {
-            const group = header.parentElement;
-            const wasOpen = group.classList.contains('open');
+        let hoverTimer = null;
 
-            // Close all other nav-groups so only the clicked dropdown is open
-            document.querySelectorAll('.nav-group').forEach(function(g) {
-                if (g !== group) {
-                    g.classList.remove('open');
-                    const gid = g.getAttribute('data-group-id');
-                    if (gid) {
-                        localStorage.setItem(`nav_group_${gid}`, 'closed');
-                    }
-                }
+        function closeAllDropdowns() {
+            document.querySelectorAll('.mega-dropdown').forEach(el => {
+                el.classList.remove('open-dropdown');
+                el.classList.remove('active');
             });
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+        }
 
-            // Toggle the clicked group
-            if (wasOpen) {
-                group.classList.remove('open');
-            } else {
-                group.classList.add('open');
-            }
+        function switchTab(tabId, btnElement) {
+            clearTimeout(hoverTimer);
+            const target = document.getElementById(tabId);
+            if (!target) return;
 
-            const groupId = group.getAttribute('data-group-id');
-            if (groupId) {
-                localStorage.setItem(`nav_group_${groupId}`, group.classList.contains('open') ? 'open' : 'closed');
+            const isOpen = target.classList.contains('open-dropdown') || target.classList.contains('active');
+            closeAllDropdowns();
+
+            if (!isOpen) {
+                target.classList.add('open-dropdown');
+                target.classList.add('active');
+                if (btnElement) btnElement.classList.add('active');
             }
         }
 
-        // Apply saved collapse configurations on reload
+        function openTabHover(tabId, btnElement) {
+            clearTimeout(hoverTimer);
+            const target = document.getElementById(tabId);
+            if (!target) return;
+
+            closeAllDropdowns();
+            target.classList.add('open-dropdown');
+            target.classList.add('active');
+            if (btnElement) btnElement.classList.add('active');
+        }
+
+        function closeTabGraceful() {
+            clearTimeout(hoverTimer);
+            hoverTimer = setTimeout(() => {
+                closeAllDropdowns();
+            }, 180);
+        }
+
+        function keepOpen() {
+            clearTimeout(hoverTimer);
+        }
+
+        // Attach Mouseenter & Mouseleave Handlers for Smooth Hover-Out Closing (Desktop)
         document.addEventListener('DOMContentLoaded', function() {
-            // First, close all groups by default
-            document.querySelectorAll('.nav-group').forEach(function(group) {
-                group.classList.remove('open');
-            });
-
-            // Highlight Active Link based on exact window path and open ONLY its parent category
-            const currentUrl = window.location.pathname;
-            let activeFound = false;
-
-            document.querySelectorAll('.nav-item').forEach(function(link) {
-                const href = link.getAttribute('href');
-                if (href && !activeFound) {
-                    const isExactMatch = (currentUrl === href);
-                    const isSubPathMatch = (href !== '/staffs/' && href !== '/staffs' && currentUrl.startsWith(href));
-                    
-                    if (isExactMatch || isSubPathMatch) {
-                        link.classList.add('active');
-                        activeFound = true;
-                        // Open ONLY the parent category group of the active link
-                        const parentGroup = link.closest('.nav-group');
-                        if (parentGroup) {
-                            parentGroup.classList.add('open');
-                        }
-                    }
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                const tabId = btn.getAttribute('data-tab');
+                if (tabId) {
+                    btn.addEventListener('mouseenter', () => {
+                        if (window.innerWidth > 992) openTabHover(tabId, btn);
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        if (window.innerWidth > 992) closeTabGraceful();
+                    });
                 }
             });
 
-            // If no active sub-link matches, check localStorage for last opened group
-            if (!activeFound) {
-                document.querySelectorAll('.nav-group').forEach(function(group) {
-                    const groupId = group.getAttribute('data-group-id');
-                    if (groupId && localStorage.getItem(`nav_group_${groupId}`) === 'open') {
-                        group.classList.add('open');
-                    }
+            document.querySelectorAll('.mega-dropdown').forEach(dropdown => {
+                dropdown.addEventListener('mouseenter', () => {
+                    if (window.innerWidth > 992) keepOpen();
                 });
-            }
+                dropdown.addEventListener('mouseleave', () => {
+                    if (window.innerWidth > 992) closeTabGraceful();
+                });
+            });
+        });
 
-            // Auto-close open dropdowns when mouse leaves collapsed sidebar on desktop
-            const sidebar = document.getElementById('appSidebar');
-            if (sidebar) {
-                sidebar.addEventListener('mouseleave', function() {
-                    if (!sidebar.classList.contains('expanded') && window.innerWidth > 992) {
-                        document.querySelectorAll('.nav-group').forEach(function(group) {
-                            group.classList.remove('open');
-                        });
-                    }
-                });
+        // Close Dropdown when clicking outside header
+        document.addEventListener('click', function(e) {
+            const header = document.getElementById('portalHeader');
+            if (header && !header.contains(e.target)) {
+                closeAllDropdowns();
+                const profileDropdown = document.getElementById('profileDropdown');
+                if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
             }
         });
 
-        // Toggle Sidebar Drawer (Desktop Overlay toggle / Mobile Offcanvas overlay)
-        function toggleSidebar(forceState) {
-            const sidebar = document.getElementById('appSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const container = document.querySelector('.app-container');
-            
-            const isMobile = window.innerWidth <= 992;
-            const isDashboardPortal = document.body.classList.contains('dashboard-portal');
-            
-            if (isMobile || isDashboardPortal) {
-                const willOpen = (typeof forceState === 'boolean') ? forceState : !sidebar.classList.contains('mobile-open');
-                if (willOpen) {
-                    sidebar.classList.add('mobile-open');
-                    overlay.classList.add('active');
-                    document.body.style.overflow = 'hidden'; // Prevent scrolling background
-                    
-                    // A11y Focus trap inside mobile drawer
-                    trapFocus(sidebar);
-                } else {
-                    sidebar.classList.remove('mobile-open');
-                    overlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            } else {
-                const willExpand = (typeof forceState === 'boolean') ? forceState : !sidebar.classList.contains('expanded');
-                if (willExpand) {
-                    sidebar.classList.add('expanded');
-                    container.classList.add('sidebar-expanded');
-                    localStorage.setItem('sidebar_state', 'expanded');
-                } else {
-                    sidebar.classList.remove('expanded');
-                    container.classList.remove('sidebar-expanded');
-                    localStorage.setItem('sidebar_state', 'collapsed');
-                }
+        // Toggle User Profile Dropdown
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileDropdown');
+            if (menu) {
+                menu.classList.toggle('open-dropdown');
             }
         }
 
-        // Focus Trap Logic for Mobile Offcanvas Accessibility
-        let focusTrapListener = null;
-        function trapFocus(element) {
-            const focusableElements = element.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
-            if (focusableElements.length === 0) return;
-            const firstFocusable = focusableElements[0];
-            const lastFocusable = focusableElements[focusableElements.length - 1];
+        // Search Portal Tools
+        function searchPortalTools() {
+            const query = document.getElementById('globalToolSearch').value.toLowerCase().trim();
+            const allDropdown = document.getElementById('tab-all');
+            const allBtn = document.querySelector('[data-tab="tab-all"]');
             
-            if (focusTrapListener) {
-                element.removeEventListener('keydown', focusTrapListener);
+            if (!query) {
+                closeAllDropdowns();
+                return;
             }
-            
-            focusTrapListener = function(e) {
-                if (e.key === 'Tab') {
-                    if (e.shiftKey) {
-                        if (document.activeElement === firstFocusable) {
-                            lastFocusable.focus();
-                            e.preventDefault();
-                        }
-                    } else {
-                        if (document.activeElement === lastFocusable) {
-                            firstFocusable.focus();
-                            e.preventDefault();
-                        }
-                    }
-                }
-            };
-            element.addEventListener('keydown', focusTrapListener);
-            firstFocusable.focus();
+
+            if (allDropdown) {
+                openTabHover('tab-all', allBtn);
+                const items = allDropdown.querySelectorAll('.mega-item');
+                items.forEach(item => {
+                    const text = item.innerText.toLowerCase();
+                    item.style.display = text.includes(query) ? 'flex' : 'none';
+                });
+            }
         }
-
-        // Initialize state on DOM load (sidebar starts collapsed by default for clean UX)
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('appSidebar');
-            const container = document.querySelector('.app-container');
-            const isMobile = window.innerWidth <= 992;
-            
-            if (!isMobile) {
-                sidebar.classList.remove('expanded');
-                container.classList.remove('sidebar-expanded');
-            }
-
-            // Global ESC key event listener
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    const sidebar = document.getElementById('appSidebar');
-                    if (sidebar.classList.contains('mobile-open')) {
-                        toggleSidebar(false);
-                    } else if (sidebar.classList.contains('expanded')) {
-                        toggleSidebar(false);
-                    }
-                }
-            });
-
-            // Global Click event listener to collapse sidebar when clicking outside
-            document.addEventListener('click', function(e) {
-                const sidebar = document.getElementById('appSidebar');
-                if (!sidebar) return;
-                
-                const isExpanded = sidebar.classList.contains('expanded');
-                const isMobileOpen = sidebar.classList.contains('mobile-open');
-                
-                if (isExpanded || isMobileOpen) {
-                    const clickedInsideSidebar = sidebar.contains(e.target);
-                    const clickedToggleButton = e.target.closest('.sidebar-toggle-btn') || e.target.closest('.menu-toggle-btn');
-                    
-                    if (!clickedInsideSidebar && !clickedToggleButton) {
-                        toggleSidebar(false);
-                    }
-                }
-            });
-        });
 
         // Theme Toggle Dark/Light Logic
         function toggleTheme() {
@@ -871,86 +734,21 @@
             }
         }
 
-        // Initialize theme button icon & text
         document.addEventListener('DOMContentLoaded', function() {
             const isDark = document.body.classList.contains('dark-theme');
             updateThemeButton(isDark);
         });
 
-        // Dynamic Top Header Real-time Clock
+        // Dynamic Clock
         function runLiveClock() {
             const clockEl = document.getElementById('portalClock');
             if (clockEl) {
                 const now = new Date();
-                clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
         }
         setInterval(runLiveClock, 1000);
         runLiveClock();
-
-        // switchDashboardTab logic
-        function switchDashboardTab(tabId) {
-            document.querySelectorAll('.dash-tab-content').forEach(function(content) {
-                content.classList.remove('active');
-            });
-            document.querySelectorAll('.dash-tab-btn').forEach(function(btn) {
-                btn.classList.remove('active');
-            });
-            
-            const activeContent = document.getElementById(tabId);
-            if (activeContent) activeContent.classList.add('active');
-            
-            const activeBtn = document.querySelector(`[onclick="switchDashboardTab('${tabId}')"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-
-            // Save active tab to localStorage & URL hash so refresh or returning stays on the same tab
-            const pathKey = 'active_dashboard_tab_' + window.location.pathname;
-            localStorage.setItem(pathKey, tabId);
-            if (history.replaceState) {
-                const cleanHash = tabId.startsWith('tab-') ? tabId.replace('tab-', '') : tabId;
-                history.replaceState(null, '', '#' + cleanHash);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const pathKey = 'active_dashboard_tab_' + window.location.pathname;
-            const savedTab = localStorage.getItem(pathKey);
-
-            // Check if tab is explicitly specified via URL parameter (?tab=...) or hash (#...)
-            const urlParams = new URLSearchParams(window.location.search);
-            const tabParam = urlParams.get('tab');
-            const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
-
-            let targetTab = null;
-            if (tabParam && document.getElementById(tabParam)) {
-                targetTab = tabParam;
-            } else if (tabParam && document.getElementById('tab-' + tabParam)) {
-                targetTab = 'tab-' + tabParam;
-            } else if (hash && document.getElementById(hash)) {
-                targetTab = hash;
-            } else if (hash && document.getElementById('tab-' + hash)) {
-                targetTab = 'tab-' + hash;
-            } else if (savedTab && document.getElementById(savedTab)) {
-                targetTab = savedTab;
-            } else if (savedTab && document.getElementById('tab-' + savedTab)) {
-                targetTab = 'tab-' + savedTab;
-            } else if (document.getElementById('tab-overview')) {
-                targetTab = 'tab-overview';
-            }
-
-            if (targetTab) {
-                switchDashboardTab(targetTab);
-            } else {
-                const firstBtn = document.querySelector('.dash-tab-btn');
-                if (firstBtn) {
-                    const onclickVal = firstBtn.getAttribute('onclick');
-                    const match = /switchDashboardTab\('([^']+)'\)/.exec(onclickVal);
-                    if (match && match[1]) {
-                        switchDashboardTab(match[1]);
-                    }
-                }
-            }
-        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
