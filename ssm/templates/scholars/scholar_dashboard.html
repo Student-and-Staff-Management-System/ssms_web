@@ -374,6 +374,9 @@
         <div class="user-role">{{ profile.scholar_type }}</div>
       </div>
       <div class="avatar">{{ student.student_name|make_list|first }}</div>
+      {% if request.user.is_superuser or request.user.is_staff %}
+      <a href="/admin/" target="_blank" class="logout-btn" title="Admin Page" style="background: var(--primary, #5a7d7c); color: white; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="ri-shield-keyhole-line"></i> Admin Page</a>
+      {% endif %}
       <a href="{% url 'student_logout' %}" class="logout-btn" title="Logout"><i class='bx bx-log-out-circle'></i></a>
     </div>
   </nav>

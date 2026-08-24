@@ -1539,8 +1539,9 @@ def manage_attendance(request, subject_id):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     
-    from .models import Subject, Timetable
-    from students.models import StudentAttendance
+    from .models import Subject, Timetable, ClassSubstitutionRequest
+    from students.models import Student, StudentAttendance
+    from django.db.models import Q
     import datetime
     import calendar
     from django.urls import reverse
@@ -1559,7 +1560,6 @@ def manage_attendance(request, subject_id):
         date_obj = datetime.date.today()
 
     # Check for Substitution
-    from .models import ClassSubstitutionRequest
     is_substitute = ClassSubstitutionRequest.objects.filter(
         substitute=current_staff,
         subject=subject,
@@ -1568,16 +1568,68 @@ def manage_attendance(request, subject_id):
     ).exists()
 
     # Access Control
-    if not current_staff.is_staff_admin and subject.staff != current_staff and not is_substitute:
+    if not current_staff.is_staff_admin and subject.staff != current_staff and subject.staff_batch_b != current_staff and not is_substitute:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
     formatted_date = date_obj.strftime('%Y-%m-%d')
-    students = Student.objects.filter(current_semester=subject.semester).order_by('roll_number')
+    day_name = date_obj.strftime('%A')
+
+    prefill_time = request.GET.get('time', '')
+    prefill_end_time = request.GET.get('end_time', '')
+
+    PERIOD_TIMES = {
+        1: ('08:30', '09:30'),
+        2: ('09:30', '10:30'),
+        3: ('10:40', '11:40'),
+        4: ('11:40', '12:40'),
+        5: ('13:30', '14:30'),
+        6: ('14:30', '15:30'),
+        7: ('15:30', '16:30'),
+    }
+
+    tt_entries = Timetable.objects.filter(subject=subject, day=day_name).order_by('period')
+
+    # Determine batch selection
+    selected_batch = request.GET.get('batch') or request.POST.get('batch') or ''
+    selected_batch = selected_batch.strip()
+
+    if not selected_batch:
+        matched_entry = None
+        if prefill_time:
+            for entry in tt_entries:
+                times = PERIOD_TIMES.get(entry.period, ('--', '--'))
+                if times[0] == prefill_time:
+                    matched_entry = entry
+                    break
+        if not matched_entry and tt_entries.exists():
+            matched_entry = tt_entries.first()
+
+        if matched_entry and matched_entry.batch in ['A', 'B']:
+            selected_batch = matched_entry.batch
+        elif subject.staff_batch_b == current_staff and subject.staff != current_staff:
+            selected_batch = 'B'
+        elif subject.assigned_batch in ['A', 'B']:
+            selected_batch = subject.assigned_batch
+        else:
+            selected_batch = 'All'
+
+    # Student querying & batch filtering
+    all_sem_students = Student.objects.filter(current_semester=subject.semester).order_by('roll_number')
+    count_all = all_sem_students.count()
+    count_batch_a = all_sem_students.filter(lab_batch='A').count()
+    count_batch_b = all_sem_students.filter(lab_batch='B').count()
+
+    if selected_batch == 'A':
+        students = all_sem_students.filter(lab_batch='A')
+    elif selected_batch == 'B':
+        students = all_sem_students.filter(lab_batch='B')
+    else:
+        students = all_sem_students
 
     # Determine if read-only
     is_readonly = False
-    if current_staff.is_staff_admin and subject.staff != current_staff and not is_substitute:
+    if current_staff.is_staff_admin and subject.staff != current_staff and subject.staff_batch_b != current_staff and not is_substitute:
         is_readonly = True
 
     # --- POST Handler (Saving Attendance) ---
@@ -1670,34 +1722,22 @@ def manage_attendance(request, subject_id):
             if end_time:
                 time_msg += f" - {end_time.strftime('%I:%M %p')}"
 
+        batch_msg = f" (Batch {selected_batch})" if selected_batch in ['A', 'B'] else ""
         if count_present == 0 and count_absent == 0:
-            messages.success(request, f"Attendance cleared for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}.")
+            messages.success(request, f"Attendance cleared for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}{batch_msg}.")
         else:
-            messages.success(request, f"Attendance saved for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}. {count_present} Present, {count_absent} Absent.")
+            messages.success(request, f"Attendance saved for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}{batch_msg}. {count_present} Present, {count_absent} Absent.")
         
         redirect_url = reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={save_date.strftime('%Y-%m-%d')}"
         if class_time_str:
             redirect_url += f"&time={class_time_str}"
         if end_time_str:
             redirect_url += f"&end_time={end_time_str}"
+        if selected_batch:
+            redirect_url += f"&batch={selected_batch}"
         return redirect(redirect_url)
 
     # --- Fetch Data for List View (Selected Date) ---
-    prefill_time = request.GET.get('time', '')
-    prefill_end_time = request.GET.get('end_time', '')
-
-    # Determine Timetable period for this subject on date_obj's weekday
-    day_name = date_obj.strftime('%A')
-    PERIOD_TIMES = {
-        1: ('08:30', '09:30'),
-        2: ('09:30', '10:30'),
-        3: ('10:40', '11:40'),
-        4: ('11:40', '12:40'),
-        5: ('13:30', '14:30'),
-        6: ('14:30', '15:30'),
-        7: ('15:30', '16:30'),
-    }
-    tt_entries = Timetable.objects.filter(subject=subject, day=day_name).order_by('period')
     today_periods = []
     current_period = None
 
@@ -1730,16 +1770,23 @@ def manage_attendance(request, subject_id):
             p_class = "unmarked"
 
         is_sel = (prefill_time == start_str)
+        p_url = f"?date={formatted_date}&time={start_str}&end_time={end_str}"
+        if entry.batch in ['A', 'B']:
+            p_url += f"&batch={entry.batch}"
+        elif selected_batch in ['A', 'B']:
+            p_url += f"&batch={selected_batch}"
+
         p_info = {
             'period': entry.period,
             'badge': f"P{entry.period}",
             'label': f"P{entry.period} ({start_str}–{end_str})",
             'start': start_str,
             'end': end_str,
+            'batch': entry.batch,
             'is_selected': is_sel,
             'status_badge': p_badge,
             'status_class': p_class,
-            'url': f"?date={formatted_date}&time={start_str}&end_time={end_str}"
+            'url': p_url
         }
         today_periods.append(p_info)
         if is_sel:
@@ -1772,7 +1819,6 @@ def manage_attendance(request, subject_id):
         is_readonly = True
 
     # Fetch Attendance Records
-    attendance_map = {}
     class_time_obj = None
     if prefill_time:
         try:
@@ -1806,6 +1852,10 @@ def manage_attendance(request, subject_id):
         'prev_day': prev_day,
         'next_day': next_day,
         'today_date': today_date_str,
+        'selected_batch': selected_batch,
+        'count_all': count_all,
+        'count_batch_a': count_batch_a,
+        'count_batch_b': count_batch_b,
     })
 
 
@@ -2795,7 +2845,10 @@ def edit_timetable(request, semester):
                             subj_id_to_use = None if virt_lbl else sub_val
                             
                             b_subject = Subject.objects.filter(id=subj_id_to_use).first() if subj_id_to_use else None
-                            b_staff = b_subject.staff if b_subject else None
+                            if current_batch == 'B':
+                                b_staff = (b_subject.staff_batch_b or b_subject.staff) if b_subject else None
+                            else:
+                                b_staff = b_subject.staff if b_subject else None
                             
                             all_entry = next((e for e in entries if e.batch == 'All'), None)
                             if all_entry:
@@ -3356,11 +3409,32 @@ def hod_published_timetables(request):
         }
 
     edit_timetable_data = {day: [None]*7 for day in days}
-    for entry in entries:
-        if 1 <= entry.period <= 7:
-            curr = edit_timetable_data[entry.day][entry.period-1]
-            if curr is None or entry.batch == 'All':
-                edit_timetable_data[entry.day][entry.period-1] = entry
+    if selected_batch == 'All':
+        for entry in entries:
+            if 1 <= entry.period <= 7:
+                curr = edit_timetable_data[entry.day][entry.period-1]
+                if curr is None:
+                    edit_timetable_data[entry.day][entry.period-1] = entry
+                elif getattr(curr, 'is_batch', False):
+                    continue
+                elif curr.batch in ['A', 'B'] and entry.batch in ['A', 'B'] and curr.batch != entry.batch:
+                    edit_timetable_data[entry.day][entry.period-1] = BatchBlock(curr, entry)
+                elif curr.batch == 'All' and entry.batch in ['A', 'B']:
+                    edit_timetable_data[entry.day][entry.period-1] = entry
+                elif curr.batch in ['A', 'B'] and entry.batch == 'All':
+                    continue
+                else:
+                    edit_timetable_data[entry.day][entry.period-1] = entry
+    else:
+        for entry in entries:
+            if 1 <= entry.period <= 7:
+                curr = edit_timetable_data[entry.day][entry.period-1]
+                if entry.batch == selected_batch:
+                    edit_timetable_data[entry.day][entry.period-1] = entry
+                elif entry.batch == 'All':
+                    if curr is None or curr.batch != selected_batch:
+                        edit_timetable_data[entry.day][entry.period-1] = entry
+
     edit_timetable_rows = [(day, edit_timetable_data[day]) for day in days]
 
     # Build context for Tab 3: Lab Batch Assignments
@@ -3437,16 +3511,20 @@ def my_timetable(request):
     """
     Displays only the timetable periods assigned to the currently logged-in staff.
     Each entry is annotated with is_mine=True so the template can highlight them.
+    Includes explicit Batch information (e.g. Batch A, Batch B).
     """
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
 
     import datetime
+    from django.db.models import Q
 
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
 
-    # Only fetch entries assigned to this staff member
-    entries = Timetable.objects.filter(staff=staff).select_related('subject')
+    # Fetch entries assigned to this staff member directly or via subject assignment
+    entries = Timetable.objects.filter(
+        Q(staff=staff) | Q(subject__staff=staff) | Q(subject__staff_batch_b=staff)
+    ).select_related('subject', 'subject__staff', 'subject__staff_batch_b').distinct()
 
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
@@ -3457,6 +3535,19 @@ def my_timetable(request):
         if 1 <= entry.period <= 7:
             # Annotate entry so template can colour it
             entry.is_mine = True
+            
+            # Determine batch display label
+            if entry.batch and entry.batch != 'All':
+                entry.batch_display = f"{entry.batch} Batch"
+            elif entry.subject and entry.subject.staff_batch_b == staff and entry.subject.staff != staff:
+                entry.batch_display = "B Batch"
+            elif entry.subject and entry.subject.staff == staff and entry.subject.staff_batch_b and entry.subject.staff_batch_b != staff:
+                entry.batch_display = "A Batch"
+            elif entry.subject and entry.subject.assigned_batch in ['A', 'B']:
+                entry.batch_display = f"{entry.subject.assigned_batch} Batch"
+            else:
+                entry.batch_display = ""
+                
             timetable_data[entry.day][entry.period - 1] = entry
 
     timetable_rows = [(day, timetable_data[day]) for day in days]

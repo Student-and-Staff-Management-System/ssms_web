@@ -206,18 +206,18 @@
         <input type="hidden" name="academic_year" value="{{ selected_academic_year }}">
         
         <!-- Batch selector tabs -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; background: #f1f5f9; padding: 10px; border-radius: 8px; align-items: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); flex-wrap: wrap;">
-            <span style="font-weight: 600; color: #475569; font-size: 0.9rem; margin-right: 10px; display: flex; align-items: center; gap: 5px;">
-                ⚙️ Mode (Academic Year {{ selected_academic_year }}):
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; background: #f1f5f9; padding: 10px 16px; border-radius: 12px; align-items: center; border: 1px solid #cbd5e1; flex-wrap: wrap;">
+            <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                <i class="ri-settings-4-line" style="color: var(--primary);"></i> Mode (Academic Year {{ selected_academic_year }}):
             </span>
-            <a href="?academic_year={{ selected_academic_year }}&batch=All" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; {% if current_batch == 'All' %}background: #5a7d7c; color: white; box-shadow: 0 2px 6px rgba(90,125,124,0.3);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
-                👥 Combined (All Students)
+            <a href="?academic_year={{ selected_academic_year }}&batch=All" style="text-decoration: none; padding: 7px 16px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; {% if current_batch == 'All' %}background: #0f172a; color: white; border: 1px solid #0f172a; box-shadow: 0 4px 12px rgba(15,23,42,0.35);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                <i class="ri-group-line"></i> Whole Class (Combined) {% if current_batch == 'All' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
             </a>
-            <a href="?academic_year={{ selected_academic_year }}&batch=A" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; {% if current_batch == 'A' %}background: #5a7d7c; color: white; box-shadow: 0 2px 6px rgba(90,125,124,0.3);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
-                🅰️ Batch A Only
+            <a href="?academic_year={{ selected_academic_year }}&batch=A" style="text-decoration: none; padding: 7px 16px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; {% if current_batch == 'A' %}background: #0f172a; color: white; border: 1px solid #0f172a; box-shadow: 0 4px 12px rgba(15,23,42,0.35);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                <i class="ri-user-line"></i> Batch A Only {% if current_batch == 'A' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
             </a>
-            <a href="?academic_year={{ selected_academic_year }}&batch=B" style="text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; {% if current_batch == 'B' %}background: #5a7d7c; color: white; box-shadow: 0 2px 6px rgba(90,125,124,0.3);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
-                🅱️ Batch B Only
+            <a href="?academic_year={{ selected_academic_year }}&batch=B" style="text-decoration: none; padding: 7px 16px; border-radius: 10px; font-weight: 700; font-size: 0.84rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; {% if current_batch == 'B' %}background: #0f172a; color: white; border: 1px solid #0f172a; box-shadow: 0 4px 12px rgba(15,23,42,0.35);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                <i class="ri-user-follow-line"></i> Batch B Only {% if current_batch == 'B' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
             </a>
         </div>
 

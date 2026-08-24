@@ -333,7 +333,7 @@
                             {% with p=periods.0 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
-                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -343,7 +343,7 @@
                             {% with p=periods.1 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
-                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -355,7 +355,7 @@
                             {% with p=periods.2 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
-                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -365,7 +365,7 @@
                             {% with p=periods.3 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
-                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -377,7 +377,7 @@
                             {% with p=periods.4 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
-                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -387,7 +387,7 @@
                             {% with p=periods.5 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
-                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -397,7 +397,7 @@
                             {% with p=periods.6 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
-                            <span class="sem-badge">Sem {{ p.subject.semester }}</span>
+                            <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
                     </tr>

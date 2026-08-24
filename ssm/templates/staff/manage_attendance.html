@@ -899,6 +899,9 @@
                     <div class="att-sub-tags">
                         <span class="tag-pill tag-code">{{ subject.name }} ({{ subject.code }})</span>
                         <span class="tag-pill tag-sem">Semester {{ subject.semester }}</span>
+                        {% if selected_batch and selected_batch != 'All' %}
+                        <span class="tag-pill" style="background: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; font-weight: 700;">Batch {{ selected_batch }} Only</span>
+                        {% endif %}
                         {% if current_period %}
                         <span class="tag-pill tag-period">Period {{ current_period.badge }} ({{ current_period.start }}–{{ current_period.end }})</span>
                         {% endif %}
@@ -947,15 +950,37 @@
             </div>
 
             <div class="date-nav-controls">
-                <a href="?date={{ prev_day }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}" class="btn-date-nav" title="Previous Day">&lt; Prev Day</a>
-                <a href="?date={{ today_date }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}" class="btn-date-nav {% if current_date == today_date %}active{% endif %}" title="Today">Today</a>
-                <a href="?date={{ next_day }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}" class="btn-date-nav" title="Next Day">Next Day &gt;</a>
+                <a href="?date={{ prev_day }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}{% if selected_batch %}&batch={{ selected_batch }}{% endif %}" class="btn-date-nav" title="Previous Day">&lt; Prev Day</a>
+                <a href="?date={{ today_date }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}{% if selected_batch %}&batch={{ selected_batch }}{% endif %}" class="btn-date-nav {% if current_date == today_date %}active{% endif %}" title="Today">Today</a>
+                <a href="?date={{ next_day }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}{% if selected_batch %}&batch={{ selected_batch }}{% endif %}" class="btn-date-nav" title="Next Day">Next Day &gt;</a>
                 <form method="GET" style="display:inline-flex; align-items:center; gap:4px; margin-left:4px;">
                     {% if prefill_time %}<input type="hidden" name="time" value="{{ prefill_time }}">{% endif %}
                     {% if prefill_end_time %}<input type="hidden" name="end_time" value="{{ prefill_end_time }}">{% endif %}
+                    {% if selected_batch %}<input type="hidden" name="batch" value="{{ selected_batch }}">{% endif %}
                     <input type="date" name="date" value="{{ current_date }}" onchange="this.form.submit()" class="date-input-picker" title="Pick Date">
                 </form>
             </div>
+        </div>
+
+        <!-- BATCH SWITCHER TOOLBAR -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #f8fafc; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); flex-wrap: wrap; margin-top: -4px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 0.82rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 4px;"><i class="ri-group-line" style="color: var(--primary);"></i> Student List:</span>
+                <a href="?date={{ current_date }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}&batch=All" class="btn-action" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; text-decoration: none; border-radius: 8px; transition: all 0.2s; {% if selected_batch == 'All' %}background: #0f172a; color: white; border: 1px solid #0f172a; box-shadow: 0 2px 8px rgba(15,23,42,0.25);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                    <i class="ri-group-line"></i> Whole Class ({{ count_all }})
+                </a>
+                <a href="?date={{ current_date }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}&batch=A" class="btn-action" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; text-decoration: none; border-radius: 8px; transition: all 0.2s; {% if selected_batch == 'A' %}background: #0f172a; color: white; border: 1px solid #0f172a; box-shadow: 0 2px 8px rgba(15,23,42,0.25);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                    <i class="ri-user-line"></i> Batch A Only ({{ count_batch_a }})
+                </a>
+                <a href="?date={{ current_date }}{% if prefill_time %}&time={{ prefill_time }}{% endif %}{% if prefill_end_time %}&end_time={{ prefill_end_time }}{% endif %}&batch=B" class="btn-action" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; text-decoration: none; border-radius: 8px; transition: all 0.2s; {% if selected_batch == 'B' %}background: #0f172a; color: white; border: 1px solid #0f172a; box-shadow: 0 2px 8px rgba(15,23,42,0.25);{% else %}background: white; color: #475569; border: 1px solid #cbd5e1;{% endif %}">
+                    <i class="ri-user-follow-line"></i> Batch B Only ({{ count_batch_b }})
+                </a>
+            </div>
+            {% if selected_batch and selected_batch != 'All' %}
+            <div style="font-size: 0.78rem; font-weight: 700; color: #be185d; background: #fce7f3; padding: 4px 10px; border-radius: 6px; border: 1px solid #fbcfe8; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="ri-filter-3-line"></i> Filtered to Batch {{ selected_batch }} ({{ students|length }} Students)
+            </div>
+            {% endif %}
         </div>
 
         <!-- MAIN RECORDING FORM -->
@@ -964,6 +989,7 @@
             <input type="hidden" name="attendance_date" value="{{ current_date }}">
             {% if prefill_time %}<input type="hidden" name="class_time" value="{{ prefill_time }}">{% endif %}
             {% if prefill_end_time %}<input type="hidden" name="end_time" value="{{ prefill_end_time }}">{% endif %}
+            {% if selected_batch %}<input type="hidden" name="batch" value="{{ selected_batch }}">{% endif %}
 
             <!-- STICKY SEARCH & BULK TOOLBAR -->
             <div class="sticky-toolbar">

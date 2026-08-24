@@ -502,9 +502,14 @@
         <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
           alt="University Logo" class="header-logo" />
         <h1 class="header-title">Department of Information Technology</h1>
-        <button id="webpush-subscribe-button" class="action-btn" style="margin-left: auto; font-size: 0.9em;">
-          Loading...
-        </button>
+        <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+          {% if request.user.is_superuser or request.user.is_staff %}
+          <a href="/admin/" target="_blank" class="action-btn" style="background: var(--primary, #5a7d7c); text-decoration: none; font-size: 0.9em; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"><i class="ri-shield-keyhole-line"></i> Admin Page</a>
+          {% endif %}
+          <button id="webpush-subscribe-button" class="action-btn" style="font-size: 0.9em;">
+            Loading...
+          </button>
+        </div>
       </div>
     </div>
   </header>

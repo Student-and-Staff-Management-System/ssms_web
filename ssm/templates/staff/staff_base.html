@@ -541,9 +541,9 @@
     <header class="portal-header" id="portalHeader">
         <!-- Top Row: Brand, Search, User Quick Profile -->
         <div class="header-top-row">
-            <a href="{% url 'staffs:staff_dashboard' %}" class="brand-box">
+            <a href="{% url 'staffs:staff_dashboard' %}" class="brand-box" title="Department Portal">
                 <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Annamalai University">
-                <h1 class="brand-title">{% if staff.is_hod %}Head of Dept Portal{% else %}Staff Portal{% endif %}</h1>
+                <h1 class="brand-title">{% if logged_in_staff.is_hod %}Head of Dept Portal{% else %}Staff Portal{% endif %}</h1>
             </a>
 
             <!-- Quick Global Search Bar -->
@@ -563,24 +563,35 @@
                     🕒 <span id="portalClock">12:00 PM</span>
                 </div>
 
+                {% with me=logged_in_staff %}
+                {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
+                <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" style="background: var(--primary-light); color: var(--primary-dark); border: 1px solid rgba(90, 125, 124, 0.3); text-decoration: none; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;" title="Open Admin Page">
+                    <i class="ri-shield-keyhole-line" style="font-size: 0.95rem; color: var(--primary);"></i>
+                    <span>Admin Page</span>
+                </a>
+                {% endif %}
+
                 <!-- Profile Trigger -->
                 <div style="position: relative; flex-shrink: 0;">
                     <button onclick="toggleProfileMenu()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px;">
-                        {% if staff.photo %}
-                        <img src="{{ staff.photo.url }}" alt="Profile" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light); flex-shrink: 0;">
+                        {% if me.photo %}
+                        <img src="{{ me.photo.url }}" alt="Profile" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-light); flex-shrink: 0;">
                         {% else %}
-                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0;">{{ staff.name|slice:":1"|upper }}</div>
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0;">{{ me.name|slice:":1"|upper }}</div>
                         {% endif %}
-                        <span class="user-name-text" style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ staff.name }} ▾</span>
+                        <span class="user-name-text" style="font-weight: 600; font-size: 0.88rem; color: var(--text-main);">{{ me.name }} ▾</span>
                     </button>
 
                     <!-- Profile Dropdown -->
                     <div class="profile-dropdown-menu" id="profileDropdown">
                         <div style="text-align: center; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary-dark);">{{ staff.name }}</div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ staff.role }}</div>
+                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary-dark);">{{ me.name }}</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ me.role }}</div>
                         </div>
                         <div style="padding-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
+                            <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" style="padding: 8px 12px; border-radius: 8px; color: var(--primary-dark); background: var(--primary-light); text-decoration: none; font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(90, 125, 124, 0.2);"><i class="ri-shield-keyhole-line" style="font-size: 1rem; color: var(--primary);"></i> Admin Page</a>
+                            {% endif %}
                             <a href="{% url 'staffs:staff_profile' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">👤 My Profile</a>
                             <a href="{% url 'staffs:staff_portfolio' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">📄 My Portfolio</a>
                             <a href="{% url 'staffs:staff_apply_leave' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">✈️ Apply for Leave</a>
@@ -588,26 +599,29 @@
                         </div>
                     </div>
                 </div>
+                {% endwith %}
             </div>
         </div>
 
         <!-- Horizontal Tab Category Navigation Bar -->
         <nav class="nav-tabs-bar" id="navTabsBar">
-            <button class="nav-tab-btn" data-tab="tab-workspace" onclick="switchTab('tab-workspace', this)">
+            <button class="nav-tab-btn" data-tab="tab-workspace" onclick="switchNavTab('tab-workspace', this)">
                 <i class="ri-dashboard-3-line"></i> <span>My Desk</span>
             </button>
-            <button class="nav-tab-btn" data-tab="tab-academics" onclick="switchTab('tab-academics', this)">
+            <button class="nav-tab-btn" data-tab="tab-academics" onclick="switchNavTab('tab-academics', this)">
                 <i class="ri-book-open-line"></i> <span>Teaching & Students</span>
             </button>
-            <button class="nav-tab-btn" data-tab="tab-research" onclick="switchTab('tab-research', this)">
+            <button class="nav-tab-btn" data-tab="tab-research" onclick="switchNavTab('tab-research', this)">
                 <i class="ri-microscope-line"></i> <span>Research & PhD</span>
             </button>
-            {% if staff.is_staff_admin or staff.is_timetable_incharge or staff.is_office_staff %}
-            <button class="nav-tab-btn" data-tab="tab-admin" onclick="switchTab('tab-admin', this)">
+            {% with me=logged_in_staff %}
+            {% if me.is_staff_admin or me.is_timetable_incharge or me.is_office_staff %}
+            <button class="nav-tab-btn" data-tab="tab-admin" onclick="switchNavTab('tab-admin', this)">
                 <i class="ri-building-4-line"></i> <span>Department Admin</span>
             </button>
             {% endif %}
-            <button class="nav-tab-btn" data-tab="tab-all" onclick="switchTab('tab-all', this)" style="margin-left: auto; background: var(--primary-light); color: var(--primary-dark); border-radius: 8px;">
+            {% endwith %}
+            <button class="nav-tab-btn" data-tab="tab-all" onclick="switchNavTab('tab-all', this)" style="margin-left: auto; background: var(--primary-light); color: var(--primary-dark); border-radius: 8px;">
                 <i class="ri-apps-2-line"></i> <span>All Services Directory</span>
             </button>
         </nav>
@@ -702,9 +716,15 @@
         </div>
 
         <!-- Mega Menu Dropdown 4: Department Admin -->
-        {% if staff.is_staff_admin or staff.is_timetable_incharge or staff.is_office_staff %}
+        {% with me=logged_in_staff %}
+        {% if me.is_staff_admin or me.is_timetable_incharge or me.is_office_staff %}
         <div class="mega-dropdown" id="tab-admin">
             <div class="mega-grid">
+                {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
+                <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" class="mega-item" style="background: rgba(79, 70, 229, 0.08); border: 1px solid rgba(79, 70, 229, 0.3);">
+                    <span class="icon-badge" style="background: #4f46e5; color: white;"><i class="ri-shield-keyhole-line"></i></span> <span class="title" style="color: #4f46e5; font-weight: 700;">Admin Page</span>
+                </a>
+                {% endif %}
                 <a href="{% url 'staffs:staff_list' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-contacts-book-line"></i></span> <span class="title">Faculty Directory</span>
                 </a>
@@ -735,7 +755,7 @@
                     <span class="badge">{{ pending_bonafide_count }}</span>
                     {% endif %}
                 </a>
-                {% if staff.is_office_staff or staff.is_staff_admin %}
+                {% if logged_in_staff.is_office_staff or logged_in_staff.is_staff_admin %}
                 <a href="{% url 'staffs:office_manage_document_requests' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-folder-user-line"></i></span> <span class="title">Original Document Requests</span>
                 </a>
@@ -761,6 +781,7 @@
             </div>
         </div>
         {% endif %}
+        {% endwith %}
 
         <!-- Mega Menu Dropdown 5: All Services Directory -->
         <div class="mega-dropdown" id="tab-all">
@@ -773,7 +794,7 @@
                 <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-shared-line"></i></span> <span class="title">Request Alternate</span></a>
                 <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-received-line"></i></span> <span class="title">Student Leaves</span></a>
                 <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item"><span class="icon-badge"><i class="ri-git-merge-line"></i></span> <span class="title">PhD Tracker</span></a>
-                {% if staff.is_staff_admin or staff.is_office_staff %}
+                {% if logged_in_staff.is_staff_admin or logged_in_staff.is_office_staff %}
                 <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item"><span class="icon-badge"><i class="ri-computer-line"></i></span> <span class="title">Lab Mapping</span></a>
                 <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item"><span class="icon-badge"><i class="ri-task-line"></i></span> <span class="title">Department Tasks</span></a>
                 <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item"><span class="icon-badge"><i class="ri-award-line"></i></span> <span class="title">Bonafide Requests</span></a>
@@ -789,25 +810,27 @@
 
     <!-- Native Mobile Bottom Bar -->
     <nav class="mobile-bottom-bar">
-        <button onclick="switchTab('tab-workspace', this)" class="mobile-btn" data-tab="tab-workspace">
+        <button onclick="switchNavTab('tab-workspace', this)" class="mobile-btn" data-tab="tab-workspace">
             <div class="icon-wrap"><i class="ri-dashboard-3-line"></i></div>
             <span>Desk</span>
         </button>
-        <button onclick="switchTab('tab-academics', this)" class="mobile-btn" data-tab="tab-academics">
+        <button onclick="switchNavTab('tab-academics', this)" class="mobile-btn" data-tab="tab-academics">
             <div class="icon-wrap"><i class="ri-book-open-line"></i></div>
             <span>Teaching</span>
         </button>
-        <button onclick="switchTab('tab-research', this)" class="mobile-btn" data-tab="tab-research">
+        <button onclick="switchNavTab('tab-research', this)" class="mobile-btn" data-tab="tab-research">
             <div class="icon-wrap"><i class="ri-microscope-line"></i></div>
             <span>Research</span>
         </button>
-        {% if staff.is_staff_admin or staff.is_timetable_incharge or staff.is_office_staff %}
-        <button onclick="switchTab('tab-admin', this)" class="mobile-btn" data-tab="tab-admin">
+        {% with me=logged_in_staff %}
+        {% if me.is_staff_admin or me.is_timetable_incharge or me.is_office_staff %}
+        <button onclick="switchNavTab('tab-admin', this)" class="mobile-btn" data-tab="tab-admin">
             <div class="icon-wrap"><i class="ri-building-4-line"></i></div>
             <span>Admin</span>
         </button>
         {% endif %}
-        <button onclick="switchTab('tab-all', this)" class="mobile-btn" data-tab="tab-all">
+        {% endwith %}
+        <button onclick="switchNavTab('tab-all', this)" class="mobile-btn" data-tab="tab-all">
             <div class="icon-wrap"><i class="ri-apps-2-line"></i></div>
             <span>All Apps</span>
         </button>
@@ -831,7 +854,7 @@
             if (backdrop) backdrop.classList.remove('active');
         }
 
-        function switchTab(tabId, btnElement) {
+        function switchNavTab(tabId, btnElement) {
             if (window.event) {
                 window.event.stopPropagation();
             }
@@ -853,6 +876,12 @@
 
                 const backdrop = document.getElementById('sheetBackdrop');
                 if (backdrop) backdrop.classList.add('active');
+            }
+        }
+
+        function switchTab(tabId, btnElement) {
+            if (tabId && tabId.startsWith && tabId.startsWith('tab-')) {
+                switchNavTab(tabId, btnElement);
             }
         }
 
@@ -927,6 +956,14 @@
 
         // Close Dropdown when clicking outside header, bottom bar, or mega dropdowns
         document.addEventListener('click', function(e) {
+            const megaItem = e.target.closest('.mega-item');
+            if (megaItem) {
+                closeAllDropdowns();
+                const profileDropdown = document.getElementById('profileDropdown');
+                if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
+                return;
+            }
+
             const header = document.getElementById('portalHeader');
             const bottomBar = document.querySelector('.mobile-bottom-bar');
             const isClickInsideHeader = header && header.contains(e.target);
@@ -988,6 +1025,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             const isDark = document.body.classList.contains('dark-theme');
             updateThemeButton(isDark);
+
+            if (window.location.hash && window.location.hash.startsWith('#tab-')) {
+                closeAllDropdowns();
+                if (history.replaceState) {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
+            }
         });
 
         // Dynamic Clock

@@ -368,6 +368,9 @@
 
                     <button class="action-btn" id="stickyToggleBtn" onclick="toggleStickyNote()"
                         style="background: #eab308; border-color: #ca8a04;">📝 Show Sticky Note</button>
+                    {% if request.user.is_superuser or request.user.is_staff %}
+                    <a href="/admin/" target="_blank" class="action-btn" style="background: var(--primary, #5a7d7c); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="ri-shield-keyhole-line"></i> Admin Page</a>
+                    {% endif %}
                     <a href="{% url 'student_profile' %}" class="action-btn btn-primary">👤 View Full Profile</a>
                     <a href="{% url 'student_logout' %}" class="action-btn btn-danger">Logout</a>
                 </div>

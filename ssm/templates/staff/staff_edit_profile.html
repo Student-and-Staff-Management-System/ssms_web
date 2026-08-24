@@ -346,9 +346,9 @@
         <!-- Tab Nav -->
         <div class="tabs-container">
             <div class="tabs">
-                <button type="button" class="tab-btn active" onclick="switchTab('personal')">1. Personal Info</button>
-                <button type="button" class="tab-btn" onclick="switchTab('academic')">2. Academic & Work</button>
-                <button type="button" class="tab-btn" onclick="switchTab('research')">3. Research & Social</button>
+                <button type="button" class="tab-btn active" onclick="switchEditProfileTab('personal')">1. Personal Info</button>
+                <button type="button" class="tab-btn" onclick="switchEditProfileTab('academic')">2. Academic & Work</button>
+                <button type="button" class="tab-btn" onclick="switchEditProfileTab('research')">3. Research & Social</button>
             </div>
         </div>
 
@@ -545,7 +545,7 @@
             }
         }
 
-        function switchTab(tabId) {
+        function switchEditProfileTab(tabId) {
             // Hide all cards
             document.querySelectorAll('.form-card').forEach(el => el.classList.remove('active'));
             // Remove active class from all buttons
@@ -553,10 +553,6 @@
 
             // Show selected card
             document.getElementById(tabId).classList.add('active');
-            // Add active class to clicked button
-            // To ensure we target the button even if span is clicked, we find the button by the text or logic, 
-            // but effectively here event.currentTarget or similar logic via bindings.
-            // Simplified: Loop to find the button calling this or just use the onclick reference
             const buttons = document.querySelectorAll('.tab-btn');
             if (tabId === 'personal') buttons[0].classList.add('active');
             if (tabId === 'academic') buttons[1].classList.add('active');

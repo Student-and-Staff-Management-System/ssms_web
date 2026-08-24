@@ -214,23 +214,36 @@
 
     .pill-group {
       display: inline-flex;
-      background: #eef2f5;
+      background: #e2e8f0;
       padding: 4px;
-      border-radius: 30px;
+      border-radius: 12px;
+      gap: 4px;
     }
     .pill-btn {
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.82rem;
+      padding: 7px 16px;
+      border-radius: 10px;
+      font-size: 0.84rem;
       font-weight: 600;
-      color: var(--text-muted);
+      color: #475569;
+      background: white;
+      border: 1px solid #cbd5e1;
       text-decoration: none;
       transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill-btn:hover:not(.active) {
+      background: #f1f5f9;
+      color: #0f172a;
+      border-color: #94a3b8;
     }
     .pill-btn.active {
-      background: white;
-      color: var(--primary-dark);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      background: #0f172a !important;
+      color: #ffffff !important;
+      border-color: #0f172a !important;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35);
+      font-weight: 700;
     }
 
     /* Main Section Cards */
@@ -495,11 +508,17 @@
       </div>
 
       <div class="filter-group">
-        <span class="filter-label">Batch View:</span>
+        <span class="filter-label" style="font-weight: 700; color: #1e293b;"><i class="ri-filter-3-line" style="color: var(--primary);"></i> Timetable Mode:</span>
         <div class="pill-group">
-          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All" class="pill-btn {% if selected_batch == 'All' %}active{% endif %}">All Batches (Combined)</a>
-          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A" class="pill-btn {% if selected_batch == 'A' %}active{% endif %}">Batch A Only</a>
-          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B" class="pill-btn {% if selected_batch == 'B' %}active{% endif %}">Batch B Only</a>
+          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All&tab={{ active_tab }}" class="pill-btn {% if selected_batch == 'All' %}active{% endif %}" title="View combined schedule for whole class">
+            <i class="ri-group-line"></i> Whole Class (Combined) {% if selected_batch == 'All' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
+          </a>
+          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab={{ active_tab }}" class="pill-btn {% if selected_batch == 'A' %}active{% endif %}" title="View schedule for Batch A classroom only">
+            <i class="ri-user-line"></i> Batch A Only {% if selected_batch == 'A' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
+          </a>
+          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B&tab={{ active_tab }}" class="pill-btn {% if selected_batch == 'B' %}active{% endif %}" title="View schedule for Batch B classroom only">
+            <i class="ri-user-follow-line"></i> Batch B Only {% if selected_batch == 'B' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
+          </a>
         </div>
       </div>
     </div>
@@ -964,18 +983,18 @@
   </style>
 
   <!-- BATCH MODE TABS -->
-  <div style="display: flex; gap: 8px; margin-bottom: 14px; background: #f8fafc; padding: 8px 12px; border-radius: 10px; align-items: center; border: 1px solid #e2e8f0; flex-wrap: wrap;">
-    <span style="font-weight: 600; color: #475569; font-size: 0.85rem; margin-right: 8px; display: flex; align-items: center; gap: 4px;">
-      ⚙️ Mode (Academic Year {{ selected_academic_year }}):
+  <div style="display: flex; gap: 10px; margin-bottom: 16px; background: #f1f5f9; padding: 10px 16px; border-radius: 14px; align-items: center; border: 1px solid #cbd5e1; flex-wrap: wrap;">
+    <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+      <i class="ri-settings-4-line" style="color: var(--primary);"></i> Mode (Academic Year {{ selected_academic_year }}):
     </span>
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All&tab=edit" class="tt-tb-btn" style="{% if selected_batch == 'All' %}background: #5a7d7c; color: white; border-color: #5a7d7c;{% endif %}">
-      👥 Combined (All Students)
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All&tab=edit" class="pill-btn {% if selected_batch == 'All' %}active{% endif %}">
+      <i class="ri-group-line"></i> Whole Class (Combined) {% if selected_batch == 'All' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
     </a>
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab=edit" class="tt-tb-btn" style="{% if selected_batch == 'A' %}background: #5a7d7c; color: white; border-color: #5a7d7c;{% endif %}">
-      🅰️ Batch A Only
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab=edit" class="pill-btn {% if selected_batch == 'A' %}active{% endif %}">
+      <i class="ri-user-line"></i> Batch A Only {% if selected_batch == 'A' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
     </a>
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B&tab=edit" class="tt-tb-btn" style="{% if selected_batch == 'B' %}background: #5a7d7c; color: white; border-color: #5a7d7c;{% endif %}">
-      🅱️ Batch B Only
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B&tab=edit" class="pill-btn {% if selected_batch == 'B' %}active{% endif %}">
+      <i class="ri-user-follow-line"></i> Batch B Only {% if selected_batch == 'B' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
     </a>
   </div>
 

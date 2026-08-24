@@ -933,7 +933,7 @@
                 <!-- Profile Completion Percentage Badge & Progress Bar -->
                 <div class="profile-completion-box" style="margin-top: 14px; display: inline-flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 50px; padding: 6px 16px; backdrop-filter: blur(4px);">
                     <span style="font-size: 0.85rem; font-weight: 700; color: #ffffff; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="ri-pie-chart-2-line" style="font-size: 1rem;"></i> Profile Completion: <strong>{{ profile_completion_percentage }}%</strong>
+                        <i class="ri-line-chart-fill" style="font-size: 1rem;"></i> Profile Completion: <strong>{{ profile_completion_percentage }}%</strong>
                     </span>
                     <div style="width: 110px; height: 8px; background: rgba(255,255,255,0.25); border-radius: 4px; overflow: hidden; display: inline-block;">
                         <div style="height: 100%; width: {{ profile_completion_percentage }}%; background: #10b981; border-radius: 4px; transition: width 0.5s ease;"></div>
@@ -966,12 +966,12 @@
         <!-- Tab Navigation -->
         <div class="tabs-container">
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
-                <button class="tab-btn" onclick="switchTab('personal')">Personal Info</button>
-                <button class="tab-btn" onclick="switchTab('academic')">Academic & Exp</button>
+                <button class="tab-btn active" onclick="switchProfileTab('overview')">Overview</button>
+                <button class="tab-btn" onclick="switchProfileTab('personal')">Personal Info</button>
+                <button class="tab-btn" onclick="switchProfileTab('academic')">Academic & Exp</button>
                 {% if staff.role != 'Office Staff' %}
-                <button class="tab-btn" onclick="switchTab('research')">Research</button>
-                <button class="tab-btn" onclick="switchTab('awards')">Awards</button>
+                <button class="tab-btn" onclick="switchProfileTab('research')">Research</button>
+                <button class="tab-btn" onclick="switchProfileTab('awards')">Awards</button>
                 {% endif %}
             </div>
         </div>
@@ -1319,9 +1319,9 @@
 {% endblock %}
 
 {% block extra_js %}
-    <!-- Script to Handle Tabs -->
+    <!-- Script to Handle Profile Tabs -->
     <script>
-        function switchTab(tabId) {
+        function switchProfileTab(tabId) {
             const targetContent = document.getElementById(tabId);
             if (!targetContent) return;
 
@@ -1350,19 +1350,22 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            const validTabs = ['overview', 'personal', 'academic', 'research', 'awards'];
             const pathKey = 'active_profile_tab_' + window.location.pathname;
             const savedTab = localStorage.getItem(pathKey);
             const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
 
             let targetTab = null;
-            if (hash && document.getElementById(hash)) {
+            if (hash && validTabs.includes(hash) && document.getElementById(hash)) {
                 targetTab = hash;
-            } else if (savedTab && document.getElementById(savedTab)) {
+            } else if (savedTab && validTabs.includes(savedTab) && document.getElementById(savedTab)) {
                 targetTab = savedTab;
             }
 
             if (targetTab && document.getElementById(targetTab)) {
-                switchTab(targetTab);
+                switchProfileTab(targetTab);
+            } else {
+                switchProfileTab('overview');
             }
         });
     </script>

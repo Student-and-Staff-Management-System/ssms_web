@@ -54,6 +54,7 @@
         <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)">📊 Overview</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)">📈 My Profile Stats</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)">📖 Academics</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-dept-tasks', this)"><i class="ri-task-line"></i> Tasks & Roles</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholarships', this)">💰 Scholarships</button>
     </div>
 
@@ -65,8 +66,6 @@
     <!-- ================= TAB 1: OVERVIEW ================= -->
     <div id="dash-tab-overview" class="dash-tab-content active">
 
-        <!-- Assigned Departmental Tasks & Roles Widget -->
-        {% include 'staff/includes/dept_tasks_widget.html' %}
         <div class="dashboard-grid">
             <!-- News Widget -->
             <div class="news-section">
@@ -192,5 +191,9 @@
                 </a>
             </div>
         </section>
+    </div>
+    <!-- ================= TAB: DEPARTMENTAL TASKS & ROLES ================= -->
+    <div id="dash-tab-dept-tasks" class="dash-tab-content">
+        {% include 'staff/includes/dept_tasks_widget.html' %}
     </div>
 {% endblock %}
