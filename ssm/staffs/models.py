@@ -762,33 +762,6 @@ class ExamSchedule(models.Model):
     def __str__(self):
         return f"Sem {self.semester} - {self.subject.code}"
 
-class Timetable(models.Model):
-    DAYS_OF_WEEK = [
-        ('Monday', 'Monday'),
-        ('Tuesday', 'Tuesday'),
-        ('Wednesday', 'Wednesday'),
-        ('Thursday', 'Thursday'),
-        ('Friday', 'Friday'),
-    ]
-    academic_year = models.CharField(max_length=20, default='2026-2027', help_text="Academic year e.g. 2026-2027")
-    semester = models.IntegerField()
-    day = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
-    period = models.IntegerField(help_text="1 to 7")
-    batch = models.CharField(max_length=3, choices=[('All', 'All'), ('A', 'Batch A'), ('B', 'Batch B')], default='All')
-    subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True)
-    staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True) # Optional: Assign staff directly
-    is_published = models.BooleanField(default=True, help_text="Indicates whether this timetable entry is published")
-    from_date = models.DateField(null=True, blank=True, help_text="Effective From Date")
-    to_date = models.DateField(null=True, blank=True, help_text="Effective To Date")
-
-    class Meta:
-        ordering = ['academic_year', 'semester', 'day', 'period']
-        unique_together = ('academic_year', 'semester', 'day', 'period', 'batch')
-
-    def __str__(self):
-        return f"Sem {self.semester} - {self.day} - Period {self.period} ({self.batch})"
-
-
 class PublishedTimetableVersion(models.Model):
     academic_year = models.CharField(max_length=20, default='2026-2027', help_text="Academic year e.g. 2026-2027")
     semester = models.IntegerField(help_text="Semester 1 to 8")
@@ -805,6 +778,34 @@ class PublishedTimetableVersion(models.Model):
 
     def __str__(self):
         return f"Sem {self.semester} ({self.from_date} to {self.to_date}) - {self.version_name}"
+
+
+class Timetable(models.Model):
+    DAYS_OF_WEEK = [
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+    ]
+    academic_year = models.CharField(max_length=20, default='2026-2027', help_text="Academic year e.g. 2026-2027")
+    semester = models.IntegerField()
+    day = models.CharField(max_length=10, choices=DAYS_OF_WEEK)
+    period = models.IntegerField(help_text="1 to 7")
+    batch = models.CharField(max_length=3, choices=[('All', 'All'), ('A', 'Batch A'), ('B', 'Batch B')], default='All')
+    subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True)
+    staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True) # Optional: Assign staff directly
+    version = models.ForeignKey(PublishedTimetableVersion, on_delete=models.SET_NULL, null=True, blank=True, related_name='timetable_entries')
+    is_published = models.BooleanField(default=True, help_text="Indicates whether this timetable entry is published")
+    from_date = models.DateField(null=True, blank=True, help_text="Effective From Date")
+    to_date = models.DateField(null=True, blank=True, help_text="Effective To Date")
+
+    class Meta:
+        ordering = ['academic_year', 'semester', 'day', 'period']
+        unique_together = ('academic_year', 'semester', 'day', 'period', 'batch', 'version')
+
+    def __str__(self):
+        return f"Sem {self.semester} - {self.day} - Period {self.period} ({self.batch})"
 
 class StaffLeaveRequest(models.Model):
     LEAVE_TYPES = [

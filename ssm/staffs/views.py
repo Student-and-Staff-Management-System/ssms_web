@@ -3172,6 +3172,7 @@ def create_timetable_version_snapshot(academic_year, semester, staff_user, from_
         is_active=True,
         timetable_data_json=json_payload
     )
+    entries.update(version=ver_obj)
     return ver_obj
 
 
