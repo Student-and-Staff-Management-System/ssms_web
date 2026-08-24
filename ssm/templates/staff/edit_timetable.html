@@ -520,8 +520,8 @@ subjIds.forEach((id,i)=>colorMap[id]=PAL[i%PAL.length]);
 const GROUPS = [[1,2],[3,4],[5,6,7]];
 function getGroup(p){ return GROUPS.find(g=>g.includes(p))||[p]; }
 function spanOf(val){ 
-    if(val==='LAB_SESSION') return 3; // special Lab Session slot
-    if(val==='PLACEMENT'||val==='LIBRARY') return 2; 
+    if(val==='LAB_SESSION') return 3; // special 3-Hr Lab Session slot
+    if(val==='LAB_SESSION_2H'||val==='NAAN_MUDHALVAN'||val==='PLACEMENT'||val==='LIBRARY') return 2; // 2-hr slots
     if(SUBJECT_MAP[val] && SUBJECT_MAP[val].type==='Lab') return 3; // Lab-type subjects also auto-span 3
     return 1; 
 }
@@ -531,9 +531,11 @@ const MRG = {};
 
 /* ── Special slot appearance ── */
 const SPECIAL_INFO = {
-    LAB_SESSION:{icon:'💻',title:'Lab Session',sub:'3 hours · P5–P6–P7',bg:'#f0fbfc',bdr:'#17a2b8'},
-    PLACEMENT:  {icon:'🎯',title:'Placement Class',sub:'2 hours',bg:'#fffaeb',bdr:'#f39c12'},
-    LIBRARY:    {icon:'📚',title:'Library',sub:'2 hours',bg:'#f5f0ff',bdr:'#8e44ad'},
+    LAB_SESSION:   {icon:'💻',title:'3-Hr Lab Session',sub:'3 hours · P5–P7',bg:'#f0fbfc',bdr:'#17a2b8'},
+    LAB_SESSION_2H:{icon:'⚗️',title:'2-Hr Lab Session',sub:'2 hours',bg:'#eef2ff',bdr:'#6366f1'},
+    NAAN_MUDHALVAN:{icon:'🌟',title:'Naan Mudhalvan',sub:'2 hours · Skill Class',bg:'#fdf4ff',bdr:'#d946ef'},
+    PLACEMENT:     {icon:'🎯',title:'Placement Class',sub:'2 hours',bg:'#fffaeb',bdr:'#f39c12'},
+    LIBRARY:       {icon:'📚',title:'Library',sub:'2 hours',bg:'#f5f0ff',bdr:'#8e44ad'},
 };
 
 /* ── Apply visual to a NORMAL (non-merged) cell ── */

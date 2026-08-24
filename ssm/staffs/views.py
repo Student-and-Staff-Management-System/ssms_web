@@ -2812,7 +2812,7 @@ def edit_timetable(request, semester):
     if request.method == 'POST':
         from .utils import send_staff_notification
         from django.db import transaction
-        VIRTUAL_SLOTS = ['LAB_SESSION', 'PLACEMENT', 'LIBRARY']
+        VIRTUAL_SLOTS = ['LAB_SESSION', 'LAB_SESSION_2H', 'NAAN_MUDHALVAN', 'PLACEMENT', 'LIBRARY']
         MORNING_LAB_BLOCKS = [(1, 2, 3), (2, 3, 4)]
         AFTERNOON_LAB_BLOCK = (5, 6, 7)
         
@@ -2822,6 +2822,11 @@ def edit_timetable(request, semester):
             if not val:
                 return False
             return val == 'LAB_SESSION' or val in lab_subject_ids
+
+        def is_2hr_slot(val):
+            if not val:
+                return False
+            return val in ['LAB_SESSION_2H', 'NAAN_MUDHALVAN', 'PLACEMENT', 'LIBRARY']
 
         # Pre-parse form input into a grid dictionary
         post_grid = {}
@@ -2852,6 +2857,14 @@ def edit_timetable(request, semester):
                     post_grid[day][6] = post_grid[day][5]
                 if not post_grid[day][7] or is_3hr_lab(post_grid[day][7]):
                     post_grid[day][7] = post_grid[day][5]
+
+            # 2-Hour Slot Propagation (2-Hr Lab, Naan Mudhalvan, Placement, Library)
+            for p in range(1, 7):
+                v = post_grid[day][p]
+                if is_2hr_slot(v):
+                    nxt = p + 1
+                    if nxt <= 7 and (not post_grid[day][nxt] or is_2hr_slot(post_grid[day][nxt])):
+                        post_grid[day][nxt] = v
 
         with transaction.atomic():
             for day in days:
