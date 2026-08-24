@@ -387,6 +387,28 @@ def staff_dashboard(request):
                 'is_lab': is_lab,
             })
 
+        # Merge duplicate lab cards for the same subject and period_display (e.g., Batch A and Batch B)
+        merged_schedule = []
+        for card in today_schedule:
+            dup = None
+            for existing in merged_schedule:
+                if (existing['subject'] and card['subject'] and 
+                    existing['subject'].id == card['subject'].id and 
+                    existing['period_display'] == card['period_display']):
+                    dup = existing
+                    break
+            if dup:
+                if dup['batch'] and card['batch'] and dup['batch'] != card['batch']:
+                    dup['batch'] = 'A & B'
+                elif card['batch']:
+                    dup['batch'] = card['batch']
+                if card['is_marked']:
+                    dup['is_marked'] = True
+            else:
+                merged_schedule.append(card)
+
+        today_schedule = merged_schedule
+
     has_unmarked_done = (unmarked_done_count > 0)
 
     # Dynamic Sarcastic / Emotional Mood Text Generator based on Class Count & Day
@@ -1658,24 +1680,27 @@ def manage_attendance(request, subject_id):
     selected_batch = selected_batch.strip()
 
     if not selected_batch:
-        matched_entry = None
-        if prefill_time:
-            for entry in tt_entries:
-                times = PERIOD_TIMES.get(entry.period, ('--', '--'))
-                if times[0] == prefill_time:
-                    matched_entry = entry
-                    break
-        if not matched_entry and tt_entries.exists():
-            matched_entry = tt_entries.first()
-
-        if matched_entry and matched_entry.batch in ['A', 'B']:
-            selected_batch = matched_entry.batch
-        elif subject.staff_batch_b == current_staff and subject.staff != current_staff:
+        if subject.staff_batch_b == current_staff and subject.staff != current_staff:
             selected_batch = 'B'
-        elif subject.assigned_batch in ['A', 'B']:
-            selected_batch = subject.assigned_batch
+        elif subject.staff == current_staff and subject.staff_batch_b and subject.staff_batch_b != current_staff:
+            selected_batch = 'A'
         else:
-            selected_batch = 'All'
+            matched_entry = None
+            if prefill_time:
+                for entry in tt_entries:
+                    times = PERIOD_TIMES.get(entry.period, ('--', '--'))
+                    if times[0] == prefill_time and entry.batch in ['A', 'B']:
+                        matched_entry = entry
+                        break
+            if not matched_entry and tt_entries.exists():
+                matched_entry = tt_entries.first()
+
+            if matched_entry and matched_entry.batch in ['A', 'B']:
+                selected_batch = matched_entry.batch
+            elif subject.assigned_batch in ['A', 'B']:
+                selected_batch = subject.assigned_batch
+            else:
+                selected_batch = 'All'
 
     # Student querying & batch filtering
     all_sem_students = Student.objects.filter(current_semester=subject.semester).order_by('roll_number')
@@ -1804,17 +1829,18 @@ def manage_attendance(request, subject_id):
     today_periods = []
     current_period = None
 
-    # Group contiguous timetable entries for the subject
+    # Group contiguous timetable periods for the subject
+    periods_list = sorted(list(set(e.period for e in tt_entries if e.period)))
     grouped_tt = []
-    for entry in tt_entries:
-        if grouped_tt and grouped_tt[-1][-1].period == entry.period - 1:
-            grouped_tt[-1].append(entry)
+    for p in periods_list:
+        if grouped_tt and grouped_tt[-1][-1] == p - 1:
+            grouped_tt[-1].append(p)
         else:
-            grouped_tt.append([entry])
+            grouped_tt.append([p])
 
     for grp in grouped_tt:
-        first_p = grp[0].period
-        last_p = grp[-1].period
+        first_p = grp[0]
+        last_p = grp[-1]
         times_first = PERIOD_TIMES.get(first_p, ('--', '--'))
         times_last = PERIOD_TIMES.get(last_p, ('--', '--'))
         start_str = times_first[0]
@@ -1833,10 +1859,10 @@ def manage_attendance(request, subject_id):
             start_t = None
 
         is_p_marked = False
-        if start_t:
-            is_p_marked = StudentAttendance.objects.filter(subject=subject, date=date_obj, time=start_t).exists()
-        if not is_p_marked:
-            is_p_marked = StudentAttendance.objects.filter(subject=subject, date=date_obj, time__isnull=True).exists()
+        if start_t and students.exists():
+            is_p_marked = StudentAttendance.objects.filter(subject=subject, date=date_obj, time=start_t, student__in=students).exists()
+        if not is_p_marked and students.exists():
+            is_p_marked = StudentAttendance.objects.filter(subject=subject, date=date_obj, time__isnull=True, student__in=students).exists()
 
         is_p_future_date = (date_obj > today_date)
         if is_p_marked:
@@ -1860,7 +1886,8 @@ def manage_attendance(request, subject_id):
                 is_sel = (prefill_time == start_str)
 
         p_url = f"?date={formatted_date}&time={start_str}&end_time={end_str}"
-        first_batch = grp[0].batch
+        first_entry = next((e for e in tt_entries if e.period == first_p), None)
+        first_batch = first_entry.batch if first_entry else selected_batch
         if first_batch in ['A', 'B']:
             p_url += f"&batch={first_batch}"
         elif selected_batch in ['A', 'B']:
@@ -1873,7 +1900,7 @@ def manage_attendance(request, subject_id):
             'label': label_str,
             'start': start_str,
             'end': end_str,
-            'batch': first_batch,
+            'batch': first_batch or 'A & B',
             'is_selected': is_sel,
             'status_badge': p_badge,
             'status_class': p_class,
