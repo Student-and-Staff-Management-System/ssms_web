@@ -282,23 +282,54 @@ def staff_dashboard(request):
         }
         now_time = timezone.now().time()
 
-        # Group contiguous timetable entries for the same subject
-        grouped_entries = []
+        # Determine effective batch & group contiguous period sequences per (subject, batch)
+        entry_data = []
         for entry in today_tt_entries:
             if not entry.subject:
-                grouped_entries.append([entry])
+                entry_data.append((entry, None, False))
                 continue
             
-            if grouped_entries and grouped_entries[-1][0].subject and grouped_entries[-1][0].subject.id == entry.subject.id:
-                prev_group = grouped_entries[-1]
-                last_period = prev_group[-1].period
-                if entry.period == last_period + 1:
-                    prev_group.append(entry)
-                    continue
-            
-            grouped_entries.append([entry])
+            subject = entry.subject
+            s_type = getattr(subject, 'subject_type', '')
+            code_upper = (subject.code or '').upper()
+            name_upper = (subject.name or '').upper()
+            is_lab = (s_type == 'Lab' or getattr(subject, 'lab', None) is not None or 'LAB' in name_upper or 'PRACTICAL' in name_upper or 'LAB' in code_upper or 'CP' in code_upper)
 
-        for group in grouped_entries:
+            eff_batch = entry.batch
+            if is_lab:
+                if subject.staff == staff and subject.staff_batch_b and subject.staff_batch_b != staff:
+                    eff_batch = 'A'
+                elif subject.staff_batch_b == staff and subject.staff != staff:
+                    eff_batch = 'B'
+                elif subject.staff == staff and (not subject.staff_batch_b or subject.staff_batch_b == staff):
+                    eff_batch = None  # Teaches whole class / both batches together
+                elif subject.assigned_batch in ['A', 'B']:
+                    eff_batch = subject.assigned_batch
+
+            entry_data.append((entry, eff_batch, is_lab))
+
+        grouped_entries = []
+        for entry, eff_batch, is_lab in entry_data:
+            if not entry.subject:
+                grouped_entries.append({'entries': [entry], 'batch': eff_batch, 'is_lab': is_lab})
+                continue
+
+            # Look for an existing group with the same subject and same batch where period continues
+            placed = False
+            for group in grouped_entries:
+                grp_first = group['entries'][0]
+                grp_last = group['entries'][-1]
+                if grp_first.subject and grp_first.subject.id == entry.subject.id and group['batch'] == eff_batch:
+                    if entry.period == grp_last.period + 1:
+                        group['entries'].append(entry)
+                        placed = True
+                        break
+
+            if not placed:
+                grouped_entries.append({'entries': [entry], 'batch': eff_batch, 'is_lab': is_lab})
+
+        for item in grouped_entries:
+            group = item['entries']
             first_entry = group[0]
             last_entry = group[-1]
             first_period = first_entry.period
@@ -328,22 +359,8 @@ def staff_dashboard(request):
                 status = 'upcoming'
 
             subject = first_entry.subject
-            is_lab = False
-            if subject:
-                s_type = getattr(subject, 'subject_type', '')
-                code_upper = (subject.code or '').upper()
-                name_upper = (subject.name or '').upper()
-                if s_type == 'Lab' or getattr(subject, 'lab', None) is not None or 'LAB' in name_upper or 'PRACTICAL' in name_upper or 'LAB' in code_upper or 'CP' in code_upper:
-                    is_lab = True
-
-            batch = first_entry.batch
-            if subject and is_lab:
-                if subject.staff == staff and subject.staff_batch_b and subject.staff_batch_b != staff:
-                    batch = 'A'
-                elif subject.staff_batch_b == staff and subject.staff != staff:
-                    batch = 'B'
-                elif subject.assigned_batch in ['A', 'B']:
-                    batch = subject.assigned_batch
+            is_lab = item['is_lab']
+            batch = item['batch'] or first_entry.batch
 
             is_marked = False
             if subject:
