@@ -273,7 +273,9 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.0 and periods.0.subject and periods.0.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION" {% if periods.0 and periods.0.is_batch %}selected{% endif %}>💻 Lab Session (3h)</option>
+                                            <option value="LAB_SESSION" {% if periods.0 and periods.0.is_batch %}selected{% endif %}>💻 3-Hr Lab Session (3h)</option>
+                                            <option value="LAB_SESSION_2H">⚗️ 2-Hr Lab Session (2h)</option>
+                                            <option value="NAAN_MUDHALVAN">🌟 Naan Mudhalvan (2h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -297,7 +299,9 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.1 and periods.1.subject and periods.1.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION" {% if periods.1 and periods.1.is_batch %}selected{% endif %}>💻 Lab Session (3h)</option>
+                                            <option value="LAB_SESSION" {% if periods.1 and periods.1.is_batch %}selected{% endif %}>💻 3-Hr Lab Session (3h)</option>
+                                            <option value="LAB_SESSION_2H">⚗️ 2-Hr Lab Session (2h)</option>
+                                            <option value="NAAN_MUDHALVAN">🌟 Naan Mudhalvan (2h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -321,7 +325,9 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.2 and periods.2.subject and periods.2.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION" {% if periods.2 and periods.2.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION" {% if periods.2 and periods.2.is_batch %}selected{% endif %}>💻 3-Hr Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION_2H">⚗️ 2-Hr Lab Session (2h)</option>
+                                            <option value="NAAN_MUDHALVAN">🌟 Naan Mudhalvan (2h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -346,7 +352,9 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.3 and periods.3.subject and periods.3.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION" {% if periods.3 and periods.3.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION" {% if periods.3 and periods.3.is_batch %}selected{% endif %}>💻 3-Hr Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION_2H">⚗️ 2-Hr Lab Session (2h)</option>
+                                            <option value="NAAN_MUDHALVAN">🌟 Naan Mudhalvan (2h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -371,7 +379,9 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.4 and periods.4.subject and periods.4.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION" {% if periods.4 and periods.4.is_batch %}selected{% endif %}>💻 Lab Session (3h)</option>
+                                            <option value="LAB_SESSION" {% if periods.4 and periods.4.is_batch %}selected{% endif %}>💻 3-Hr Lab Session (3h)</option>
+                                            <option value="LAB_SESSION_2H">⚗️ 2-Hr Lab Session (2h)</option>
+                                            <option value="NAAN_MUDHALVAN">🌟 Naan Mudhalvan (2h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -395,7 +405,9 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.5 and periods.5.subject and periods.5.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION" {% if periods.5 and periods.5.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION" {% if periods.5 and periods.5.is_batch %}selected{% endif %}>💻 3-Hr Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION_2H">⚗️ 2-Hr Lab Session (2h)</option>
+                                            <option value="NAAN_MUDHALVAN">🌟 Naan Mudhalvan (2h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -419,7 +431,9 @@
                                         {% for subj in subjects %}<option value="{{ subj.id }}" {% if periods.6 and periods.6.subject and periods.6.subject.id == subj.id %}selected{% endif %}>{{ subj.code }}{% if subj.subject_type == 'Lab' %} ⚗{% endif %}</option>{% endfor %}
                                         </optgroup>
                                         <optgroup label="Special Slots">
-                                            <option value="LAB_SESSION" {% if periods.6 and periods.6.is_batch %}selected{% endif %}>💻 Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION" {% if periods.6 and periods.6.is_batch %}selected{% endif %}>💻 3-Hr Lab Session (Hold)</option>
+                                            <option value="LAB_SESSION_2H">⚗️ 2-Hr Lab Session (2h)</option>
+                                            <option value="NAAN_MUDHALVAN">🌟 Naan Mudhalvan (2h)</option>
                                             <option value="PLACEMENT">🎯 Placement (2h)</option>
                                             <option value="LIBRARY">📚 Library (2h)</option>
                                         </optgroup>
@@ -558,7 +572,9 @@ function applyNormal(day, period, val){
         if(info){
             badge.textContent=info.type==='Lab'?'Lab':'Theory';
             badge.className='cbadge '+(info.type==='Lab'?'lab':'theory');
-            chip.textContent=info.staff!=='—'?('👤 '+info.staff):'';
+            const activeBatchMode = "{{ current_batch|default:'All' }}";
+            let staffName = (activeBatchMode === 'B' && info.staff_b && info.staff_b !== '—') ? info.staff_b : info.staff;
+            chip.textContent=(staffName && staffName !== '—') ? ('👤 ' + staffName) : '';
         }
         if(col){ td.style.background=col.bg; td.style.borderLeft='3px solid '+col.bdr; }
     }

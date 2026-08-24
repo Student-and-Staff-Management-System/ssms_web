@@ -417,119 +417,126 @@
 {% block content %}
 <div class="dashboard-container">
 
-  <!-- Header Card -->
-  <div class="page-header-card">
-    <div class="header-info">
-      <h1>📅 Master Published Timetables</h1>
-      <p>View all previously saved and published class timetables & assigned faculty allocations for <strong>Academic Year {{ selected_academic_year }}</strong> — Semester {{ selected_semester }}</p>
+  <!-- Streamlined Workspace Header -->
+  <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h1 style="font-size: 1.4rem; font-weight: 800; color: #0f172a; margin: 0;">📅 Timetable Manager</h1>
+          <span class="badge-status {% if semester_is_published %}published{% else %}draft{% endif %}" style="font-size: 0.75rem; padding: 3px 10px;">
+            {% if semester_is_published %}✓ Published{% else %}⏳ Draft{% endif %}
+          </span>
+        </div>
+        <p style="font-size: 0.84rem; color: #64748b; margin: 4px 0 0 0;">
+          Academic Year <strong>{{ selected_academic_year }}</strong> &bull; Semester <strong>{{ selected_semester }}</strong>
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <a href="{% url 'staffs:toggle_publish_timetable' selected_semester %}?academic_year={{ selected_academic_year }}" class="action-btn {% if semester_is_published %}action-btn-outline{% else %}action-btn-primary{% endif %}" style="background: {% if semester_is_published %}#ef4444{% else %}#059669{% endif %}; color: white; border-radius: 8px; font-size: 0.82rem; padding: 8px 16px; text-decoration: none;">
+          {% if semester_is_published %}🔒 Unpublish Sem {{ selected_semester }}{% else %}🚀 Publish Sem {{ selected_semester }}{% endif %}
+        </a>
+        <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="action-btn" style="background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 8px; font-size: 0.82rem; padding: 8px 16px; text-decoration: none;">
+          🔴 Live Class Visualiser
+        </a>
+      </div>
     </div>
-    <div class="header-actions">
-      <span class="badge-status {% if semester_is_published %}published{% else %}draft{% endif %}">
-        {% if semester_is_published %}
-          ✓ Published
-        {% else %}
-          ⏳ Draft / Unpublished
-        {% endif %}
-      </span>
 
-      <a href="{% url 'staffs:toggle_publish_timetable' selected_semester %}?academic_year={{ selected_academic_year }}" class="action-btn action-btn-outline">
-        {% if semester_is_published %}
-          🔒 Unpublish Sem {{ selected_semester }}
-        {% else %}
-          🚀 Publish Sem {{ selected_semester }}
-        {% endif %}
+    <!-- Sleek Semester Pill Switcher -->
+    <div style="display: flex; align-items: center; gap: 8px; overflow-x: auto; padding-top: 12px; border-top: 1px solid #f1f5f9;">
+      <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; white-space: nowrap; margin-right: 4px;">Semester:</span>
+      {% for sem_item in semesters_summary %}
+      <a href="?academic_year={{ selected_academic_year }}&semester={{ sem_item.semester }}&batch={{ selected_batch }}&tab={{ active_tab }}"
+         style="padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; text-decoration: none; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; {% if sem_item.is_selected %}background: #0f172a; color: white; box-shadow: 0 4px 10px rgba(15,23,42,0.25);{% else %}background: #f8fafc; color: #475569; border: 1px solid #e2e8f0;{% endif %}">
+        Sem {{ sem_item.semester }}
+        {% if sem_item.is_published %}<span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e;"></span>{% endif %}
       </a>
-
-      <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=edit" class="action-btn action-btn-primary">
-        ✏️ Edit Sem {{ selected_semester }} Timetable
-      </a>
+      {% endfor %}
     </div>
   </div>
 
-  <!-- Unified Top Tab Navigation Bar -->
-  <div style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color, #e2e8f0); padding-bottom: 8px; flex-wrap: wrap;">
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=master" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; {% if active_tab == 'master' %}background: var(--primary-color, #5a7d7c); color: white; box-shadow: 0 4px 12px rgba(90,125,124,0.3);{% else %}background: var(--surface, #ffffff); color: var(--text-dark, #334155); border: 1px solid var(--border-color, #e2e8f0);{% endif %}">
-      📅 Master & Published View
+  <!-- Sleek Tab Navigation Bar (4 Tabs Only) -->
+  <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; flex-wrap: wrap;">
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=master" style="padding: 9px 20px; border-radius: 8px 8px 0 0; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; {% if active_tab == 'master' %}background: #5a7d7c; color: white;{% else %}background: white; color: #475569; border: 1px solid #e2e8f0;{% endif %}">
+      📅 Master View
     </a>
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=edit" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; {% if active_tab == 'edit' %}background: var(--primary-color, #5a7d7c); color: white; box-shadow: 0 4px 12px rgba(90,125,124,0.3);{% else %}background: var(--surface, #ffffff); color: var(--text-dark, #334155); border: 1px solid var(--border-color, #e2e8f0);{% endif %}">
-      ✏️ Interactive Timetable Editor
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=edit" style="padding: 9px 20px; border-radius: 8px 8px 0 0; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; {% if active_tab == 'edit' %}background: #5a7d7c; color: white;{% else %}background: white; color: #475569; border: 1px solid #e2e8f0;{% endif %}">
+      ✏️ Timetable Editor
     </a>
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=history" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; {% if active_tab == 'history' %}background: var(--primary-color, #5a7d7c); color: white; box-shadow: 0 4px 12px rgba(90,125,124,0.3);{% else %}background: var(--surface, #ffffff); color: var(--text-dark, #334155); border: 1px solid var(--border-color, #e2e8f0);{% endif %}">
-      📜 Version History & Historical Data
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=history" style="padding: 9px 20px; border-radius: 8px 8px 0 0; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; {% if active_tab == 'history' %}background: #5a7d7c; color: white;{% else %}background: white; color: #475569; border: 1px solid #e2e8f0;{% endif %}">
+      📜 Version History
     </a>
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=batches" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; {% if active_tab == 'batches' %}background: var(--primary-color, #5a7d7c); color: white; box-shadow: 0 4px 12px rgba(90,125,124,0.3);{% else %}background: var(--surface, #ffffff); color: var(--text-dark, #334155); border: 1px solid var(--border-color, #e2e8f0);{% endif %}">
-      👥 Lab Batch Assignments
-    </a>
-    <a href="{% url 'staffs:hod_live_class_visualisation' %}" style="padding: 10px 22px; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.92rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; background: var(--surface, #ffffff); color: #dc2626; border: 1px solid #fca5a5;">
-      🔴 Live Class Visualiser
+    <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab=batches" style="padding: 9px 20px; border-radius: 8px 8px 0 0; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; {% if active_tab == 'batches' %}background: #5a7d7c; color: white;{% else %}background: white; color: #475569; border: 1px solid #e2e8f0;{% endif %}">
+      👥 Student Batches
     </a>
   </div>
 
   <!-- Messages -->
   {% if messages %}
-  <div style="margin-bottom: 20px;">
+  <div style="margin-bottom: 16px;">
     {% for message in messages %}
-    <div style="padding: 12px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; background: {% if message.tags == 'error' %}#fef2f2; color: #991b1b; border: 1px solid #fecaca;{% else %}#f0fdf4; color: #166534; border: 1px solid #bbf7d0;{% endif %}">
+    <div style="padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; background: {% if message.tags == 'error' %}#fef2f2; color: #991b1b; border: 1px solid #fecaca;{% else %}#f0fdf4; color: #166534; border: 1px solid #bbf7d0;{% endif %}">
       {{ message }}
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
-  <!-- Semesters Overview Cards (Sem 1 to 8) -->
-  <div style="margin-bottom: 12px; font-weight: 700; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">
-    Select Semester (Academic Year {{ selected_academic_year }})
-  </div>
-  <div class="sem-grid-container">
-    {% for sem_item in semesters_summary %}
-    <a href="?academic_year={{ selected_academic_year }}&semester={{ sem_item.semester }}&batch={{ selected_batch }}&tab={{ active_tab }}" class="sem-card {% if sem_item.is_selected %}active{% endif %}">
-      <div class="sem-num">Semester {{ sem_item.semester }}</div>
-      <div class="sem-meta">{{ sem_item.total_slots }} Slots Saved</div>
-      <div class="sem-meta" style="margin-top: 2px;">{{ sem_item.assigned_faculty_count }} Faculty Assigned</div>
-      <span class="sem-status {% if sem_item.is_published %}pub{% else %}unpub{% endif %}">
-        {% if sem_item.is_published %}Published{% else %}Draft{% endif %}
-      </span>
-    </a>
-    {% endfor %}
-  </div>
-
-  {% if active_tab == 'master' %}
-  <!-- TAB 1: MASTER & PUBLISHED VIEW -->
-
-  <!-- Filter Bar (Academic Year & Batch Filters) -->
-  <div class="filter-section">
-    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-      <div class="filter-group">
-        <span class="filter-label">Academic Year:</span>
-        <select onchange="location = this.value;" style="padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; border: 1px solid var(--border-color); background: white; color: var(--text-dark); cursor: pointer;">
+  <!-- Single Unified Control Toolbar -->
+  <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+    <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Year:</span>
+        <select onchange="location = this.value;" style="padding: 5px 12px; border-radius: 8px; font-weight: 600; font-size: 0.82rem; border: 1px solid #cbd5e1; background: white; color: #0f172a; cursor: pointer;">
           {% for yr in available_academic_years %}
-            <option value="?academic_year={{ yr }}&semester={{ selected_semester }}&batch={{ selected_batch }}" {% if yr == selected_academic_year %}selected{% endif %}>
-              Academic Year {{ yr }}
+            <option value="?academic_year={{ yr }}&semester={{ selected_semester }}&batch={{ selected_batch }}&tab={{ active_tab }}" {% if yr == selected_academic_year %}selected{% endif %}>
+              {{ yr }}
             </option>
           {% endfor %}
         </select>
       </div>
 
-      <div class="filter-group">
-        <span class="filter-label" style="font-weight: 700; color: #1e293b;"><i class="ri-filter-3-line" style="color: var(--primary);"></i> Timetable Mode:</span>
-        <div class="pill-group">
-          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All&tab={{ active_tab }}" class="pill-btn {% if selected_batch == 'All' %}active{% endif %}" title="View combined schedule for whole class">
-            <i class="ri-group-line"></i> Whole Class (Combined) {% if selected_batch == 'All' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">View Mode:</span>
+        <div style="display: inline-flex; background: #f1f5f9; padding: 3px; border-radius: 8px; gap: 2px;">
+          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All&tab={{ active_tab }}" style="padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none; {% if selected_batch == 'All' %}background: #0f172a; color: white;{% else %}color: #64748b;{% endif %}">
+            Whole Class
           </a>
-          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab={{ active_tab }}" class="pill-btn {% if selected_batch == 'A' %}active{% endif %}" title="View schedule for Batch A classroom only">
-            <i class="ri-user-line"></i> Batch A Only {% if selected_batch == 'A' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
-          </a>
-          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B&tab={{ active_tab }}" class="pill-btn {% if selected_batch == 'B' %}active{% endif %}" title="View schedule for Batch B classroom only">
-            <i class="ri-user-follow-line"></i> Batch B Only {% if selected_batch == 'B' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
+          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab={{ active_tab }}" style="padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none; {% if selected_batch != 'All' %}background: #0f172a; color: white;{% else %}color: #64748b;{% endif %}">
+            Split Batches (A/B)
           </a>
         </div>
       </div>
+
+      {% if selected_batch != 'All' %}
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Active Sub-Batch:</span>
+        <div style="display: inline-flex; background: #f1f5f9; padding: 3px; border-radius: 8px; gap: 2px;">
+          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab={{ active_tab }}" style="padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none; {% if selected_batch == 'A' %}background: #166534; color: white;{% else %}color: #64748b;{% endif %}">
+            🅰️ Batch A
+          </a>
+          <a href="?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B&tab={{ active_tab }}" style="padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none; {% if selected_batch == 'B' %}background: #92400e; color: white;{% else %}color: #64748b;{% endif %}">
+            🅱️ Batch B
+          </a>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
-    <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
-      Academic Year {{ selected_academic_year }} — Semester {{ selected_semester }} ({{ selected_batch }} Batch View)
-    </div>
+    <!-- Inline Effect Dates Form -->
+    <form method="POST" action="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch={{ selected_batch }}" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="set_effect_dates">
+      <span style="font-weight: 700; color: #475569;">Effective:</span>
+      <input type="date" name="from_date" value="{{ current_from_date|date:'Y-m-d' }}" required style="padding: 3px 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.78rem;">
+      <span>to</span>
+      <input type="date" name="to_date" value="{{ current_to_date|date:'Y-m-d' }}" required style="padding: 3px 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.78rem;">
+      <button type="submit" style="background: #5a7d7c; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 600; cursor: pointer;">Save</button>
+    </form>
   </div>
+
+  {% if active_tab == 'master' %}
+  <!-- TAB 1: MASTER & PUBLISHED VIEW -->
 
   <!-- Master Timetable Grid Card -->
   <div class="section-card">
@@ -1101,37 +1108,6 @@
     .paint-cursor * { cursor: crosshair !important; }
   </style>
 
-  <!-- BATCH MODE RADIO CONTROL -->
-  <div style="display: flex; gap: 14px; margin-bottom: 16px; background: #f8fafc; padding: 12px 18px; border-radius: 14px; align-items: center; border: 1px solid #cbd5e1; flex-wrap: wrap;">
-    <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
-      <i class="ri-settings-4-line" style="color: var(--primary);"></i> Storage Architecture & Mode:
-    </span>
-
-    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; border-radius: 10px; border: 1px solid {% if selected_batch == 'All' %}#0f172a{% else %}#cbd5e1{% endif %}; background: {% if selected_batch == 'All' %}#0f172a{% else %}#ffffff{% endif %}; color: {% if selected_batch == 'All' %}#ffffff{% else %}#475569{% endif %}; font-weight: 700; font-size: 0.84rem; transition: all 0.2s;">
-      <input type="radio" name="hod_mode_choice" value="All" {% if selected_batch == 'All' %}checked{% endif %} onchange="location.href='?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=All&tab=edit';">
-      <i class="ri-group-line"></i> Whole Class (Combined DB Storage)
-      {% if selected_batch == 'All' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
-    </label>
-
-    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 16px; border-radius: 10px; border: 1px solid {% if selected_batch != 'All' %}#0f172a{% else %}#cbd5e1{% endif %}; background: {% if selected_batch != 'All' %}#0f172a{% else %}#ffffff{% endif %}; color: {% if selected_batch != 'All' %}#ffffff{% else %}#475569{% endif %}; font-weight: 700; font-size: 0.84rem; transition: all 0.2s;">
-      <input type="radio" name="hod_mode_choice" value="BatchWise" {% if selected_batch != 'All' %}checked{% endif %} onchange="location.href='?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab=edit';">
-      <i class="ri-user-shared-line"></i> Batch-Wise (Split A & B DB Storage)
-      {% if selected_batch != 'All' %}<span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 6px; border-radius: 8px; font-weight: 800; margin-left: 4px;">ACTIVE</span>{% endif %}
-    </label>
-
-    {% if selected_batch != 'All' %}
-    <div style="display: inline-flex; gap: 8px; margin-left: 10px; padding-left: 12px; border-left: 2px solid #cbd5e1; align-items: center;">
-      <span style="font-size: 0.78rem; font-weight: 700; color: #64748b;">Sub-Batch:</span>
-      <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: {% if selected_batch == 'A' %}#0f172a{% else %}#64748b{% endif %};">
-        <input type="radio" name="hod_sub_batch" value="A" {% if selected_batch == 'A' %}checked{% endif %} onchange="location.href='?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=A&tab=edit';"> Batch A
-      </label>
-      <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; font-weight: 700; cursor: pointer; color: {% if selected_batch == 'B' %}#0f172a{% else %}#64748b{% endif %};">
-        <input type="radio" name="hod_sub_batch" value="B" {% if selected_batch == 'B' %}checked{% endif %} onchange="location.href='?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&batch=B&tab=edit';"> Batch B
-      </label>
-    </div>
-    {% endif %}
-  </div>
-
   <!-- LIVE STATS BAR -->
   <div class="tt-stats-bar">
     <div class="tt-stat-card f">
@@ -1341,14 +1317,39 @@
                   </option>
                   {% endfor %}
                   <optgroup label="Special Slots">
-                    <option value="LAB_SESSION" data-is-lab="true" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION' %}selected{% endif %}>🔬 LAB SESSION (Split A/B)</option>
-                    <option value="PLACEMENT" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'PLACEMENT' %}selected{% endif %}>💼 PLACEMENT</option>
-                    <option value="LIBRARY" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'LIBRARY' %}selected{% endif %}>📚 LIBRARY</option>
+                    <option value="LAB_SESSION" data-is-lab="true" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION' %}selected{% endif %}>🔬 3-HR LAB SESSION (Split A/B)</option>
+                    <option value="LAB_SESSION_2H" data-is-lab="true" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION_2H' %}selected{% endif %}>⚗️ 2-HR LAB SESSION (2h)</option>
+                    <option value="NAAN_MUDHALVAN" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'NAAN_MUDHALVAN' %}selected{% endif %}>🌟 NAAN MUDHALVAN (2h)</option>
+                    <option value="PLACEMENT" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'PLACEMENT' %}selected{% endif %}>💼 PLACEMENT (2h)</option>
+                    <option value="LIBRARY" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'LIBRARY' %}selected{% endif %}>📚 LIBRARY (2h)</option>
                   </optgroup>
                 </select>
 
                 <!-- FACULTY CHIP -->
                 <div id="chip_{{ day }}_{{ period }}" style="font-size: 0.68rem; color: #475569; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic;"></div>
+
+                <!-- DUAL BATCH SELECT CONTAINER (FOR LAB SESSIONS) -->
+                <div id="batch_split_{{ day }}_{{ period }}" style="{% if entry and entry.is_batch or entry and entry.subject and entry.subject.id in 'LAB_SESSION,LAB_SESSION_2H' %}display: block;{% else %}display: none;{% endif %} margin-top: 6px; padding: 4px; background: #f8fafc; border-radius: 6px; border: 1px solid #cbd5e1;">
+                  <div style="font-size: 0.65rem; font-weight: 800; color: #166534; margin-bottom: 2px;">🅰️ Batch A Lab:</div>
+                  <select name="lab_a_{{ day }}_{{ period }}" id="lab_a_{{ day }}_{{ period }}" onchange="syncBatchLabSelection('{{ day }}', {{ period }}, 'A'); pushState();" style="width: 100%; font-size: 0.72rem; padding: 3px; border-radius: 4px; border: 1px solid #86efac; background: #f0fdf4; margin-bottom: 4px; font-weight: 600; color: #166534;">
+                    <option value="">— Batch A Subject —</option>
+                    {% for s in subjects_list %}
+                    {% if s.subject_type == 'Lab' %}
+                    <option value="{{ s.id }}" {% if entry and entry.A and entry.A.subject and entry.A.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>🔬 {{ s.code }}</option>
+                    {% endif %}
+                    {% endfor %}
+                  </select>
+
+                  <div style="font-size: 0.65rem; font-weight: 800; color: #92400e; margin-bottom: 2px;">🅱️ Batch B Lab:</div>
+                  <select name="lab_b_{{ day }}_{{ period }}" id="lab_b_{{ day }}_{{ period }}" onchange="syncBatchLabSelection('{{ day }}', {{ period }}, 'B'); pushState();" style="width: 100%; font-size: 0.72rem; padding: 3px; border-radius: 4px; border: 1px solid #fde68a; background: #fffbeb; font-weight: 600; color: #92400e;">
+                    <option value="">— Batch B Subject —</option>
+                    {% for s in subjects_list %}
+                    {% if s.subject_type == 'Lab' %}
+                    <option value="{{ s.id }}" {% if entry and entry.B and entry.B.subject and entry.B.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>🔬 {{ s.code }}</option>
+                    {% endif %}
+                    {% endfor %}
+                  </select>
+                </div>
 
                 <!-- LAB MERGE TAG OVERLAY -->
                 <div id="badge_{{ day }}_{{ period }}" class="lab-merge-tag" style="display: none; margin-top: 4px; font-size: 0.68rem; font-weight: 700; background: #dcfce7; color: #166534; padding: 2px 5px; border-radius: 4px; text-align: center; border: 1px solid #bbf7d0;"></div>
@@ -1454,9 +1455,15 @@
 
   function isLabOption(selElem) {
     if (!selElem || !selElem.value) return false;
-    if (selElem.value === 'LAB_SESSION') return true;
+    if (selElem.value === 'LAB_SESSION' || selElem.value === 'LAB_SESSION_2H') return true;
     const selectedOpt = selElem.options[selElem.selectedIndex];
     return selectedOpt && selectedOpt.getAttribute('data-is-lab') === 'true';
+  }
+
+  function is2HrOption(selElem) {
+    if (!selElem || !selElem.value) return false;
+    const v = selElem.value;
+    return v === 'LAB_SESSION_2H' || v === 'NAAN_MUDHALVAN' || v === 'PLACEMENT' || v === 'LIBRARY';
   }
 
   /* Data from Django */
@@ -1609,12 +1616,16 @@
 
     const val = leaderSel.value;
     const isLab = isLabOption(leaderSel);
+    const is2Hr = is2HrOption(leaderSel);
 
     let targetPeriods = [];
-    if (isLab) {
+    if (val === 'LAB_SESSION' || (isLab && val !== 'LAB_SESSION_2H')) {
       if (period === 1) targetPeriods = [1, 2, 3];
       else if (period === 2) targetPeriods = [2, 3, 4];
       else if (period === 5) targetPeriods = [5, 6, 7];
+    } else if (is2Hr) {
+      if (period < 7) targetPeriods = [period, period + 1];
+      else targetPeriods = [7];
     }
 
     if (targetPeriods.length > 0) {
@@ -1635,6 +1646,29 @@
     validateAllConflicts();
   }
 
+  function syncBatchLabSelection(day, period, batchType) {
+    const srcSel = document.getElementById(`lab_${batchType.toLowerCase()}_${day}_${period}`);
+    if (!srcSel) return;
+    const val = srcSel.value;
+    const mainSel = document.getElementById(`sel_${day}_${period}`);
+    if (!mainSel) return;
+
+    let targetPeriods = [period];
+    const mVal = mainSel.value;
+    if (mVal === 'LAB_SESSION') {
+      if (period === 1) targetPeriods = [1, 2, 3];
+      else if (period === 2) targetPeriods = [2, 3, 4];
+      else if (period === 5) targetPeriods = [5, 6, 7];
+    } else if (mVal === 'LAB_SESSION_2H') {
+      if (period < 7) targetPeriods = [period, period + 1];
+    }
+
+    targetPeriods.forEach(p => {
+      const bSel = document.getElementById(`lab_${batchType.toLowerCase()}_${day}_${p}`);
+      if (bSel) bSel.value = val;
+    });
+  }
+
   function clearSingleCell(day, period, event) {
     if (event) event.stopPropagation();
     const sel = document.getElementById(`sel_${day}_${period}`);
@@ -1649,9 +1683,19 @@
     const chip = document.getElementById(`chip_${day}_${period}`);
     const typeTag = document.getElementById(`type-tag-${day}-${period}`);
     const td = document.getElementById(`cell-td-${day}-${period}`);
+    const batchBox = document.getElementById(`batch_split_${day}_${period}`);
 
     if (!sel || !td) return;
     const val = sel.value;
+    const isLab = isLabOption(sel);
+
+    if (batchBox) {
+      if (val === 'LAB_SESSION' || val === 'LAB_SESSION_2H' || isLab) {
+        batchBox.style.display = 'block';
+      } else {
+        batchBox.style.display = 'none';
+      }
+    }
 
     if (!val) {
       td.style.background = '';
@@ -1660,7 +1704,9 @@
       if (typeTag) { typeTag.textContent = 'Vacant'; typeTag.style.background = '#f1f5f9'; typeTag.style.color = '#64748b'; }
     } else if (SUBJECT_MAP[val]) {
       const info = SUBJECT_MAP[val];
-      if (chip) chip.textContent = info.staff && info.staff !== '—' ? `👤 ${info.staff}` : '';
+      const activeBatchMode = "{{ selected_batch|default:'All' }}";
+      let assignedStaffName = (activeBatchMode === 'B' && info.staff_b && info.staff_b !== '—') ? info.staff_b : info.staff;
+      if (chip) chip.textContent = assignedStaffName && assignedStaffName !== '—' ? `👤 ${assignedStaffName}` : '';
       if (typeTag) {
         typeTag.textContent = info.type;
         if (info.type === 'Lab') { typeTag.style.background = '#fce7f3'; typeTag.style.color = '#be185d'; }
@@ -1671,8 +1717,8 @@
     } else {
       if (chip) chip.textContent = '';
       if (typeTag) { typeTag.textContent = 'Special'; typeTag.style.background = '#fef3c7'; typeTag.style.color = '#92400e'; }
-      td.style.background = '#fffbeb';
-      td.style.borderLeft = '3px solid #f59e0b';
+      td.style.background = val.includes('LAB') ? '#fdf2f8' : '#fffbeb';
+      td.style.borderLeft = val.includes('LAB') ? '3px solid #ec4899' : '3px solid #f59e0b';
     }
   }
 
@@ -1686,32 +1732,47 @@
       }
     });
 
-    function applyBlockHighlight(pList, labelText) {
-      const firstSel = document.getElementById(`sel_${day}_${pList[0]}`);
-      if (!firstSel || !firstSel.value) return;
+    let p = 1;
+    while (p <= 7) {
+      const sel = document.getElementById(`sel_${day}_${p}`);
+      if (sel && sel.value) {
+        const val = sel.value;
+        const isLab = isLabOption(sel);
+        const is2Hr = is2HrOption(sel);
 
-      pList.forEach((p, idx) => {
-        const badge = document.getElementById(`badge_${day}_${p}`);
-        if (badge) {
-          badge.style.display = 'block';
-          badge.innerText = idx === 0 ? `🔬 3-Hr Lab (${labelText})` : `↳ Lab Block`;
+        let pSpan = 1;
+        let is3HrLab = (val === 'LAB_SESSION' || (isLab && val !== 'LAB_SESSION_2H'));
+
+        if (is3HrLab && (p === 1 || p === 2 || p === 5)) {
+          pSpan = 3;
+        } else if (is2Hr) {
+          pSpan = 2;
         }
-      });
-    }
 
-    const p1Sel = document.getElementById(`sel_${day}_1`);
-    if (isLabOption(p1Sel)) {
-      applyBlockHighlight([1, 2, 3], 'P1–P3');
-    } else {
-      const p2Sel = document.getElementById(`sel_${day}_2`);
-      if (isLabOption(p2Sel)) {
-        applyBlockHighlight([2, 3, 4], 'P2–P4');
+        if (pSpan > 1) {
+          const endP = Math.min(7, p + pSpan - 1);
+          const labelText = `P${p}–P${endP}`;
+          const isLabBlock = is3HrLab || val === 'LAB_SESSION_2H';
+          const title = val === 'LAB_SESSION_2H' ? '⚗️ 2-Hr Lab' : (is3HrLab ? '🔬 3-Hr Lab' : '⚡ 2-Hr Slot');
+          const bg = isLabBlock ? '#dcfce7' : '#e0f2fe';
+          const border = isLabBlock ? '#86efac' : '#bae6fd';
+          const color = isLabBlock ? '#166534' : '#0369a1';
+
+          for (let i = p; i <= endP; i++) {
+            const badge = document.getElementById(`badge_${day}_${i}`);
+            if (badge) {
+              badge.style.display = 'block';
+              badge.style.background = bg;
+              badge.style.borderColor = border;
+              badge.style.color = color;
+              badge.innerText = i === p ? `${title} (${labelText})` : `↳ Merged Block`;
+            }
+          }
+          p += pSpan;
+          continue;
+        }
       }
-    }
-
-    const p5Sel = document.getElementById(`sel_${day}_5`);
-    if (isLabOption(p5Sel)) {
-      applyBlockHighlight([5, 6, 7], 'P5–P7');
+      p++;
     }
   }
 

@@ -1192,9 +1192,15 @@ def manage_subjects(request):
                  
         elif action == 'assign_staff':
             subject_id = request.POST.get('subject_id')
-            staff_id = request.POST.get('staff_id')
-            staff_batch_b_id = request.POST.get('staff_batch_b_id')
+            mode = request.POST.get('staff_alloc_mode', 'same')
             location_name = request.POST.get('location_name', '').strip()
+            
+            if mode == 'same':
+                staff_id = request.POST.get('staff_id_single') or request.POST.get('staff_id')
+                staff_batch_b_id = staff_id
+            else:
+                staff_id = request.POST.get('staff_id_a') or request.POST.get('staff_id')
+                staff_batch_b_id = request.POST.get('staff_batch_b_id')
             
             if subject_id:
                 subject = get_object_or_404(Subject, id=subject_id)
@@ -2897,7 +2903,13 @@ def edit_timetable(request, semester):
                             b_staff = None
                         else:
                             b_subject = Subject.objects.filter(id=subj_id).first() if subj_id else None
-                            b_staff = b_subject.staff if b_subject else None
+                            if b_subject:
+                                if batch_val == 'B' and b_subject.staff_batch_b:
+                                    b_staff = b_subject.staff_batch_b
+                                else:
+                                    b_staff = b_subject.staff
+                            else:
+                                b_staff = None
 
                         if not b_subject and not virtual_sub:
                             if batch_entry and batch_entry.pk is not None:
@@ -3009,15 +3021,7 @@ def edit_timetable(request, semester):
                                 defaults={'subject': b_subject, 'staff': b_staff}
                             )
                                 
-        # Create/update version snapshot for historical archive
-        create_timetable_version_snapshot(
-            academic_year=selected_academic_year,
-            semester=semester,
-            staff_user=staff,
-            version_name=f"Updated Schedule (Sem {semester})"
-        )
-
-        messages.success(request, f'Timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
+        messages.success(request, f'Draft timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
         return redirect(f'/staffs/hod/published-timetables/?semester={semester}&academic_year={selected_academic_year}&tab=edit')
         
     # GET Request: Fetch timetable entries for selected semester & academic year
@@ -3292,15 +3296,16 @@ def hod_published_timetables(request):
                     pass
 
             if from_date_val and to_date_val:
-                ver_obj = create_timetable_version_snapshot(
-                    academic_year=selected_academic_year,
-                    semester=selected_semester,
-                    staff_user=staff,
-                    from_date_val=from_date_val,
-                    to_date_val=to_date_val,
-                    version_name_val=f"Effective Period ({from_date_val.strftime('%d-%b')} to {to_date_val.strftime('%d-%b-%Y')})"
+                Timetable.objects.filter(academic_year=selected_academic_year, semester=selected_semester).update(
+                    from_date=from_date_val,
+                    to_date=to_date_val
                 )
-                messages.success(request, f"Effective Date Range saved for Semester {selected_semester}: From {from_date_val.strftime('%d-%b-%Y')} to {to_date_val.strftime('%d-%b-%Y')}.")
+                from .models import PublishedTimetableVersion
+                PublishedTimetableVersion.objects.filter(academic_year=selected_academic_year, semester=selected_semester, is_active=True).update(
+                    from_date=from_date_val,
+                    to_date=to_date_val
+                )
+                messages.success(request, f"Effective Date Range updated for Semester {selected_semester}: From {from_date_val.strftime('%d-%b-%Y')} to {to_date_val.strftime('%d-%b-%Y')}.")
                 return redirect(f"/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=master")
 
         elif action == 'assign_batches':

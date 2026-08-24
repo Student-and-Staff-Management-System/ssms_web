@@ -523,59 +523,93 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <form method="POST" class="staff-select-form">
+                                        <form method="POST" class="staff-select-form" style="display: flex; flex-direction: column; gap: 6px;">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="assign_staff">
                                             <input type="hidden" name="subject_id" value="{{ subject.id }}">
 
-                                            <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px;">
-                                                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 0; display: block;">Batch A Staff (or Both):</label>
-                                                <select name="staff_id" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px;">
+                                            <!-- Staff Allocation Radio Mode Selector -->
+                                            <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 8px; border-radius: 6px;">
+                                                <div style="font-size: 0.68rem; font-weight: 700; color: #475569; margin-bottom: 3px;">Faculty Allocation Mode:</div>
+                                                <div style="display: flex; gap: 8px; font-size: 0.74rem;">
+                                                    <label style="display: inline-flex; align-items: center; gap: 3px; cursor: pointer; font-weight: 600; color: #0f172a;">
+                                                        <input type="radio" name="staff_alloc_mode" value="same"
+                                                               {% if not subject.staff_batch_b or subject.staff_batch_b_id == subject.staff_id %}checked{% endif %}
+                                                               onchange="toggleAllocMode({{ subject.id }}, 'same')">
+                                                        Same Staff
+                                                    </label>
+                                                    <label style="display: inline-flex; align-items: center; gap: 3px; cursor: pointer; font-weight: 600; color: #0f172a;">
+                                                        <input type="radio" name="staff_alloc_mode" value="different"
+                                                               {% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}checked{% endif %}
+                                                               onchange="toggleAllocMode({{ subject.id }}, 'different')">
+                                                        Different (A / B)
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Single Staff Dropdown Wrapper -->
+                                            <div id="wrap_single_staff_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: none;{% else %}display: block;{% endif %}">
+                                                <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-align: left; margin: 0 0 2px 0; display: block;">Assigned Faculty (Both Batches):</label>
+                                                <select name="staff_id_single" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color);">
                                                     <option value="">-- Unassigned --</option>
                                                     {% for staff in staff_members %}
                                                     <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
-                                                        {{ staff.name }}
+                                                        👤 {{ staff.name }}
                                                     </option>
                                                     {% endfor %}
-                                                </select>
-                                                
-                                                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 0; display: block;">Batch B Staff:</label>
-                                                <select name="staff_batch_b_id" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px;">
-                                                    <option value="">-- Same as Batch A --</option>
-                                                    {% for staff in staff_members %}
-                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
-                                                        {{ staff.name }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-
-                                                <label style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 2px 0 0 0; display: block;">Room / Lab Location:</label>
-                                                <select name="location_name" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;">
-                                                    <option value="">-- Select Location --</option>
-                                                    {% if class_mappings %}
-                                                    <optgroup label="🏫 Classrooms">
-                                                        {% for cm in class_mappings %}
-                                                        {% with cm_val=cm.room_name|add:" ("|add:cm.class_name|add:")" %}
-                                                        <option value="{{ cm_val }}" {% if subject.location_name == cm_val or subject.location_name == cm.room_name %}selected{% endif %}>
-                                                            {{ cm.room_name }} - {{ cm.class_name }}
-                                                        </option>
-                                                        {% endwith %}
-                                                        {% endfor %}
-                                                    </optgroup>
-                                                    {% endif %}
-                                                    {% if labs %}
-                                                    <optgroup label="🔬 Laboratories">
-                                                        {% for lab in labs %}
-                                                        <option value="{{ lab.name }}" {% if subject.location_name == lab.name %}selected{% endif %}>
-                                                            {{ lab.name }} ({{ lab.short_name }})
-                                                        </option>
-                                                        {% endfor %}
-                                                    </optgroup>
-                                                    {% endif %}
                                                 </select>
                                             </div>
 
-                                            <button type="submit" class="btn-small" style="width: 100%;">Update</button>
+                                            <!-- Dual Staff Dropdown Wrapper -->
+                                            <div id="wrap_dual_staff_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.68rem; color: #166534; font-weight: 700; text-align: left; margin: 0; display: block;">🅰️ Batch A Staff:</label>
+                                                <select name="staff_id_a" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #86efac; background: #f0fdf4; border-radius: 4px;">
+                                                    <option value="">-- Batch A Staff --</option>
+                                                    {% for staff in staff_members %}
+                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                        👤 {{ staff.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+
+                                                <label style="font-size: 0.68rem; color: #92400e; font-weight: 700; text-align: left; margin: 2px 0 0 0; display: block;">🅱️ Batch B Staff:</label>
+                                                <select name="staff_batch_b_id" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #fde68a; background: #fffbeb; border-radius: 4px;">
+                                                    <option value="">-- Batch B Staff --</option>
+                                                    {% for staff in staff_members %}
+                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
+                                                        👤 {{ staff.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <!-- Location Dropdown -->
+                                            <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 2px 0 0 0; display: block;">Room / Lab Location:</label>
+                                            <select name="location_name" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                                <option value="">-- Select Location --</option>
+                                                {% if class_mappings %}
+                                                <optgroup label="🏫 Classrooms">
+                                                    {% for cm in class_mappings %}
+                                                    {% with cm_val=cm.room_name|add:" ("|add:cm.class_name|add:")" %}
+                                                    <option value="{{ cm_val }}" {% if subject.location_name == cm_val or subject.location_name == cm.room_name %}selected{% endif %}>
+                                                        {{ cm.room_name }} - {{ cm.class_name }}
+                                                    </option>
+                                                    {% endwith %}
+                                                    {% endfor %}
+                                                </optgroup>
+                                                {% endif %}
+                                                {% if labs %}
+                                                <optgroup label="🔬 Laboratories">
+                                                    {% for lab in labs %}
+                                                    <option value="{{ lab.name }}" {% if subject.location_name == lab.name %}selected{% endif %}>
+                                                        {{ lab.name }} ({{ lab.short_name }})
+                                                    </option>
+                                                    {% endfor %}
+                                                </optgroup>
+                                                {% endif %}
+                                            </select>
+
+                                            <button type="submit" class="btn-small" style="width: 100%; margin-top: 2px;">Update Assignment</button>
                                         </form>
                                     </td>
                                     <td>
@@ -625,22 +659,67 @@
                             <div class="subject-name">{{ subject.name }}</div>
 
                             <div class="subject-card-body">
-                                <form method="POST" class="staff-select-form-mobile">
+                                <form method="POST" class="staff-select-form-mobile" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="assign_staff">
                                     <input type="hidden" name="subject_id" value="{{ subject.id }}">
-                                    <label
-                                        style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Assigned
-                                        Staff:</label>
-                                    <div style="display: flex; gap: 8px;">
-                                        <select name="staff_id" class="staff-select" style="flex: 1;">
-                                            <option value="">-- Assign Staff --</option>
+
+                                    <!-- Staff Allocation Radio Mode Selector Mobile -->
+                                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 8px; border-radius: 6px;">
+                                        <div style="font-size: 0.68rem; font-weight: 700; color: #475569; margin-bottom: 3px;">Faculty Allocation Mode:</div>
+                                        <div style="display: flex; gap: 8px; font-size: 0.74rem;">
+                                            <label style="display: inline-flex; align-items: center; gap: 3px; cursor: pointer; font-weight: 600; color: #0f172a;">
+                                                <input type="radio" name="staff_alloc_mode" value="same"
+                                                       {% if not subject.staff_batch_b or subject.staff_batch_b_id == subject.staff_id %}checked{% endif %}
+                                                       onchange="toggleAllocMode('mob_' + {{ subject.id }}, 'same')">
+                                                Same Staff
+                                            </label>
+                                            <label style="display: inline-flex; align-items: center; gap: 3px; cursor: pointer; font-weight: 600; color: #0f172a;">
+                                                <input type="radio" name="staff_alloc_mode" value="different"
+                                                       {% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}checked{% endif %}
+                                                       onchange="toggleAllocMode('mob_' + {{ subject.id }}, 'different')">
+                                                Different (A / B)
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Single Staff Dropdown Wrapper Mobile -->
+                                    <div id="wrap_single_staff_mob_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: none;{% else %}display: block;{% endif %}">
+                                        <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">Assigned Faculty (Both Batches):</label>
+                                        <select name="staff_id_single" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color);">
+                                            <option value="">-- Unassigned --</option>
                                             {% for staff in staff_members %}
-                                            <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id%}selected{% endif %}> {{ staff.name }}</option>
+                                            <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                👤 {{ staff.name }}
+                                            </option>
                                             {% endfor %}
                                         </select>
-                                        <button type="submit" class="btn-small">Update</button>
                                     </div>
+
+                                    <!-- Dual Staff Dropdown Wrapper Mobile -->
+                                    <div id="wrap_dual_staff_mob_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 4px;">
+                                        <label style="font-size: 0.68rem; color: #166534; font-weight: 700; display: block; margin: 0;">🅰️ Batch A Staff:</label>
+                                        <select name="staff_id_a" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #86efac; background: #f0fdf4; border-radius: 4px;">
+                                            <option value="">-- Batch A Staff --</option>
+                                            {% for staff in staff_members %}
+                                            <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                👤 {{ staff.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <label style="font-size: 0.68rem; color: #92400e; font-weight: 700; display: block; margin: 2px 0 0 0;">🅱️ Batch B Staff:</label>
+                                        <select name="staff_batch_b_id" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #fde68a; background: #fffbeb; border-radius: 4px;">
+                                            <option value="">-- Batch B Staff --</option>
+                                            {% for staff in staff_members %}
+                                            <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
+                                                👤 {{ staff.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <button type="submit" class="btn-small" style="width: 100%; margin-top: 2px;">Update Assignment</button>
                                 </form>
 
                                 <div class="subject-actions-mobile">
@@ -674,4 +753,21 @@
                 </div>
                 {% endif %}
                 {% endfor %}
+            </div>
+        </div>
+    </div>
+
+<script>
+function toggleAllocMode(subjId, mode) {
+    const singleWrap = document.getElementById('wrap_single_staff_' + subjId);
+    const dualWrap = document.getElementById('wrap_dual_staff_' + subjId);
+    if (mode === 'same') {
+        if (singleWrap) singleWrap.style.display = 'block';
+        if (dualWrap) dualWrap.style.display = 'none';
+    } else {
+        if (singleWrap) singleWrap.style.display = 'none';
+        if (dualWrap) dualWrap.style.display = 'flex';
+    }
+}
+</script>
 {% endblock %}
