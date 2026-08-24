@@ -236,10 +236,19 @@
         background: #eef2ff;
         border-color: #c7d2fe;
     }
+    .staff-check-item.is-checked {
+        background: #ecfdf5;
+        border-color: #A7F3D0;
+        color: #047857;
+    }
+    .staff-check-item.is-checked span {
+        font-weight: 700;
+        color: #047857;
+    }
     .staff-check-item input[type="checkbox"] {
         width: 16px;
         height: 16px;
-        accent-color: #6366f1;
+        accent-color: #10b981;
         cursor: pointer;
     }
     .staff-check-item span {
@@ -262,13 +271,16 @@
 
     .row-tools {
         display: flex;
+        align-items: center;
         gap: 6px;
         margin-top: 6px;
+        flex-wrap: wrap;
     }
     .btn-tiny {
-        padding: 2px 8px;
-        font-size: 0.72rem;
-        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        border-radius: 6px;
         border: 1px solid #cbd5e1;
         background: #ffffff;
         color: #475569;
@@ -277,6 +289,17 @@
     }
     .btn-tiny:hover {
         background: #e2e8f0;
+    }
+    .search-input-sm {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        width: 140px;
+        outline: none;
+    }
+    .search-input-sm:focus {
+        border-color: #6366f1;
     }
 
     .sticky-footer {
@@ -293,6 +316,50 @@
         justify-content: space-between;
         align-items: center;
         z-index: 100;
+    }
+
+    @media (max-width: 768px) {
+        .tasks-container {
+            padding: 0 10px;
+            margin: 12px auto;
+        }
+        .page-header {
+            padding: 16px 18px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .header-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+        .filter-bar {
+            padding: 12px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-input, .cat-select {
+            width: 100%;
+            min-width: unset;
+        }
+        .task-table-wrapper {
+            overflow-x: auto;
+        }
+        .staff-checkbox-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 6px;
+        }
+        .search-input-sm {
+            width: 100%;
+        }
+        .sticky-footer {
+            flex-direction: column;
+            gap: 10px;
+            text-align: center;
+        }
     }
 </style>
 
@@ -367,6 +434,7 @@
                                 <div class="row-tools">
                                     <button type="button" class="btn-tiny" onclick="selectAllInRow('task_{{ task.id }}', true)">Select All</button>
                                     <button type="button" class="btn-tiny" onclick="selectAllInRow('task_{{ task.id }}', false)">Clear All</button>
+                                    <input type="text" class="search-input-sm" placeholder="🔍 Filter staff..." onkeyup="filterStaffInRow({{ task.id }}, this.value)">
                                 </div>
                             </td>
                             <td>
@@ -375,12 +443,12 @@
                             <td>
                                 <div class="staff-checkbox-grid" id="grid_{{ task.id }}">
                                     {% for member in staff_members %}
-                                        <label class="staff-check-item">
+                                        <label class="staff-check-item {% if member in task.assigned_staff.all %}is-checked{% endif %}">
                                             <input type="checkbox" 
                                                    name="task_{{ task.id }}" 
                                                    value="{{ member.staff_id }}" 
                                                    {% if member in task.assigned_staff.all %}checked{% endif %}
-                                                   onchange="updateRowCount({{ task.id }})">
+                                                   onchange="toggleCheckState(this); updateRowCount({{ task.id }})">
                                             <span title="{{ member.name }} ({{ member.staff_id }})">{{ member.name }}</span>
                                         </label>
                                     {% endfor %}
@@ -397,7 +465,7 @@
 
         <div class="sticky-footer">
             <div>
-                <strong>💡 Tip:</strong> Checkboxes allow multiple staff members to be assigned to the same task/role.
+                <strong>💡 Tip:</strong> Checkboxes allow multiple staff members to be assigned to the same task/role. Use search to quickly find faculty.
             </div>
             <div>
                 <button type="submit" class="btn-action btn-save-main">
@@ -439,9 +507,36 @@
         const checkboxes = document.querySelectorAll(`input[name="${taskFieldName}"]`);
         checkboxes.forEach(cb => {
             cb.checked = checkState;
+            toggleCheckState(cb);
         });
         const taskId = taskFieldName.replace('task_', '');
         updateRowCount(taskId);
+    }
+
+    function toggleCheckState(cb) {
+        const parent = cb.closest('.staff-check-item');
+        if (parent) {
+            if (cb.checked) {
+                parent.classList.add('is-checked');
+            } else {
+                parent.classList.remove('is-checked');
+            }
+        }
+    }
+
+    function filterStaffInRow(taskId, query) {
+        query = query.toLowerCase().trim();
+        const grid = document.getElementById(`grid_${taskId}`);
+        if (!grid) return;
+        const items = grid.querySelectorAll('.staff-check-item');
+        items.forEach(item => {
+            const name = item.textContent.toLowerCase();
+            if (!query || name.includes(query)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     }
 
     function updateRowCount(taskId) {

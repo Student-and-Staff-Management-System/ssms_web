@@ -55,9 +55,12 @@
             
             <div class="tsw-card-top">
                 <div class="tsw-badges-left">
-                    <span class="tsw-period-badge">P{{ slot.period }}</span>
+                    <span class="tsw-period-badge">{% if slot.period_display %}{{ slot.period_display }}{% else %}P{{ slot.period }}{% endif %}</span>
                     {% if slot.semester %}
                     <span class="tsw-sem-badge">Sem {{ slot.semester }}</span>
+                    {% endif %}
+                    {% if slot.is_lab or slot.subject.subject_type == 'Lab' %}
+                    <span class="tsw-lab-badge" style="background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 3px;"><i class="ri-flask-line" style="font-size: 0.8rem;"></i> LAB</span>
                     {% endif %}
                 </div>
                 <span class="tsw-status-pill {% if slot.status == 'ongoing' %}tsw-pill-ongoing{% elif slot.status == 'done' %}{% if slot.is_marked %}tsw-pill-done{% else %}tsw-pill-unmarked{% endif %}{% else %}tsw-pill-upcoming{% endif %}">

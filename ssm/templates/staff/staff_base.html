@@ -495,8 +495,10 @@
 
         @media (max-width: 768px) {
             .header-top-row {
-                padding: 0 16px !important;
-                gap: 12px !important;
+                padding: 0 12px !important;
+                gap: 8px !important;
+                justify-content: space-between;
+                overflow-x: hidden;
             }
             .clock-badge {
                 display: none !important;
@@ -508,7 +510,27 @@
                 display: none !important;
             }
             .brand-title {
-                font-size: 0.95rem !important;
+                font-size: 0.88rem !important;
+                max-width: 140px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header-top-row {
+                padding: 0 10px !important;
+                gap: 6px !important;
+            }
+            .brand-title {
+                display: none !important;
+            }
+            .header-admin-btn {
+                padding: 6px 8px !important;
+            }
+            .header-admin-btn .admin-btn-text {
+                display: none !important;
             }
         }
 
@@ -565,9 +587,9 @@
 
                 {% with me=logged_in_staff %}
                 {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
-                <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" style="background: var(--primary-light); color: var(--primary-dark); border: 1px solid rgba(90, 125, 124, 0.3); text-decoration: none; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;" title="Open Admin Page">
+                <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" class="header-admin-btn" style="background: var(--primary-light); color: var(--primary-dark); border: 1px solid rgba(90, 125, 124, 0.3); text-decoration: none; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; flex-shrink: 0;" title="Open Admin Page">
                     <i class="ri-shield-keyhole-line" style="font-size: 0.95rem; color: var(--primary);"></i>
-                    <span>Admin Page</span>
+                    <span class="admin-btn-text">Admin Page</span>
                 </a>
                 {% endif %}
 
@@ -615,7 +637,7 @@
                 <i class="ri-microscope-line"></i> <span>Research & PhD</span>
             </button>
             {% with me=logged_in_staff %}
-            {% if me.is_staff_admin or me.is_timetable_incharge or me.is_office_staff %}
+            {% if me.is_hod or me.is_office_staff %}
             <button class="nav-tab-btn" data-tab="tab-admin" onclick="switchNavTab('tab-admin', this)">
                 <i class="ri-building-4-line"></i> <span>Department Admin</span>
             </button>
@@ -717,7 +739,7 @@
 
         <!-- Mega Menu Dropdown 4: Department Admin -->
         {% with me=logged_in_staff %}
-        {% if me.is_staff_admin or me.is_timetable_incharge or me.is_office_staff %}
+        {% if me.is_hod or me.is_office_staff %}
         <div class="mega-dropdown" id="tab-admin">
             <div class="mega-grid">
                 {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
@@ -822,14 +844,7 @@
             <div class="icon-wrap"><i class="ri-microscope-line"></i></div>
             <span>Research</span>
         </button>
-        {% with me=logged_in_staff %}
-        {% if me.is_staff_admin or me.is_timetable_incharge or me.is_office_staff %}
-        <button onclick="switchNavTab('tab-admin', this)" class="mobile-btn" data-tab="tab-admin">
-            <div class="icon-wrap"><i class="ri-building-4-line"></i></div>
-            <span>Admin</span>
-        </button>
-        {% endif %}
-        {% endwith %}
+
         <button onclick="switchNavTab('tab-all', this)" class="mobile-btn" data-tab="tab-all">
             <div class="icon-wrap"><i class="ri-apps-2-line"></i></div>
             <span>All Apps</span>
@@ -879,11 +894,7 @@
             }
         }
 
-        function switchTab(tabId, btnElement) {
-            if (tabId && tabId.startsWith && tabId.startsWith('tab-')) {
-                switchNavTab(tabId, btnElement);
-            }
-        }
+
 
         function switchDashboardTab(tabId, btnElement) {
             document.querySelectorAll('.dash-tab-content').forEach(content => {

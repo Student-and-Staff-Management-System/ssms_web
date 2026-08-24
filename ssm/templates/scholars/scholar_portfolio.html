@@ -564,11 +564,11 @@
         <!-- Pill Tab Navigation -->
         <div class="tab-scroll-wrapper">
             <div class="tab-wrapper">
-                <button class="tab-btn active" onclick="switchTab(event, 'tab-conferences')">🎤 Conferences</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-journals')">📰 Journals</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-books')">📚 Books</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-memberships')">🏅 Memberships</button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-awards')">🏆 Awards & More</button>
+                <button class="tab-btn active" onclick="switchScholarPortfolioTab(event, 'tab-conferences')">🎤 Conferences</button>
+                <button class="tab-btn" onclick="switchScholarPortfolioTab(event, 'tab-journals')">📰 Journals</button>
+                <button class="tab-btn" onclick="switchScholarPortfolioTab(event, 'tab-books')">📚 Books</button>
+                <button class="tab-btn" onclick="switchScholarPortfolioTab(event, 'tab-memberships')">🏅 Memberships</button>
+                <button class="tab-btn" onclick="switchScholarPortfolioTab(event, 'tab-awards')">🏆 Awards & More</button>
             </div>
         </div>
 
@@ -907,11 +907,12 @@
 
     <script>
         /* ── Tab switching – persists via URL hash ── */
-        function switchTab(evt, panelId) {
+        function switchScholarPortfolioTab(evt, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(panelId).classList.add('active');
-            evt.currentTarget.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+            if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
             // Store active tab in hash so it survives reload
             history.replaceState(null, '', '#' + panelId);
         }

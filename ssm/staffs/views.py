@@ -281,16 +281,43 @@ def staff_dashboard(request):
             7: ('15:30', '16:30'),
         }
         now_time = timezone.now().time()
-        seen_periods = set()
+
+        # Group contiguous timetable entries for the same subject
+        grouped_entries = []
         for entry in today_tt_entries:
-            if entry.period in seen_periods:
+            if not entry.subject:
+                grouped_entries.append([entry])
                 continue
-            seen_periods.add(entry.period)
-            times = PERIOD_TIMES.get(entry.period, ('--', '--'))
+            
+            if grouped_entries and grouped_entries[-1][0].subject and grouped_entries[-1][0].subject.id == entry.subject.id:
+                prev_group = grouped_entries[-1]
+                last_period = prev_group[-1].period
+                if entry.period == last_period + 1:
+                    prev_group.append(entry)
+                    continue
+            
+            grouped_entries.append([entry])
+
+        for group in grouped_entries:
+            first_entry = group[0]
+            last_entry = group[-1]
+            first_period = first_entry.period
+            last_period = last_entry.period
+
+            if len(group) == 1:
+                period_display = f"P{first_period}"
+            else:
+                period_display = f"P{first_period}–P{last_period}"
+
+            times_first = PERIOD_TIMES.get(first_period, ('--', '--'))
+            times_last = PERIOD_TIMES.get(last_period, ('--', '--'))
+            start_str = times_first[0]
+            end_str = times_last[1]
+
             start_t = None
             try:
-                start_t = datetime.time(int(times[0][:2]), int(times[0][3:]))
-                end_t   = datetime.time(int(times[1][:2]), int(times[1][3:]))
+                start_t = datetime.time(int(start_str[:2]), int(start_str[3:]))
+                end_t   = datetime.time(int(end_str[:2]), int(end_str[3:]))
                 if now_time < start_t:
                     status = 'upcoming'
                 elif start_t <= now_time <= end_t:
@@ -300,28 +327,47 @@ def staff_dashboard(request):
             except Exception:
                 status = 'upcoming'
 
-            # Check if attendance has been marked for this slot/subject
+            subject = first_entry.subject
+            is_lab = False
+            if subject:
+                s_type = getattr(subject, 'subject_type', '')
+                code_upper = (subject.code or '').upper()
+                name_upper = (subject.name or '').upper()
+                if s_type == 'Lab' or getattr(subject, 'lab', None) is not None or 'LAB' in name_upper or 'PRACTICAL' in name_upper or 'LAB' in code_upper or 'CP' in code_upper:
+                    is_lab = True
+
+            batch = first_entry.batch
+            if subject and is_lab:
+                if subject.staff == staff and subject.staff_batch_b and subject.staff_batch_b != staff:
+                    batch = 'A'
+                elif subject.staff_batch_b == staff and subject.staff != staff:
+                    batch = 'B'
+                elif subject.assigned_batch in ['A', 'B']:
+                    batch = subject.assigned_batch
+
             is_marked = False
-            if entry.subject:
-                if (entry.subject.id, start_t) in attendance_set:
+            if subject:
+                if (subject.id, start_t) in attendance_set:
                     is_marked = True
-                elif (entry.subject.id, None) in attendance_set:
+                elif (subject.id, None) in attendance_set:
                     is_marked = True
-                elif any(rec_s_id == entry.subject.id for (rec_s_id, rec_time) in attendance_set if rec_time is None):
+                elif any(rec_s_id == subject.id for (rec_s_id, rec_time) in attendance_set if rec_time is None):
                     is_marked = True
 
             if status == 'done' and not is_marked:
                 unmarked_done_count += 1
 
             today_schedule.append({
-                'period': entry.period,
-                'subject': entry.subject,
-                'batch': entry.batch,
-                'semester': entry.semester,
-                'start': times[0],
-                'end': times[1],
+                'period': first_period,
+                'period_display': period_display,
+                'subject': subject,
+                'batch': batch,
+                'semester': first_entry.semester,
+                'start': start_str,
+                'end': end_str,
                 'status': status,
                 'is_marked': is_marked,
+                'is_lab': is_lab,
             })
 
     has_unmarked_done = (unmarked_done_count > 0)
@@ -1741,9 +1787,29 @@ def manage_attendance(request, subject_id):
     today_periods = []
     current_period = None
 
+    # Group contiguous timetable entries for the subject
+    grouped_tt = []
     for entry in tt_entries:
-        times = PERIOD_TIMES.get(entry.period, ('--', '--'))
-        start_str, end_str = times
+        if grouped_tt and grouped_tt[-1][-1].period == entry.period - 1:
+            grouped_tt[-1].append(entry)
+        else:
+            grouped_tt.append([entry])
+
+    for grp in grouped_tt:
+        first_p = grp[0].period
+        last_p = grp[-1].period
+        times_first = PERIOD_TIMES.get(first_p, ('--', '--'))
+        times_last = PERIOD_TIMES.get(last_p, ('--', '--'))
+        start_str = times_first[0]
+        end_str = times_last[1]
+
+        if len(grp) == 1:
+            badge_str = f"P{first_p}"
+            label_str = f"P{first_p} ({start_str}–{end_str})"
+        else:
+            badge_str = f"P{first_p}–P{last_p}"
+            label_str = f"P{first_p}–P{last_p} ({start_str}–{end_str})"
+
         try:
             start_t = datetime.datetime.strptime(start_str, '%H:%M').time()
         except ValueError:
@@ -1769,27 +1835,35 @@ def manage_attendance(request, subject_id):
             p_badge = "⚠️ Unmarked"
             p_class = "unmarked"
 
-        is_sel = (prefill_time == start_str)
+        is_sel = False
+        if prefill_time:
+            if prefill_end_time:
+                is_sel = (prefill_time == start_str and prefill_end_time == end_str) or (prefill_time == start_str)
+            else:
+                is_sel = (prefill_time == start_str)
+
         p_url = f"?date={formatted_date}&time={start_str}&end_time={end_str}"
-        if entry.batch in ['A', 'B']:
-            p_url += f"&batch={entry.batch}"
+        first_batch = grp[0].batch
+        if first_batch in ['A', 'B']:
+            p_url += f"&batch={first_batch}"
         elif selected_batch in ['A', 'B']:
             p_url += f"&batch={selected_batch}"
 
         p_info = {
-            'period': entry.period,
-            'badge': f"P{entry.period}",
-            'label': f"P{entry.period} ({start_str}–{end_str})",
+            'period': first_p,
+            'last_period': last_p,
+            'badge': badge_str,
+            'label': label_str,
             'start': start_str,
             'end': end_str,
-            'batch': entry.batch,
+            'batch': first_batch,
             'is_selected': is_sel,
             'status_badge': p_badge,
             'status_class': p_class,
             'url': p_url
         }
         today_periods.append(p_info)
-        if is_sel:
+        if is_sel and not current_period:
             current_period = p_info
 
     if not current_period and prefill_time:
@@ -1799,12 +1873,13 @@ def manage_attendance(request, subject_id):
                 current_period = p
                 break
         if not current_period:
+            disp_end = prefill_end_time or '--'
             current_period = {
                 'period': None,
                 'badge': 'Extra',
-                'label': f"Extra Class ({prefill_time}–{prefill_end_time or '--'})",
+                'label': f"Extra Class ({prefill_time}–{disp_end})",
                 'start': prefill_time,
-                'end': prefill_end_time or '--',
+                'end': disp_end,
                 'is_selected': True,
                 'status_badge': '',
                 'status_class': ''
@@ -1814,6 +1889,10 @@ def manage_attendance(request, subject_id):
         current_period = today_periods[0]
         prefill_time = current_period['start']
         prefill_end_time = current_period['end']
+
+    if current_period and prefill_end_time and current_period.get('end') != prefill_end_time:
+        current_period['end'] = prefill_end_time
+        current_period['label'] = f"{current_period['badge']} ({current_period['start']}–{prefill_end_time})"
 
     if is_upcoming:
         is_readonly = True

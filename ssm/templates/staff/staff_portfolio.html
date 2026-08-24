@@ -1293,43 +1293,43 @@
         <!-- Pill Tab Navigation (Zero Scroll, Always Visible Grid) -->
         <div class="tab-scroll-wrapper">
             <div class="tab-wrapper">
-                <button class="tab-btn active" onclick="switchTab(event, 'tab-conferences')">
+                <button class="tab-btn active" onclick="switchPortfolioTab(event, 'tab-conferences')">
                     <span class="tab-icon">🎤</span>
                     <span class="tab-label">Conferences</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-journals')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-journals')">
                     <span class="tab-icon">📰</span>
                     <span class="tab-label">Journals</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-books')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-books')">
                     <span class="tab-icon">📚</span>
                     <span class="tab-label">Books</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-patents')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-patents')">
                     <span class="tab-icon">🔬</span>
                     <span class="tab-label">Patents</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-guidance')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-guidance')">
                     <span class="tab-icon">🧑‍🏫</span>
                     <span class="tab-label">PhD Guidance</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-qualifications')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-qualifications')">
                     <span class="tab-icon">🎓</span>
                     <span class="tab-label">Qualifications</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-designations')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-designations')">
                     <span class="tab-icon">💼</span>
                     <span class="tab-label">Designations</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-memberships')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-memberships')">
                     <span class="tab-icon">🏅</span>
                     <span class="tab-label">Memberships</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-research-projects')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-research-projects')">
                     <span class="tab-icon">🧪</span>
                     <span class="tab-label">Projects</span>
                 </button>
-                <button class="tab-btn" onclick="switchTab(event, 'tab-awards')">
+                <button class="tab-btn" onclick="switchPortfolioTab(event, 'tab-awards')">
                     <span class="tab-icon">🏆</span>
                     <span class="tab-label">Awards & More</span>
                 </button>
@@ -2448,11 +2448,12 @@
 
     <script>
         /* ── Tab switching – persists via URL hash ── */
-        function switchTab(evt, panelId) {
+        function switchPortfolioTab(evt, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(panelId).classList.add('active');
-            evt.currentTarget.classList.add('active');
+            const target = document.getElementById(panelId);
+            if (target) target.classList.add('active');
+            if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
             // Store active tab in hash so it survives reload
             history.replaceState(null, '', '#' + panelId);
         }

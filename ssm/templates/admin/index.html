@@ -1,0 +1,408 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+<style>
+    /* Classic Site Theme Custom Admin Dashboard */
+    :root {
+        --site-primary: #5a7d7c;
+        --site-primary-dark: #4a6b69;
+        --site-primary-light: #eef2f2;
+        --site-bg: #f8fafc;
+        --site-surface: #ffffff;
+        --site-border: #e2e8f0;
+        --site-text: #0f172a;
+    }
+
+    body {
+        background-color: var(--site-bg) !important;
+        font-family: 'Poppins', system-ui, -apple-system, sans-serif !important;
+    }
+
+    .admin-dash-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 20px 24px 40px;
+    }
+
+    /* Minimalist Top Header Row in Classic Theme */
+    .admin-minimal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px;
+        background: #ffffff;
+        border: 1px solid var(--site-border);
+        border-radius: 16px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .admin-header-title, h1.admin-header-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--site-primary-dark) !important;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-sub-text {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+    .btn-return-portal, a.btn-return-portal {
+        background: var(--site-primary-light) !important;
+        color: var(--site-primary-dark) !important;
+        border: 1px solid rgba(90, 125, 124, 0.3) !important;
+        padding: 9px 18px !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .btn-return-portal:hover, a.btn-return-portal:hover {
+        background: var(--site-primary) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25) !important;
+    }
+
+    /* Quick Dashboard Stats Bar for Desktop */
+    .admin-stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .stat-pill-card {
+        background: #ffffff;
+        border: 1px solid var(--site-border);
+        border-radius: 14px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+
+    .stat-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--site-primary-light);
+        color: var(--site-primary-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .stat-val {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--site-text);
+        line-height: 1.1;
+    }
+
+    .stat-lbl {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    /* Grid Layout for Apps on Desktop (2-Column / 3-Column Fluid Grid) */
+    .admin-apps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+        gap: 22px;
+        width: 100%;
+    }
+
+    .admin-app-card {
+        background: #ffffff;
+        border: 1px solid var(--site-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s ease;
+    }
+
+    .admin-app-card:hover {
+        box-shadow: 0 8px 24px rgba(90, 125, 124, 0.14);
+        border-color: rgba(90, 125, 124, 0.4);
+    }
+
+    .admin-app-card-header {
+        background: var(--site-primary-light);
+        border-bottom: 1px solid rgba(90, 125, 124, 0.2);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .admin-app-card-title, h2.admin-app-card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--site-primary-dark) !important;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .admin-app-count {
+        background: rgba(90, 125, 124, 0.15);
+        color: var(--site-primary-dark) !important;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+
+    .admin-models-list {
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .admin-model-row {
+        background: #ffffff;
+        border: 1px solid var(--site-border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        transition: all 0.15s ease;
+    }
+
+    .admin-model-row:hover {
+        border-color: var(--site-primary);
+        box-shadow: 0 4px 12px rgba(90, 125, 124, 0.08);
+    }
+
+    .admin-model-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .admin-model-name, a.admin-model-name {
+        font-weight: 600 !important;
+        font-size: 0.92rem !important;
+        color: var(--site-text) !important;
+        text-decoration: none !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .admin-model-name:hover, a.admin-model-name:hover {
+        color: var(--site-primary) !important;
+    }
+
+    .admin-model-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    /* Classic Site Primary Button (+ Add) */
+    .btn-adm-add, a.btn-adm-add {
+        background: var(--site-primary) !important;
+        color: #ffffff !important;
+        border: 1px solid var(--site-primary-dark) !important;
+        padding: 7px 16px !important;
+        border-radius: 8px !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px;
+        transition: all 0.15s ease !important;
+    }
+
+    .btn-adm-add:hover, a.btn-adm-add:hover {
+        background: var(--site-primary-dark) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(90, 125, 124, 0.25) !important;
+    }
+
+    /* Classic Site Light Secondary Button (Manage →) */
+    .btn-adm-change, a.btn-adm-change {
+        background: var(--site-primary-light) !important;
+        color: var(--site-primary-dark) !important;
+        border: 1px solid rgba(90, 125, 124, 0.3) !important;
+        padding: 7px 16px !important;
+        border-radius: 8px !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px;
+        transition: all 0.15s ease !important;
+    }
+
+    .btn-adm-change:hover, a.btn-adm-change:hover {
+        background: var(--site-primary) !important;
+        color: #ffffff !important;
+        border-color: var(--site-primary-dark) !important;
+    }
+
+    /* Mobile Layout */
+    @media (max-width: 768px) {
+        .admin-dash-container {
+            padding: 10px;
+        }
+
+        .admin-minimal-header {
+            padding: 14px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .btn-return-portal {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .admin-apps-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .admin-model-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .admin-model-actions {
+            width: 100%;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-adm-add, .btn-adm-change, a.btn-adm-add, a.btn-adm-change {
+            flex: 1;
+            justify-content: center;
+            padding: 10px 12px !important;
+            font-size: 0.85rem !important;
+            min-height: 42px;
+        }
+    }
+</style>
+
+<div class="admin-dash-container">
+    <!-- Minimalist Top Header in Site Theme -->
+    <div class="admin-minimal-header">
+        <div>
+            <h1 class="admin-header-title">🛡️ System Administration Console</h1>
+            <div class="header-sub-text">Annamalai University • Staff & Department Management Hub</div>
+        </div>
+        <a href="{% url 'staffs:staff_dashboard' %}" class="btn-return-portal">
+            ← Return to Staff Portal
+        </a>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div class="admin-stats-bar">
+        <div class="stat-pill-card">
+            <div class="stat-icon-wrap"><i class="ri-folder-shield-line"></i></div>
+            <div>
+                <div class="stat-val">{{ app_list|length }}</div>
+                <div class="stat-lbl">Application Modules</div>
+            </div>
+        </div>
+        <div class="stat-pill-card">
+            <div class="stat-icon-wrap"><i class="ri-database-2-line"></i></div>
+            <div>
+                <div class="stat-val" id="totalModelCount">--</div>
+                <div class="stat-lbl">Active Database Tables</div>
+            </div>
+        </div>
+        <div class="stat-pill-card">
+            <div class="stat-icon-wrap"><i class="ri-shield-keyhole-line"></i></div>
+            <div>
+                <div class="stat-val">Active</div>
+                <div class="stat-lbl">Admin Session Status</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Cards Grid (Fluid Multi-Column Desktop Grid) -->
+    <div class="admin-apps-grid">
+        {% for app in app_list %}
+        <div class="admin-app-card">
+            <div class="admin-app-card-header">
+                <h2 class="admin-app-card-title">
+                    <i class="ri-folder-3-line"></i> {{ app.name }}
+                </h2>
+                <span class="admin-app-count">{{ app.models|length }} Table{{ app.models|length|pluralize }}</span>
+            </div>
+            <div class="admin-models-list">
+                {% for model in app.models %}
+                <div class="admin-model-row">
+                    <div class="admin-model-info">
+                        <i class="ri-file-list-3-line" style="color: var(--site-primary); font-size: 1.05rem;"></i>
+                        <a href="{{ model.admin_url }}" class="admin-model-name" title="{{ model.name }}">{{ model.name }}</a>
+                    </div>
+                    <div class="admin-model-actions">
+                        {% if model.add_url %}
+                        <a href="{{ model.add_url }}" class="btn-adm-add" title="Add new {{ model.name }}">+ Add</a>
+                        {% endif %}
+                        {% if model.admin_url %}
+                        <a href="{{ model.admin_url }}" class="btn-adm-change" title="Manage {{ model.name }}">Manage →</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; background: white; padding: 30px; text-align: center; border-radius: 12px; color: #64748b;">
+            No database models available for management.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const rows = document.querySelectorAll('.admin-model-row');
+        const totalEl = document.getElementById('totalModelCount');
+        if (totalEl) {
+            totalEl.textContent = rows.length;
+        }
+    });
+</script>
+{% endblock %}
