@@ -2780,6 +2780,30 @@ def assign_lab_batches(request):
         'semesters': range(1, 9),
     })
 
+SPECIAL_SLOT_SPECS = {
+    'LAB_SESSION': {'name': '3-Hr Lab Session', 'type': 'Lab'},
+    'LAB_SESSION_2H': {'name': '2-Hr Lab Session', 'type': 'Lab'},
+    'NAAN_MUDHALVAN': {'name': 'Naan Mudhalvan Skill Course', 'type': 'Theory'},
+    'PLACEMENT': {'name': 'Placement & Training', 'type': 'Theory'},
+    'LIBRARY': {'name': 'Library / Self-Study', 'type': 'Theory'},
+}
+
+def get_or_create_special_subject(code, semester):
+    if not code or code not in SPECIAL_SLOT_SPECS:
+        return None
+    spec = SPECIAL_SLOT_SPECS[code]
+    from .models import Subject
+    subj, _ = Subject.objects.get_or_create(
+        code=code,
+        semester=semester,
+        defaults={
+            'name': spec['name'],
+            'subject_type': spec['type'],
+            'credits': 2 if ('2H' in code or code in ['NAAN_MUDHALVAN', 'PLACEMENT', 'LIBRARY']) else 3
+        }
+    )
+    return subj
+
 def edit_timetable(request, semester):
     """View to edit weekly timetable. Restricted to HOD."""
     if 'staff_id' not in request.session:
@@ -2817,17 +2841,18 @@ def edit_timetable(request, semester):
         
     if request.method == 'POST':
         from .utils import send_staff_notification
-        from django.db import transaction
+        from django.db import transaction, IntegrityError
         VIRTUAL_SLOTS = ['LAB_SESSION', 'LAB_SESSION_2H', 'NAAN_MUDHALVAN', 'PLACEMENT', 'LIBRARY']
         MORNING_LAB_BLOCKS = [(1, 2, 3), (2, 3, 4)]
         AFTERNOON_LAB_BLOCK = (5, 6, 7)
-        
+
         lab_subject_ids = set(str(sid) for sid in Subject.objects.filter(semester=semester, subject_type='Lab').values_list('id', flat=True))
+        lab_subject_codes = set(Subject.objects.filter(semester=semester, subject_type='Lab').values_list('code', flat=True))
 
         def is_3hr_lab(val):
             if not val:
                 return False
-            return val == 'LAB_SESSION' or val in lab_subject_ids
+            return val == 'LAB_SESSION' or val in lab_subject_ids or val in lab_subject_codes
 
         def is_2hr_slot(val):
             if not val:
@@ -2841,30 +2866,25 @@ def edit_timetable(request, semester):
             for period in periods:
                 post_grid[day][period] = (request.POST.get(f'subject_{day}_{period}') or '').strip()
 
-        # Apply 3-hour propagation for 3-hour labs (explicit Lab subject or LAB_SESSION)
+        # Apply 3-hour propagation for 3-hour labs
         for day in days:
-            # Morning Lab Block 1: P1 -> P1, P2, P3
             if is_3hr_lab(post_grid[day][1]):
                 if not post_grid[day][2] or is_3hr_lab(post_grid[day][2]):
                     post_grid[day][2] = post_grid[day][1]
                 if not post_grid[day][3] or is_3hr_lab(post_grid[day][3]):
                     post_grid[day][3] = post_grid[day][1]
-
-            # Morning Lab Block 2: P2 -> P2, P3, P4
             elif is_3hr_lab(post_grid[day][2]):
                 if not post_grid[day][3] or is_3hr_lab(post_grid[day][3]):
                     post_grid[day][3] = post_grid[day][2]
                 if not post_grid[day][4] or is_3hr_lab(post_grid[day][4]):
                     post_grid[day][4] = post_grid[day][2]
 
-            # Afternoon Lab Block: P5 -> P5, P6, P7
             if is_3hr_lab(post_grid[day][5]):
                 if not post_grid[day][6] or is_3hr_lab(post_grid[day][6]):
                     post_grid[day][6] = post_grid[day][5]
                 if not post_grid[day][7] or is_3hr_lab(post_grid[day][7]):
                     post_grid[day][7] = post_grid[day][5]
 
-            # 2-Hour Slot Propagation (2-Hr Lab, Naan Mudhalvan, Placement, Library)
             for p in range(1, 7):
                 v = post_grid[day][p]
                 if is_2hr_slot(v):
@@ -2872,14 +2892,21 @@ def edit_timetable(request, semester):
                     if nxt <= 7 and (not post_grid[day][nxt] or is_2hr_slot(post_grid[day][nxt])):
                         post_grid[day][nxt] = v
 
+        def resolve_subject_obj(s_val):
+            if not s_val:
+                return None
+            if s_val in VIRTUAL_SLOTS:
+                return get_or_create_special_subject(s_val, semester)
+            return Subject.objects.filter(id=s_val).first() or Subject.objects.filter(code=s_val, semester=semester).first()
+
         with transaction.atomic():
             for day in days:
                 for period in periods:
                     sub_val = post_grid[day][period]
-                    lab_a_val = request.POST.get(f'lab_a_{day}_{period}')
-                    lab_b_val = request.POST.get(f'lab_b_{day}_{period}')
-                    
-                    if sub_val == 'LAB_SESSION' and (not lab_a_val or not lab_b_val):
+                    lab_a_val = request.POST.get(f'lab_a_{day}_{period}', '').strip()
+                    lab_b_val = request.POST.get(f'lab_b_{day}_{period}', '').strip()
+
+                    if sub_val in ['LAB_SESSION', 'LAB_SESSION_2H'] and (not lab_a_val or not lab_b_val):
                         related_periods = []
                         for block in MORNING_LAB_BLOCKS + [AFTERNOON_LAB_BLOCK]:
                             if period in block:
@@ -2887,37 +2914,31 @@ def edit_timetable(request, semester):
                                 break
                         for p in related_periods:
                             if not lab_a_val:
-                                lab_a_val = request.POST.get(f'lab_a_{day}_{p}') or lab_a_val
+                                lab_a_val = request.POST.get(f'lab_a_{day}_{p}', '').strip() or lab_a_val
                             if not lab_b_val:
-                                lab_b_val = request.POST.get(f'lab_b_{day}_{p}') or lab_b_val
-                    
-                    # Fetch existing entries for all batches for this academic year
-                    entries = list(Timetable.objects.filter(academic_year=selected_academic_year, semester=semester, day=day, period=period))
-                    
-                    # Helper to manage creation/update of a batch entry
-                    def handle_batch_entry(batch_val, subj_id, virtual_sub=None):
-                        batch_entry = next((e for e in entries if e.batch == batch_val), None)
-                        
-                        if virtual_sub:
-                            b_subject = None
-                            b_staff = None
-                        else:
-                            b_subject = Subject.objects.filter(id=subj_id).first() if subj_id else None
-                            if b_subject:
-                                if batch_val == 'B' and b_subject.staff_batch_b:
-                                    b_staff = b_subject.staff_batch_b
-                                else:
-                                    b_staff = b_subject.staff
-                            else:
-                                b_staff = None
+                                lab_b_val = request.POST.get(f'lab_b_{day}_{p}', '').strip() or lab_b_val
 
-                        if not b_subject and not virtual_sub:
+                    entries = list(Timetable.objects.filter(academic_year=selected_academic_year, semester=semester, day=day, period=period))
+
+                    def handle_batch_entry(batch_val, s_val):
+                        batch_entry = next((e for e in entries if e.batch == batch_val), None)
+                        b_subject = resolve_subject_obj(s_val)
+
+                        if b_subject:
+                            if batch_val == 'B' and b_subject.staff_batch_b:
+                                b_staff = b_subject.staff_batch_b
+                            else:
+                                b_staff = b_subject.staff
+                        else:
+                            b_staff = None
+
+                        if not b_subject:
                             if batch_entry and batch_entry.pk is not None:
                                 if batch_entry.staff:
                                     send_staff_notification(batch_entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
                                 batch_entry.delete()
                             return
-                        
+
                         if batch_entry:
                             changed = False
                             old_staff = batch_entry.staff
@@ -2927,11 +2948,11 @@ def edit_timetable(request, semester):
                             if batch_entry.staff != b_staff:
                                 batch_entry.staff = b_staff
                                 changed = True
-                            
+
                             if changed:
                                 batch_entry.save()
                                 if b_staff and old_staff != b_staff:
-                                    send_staff_notification(b_staff, "📅 Timetable Updated", f"You've been assigned {b_subject.code if b_subject else 'a class'} on {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
+                                    send_staff_notification(b_staff, "📅 Timetable Updated", f"You've been assigned {b_subject.code} on {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
                                 if old_staff and old_staff != b_staff:
                                     send_staff_notification(old_staff, "📅 Timetable Updated", f"You are no longer assigned to {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
                         else:
@@ -2946,30 +2967,27 @@ def edit_timetable(request, semester):
                                     batch=batch_val
                                 )
                                 if b_staff:
-                                    send_staff_notification(b_staff, "📅 Timetable Assigned", f"You have been assigned {b_subject.code if b_subject else 'a class'} on {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
+                                    send_staff_notification(b_staff, "📅 Timetable Assigned", f"You have been assigned {b_subject.code} on {day} Period {period} (Batch {batch_val}).", url="/staffs/my-timetable/")
                             except IntegrityError:
                                 pass
 
                     if current_batch == 'All':
-                        if sub_val == 'LAB_SESSION':
-                            if not lab_a_val and not lab_b_val and any(e.batch in ['A', 'B'] for e in entries):
-                                continue
-
+                        if sub_val in ['LAB_SESSION', 'LAB_SESSION_2H'] and (lab_a_val or lab_b_val):
                             for entry in entries:
                                 if entry.batch == 'All' and entry.pk is not None:
                                     if entry.staff:
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
                                     entry.delete()
-                            
-                            handle_batch_entry('A', lab_a_val)
-                            handle_batch_entry('B', lab_b_val)
+
+                            handle_batch_entry('A', lab_a_val or sub_val)
+                            handle_batch_entry('B', lab_b_val or sub_val)
                         else:
                             for entry in entries:
                                 if entry.batch in ['A', 'B'] and entry.pk is not None:
                                     if entry.staff:
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {entry.batch}).", url="/staffs/my-timetable/")
                                     entry.delete()
-                            
+
                             if not sub_val:
                                 for entry in entries:
                                     if entry.pk is not None:
@@ -2977,10 +2995,7 @@ def edit_timetable(request, semester):
                                             send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period}.", url="/staffs/my-timetable/")
                                         entry.delete()
                             else:
-                                virt_lbl = sub_val if sub_val in VIRTUAL_SLOTS else None
-                                subj_id_to_use = None if virt_lbl else sub_val
-                                handle_batch_entry('All', subj_id_to_use, virtual_sub=virt_lbl)
-                                
+                                handle_batch_entry('All', sub_val)
                     else:
                         if not sub_val:
                             for entry in entries:
@@ -2989,15 +3004,12 @@ def edit_timetable(request, semester):
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {current_batch}).", url="/staffs/my-timetable/")
                                     entry.delete()
                         else:
-                            virt_lbl = sub_val if sub_val in VIRTUAL_SLOTS else None
-                            subj_id_to_use = None if virt_lbl else sub_val
-                            
-                            b_subject = Subject.objects.filter(id=subj_id_to_use).first() if subj_id_to_use else None
+                            b_subject = resolve_subject_obj(sub_val)
                             if current_batch == 'B':
                                 b_staff = (b_subject.staff_batch_b or b_subject.staff) if b_subject else None
                             else:
                                 b_staff = b_subject.staff if b_subject else None
-                            
+
                             all_entry = next((e for e in entries if e.batch == 'All'), None)
                             if all_entry:
                                 other_batch = 'B' if current_batch == 'A' else 'A'
@@ -3011,7 +3023,7 @@ def edit_timetable(request, semester):
                                     batch=other_batch
                                 )
                                 all_entry.delete()
-                                
+
                             Timetable.objects.update_or_create(
                                 academic_year=selected_academic_year,
                                 semester=semester,
@@ -3020,7 +3032,11 @@ def edit_timetable(request, semester):
                                 batch=current_batch,
                                 defaults={'subject': b_subject, 'staff': b_staff}
                             )
-                                
+
+        # Sync published timetable version snapshot if entries are published or active version exists
+        if Timetable.objects.filter(academic_year=selected_academic_year, semester=semester, is_published=True).exists() or PublishedTimetableVersion.objects.filter(academic_year=selected_academic_year, semester=semester, is_active=True).exists():
+            create_timetable_version_snapshot(selected_academic_year, semester, staff)
+
         messages.success(request, f'Draft timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
         return redirect(f'/staffs/hod/published-timetables/?semester={semester}&academic_year={selected_academic_year}&tab=edit')
         
@@ -3301,10 +3317,14 @@ def hod_published_timetables(request):
                     to_date=to_date_val
                 )
                 from .models import PublishedTimetableVersion
-                PublishedTimetableVersion.objects.filter(academic_year=selected_academic_year, semester=selected_semester, is_active=True).update(
-                    from_date=from_date_val,
-                    to_date=to_date_val
-                )
+                active_vers = PublishedTimetableVersion.objects.filter(academic_year=selected_academic_year, semester=selected_semester, is_active=True)
+                if active_vers.exists():
+                    active_vers.update(
+                        from_date=from_date_val,
+                        to_date=to_date_val
+                    )
+                else:
+                    create_timetable_version_snapshot(selected_academic_year, selected_semester, staff, from_date_val=from_date_val, to_date_val=to_date_val)
                 messages.success(request, f"Effective Date Range updated for Semester {selected_semester}: From {from_date_val.strftime('%d-%b-%Y')} to {to_date_val.strftime('%d-%b-%Y')}.")
                 return redirect(f"/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=master")
 
@@ -3549,6 +3569,7 @@ def hod_published_timetables(request):
             'staff_b': subj.staff_batch_b.name if subj.staff_batch_b else '—',
             'location': subj.get_location_display() if hasattr(subj, 'get_location_display') else ''
         }
+        subject_staff_map[subj.code] = subject_staff_map[str(subj.id)]
 
     edit_timetable_data = {day: [None]*7 for day in days}
     if selected_batch == 'All':

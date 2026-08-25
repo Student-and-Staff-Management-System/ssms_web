@@ -561,15 +561,15 @@
         <thead>
           <tr>
             <th class="day-col">Day</th>
-            <th>P1 (09:00-10:00)</th>
-            <th>P2 (10:00-11:00)</th>
+            <th>P1 (08:30–09:30)</th>
+            <th>P2 (09:30–10:30)</th>
             <th class="break-col">TEA BREAK</th>
-            <th>P3 (11:15-12:15)</th>
-            <th>P4 (12:15-01:15)</th>
+            <th>P3 (10:40–11:40)</th>
+            <th>P4 (11:40–12:40)</th>
             <th class="break-col">LUNCH BREAK</th>
-            <th>P5 (02:00-03:00)</th>
-            <th>P6 (03:00-04:00)</th>
-            <th>P7 (04:00-05:00)</th>
+            <th>P5 (01:30–02:30)</th>
+            <th>P6 (02:30–03:30)</th>
+            <th>P7 (03:30–04:30)</th>
           </tr>
         </thead>
         <tbody>
@@ -1290,13 +1290,15 @@
           <thead>
             <tr>
               <th style="width: 9%; background: #e2e8f0; color: #1e293b;">Day \ Time</th>
-              <th style="width: 13%;">P1<br><span style="font-size:0.7rem; font-weight:normal;">08:30–09:30</span></th>
-              <th style="width: 13%;">P2<br><span style="font-size:0.7rem; font-weight:normal;">09:30–10:30</span></th>
-              <th style="width: 13%;">P3<br><span style="font-size:0.7rem; font-weight:normal;">10:40–11:40</span></th>
-              <th style="width: 13%;">P4<br><span style="font-size:0.7rem; font-weight:normal;">11:40–12:40</span></th>
-              <th style="width: 13%;">P5<br><span style="font-size:0.7rem; font-weight:normal;">01:30–02:30</span></th>
-              <th style="width: 13%;">P6<br><span style="font-size:0.7rem; font-weight:normal;">02:30–03:30</span></th>
-              <th style="width: 13%;">P7<br><span style="font-size:0.7rem; font-weight:normal;">03:30–04:30</span></th>
+              <th style="width: 11%;">P1<br><span style="font-size:0.7rem; font-weight:normal;">08:30–09:30</span></th>
+              <th style="width: 11%;">P2<br><span style="font-size:0.7rem; font-weight:normal;">09:30–10:30</span></th>
+              <th style="width: 4%; background: #fffbeb; color: #b45309; text-align: center; vertical-align: middle; font-size: 0.72rem; font-weight: 700; writing-mode: vertical-rl; letter-spacing: 1px;">TEA BREAK</th>
+              <th style="width: 11%;">P3<br><span style="font-size:0.7rem; font-weight:normal;">10:40–11:40</span></th>
+              <th style="width: 11%;">P4<br><span style="font-size:0.7rem; font-weight:normal;">11:40–12:40</span></th>
+              <th style="width: 4%; background: #fffbeb; color: #b45309; text-align: center; vertical-align: middle; font-size: 0.72rem; font-weight: 700; writing-mode: vertical-rl; letter-spacing: 1px;">LUNCH BREAK</th>
+              <th style="width: 11%;">P5<br><span style="font-size:0.7rem; font-weight:normal;">01:30–02:30</span></th>
+              <th style="width: 11%;">P6<br><span style="font-size:0.7rem; font-weight:normal;">02:30–03:30</span></th>
+              <th style="width: 11%;">P7<br><span style="font-size:0.7rem; font-weight:normal;">03:30–04:30</span></th>
             </tr>
           </thead>
           <tbody>
@@ -1317,16 +1319,16 @@
                 <select name="subject_{{ day }}_{{ period }}" id="sel_{{ day }}_{{ period }}" class="tt-grid-select" data-day="{{ day }}" data-period="{{ period }}" onchange="handleGridSelectChange('{{ day }}', {{ period }})" style="width: 100%; padding: 5px 4px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.78rem; background: #fff;">
                   <option value="" data-is-lab="false">— Vacant —</option>
                   {% for s in subjects_list %}
-                  <option value="{{ s.id }}" data-is-lab="{% if s.subject_type == 'Lab' %}true{% else %}false{% endif %}" {% if entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>
+                  <option value="{{ s.id }}" data-is-lab="{% if s.subject_type == 'Lab' %}true{% else %}false{% endif %}" {% if entry and entry.subject and entry.subject.id == s.id or entry and entry.subject and entry.subject.code == s.code %}selected{% endif %}>
                     {% if s.subject_type == 'Lab' %}🔬 {% else %}📖 {% endif %}{{ s.code }} ({{ s.subject_type }})
                   </option>
                   {% endfor %}
                   <optgroup label="Special Slots">
-                    <option value="LAB_SESSION" data-is-lab="true" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION' %}selected{% endif %}>🔬 3-HR LAB SESSION (Split A/B)</option>
-                    <option value="LAB_SESSION_2H" data-is-lab="true" {% if entry and entry.subject and entry.subject.id == 'LAB_SESSION_2H' %}selected{% endif %}>⚗️ 2-HR LAB SESSION (2h)</option>
-                    <option value="NAAN_MUDHALVAN" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'NAAN_MUDHALVAN' %}selected{% endif %}>🌟 NAAN MUDHALVAN (2h)</option>
-                    <option value="PLACEMENT" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'PLACEMENT' %}selected{% endif %}>💼 PLACEMENT (2h)</option>
-                    <option value="LIBRARY" data-is-lab="false" {% if entry and entry.subject and entry.subject.id == 'LIBRARY' %}selected{% endif %}>📚 LIBRARY (2h)</option>
+                    <option value="LAB_SESSION" data-is-lab="true" {% if entry and entry.subject and entry.subject.code == 'LAB_SESSION' or entry and entry.subject and entry.subject.id == 'LAB_SESSION' %}selected{% endif %}>🔬 3-HR LAB SESSION (Split A/B)</option>
+                    <option value="LAB_SESSION_2H" data-is-lab="true" {% if entry and entry.subject and entry.subject.code == 'LAB_SESSION_2H' or entry and entry.subject and entry.subject.id == 'LAB_SESSION_2H' %}selected{% endif %}>⚗️ 2-HR LAB SESSION (2h)</option>
+                    <option value="NAAN_MUDHALVAN" data-is-lab="false" {% if entry and entry.subject and entry.subject.code == 'NAAN_MUDHALVAN' or entry and entry.subject and entry.subject.id == 'NAAN_MUDHALVAN' %}selected{% endif %}>🌟 NAAN MUDHALVAN (2h)</option>
+                    <option value="PLACEMENT" data-is-lab="false" {% if entry and entry.subject and entry.subject.code == 'PLACEMENT' or entry and entry.subject and entry.subject.id == 'PLACEMENT' %}selected{% endif %}>💼 PLACEMENT (2h)</option>
+                    <option value="LIBRARY" data-is-lab="false" {% if entry and entry.subject and entry.subject.code == 'LIBRARY' or entry and entry.subject and entry.subject.id == 'LIBRARY' %}selected{% endif %}>📚 LIBRARY (2h)</option>
                   </optgroup>
                 </select>
 
@@ -1334,13 +1336,13 @@
                 <div id="chip_{{ day }}_{{ period }}" style="font-size: 0.68rem; color: #475569; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic;"></div>
 
                 <!-- DUAL BATCH SELECT CONTAINER (FOR LAB SESSIONS) -->
-                <div id="batch_split_{{ day }}_{{ period }}" style="{% if entry and entry.is_batch or entry and entry.subject and entry.subject.id in 'LAB_SESSION,LAB_SESSION_2H' %}display: block;{% else %}display: none;{% endif %} margin-top: 6px; padding: 4px; background: #f8fafc; border-radius: 6px; border: 1px solid #cbd5e1;">
+                <div id="batch_split_{{ day }}_{{ period }}" style="{% if entry and entry.is_batch or entry and entry.subject and entry.subject.code in 'LAB_SESSION,LAB_SESSION_2H' or entry and entry.subject and entry.subject.id in 'LAB_SESSION,LAB_SESSION_2H' %}display: block;{% else %}display: none;{% endif %} margin-top: 6px; padding: 4px; background: #f8fafc; border-radius: 6px; border: 1px solid #cbd5e1;">
                   <div style="font-size: 0.65rem; font-weight: 800; color: #166534; margin-bottom: 2px;">🅰️ Batch A Lab:</div>
                   <select name="lab_a_{{ day }}_{{ period }}" id="lab_a_{{ day }}_{{ period }}" onchange="syncBatchLabSelection('{{ day }}', {{ period }}, 'A'); pushState();" style="width: 100%; font-size: 0.72rem; padding: 3px; border-radius: 4px; border: 1px solid #86efac; background: #f0fdf4; margin-bottom: 4px; font-weight: 600; color: #166534;">
                     <option value="">— Batch A Subject —</option>
                     {% for s in subjects_list %}
                     {% if s.subject_type == 'Lab' %}
-                    <option value="{{ s.id }}" {% if entry and entry.A and entry.A.subject and entry.A.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>🔬 {{ s.code }}</option>
+                    <option value="{{ s.id }}" {% if entry and entry.A and entry.A.subject and entry.A.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id or entry and entry.A and entry.A.subject and entry.A.subject.code == s.code %}selected{% endif %}>🔬 {{ s.code }}</option>
                     {% endif %}
                     {% endfor %}
                   </select>
@@ -1350,7 +1352,7 @@
                     <option value="">— Batch B Subject —</option>
                     {% for s in subjects_list %}
                     {% if s.subject_type == 'Lab' %}
-                    <option value="{{ s.id }}" {% if entry and entry.B and entry.B.subject and entry.B.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id %}selected{% endif %}>🔬 {{ s.code }}</option>
+                    <option value="{{ s.id }}" {% if entry and entry.B and entry.B.subject and entry.B.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id or entry and entry.B and entry.B.subject and entry.B.subject.code == s.code %}selected{% endif %}>🔬 {{ s.code }}</option>
                     {% endif %}
                     {% endfor %}
                   </select>
@@ -1363,6 +1365,12 @@
                 <div id="conflict_{{ day }}_{{ period }}" class="tt-conflict-alert-box" style="display: none;"></div>
 
               </td>
+              {% if forloop.counter == 2 %}
+              <td style="background: #fffbeb; color: #b45309; text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.72rem; writing-mode: vertical-rl; letter-spacing: 1px; border: 1px solid #fde68a;">TEA BREAK</td>
+              {% endif %}
+              {% if forloop.counter == 4 %}
+              <td style="background: #fffbeb; color: #b45309; text-align: center; vertical-align: middle; font-weight: 700; font-size: 0.72rem; writing-mode: vertical-rl; letter-spacing: 1px; border: 1px solid #fde68a;">LUNCH BREAK</td>
+              {% endif %}
               {% endwith %}
               {% endfor %}
             </tr>
