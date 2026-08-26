@@ -3405,6 +3405,59 @@ def hod_published_timetables(request):
             messages.success(request, f'Lab batches & Representatives updated successfully for Semester {selected_semester}.')
             return redirect(f'/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=batches')
 
+        elif action == 'update_class_incharges':
+            with transaction.atomic():
+                # Clear existing Class Incharge assigned_semester for this semester
+                existing_cis = list(Staff.objects.filter(assigned_semester=selected_semester))
+                for ci in existing_cis:
+                    roles = ci.get_roles_list()
+                    if 'Class Incharge' in roles:
+                        roles.remove('Class Incharge')
+                    if ci.role == 'Class Incharge':
+                        ci.role = roles[0] if roles else 'Course Incharge'
+                        ci.secondary_roles = ", ".join(roles[1:])
+                    else:
+                        ci.secondary_roles = ", ".join(roles)
+                    ci.assigned_semester = None
+                    ci.assigned_batch = 'All'
+                    ci.save()
+
+                staff_a_id = request.POST.get('ic_batch_a')
+                staff_b_id = request.POST.get('ic_batch_b')
+
+                if staff_a_id:
+                    s_a = Staff.objects.filter(staff_id=staff_a_id).first()
+                    if s_a:
+                        roles = s_a.get_roles_list()
+                        if 'Class Incharge' not in roles:
+                            roles.append('Class Incharge')
+                        if s_a.role != 'Class Incharge':
+                            if not s_a.secondary_roles:
+                                s_a.secondary_roles = 'Class Incharge'
+                            elif 'Class Incharge' not in s_a.secondary_roles:
+                                s_a.secondary_roles += ', Class Incharge'
+                        s_a.assigned_semester = selected_semester
+                        s_a.assigned_batch = 'A'
+                        s_a.save()
+
+                if staff_b_id:
+                    s_b = Staff.objects.filter(staff_id=staff_b_id).first()
+                    if s_b:
+                        roles = s_b.get_roles_list()
+                        if 'Class Incharge' not in roles:
+                            roles.append('Class Incharge')
+                        if s_b.role != 'Class Incharge':
+                            if not s_b.secondary_roles:
+                                s_b.secondary_roles = 'Class Incharge'
+                            elif 'Class Incharge' not in s_b.secondary_roles:
+                                s_b.secondary_roles += ', Class Incharge'
+                        s_b.assigned_semester = selected_semester
+                        s_b.assigned_batch = 'B'
+                        s_b.save()
+
+                messages.success(request, f"Class Incharges updated successfully for Semester {selected_semester} (Batch A & Batch B).")
+                return redirect(f'/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=batches')
+
         elif action == 'create_version_snapshot':
             ver_label = request.POST.get('version_label', '').strip() or None
             ver_obj = create_timetable_version_snapshot(selected_academic_year, selected_semester, staff, version_name=ver_label)
@@ -3667,6 +3720,9 @@ def hod_published_timetables(request):
     batch_a_students = [s for s in students_list if s.lab_batch == 'A']
     batch_b_students = [s for s in students_list if s.lab_batch == 'B']
     unassigned_students = [s for s in students_list if not s.lab_batch]
+    ci_batch_a = Staff.objects.filter(assigned_semester=selected_semester, assigned_batch='A').filter(Q(role='Class Incharge') | Q(secondary_roles__icontains='Class Incharge')).first()
+    ci_batch_b = Staff.objects.filter(assigned_semester=selected_semester, assigned_batch='B').filter(Q(role='Class Incharge') | Q(secondary_roles__icontains='Class Incharge')).first()
+    ci_whole = Staff.objects.filter(assigned_semester=selected_semester).filter(Q(assigned_batch='All') | Q(assigned_batch__isnull=True) | Q(assigned_batch='')).filter(Q(role='Class Incharge') | Q(secondary_roles__icontains='Class Incharge')).first()
 
     return render(request, 'staff/hod_published_timetables.html', {
         'staff': staff,
@@ -3693,6 +3749,9 @@ def hod_published_timetables(request):
         'batch_a_students': batch_a_students,
         'batch_b_students': batch_b_students,
         'unassigned_students': unassigned_students,
+        'ci_batch_a': ci_batch_a,
+        'ci_batch_b': ci_batch_b,
+        'ci_whole': ci_whole,
     })
 
 def toggle_publish_timetable(request, semester):

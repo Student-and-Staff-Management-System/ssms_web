@@ -1494,7 +1494,73 @@
   {% endif %}
 
   {% if active_tab == 'batches' %}
-  <!-- TAB 3: LAB BATCH ASSIGNMENTS -->
+  <!-- TAB 3: CLASS INCHARGES & LAB BATCH ASSIGNMENTS -->
+
+  <!-- 1. CLASS INCHARGES BATCH-WISE ASSIGNMENT CARD -->
+  <form method="POST" action="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&tab=batches" style="margin-bottom: 24px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_class_incharges">
+    <input type="hidden" name="semester" value="{{ selected_semester }}">
+
+    <div class="section-card">
+      <div class="section-card-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white;">
+        <div class="section-card-title">
+          <span style="color: #f8fafc;">🎓 Class Incharges Assignment — Semester {{ selected_semester }}</span>
+        </div>
+        <button type="submit" class="action-btn action-btn-primary" style="background: #0284c7; color: white;">
+          💾 Save Class Incharges
+        </button>
+      </div>
+
+      <div style="padding: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px;">
+          <!-- Batch A Class Incharge -->
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+              <span style="font-weight: 700; color: #1e40af; font-size: 0.95rem;">🅰️ Batch A Class Incharge</span>
+              {% if ci_batch_a %}
+              <span style="font-size: 0.72rem; background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 10px; font-weight: 700;">Assigned: {{ ci_batch_a.name }}</span>
+              {% else %}
+              <span style="font-size: 0.72rem; background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 10px; font-weight: 700;">Not Assigned</span>
+              {% endif %}
+            </div>
+            <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 6px;">Select Faculty Member for Batch A:</label>
+            <select name="ic_batch_a" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #93c5fd; font-size: 0.85rem; background: white; color: #0f172a; font-weight: 600;">
+              <option value="">-- Select Class Incharge (Batch A) --</option>
+              {% for f in all_staff %}
+              <option value="{{ f.staff_id }}" {% if ci_batch_a and ci_batch_a.staff_id == f.staff_id %}selected{% endif %}>
+                👤 {{ f.salutation }} {{ f.name }}{% if f.initial %} {{ f.initial }}{% endif %} ({{ f.staff_id }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Batch B Class Incharge -->
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+              <span style="font-weight: 700; color: #166534; font-size: 0.95rem;">🅱️ Batch B Class Incharge</span>
+              {% if ci_batch_b %}
+              <span style="font-size: 0.72rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 10px; font-weight: 700;">Assigned: {{ ci_batch_b.name }}</span>
+              {% else %}
+              <span style="font-size: 0.72rem; background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 10px; font-weight: 700;">Not Assigned</span>
+              {% endif %}
+            </div>
+            <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 6px;">Select Faculty Member for Batch B:</label>
+            <select name="ic_batch_b" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #86efac; font-size: 0.85rem; background: white; color: #0f172a; font-weight: 600;">
+              <option value="">-- Select Class Incharge (Batch B) --</option>
+              {% for f in all_staff %}
+              <option value="{{ f.staff_id }}" {% if ci_batch_b and ci_batch_b.staff_id == f.staff_id %}selected{% endif %}>
+                👤 {{ f.salutation }} {{ f.name }}{% if f.initial %} {{ f.initial }}{% endif %} ({{ f.staff_id }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- 2. STUDENT LAB BATCH & REPRESENTATIVE ASSIGNMENTS -->
   <form method="POST" action="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&tab=batches">
     {% csrf_token %}
     <input type="hidden" name="action" value="assign_batches">
@@ -1503,7 +1569,7 @@
     <div class="section-card">
       <div class="section-card-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
         <div class="section-card-title">
-          <span>👥 Lab Batch Assignments & Class Representatives — Semester {{ selected_semester }}</span>
+          <span>👥 Student Lab Batches & Class Representatives — Semester {{ selected_semester }}</span>
         </div>
         <button type="submit" class="action-btn action-btn-primary">
           💾 Save Batch Assignments
