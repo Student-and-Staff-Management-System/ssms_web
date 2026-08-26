@@ -923,14 +923,14 @@
                     {% if p_item %}
                       {% if p_item.is_batch %}
                         <div style="font-size: 0.76rem; background: #eff6ff; padding: 4px 6px; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 3px;">
-                          <strong>A:</strong> {{ p_item.A.subject.code|default:"—" }} {% if p_item.A.staff %}<span style="color:#64748b;">({{ p_item.A.staff.name }})</span>{% endif %}
+                          <strong>A:</strong> {{ p_item.A.subject.code|default:p_item.A.subject_code|default:"—" }} {% if p_item.A.staff.name or p_item.A.staff_name %}<span style="color:#64748b;">({{ p_item.A.staff.name|default:p_item.A.staff_name }})</span>{% endif %}
                         </div>
                         <div style="font-size: 0.76rem; background: #f0fdf4; padding: 4px 6px; border-radius: 6px; border: 1px solid #bbf7d0;">
-                          <strong>B:</strong> {{ p_item.B.subject.code|default:"—" }} {% if p_item.B.staff %}<span style="color:#64748b;">({{ p_item.B.staff.name }})</span>{% endif %}
+                          <strong>B:</strong> {{ p_item.B.subject.code|default:p_item.B.subject_code|default:"—" }} {% if p_item.B.staff.name or p_item.B.staff_name %}<span style="color:#64748b;">({{ p_item.B.staff.name|default:p_item.B.staff_name }})</span>{% endif %}
                         </div>
                       {% else %}
-                        <strong style="color: #1e293b; font-size: 0.85rem;">{{ p_item.subject.code|default:p_item.subject_code }}</strong>
-                        {% if p_item.staff or p_item.staff_name %}
+                        <strong style="color: #1e293b; font-size: 0.85rem;">{{ p_item.subject.code|default:p_item.subject_code|default:"—" }}</strong>
+                        {% if p_item.staff.name or p_item.staff_name %}
                         <div style="font-size: 0.76rem; color: #64748b; margin-top: 2px;">👤 {{ p_item.staff.name|default:p_item.staff_name }}</div>
                         {% endif %}
                         {% if p_item.batch and p_item.batch != 'All' %}

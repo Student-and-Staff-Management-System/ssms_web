@@ -532,6 +532,33 @@ class BatchAndRepresentativeTestCase(TestCase):
         self.assertContains(resp_a, 'batch_a_box_Tuesday_1')
         self.assertNotContains(resp_a, 'batch_b_box_Tuesday_1')
 
+    def test_history_version_snapshot_rendering(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        from staffs.models import Subject, Timetable, PublishedTimetableVersion
+        lab_a = Subject.objects.create(
+            code="CS8511", name="DS Lab", semester=5, credits=2, subject_type="Lab", staff=self.hod
+        )
+        lab_b = Subject.objects.create(
+            code="CS8512", name="DBMS Lab", semester=5, credits=2, subject_type="Lab", staff=self.hod
+        )
+
+        Timetable.objects.create(semester=5, academic_year='2026-2027', day='Monday', period=1, batch='A', subject=lab_a, staff=self.hod)
+        Timetable.objects.create(semester=5, academic_year='2026-2027', day='Monday', period=1, batch='B', subject=lab_b, staff=self.hod)
+
+        # Create Version Snapshot
+        post_snap = {'action': 'create_version_snapshot', 'version_label': 'v1.0 Test'}
+        resp = self.client.post(reverse('staffs:hod_published_timetables') + '?semester=5&academic_year=2026-2027&tab=history', post_snap)
+        self.assertEqual(resp.status_code, 302)
+
+        # GET history tab and check subject codes CS8511 and CS8512 rendered
+        resp_hist = self.client.get(reverse('staffs:hod_published_timetables') + '?semester=5&academic_year=2026-2027&tab=history')
+        self.assertEqual(resp_hist.status_code, 200)
+        self.assertContains(resp_hist, 'CS8511')
+        self.assertContains(resp_hist, 'CS8512')
+
 
 class AdditionalRolesTestCase(TestCase):
     def setUp(self):

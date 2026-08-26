@@ -3196,7 +3196,9 @@ def create_timetable_version_snapshot(academic_year, semester, staff_user, from_
             'subject_type': e.subject.subject_type if e.subject else '',
             'staff_name': e.staff.name if e.staff else '',
             'staff_id': e.staff.staff_id if e.staff else '',
-            'location_name': e.subject.get_location_display() if (e.subject and hasattr(e.subject, 'get_location_display')) else ''
+            'location_name': e.subject.get_location_display() if (e.subject and hasattr(e.subject, 'get_location_display')) else '',
+            'subject': {'code': e.subject.code, 'name': e.subject.name, 'type': e.subject.subject_type} if e.subject else None,
+            'staff': {'name': e.staff.name, 'staff_id': e.staff.staff_id} if e.staff else None,
         })
 
     json_payload = _json_module.dumps(snapshot_list, cls=DjangoJSONEncoder)
@@ -3230,6 +3232,15 @@ def parse_snapshot_grid(snapshot_json):
             d = item.get('day')
             p = item.get('period')
             if d in grid and 1 <= p <= 7:
+                # Ensure 'subject' and 'staff' dict keys exist so template lookups like p_item.A.subject.code never fail
+                if 'subject' not in item or not isinstance(item.get('subject'), dict):
+                    scode = item.get('subject_code') or ''
+                    sname = item.get('subject_name') or ''
+                    item['subject'] = {'code': scode, 'name': sname, 'type': item.get('subject_type', '')} if (scode or sname) else None
+                if 'staff' not in item or not isinstance(item.get('staff'), dict):
+                    sname = item.get('staff_name') or ''
+                    item['staff'] = {'name': sname, 'staff_id': item.get('staff_id', '')} if sname else None
+
                 curr = grid[d][p - 1]
                 batch = item.get('batch', 'All')
 
