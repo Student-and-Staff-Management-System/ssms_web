@@ -922,7 +922,47 @@
                   <td style="padding: 10px; vertical-align: top; border: 1px solid #e2e8f0;">
                     {% if p_item %}
                       {% if p_item.is_batch %}
-                        {% if selected_batch != 'B' %}
+                        {% if selected_batch == 'A' %}
+                          {% if p_item.A %}
+                            <div style="font-size: 0.76rem; background: #eff6ff; padding: 4px 6px; border-radius: 6px; border: 1px solid #bfdbfe;">
+                              <strong>A:</strong>
+                              {% if p_item.A.subject_code %}
+                                {{ p_item.A.subject_code }}
+                              {% elif p_item.A.subject and p_item.A.subject.code %}
+                                {{ p_item.A.subject.code }}
+                              {% else %}
+                                —
+                              {% endif %}
+                              {% if p_item.A.staff_name %}
+                                <span style="color:#64748b;">({{ p_item.A.staff_name }})</span>
+                              {% elif p_item.A.staff and p_item.A.staff.name %}
+                                <span style="color:#64748b;">({{ p_item.A.staff.name }})</span>
+                              {% endif %}
+                            </div>
+                          {% else %}
+                            <span style="color: #cbd5e1; font-style: italic; font-size: 0.78rem;">— Vacant —</span>
+                          {% endif %}
+                        {% elif selected_batch == 'B' %}
+                          {% if p_item.B %}
+                            <div style="font-size: 0.76rem; background: #f0fdf4; padding: 4px 6px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                              <strong>B:</strong>
+                              {% if p_item.B.subject_code %}
+                                {{ p_item.B.subject_code }}
+                              {% elif p_item.B.subject and p_item.B.subject.code %}
+                                {{ p_item.B.subject.code }}
+                              {% else %}
+                                —
+                              {% endif %}
+                              {% if p_item.B.staff_name %}
+                                <span style="color:#64748b;">({{ p_item.B.staff_name }})</span>
+                              {% elif p_item.B.staff and p_item.B.staff.name %}
+                                <span style="color:#64748b;">({{ p_item.B.staff.name }})</span>
+                              {% endif %}
+                            </div>
+                          {% else %}
+                            <span style="color: #cbd5e1; font-style: italic; font-size: 0.78rem;">— Vacant —</span>
+                          {% endif %}
+                        {% else %}
                           <div style="font-size: 0.76rem; background: #eff6ff; padding: 4px 6px; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 3px;">
                             <strong>A:</strong>
                             {% if p_item.A %}
@@ -942,9 +982,6 @@
                               <span style="color: #94a3b8;">—</span>
                             {% endif %}
                           </div>
-                        {% endif %}
-
-                        {% if selected_batch != 'A' %}
                           <div style="font-size: 0.76rem; background: #f0fdf4; padding: 4px 6px; border-radius: 6px; border: 1px solid #bbf7d0;">
                             <strong>B:</strong>
                             {% if p_item.B %}
