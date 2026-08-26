@@ -847,10 +847,10 @@
   <div class="section-card">
     <div class="section-card-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; justify-content: space-between;">
       <div class="section-card-title">
-        <span style="color: #f8fafc;">📦 Preserved Timetable Version Snapshots (Saved Forever)</span>
+        <span style="color: #f8fafc;">📦 Saved Timetable Versions</span>
       </div>
       <span style="background: rgba(255,255,255,0.15); color: #ffffff; padding: 4px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 700;">
-        {{ previous_timetable_versions|length }} Version{{ previous_timetable_versions|length|pluralize }} Archived
+        {{ previous_timetable_versions|length }} Version{{ previous_timetable_versions|length|pluralize }} Saved
       </span>
     </div>
 
@@ -869,7 +869,7 @@
                 </span>
                 {% else %}
                 <span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;">
-                  <i class="ri-archive-line"></i> HISTORICAL ARCHIVE
+                  <i class="ri-archive-line"></i> SAVED VERSION
                 </span>
                 {% endif %}
               </div>
@@ -883,9 +883,19 @@
             <div style="text-align: right; font-size: 0.82rem; color: #64748b;">
               <div>Published By: <strong style="color: #0f172a;">{% if ver.published_by %}{{ ver.published_by.name }}{% else %}HOD / Timetable Incharge{% endif %}</strong></div>
               <div>Timestamp: <strong>{{ ver.published_at|date:"d-M-Y h:i A" }}</strong></div>
-              <button type="button" onclick="togglePrevTT('hist-ver-{{ ver.id }}')" style="margin-top: 10px; background: #0f172a; color: white; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="ri-eye-line"></i> Inspect Snapshot Timetable Grid
-              </button>
+              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 10px;">
+                <button type="button" onclick="togglePrevTT('hist-ver-{{ ver.id }}')" style="background: #0f172a; color: white; border: none; padding: 7px 14px; border-radius: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="ri-eye-line"></i> View Grid
+                </button>
+                <form method="POST" action="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&tab=history" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete version \'{{ ver.version_name }}\' from history?');">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_version_snapshot">
+                  <input type="hidden" name="version_id" value="{{ ver.id }}">
+                  <button type="submit" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="ri-delete-bin-line"></i> Delete
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
 
@@ -1270,9 +1280,12 @@
       <button type="button" class="tt-tb-btn" onclick="autoFillVacant('LIBRARY')">✨ Fill Vacant with Library</button>
       <button type="button" class="tt-tb-btn" onclick="clearAllTT()" style="color: #dc2626;">🗑️ Clear All Slots</button>
 
-      <div style="margin-left: auto;">
-        <button type="submit" class="action-btn action-btn-primary" style="padding: 8px 20px;">
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <button type="submit" class="action-btn action-btn-primary" style="padding: 8px 18px;" title="Saves current draft grid">
           💾 Save Timetable Grid
+        </button>
+        <button type="button" onclick="openVersionModal()" style="background: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(2,132,199,0.3); transition: all 0.2s;" title="Save a new version to history">
+          📌 Save New Version
         </button>
       </div>
     </div>
@@ -1337,25 +1350,33 @@
 
                 <!-- DUAL BATCH SELECT CONTAINER (FOR LAB SESSIONS) -->
                 <div id="batch_split_{{ day }}_{{ period }}" style="{% if entry and entry.is_batch or entry and entry.subject and entry.subject.code in 'LAB_SESSION,LAB_SESSION_2H' or entry and entry.subject and entry.subject.id in 'LAB_SESSION,LAB_SESSION_2H' %}display: block;{% else %}display: none;{% endif %} margin-top: 6px; padding: 4px; background: #f8fafc; border-radius: 6px; border: 1px solid #cbd5e1;">
-                  <div style="font-size: 0.65rem; font-weight: 800; color: #166534; margin-bottom: 2px;">🅰️ Batch A Lab:</div>
-                  <select name="lab_a_{{ day }}_{{ period }}" id="lab_a_{{ day }}_{{ period }}" onchange="syncBatchLabSelection('{{ day }}', {{ period }}, 'A'); pushState();" style="width: 100%; font-size: 0.72rem; padding: 3px; border-radius: 4px; border: 1px solid #86efac; background: #f0fdf4; margin-bottom: 4px; font-weight: 600; color: #166534;">
-                    <option value="">— Batch A Subject —</option>
-                    {% for s in subjects_list %}
-                    {% if s.subject_type == 'Lab' %}
-                    <option value="{{ s.id }}" {% if entry and entry.A and entry.A.subject and entry.A.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id or entry and entry.A and entry.A.subject and entry.A.subject.code == s.code %}selected{% endif %}>🔬 {{ s.code }}</option>
-                    {% endif %}
-                    {% endfor %}
-                  </select>
+                  {% if selected_batch == 'All' or selected_batch == 'A' %}
+                  <div id="batch_a_box_{{ day }}_{{ period }}">
+                    <div style="font-size: 0.65rem; font-weight: 800; color: #166534; margin-bottom: 2px;">🅰️ Batch A Lab:</div>
+                    <select name="lab_a_{{ day }}_{{ period }}" id="lab_a_{{ day }}_{{ period }}" onchange="syncBatchLabSelection('{{ day }}', {{ period }}, 'A'); pushState();" style="width: 100%; font-size: 0.72rem; padding: 3px; border-radius: 4px; border: 1px solid #86efac; background: #f0fdf4; margin-bottom: 4px; font-weight: 600; color: #166534;">
+                      <option value="">— Batch A Subject —</option>
+                      {% for s in subjects_list %}
+                      {% if s.subject_type == 'Lab' %}
+                      <option value="{{ s.id }}" {% if entry and entry.A and entry.A.subject and entry.A.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id or entry and entry.A and entry.A.subject and entry.A.subject.code == s.code %}selected{% endif %}>🔬 {{ s.code }}</option>
+                      {% endif %}
+                      {% endfor %}
+                    </select>
+                  </div>
+                  {% endif %}
 
-                  <div style="font-size: 0.65rem; font-weight: 800; color: #92400e; margin-bottom: 2px;">🅱️ Batch B Lab:</div>
-                  <select name="lab_b_{{ day }}_{{ period }}" id="lab_b_{{ day }}_{{ period }}" onchange="syncBatchLabSelection('{{ day }}', {{ period }}, 'B'); pushState();" style="width: 100%; font-size: 0.72rem; padding: 3px; border-radius: 4px; border: 1px solid #fde68a; background: #fffbeb; font-weight: 600; color: #92400e;">
-                    <option value="">— Batch B Subject —</option>
-                    {% for s in subjects_list %}
-                    {% if s.subject_type == 'Lab' %}
-                    <option value="{{ s.id }}" {% if entry and entry.B and entry.B.subject and entry.B.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id or entry and entry.B and entry.B.subject and entry.B.subject.code == s.code %}selected{% endif %}>🔬 {{ s.code }}</option>
-                    {% endif %}
-                    {% endfor %}
-                  </select>
+                  {% if selected_batch == 'All' or selected_batch == 'B' %}
+                  <div id="batch_b_box_{{ day }}_{{ period }}">
+                    <div style="font-size: 0.65rem; font-weight: 800; color: #92400e; margin-bottom: 2px;">🅱️ Batch B Lab:</div>
+                    <select name="lab_b_{{ day }}_{{ period }}" id="lab_b_{{ day }}_{{ period }}" onchange="syncBatchLabSelection('{{ day }}', {{ period }}, 'B'); pushState();" style="width: 100%; font-size: 0.72rem; padding: 3px; border-radius: 4px; border: 1px solid #fde68a; background: #fffbeb; font-weight: 600; color: #92400e;">
+                      <option value="">— Batch B Subject —</option>
+                      {% for s in subjects_list %}
+                      {% if s.subject_type == 'Lab' %}
+                      <option value="{{ s.id }}" {% if entry and entry.B and entry.B.subject and entry.B.subject.id == s.id or entry and entry.subject and entry.subject.id == s.id or entry and entry.B and entry.B.subject and entry.B.subject.code == s.code %}selected{% endif %}>🔬 {{ s.code }}</option>
+                      {% endif %}
+                      {% endfor %}
+                    </select>
+                  </div>
+                  {% endif %}
                 </div>
 
                 <!-- LAB MERGE TAG OVERLAY -->
@@ -1969,5 +1990,46 @@
     updateStatsAndQuotas();
     validateAllConflicts();
   });
+
+  function openVersionModal() {
+    const modal = document.getElementById('modal-version-snapshot');
+    if (modal) modal.style.display = 'flex';
+  }
+  function closeVersionModal() {
+    const modal = document.getElementById('modal-version-snapshot');
+    if (modal) modal.style.display = 'none';
+  }
 </script>
+
+<!-- SIMPLE SAVE NEW VERSION MODAL -->
+<div id="modal-version-snapshot" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 16px; width: 90%; max-width: 440px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">📌</div>
+      <div>
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Save New Version</h3>
+        <p style="font-size: 0.78rem; color: #64748b; margin: 0;">Save a copy of this timetable to history</p>
+      </div>
+    </div>
+    
+    <form method="POST" action="{% url 'staffs:hod_published_timetables' %}?academic_year={{ selected_academic_year }}&semester={{ selected_semester }}&tab=history">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_version_snapshot">
+      
+      <div style="margin-bottom: 16px; font-size: 0.84rem; color: #475569; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; line-height: 1.4;">
+        This will save a permanent copy of the current <strong>Semester {{ selected_semester }}</strong> timetable in your Version History.
+      </div>
+      
+      <div style="margin-bottom: 18px;">
+        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 5px;">Version Name (Optional):</label>
+        <input type="text" name="version_label" placeholder="e.g. Version 1.0" style="width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: inherit;">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="closeVersionModal()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: 700; cursor: pointer; color: #475569; font-size: 0.82rem;">Cancel</button>
+        <button type="submit" style="padding: 8px 18px; border-radius: 8px; border: none; background: #0284c7; color: white; font-weight: 700; cursor: pointer; font-size: 0.82rem;">Save Version</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

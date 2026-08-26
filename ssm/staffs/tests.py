@@ -497,6 +497,41 @@ class BatchAndRepresentativeTestCase(TestCase):
         self.assertTrue(Timetable.objects.filter(semester=5, day='Monday', period=1, batch='A', subject=override_subject).exists())
         self.assertTrue(Timetable.objects.filter(semester=5, day='Monday', period=1, batch='B', subject=self.subject).exists())
 
+    def test_lab_session_batch_specific_assignment(self):
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        from staffs.models import Subject, Timetable
+        lab_subj = Subject.objects.create(
+            code="CS8511",
+            name="Data Structures Lab",
+            semester=5,
+            credits=2,
+            subject_type="Lab",
+            staff=self.hod
+        )
+
+        # 1. Assign Lab in Batch A mode
+        post_batch_a = {
+            'current_batch': 'A',
+            'subject_Tuesday_1': 'LAB_SESSION',
+            'lab_a_Tuesday_1': str(lab_subj.id),
+        }
+        resp = self.client.post(reverse('staffs:edit_timetable', args=[5]), post_batch_a)
+        self.assertEqual(resp.status_code, 302)
+
+        # Verify Batch A entry was created with lab_subj
+        tt_a = Timetable.objects.filter(semester=5, day='Tuesday', period=1, batch='A').first()
+        self.assertIsNotNone(tt_a)
+        self.assertEqual(tt_a.subject, lab_subj)
+
+        # 2. Verify GET response for Batch A view mode renders only Batch A box
+        resp_a = self.client.get(reverse('staffs:hod_published_timetables') + '?semester=5&batch=A&tab=edit')
+        self.assertEqual(resp_a.status_code, 200)
+        self.assertContains(resp_a, 'batch_a_box_Tuesday_1')
+        self.assertNotContains(resp_a, 'batch_b_box_Tuesday_1')
+
 
 class AdditionalRolesTestCase(TestCase):
     def setUp(self):

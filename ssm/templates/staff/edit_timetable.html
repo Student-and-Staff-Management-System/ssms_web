@@ -691,19 +691,33 @@ function _buildMergedLabel(leaderTd, day, startP, val, periodLabel){
             .filter(([id, info]) => info.type === 'Lab')
             .map(([id, info]) => `<option value="${id}">${info.code} — ${info.name}</option>`)
             .join('');
+        const activeBatchMode = "{{ current_batch|default:'All' }}";
+        const showLabA = activeBatchMode === 'All' || activeBatchMode === 'A';
+        const showLabB = activeBatchMode === 'All' || activeBatchMode === 'B';
+
+        let labSelectsHtml = '';
+        if (labOpts) {
+            let selects = [];
+            if (showLabA) {
+                selects.push(`<select class="lab-pick-sel" style="flex:1; max-width:180px;" id="lab-a-sel-${day}-${startP}" onchange="setLabSubjectBatch('${day}',${startP},'A',this.value)">
+                            <option value="">— Batch A Lab —</option>${labOpts}
+                        </select>`);
+            }
+            if (showLabB) {
+                selects.push(`<select class="lab-pick-sel" style="flex:1; max-width:180px;" id="lab-b-sel-${day}-${startP}" onchange="setLabSubjectBatch('${day}',${startP},'B',this.value)">
+                            <option value="">— Batch B Lab —</option>${labOpts}
+                        </select>`);
+            }
+            labSelectsHtml = `<div style="display:flex; gap:10px; margin-top:5px; width:100%; justify-content:center;">${selects.join('')}</div>`;
+        } else {
+            labSelectsHtml = `<span class="ml-code" style="color:#e67e22;">No lab subjects for this semester</span>`;
+        }
+
         ml.innerHTML = [
             `<button type="button" class="ml-clear" onclick="clearCell('${day}',${startP})">✕ Clear</button>`,
             `<span class="ml-icon">💻</span>`,
             `<span class="ml-title">Lab Session</span>`,
-            labOpts ? `<div style="display:flex; gap:10px; margin-top:5px; width:100%; justify-content:center;">
-                        <select class="lab-pick-sel" style="flex:1; max-width:180px;" id="lab-a-sel-${day}-${startP}" onchange="setLabSubjectBatch('${day}',${startP},'A',this.value)">
-                            <option value="">— Batch A Lab —</option>${labOpts}
-                        </select>
-                        <select class="lab-pick-sel" style="flex:1; max-width:180px;" id="lab-b-sel-${day}-${startP}" onchange="setLabSubjectBatch('${day}',${startP},'B',this.value)">
-                            <option value="">— Batch B Lab —</option>${labOpts}
-                        </select>
-                       </div>`
-                    : `<span class="ml-code" style="color:#e67e22;">No lab subjects for this semester</span>`,
+            labSelectsHtml,
             `<div style="display:flex; justify-content:space-between; width:100%; max-width:370px; margin-top:5px; font-size:0.8rem;">
                 <span class="ml-staff" id="lab-a-staff-${day}-${startP}"></span>
                 <span class="ml-staff" id="lab-b-staff-${day}-${startP}"></span>

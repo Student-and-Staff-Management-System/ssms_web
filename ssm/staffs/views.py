@@ -3004,7 +3004,14 @@ def edit_timetable(request, semester):
                                         send_staff_notification(entry.staff, "📅 Timetable Updated", f"You have been removed from {day} Period {period} (Batch {current_batch}).", url="/staffs/my-timetable/")
                                     entry.delete()
                         else:
-                            b_subject = resolve_subject_obj(sub_val)
+                            if current_batch == 'A' and sub_val in ['LAB_SESSION', 'LAB_SESSION_2H'] and lab_a_val:
+                                s_val = lab_a_val
+                            elif current_batch == 'B' and sub_val in ['LAB_SESSION', 'LAB_SESSION_2H'] and lab_b_val:
+                                s_val = lab_b_val
+                            else:
+                                s_val = sub_val
+
+                            b_subject = resolve_subject_obj(s_val)
                             if current_batch == 'B':
                                 b_staff = (b_subject.staff_batch_b or b_subject.staff) if b_subject else None
                             else:
@@ -3033,11 +3040,13 @@ def edit_timetable(request, semester):
                                 defaults={'subject': b_subject, 'staff': b_staff}
                             )
 
-        # Sync published timetable version snapshot if entries are published or active version exists
-        if Timetable.objects.filter(academic_year=selected_academic_year, semester=semester, is_published=True).exists() or PublishedTimetableVersion.objects.filter(academic_year=selected_academic_year, semester=semester, is_active=True).exists():
-            create_timetable_version_snapshot(selected_academic_year, semester, staff)
-
-        messages.success(request, f'Draft timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
+        if request.POST.get('create_snapshot') == 'true':
+            ver_label = request.POST.get('version_label', '').strip() or None
+            ver_obj = create_timetable_version_snapshot(selected_academic_year, semester, staff, version_name=ver_label)
+            if ver_obj:
+                messages.success(request, f'Draft saved and Version Snapshot ({ver_obj.version_name}) archived to DB successfully.')
+        else:
+            messages.success(request, f'Draft timetable for Academic Year {selected_academic_year} Semester {semester} updated successfully.')
         return redirect(f'/staffs/hod/published-timetables/?semester={semester}&academic_year={selected_academic_year}&tab=edit')
         
     # GET Request: Fetch timetable entries for selected semester & academic year
@@ -3362,6 +3371,25 @@ def hod_published_timetables(request):
 
             messages.success(request, f'Lab batches & Representatives updated successfully for Semester {selected_semester}.')
             return redirect(f'/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=batches')
+
+        elif action == 'create_version_snapshot':
+            ver_label = request.POST.get('version_label', '').strip() or None
+            ver_obj = create_timetable_version_snapshot(selected_academic_year, selected_semester, staff, version_name=ver_label)
+            if ver_obj:
+                messages.success(request, f"Timetable version '{ver_obj.version_name}' saved to history successfully.")
+            else:
+                messages.error(request, "Cannot save version: No timetable entries exist for this semester.")
+            return redirect(f"/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=history")
+
+        elif action == 'delete_version_snapshot':
+            version_id = request.POST.get('version_id')
+            from .models import PublishedTimetableVersion
+            ver_to_del = PublishedTimetableVersion.objects.filter(id=version_id, academic_year=selected_academic_year, semester=selected_semester).first()
+            if ver_to_del:
+                vname = ver_to_del.version_name
+                ver_to_del.delete()
+                messages.success(request, f"Version '{vname}' deleted from history.")
+            return redirect(f"/staffs/hod/published-timetables/?academic_year={selected_academic_year}&semester={selected_semester}&tab=history")
 
     # Semester Summary Cards for selected academic year (Sem 1 to 8)
     semesters_summary = []
