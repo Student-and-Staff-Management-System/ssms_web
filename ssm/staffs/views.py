@@ -3031,14 +3031,23 @@ def edit_timetable(request, semester):
                                 )
                                 all_entry.delete()
 
-                            Timetable.objects.update_or_create(
-                                academic_year=selected_academic_year,
-                                semester=semester,
-                                day=day,
-                                period=period,
-                                batch=current_batch,
-                                defaults={'subject': b_subject, 'staff': b_staff}
-                            )
+                            if b_subject:
+                                Timetable.objects.update_or_create(
+                                    academic_year=selected_academic_year,
+                                    semester=semester,
+                                    day=day,
+                                    period=period,
+                                    batch=current_batch,
+                                    defaults={'subject': b_subject, 'staff': b_staff}
+                                )
+                            else:
+                                Timetable.objects.filter(
+                                    academic_year=selected_academic_year,
+                                    semester=semester,
+                                    day=day,
+                                    period=period,
+                                    batch=current_batch
+                                ).delete()
 
         if request.POST.get('create_snapshot') == 'true':
             ver_label = request.POST.get('version_label', '').strip() or None
@@ -3167,7 +3176,7 @@ def create_timetable_version_snapshot(academic_year, semester, staff_user, from_
     import datetime
     from django.core.serializers.json import DjangoJSONEncoder
 
-    entries = Timetable.objects.filter(academic_year=academic_year, semester=semester).select_related('subject', 'staff')
+    entries = Timetable.objects.filter(academic_year=academic_year, semester=semester, subject__isnull=False).select_related('subject', 'staff')
     if not entries.exists():
         return None
 
