@@ -204,9 +204,66 @@
         }
 
         .my-period {
-            background: var(--my-period-bg) !important;
+            background: var(--my-period-bg);
             border: 1px solid #80cbc4;
         }
+
+        /* ── Hour / Period Specific Vibrant Pastel Themes ── */
+        /* Period 1 (08:30 - 09:30) - Mint Emerald */
+        .period-slot-1 {
+            background: #ecfdf5 !important;
+            border: 1px solid #a7f3d0 !important;
+        }
+        .period-slot-1 .subject-code { color: #047857 !important; }
+        .period-slot-1 .sem-badge { background: #d1fae5 !important; color: #065f46 !important; }
+
+        /* Period 2 (09:30 - 10:30) - Sky Blue */
+        .period-slot-2 {
+            background: #e0f2fe !important;
+            border: 1px solid #7dd3fc !important;
+        }
+        .period-slot-2 .subject-code { color: #0369a1 !important; }
+        .period-slot-2 .sem-badge { background: #bae6fd !important; color: #0c4a6e !important; }
+
+        /* Period 3 (10:40 - 11:40) - Royal Indigo */
+        .period-slot-3 {
+            background: #eef2ff !important;
+            border: 1px solid #c7d2fe !important;
+        }
+        .period-slot-3 .subject-code { color: #4338ca !important; }
+        .period-slot-3 .sem-badge { background: #e0e7ff !important; color: #3730a3 !important; }
+
+        /* Period 4 (11:40 - 12:40) - Warm Amber */
+        .period-slot-4 {
+            background: #fff7ed !important;
+            border: 1px solid #fed7aa !important;
+        }
+        .period-slot-4 .subject-code { color: #c2410c !important; }
+        .period-slot-4 .sem-badge { background: #ffedd5 !important; color: #9a3412 !important; }
+
+        /* Period 5 (01:30 - 02:30) - Rose Crimson */
+        .period-slot-5 {
+            background: #fff1f2 !important;
+            border: 1px solid #fecdd3 !important;
+        }
+        .period-slot-5 .subject-code { color: #be123c !important; }
+        .period-slot-5 .sem-badge { background: #ffe4e6 !important; color: #9f1239 !important; }
+
+        /* Period 6 (02:30 - 03:30) - Purple Lavender */
+        .period-slot-6 {
+            background: #f5f3ff !important;
+            border: 1px solid #ddd6fe !important;
+        }
+        .period-slot-6 .subject-code { color: #6d28d9 !important; }
+        .period-slot-6 .sem-badge { background: #ede9fe !important; color: #5b21b6 !important; }
+
+        /* Period 7 (03:30 - 04:30) - Sage Teal */
+        .period-slot-7 {
+            background: #f0fdfa !important;
+            border: 1px solid #99f6e4 !important;
+        }
+        .period-slot-7 .subject-code { color: #0f766e !important; }
+        .period-slot-7 .sem-badge { background: #ccfbf1 !important; color: #115e59 !important; }
 
         .subject-code {
             display: block;
@@ -337,7 +394,7 @@
 
                         <!-- Period 1 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.0 and periods.0.is_mine %}my-period{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.0 and periods.0.is_mine %}my-period period-slot-1{% endif %}">
                             {% with p=periods.0 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
@@ -347,7 +404,7 @@
 
                         <!-- Period 2 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.1 and periods.1.is_mine %}my-period{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.1 and periods.1.is_mine %}my-period period-slot-2{% endif %}">
                             {% with p=periods.1 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
@@ -359,7 +416,7 @@
 
                         <!-- Period 3 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.2 and periods.2.is_mine %}my-period{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.2 and periods.2.is_mine %}my-period period-slot-3{% endif %}">
                             {% with p=periods.2 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
@@ -369,7 +426,7 @@
 
                         <!-- Period 4 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.3 and periods.3.is_mine %}my-period{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.3 and periods.3.is_mine %}my-period period-slot-4{% endif %}">
                             {% with p=periods.3 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
@@ -381,7 +438,7 @@
 
                         <!-- Period 5 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.4 and periods.4.is_mine %}my-period{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.4 and periods.4.is_mine %}my-period period-slot-5{% endif %}">
                             {% with p=periods.4 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
@@ -391,7 +448,7 @@
 
                         <!-- Period 6 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.5 and periods.5.is_mine %}my-period{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.5 and periods.5.is_mine %}my-period period-slot-6{% endif %}">
                             {% with p=periods.5 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
@@ -401,7 +458,7 @@
 
                         <!-- Period 7 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.6 and periods.6.is_mine %}my-period{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.6 and periods.6.is_mine %}my-period period-slot-7{% endif %}">
                             {% with p=periods.6 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>

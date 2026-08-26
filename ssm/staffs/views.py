@@ -206,15 +206,15 @@ def staff_dashboard(request):
 
     # ── Research Scholar (RS) data ──────────────────────────────────────────
     from students.models import ResearchScholarProfile, ScholarAttendance, LeaveRequest, PhDProgress
-    
-    if staff.is_staff_admin:
-        # HOD / Admin sees all scholars and all pending requests
-        rs_scholars = Student.objects.filter(program_level='PHD').select_related('scholar_profile', 'phd_progress')
+
+    if staff.is_hod or staff.is_staff_admin or active_role == 'HOD':
+        # HOD / Admin sees all department scholars with supervisor details
+        rs_scholars = Student.objects.filter(program_level='PHD').select_related('scholar_profile', 'phd_progress', 'scholar_profile__supervisor')
         rs_pending_leaves = LeaveRequest.objects.filter(student__program_level='PHD', status='Pending Guide').count()
         rs_pending_attendance = ScholarAttendance.objects.filter(scholar__program_level='PHD', status='Pending').count()
     else:
         # Other staff see only their assigned scholars
-        rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile', 'phd_progress')
+        rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile', 'phd_progress', 'scholar_profile__supervisor')
         rs_ids = rs_scholars.values_list('pk', flat=True)
         rs_pending_leaves = LeaveRequest.objects.filter(student_id__in=rs_ids, status='Pending Guide').count() if rs_scholars.exists() else 0
         rs_pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').count() if rs_scholars.exists() else 0
@@ -944,6 +944,16 @@ def student_list(request):
     if end_roll:
         students = students.filter(roll_number__lte=end_roll)
 
+    sort_by = request.GET.get('sort_by', 'roll_asc')
+    if sort_by == 'roll_desc':
+        students = students.order_by('-roll_number')
+    elif sort_by in ['name_asc', 'name']:
+        students = students.order_by('student_name')
+    elif sort_by == 'name_desc':
+        students = students.order_by('-student_name')
+    else:
+        students = students.order_by('roll_number')
+
     # Compute profile completion for each student
     from students.views import get_profile_completion_data
     students_with_completion = []
@@ -1072,7 +1082,8 @@ def student_list(request):
         'selected_semester': semester,
         'selected_batch': batch,
         'start_roll': start_roll,
-        'end_roll': end_roll
+        'end_roll': end_roll,
+        'sort_by': sort_by,
     })
 
 
@@ -8308,5 +8319,310 @@ def update_staff_roles(request, staff_id):
         return redirect(request.META.get('HTTP_REFERER', 'staffs:staff_list'))
 
     return redirect('staffs:staff_list')
+
+
+def admin_portal_dashboard(request):
+    """
+    Dedicated Custom Admin Portal for HOD & Administrators.
+    Provides complete CRUD and system management bypassing standard Django Admin.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    from staffs.models import Timetable
+    from students.models import BonafideRequest, DocumentRequest, LeaveRequest
+
+    current_staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not current_staff or (current_staff.role != 'HOD' and not current_staff.is_admin):
+        messages.error(request, "Access Denied: Custom Admin Portal is restricted to HOD and Administrators.")
+        return redirect('staffs:staff_dashboard')
+
+    active_section = request.GET.get('section', 'overview')
+    query = request.GET.get('q', '').strip()
+    sem_filter = request.GET.get('semester', '').strip()
+    batch_filter = request.GET.get('batch', '').strip()
+    role_filter = request.GET.get('role', '').strip()
+    sort_by = request.GET.get('sort_by', 'roll_asc')
+
+    # Handle Admin POST Actions (e.g. quick password reset, status toggle, publish timetable)
+    if request.method == 'POST':
+        admin_action = request.POST.get('admin_action')
+        if admin_action == 'reset_password':
+            target_type = request.POST.get('target_type')  # 'staff' or 'student'
+            target_id = request.POST.get('target_id')
+            new_pass = request.POST.get('new_password', '').strip()
+
+            if target_type == 'staff':
+                st = Staff.objects.filter(staff_id=target_id).first()
+                if st and new_pass:
+                    st.password = new_pass
+                    st.save()
+                    messages.success(request, f"Password successfully updated for Staff {st.staff_id} ({st.name}).")
+            elif target_type == 'student':
+                std = Student.objects.filter(roll_number=target_id).first()
+                if std and new_pass:
+                    std.password = new_pass
+                    std.save()
+                    messages.success(request, f"Password successfully updated for Student {std.roll_number} ({std.student_name}).")
+
+        elif admin_action == 'toggle_staff_status':
+            target_id = request.POST.get('target_id')
+            st = Staff.objects.filter(staff_id=target_id).first()
+            if st:
+                st.is_active = not getattr(st, 'is_active', True)
+                st.save()
+                messages.info(request, f"Staff {st.staff_id} status updated.")
+
+        elif admin_action == 'publish_timetable':
+            target_sem = request.POST.get('semester')
+            if target_sem:
+                try:
+                    sem_num = int(target_sem)
+                    t_qs = Timetable.objects.filter(semester=sem_num)
+                    new_val = not t_qs.filter(is_published=True).exists()
+                    t_qs.update(is_published=new_val)
+                    status_text = "Published" if new_val else "Unpublished"
+                    messages.success(request, f"Semester {sem_num} Timetable is now {status_text}!")
+                except ValueError:
+                    pass
+
+        return redirect(f"{request.path}?section={active_section}")
+
+    # Core System Summary Stats
+    total_staff = Staff.objects.count()
+    total_students = Student.objects.count()
+    total_subjects = Subject.objects.count()
+    published_tt_count = Timetable.objects.filter(is_published=True).values('semester').distinct().count()
+
+    pending_bonafides = BonafideRequest.objects.filter(status='Pending').count()
+    pending_doc_requests = DocumentRequest.objects.filter(status='Pending').count()
+    pending_leaves = LeaveRequest.objects.filter(status='Pending').count()
+
+    # Dynamic Model Auto-Discovery across installed apps
+    from django.apps import apps
+    from django.forms.models import modelform_factory
+
+    all_models_by_app = {}
+    for model_cls in apps.get_models():
+        app_lbl = model_cls._meta.app_label
+        if app_lbl in ['staffs', 'students', 'auth', 'django.contrib.admin', 'webpush']:
+            if app_lbl not in all_models_by_app:
+                all_models_by_app[app_lbl] = []
+            all_models_by_app[app_lbl].append({
+                'model_name': model_cls.__name__,
+                'verbose_name': model_cls._meta.verbose_name_plural.title(),
+                'app_label': app_lbl,
+            })
+
+    # Generic Dynamic Model CRUD Handling
+    app_label = request.GET.get('app_label')
+    model_name = request.GET.get('model_name')
+    target_pk = request.GET.get('pk')
+
+    target_model_cls = None
+    target_model_meta = None
+    model_objects_qs = None
+    model_fields = []
+    dynamic_form = None
+    formatted_objects = []
+
+    if app_label and model_name:
+        try:
+            target_model_cls = apps.get_model(app_label, model_name)
+            target_model_meta = target_model_cls._meta
+        except LookupError:
+            target_model_cls = None
+
+    if target_model_cls:
+        # Generic POST Handling (Save & Delete for any model object)
+        if request.method == 'POST':
+            admin_action = request.POST.get('admin_action')
+
+            if admin_action == 'save_model_object':
+                instance = None
+                if target_pk:
+                    instance = target_model_cls.objects.filter(pk=target_pk).first()
+
+                DynamicFormClass = modelform_factory(target_model_cls, fields='__all__')
+                form_inst = DynamicFormClass(request.POST, request.FILES, instance=instance)
+                if form_inst.is_valid():
+                    obj = form_inst.save()
+                    action_str = "updated" if instance else "created"
+                    messages.success(request, f"{target_model_meta.verbose_name.title()} record '{obj}' successfully {action_str}!")
+                    return redirect(f"{request.path}?section=model_list&app_label={app_label}&model_name={model_name}")
+                else:
+                    dynamic_form = form_inst
+                    active_section = 'model_form'
+
+            elif admin_action == 'delete_model_object':
+                if target_pk:
+                    obj = target_model_cls.objects.filter(pk=target_pk).first()
+                    if obj:
+                        obj_repr = str(obj)
+                        obj.delete()
+                        messages.warning(request, f"{target_model_meta.verbose_name.title()} record '{obj_repr}' was deleted.")
+                return redirect(f"{request.path}?section=model_list&app_label={app_label}&model_name={model_name}")
+
+            elif admin_action == 'bulk_delete_objects':
+                selected_pks = request.POST.getlist('selected_pks')
+                if selected_pks:
+                    count, _ = target_model_cls.objects.filter(pk__in=selected_pks).delete()
+                    messages.warning(request, f"Bulk Action: Deleted {count} records from {target_model_meta.verbose_name.title()}.")
+                return redirect(f"{request.path}?section=model_list&app_label={app_label}&model_name={model_name}")
+
+            elif admin_action == 'export_model_csv':
+                import csv
+                response = HttpResponse(content_type='text/csv')
+                response['Content-Disposition'] = f'attachment; filename="{app_label}_{model_name}_export.csv"'
+                writer = csv.writer(response)
+
+                fields_to_export = [f.name for f in target_model_meta.fields if not f.is_relation or f.many_to_one]
+                writer.writerow(['Representation'] + [f.replace('_', ' ').title() for f in fields_to_export])
+
+                for obj in target_model_cls.objects.all()[:1000]:
+                    row = [str(obj)]
+                    for fn in fields_to_export:
+                        try:
+                            val = getattr(obj, fn, '')
+                            if callable(val):
+                                val = val()
+                        except Exception:
+                            val = ''
+                        row.append(str(val) if val is not None else '')
+                    writer.writerow(row)
+                return response
+
+        # Generic GET Handling (Roster Table & Dynamic Form)
+        if active_section == 'model_list':
+            model_fields = [f for f in target_model_meta.fields if not f.is_relation or f.many_to_one][:6]
+            model_objects_qs = target_model_cls.objects.all()
+            if query:
+                char_fields = [f.name for f in target_model_meta.fields if f.get_internal_type() in ['CharField', 'TextField', 'EmailField']]
+                if char_fields:
+                    q_obj = Q()
+                    for cf in char_fields[:4]:
+                        q_obj |= Q(**{f"{cf}__icontains": query})
+                    model_objects_qs = model_objects_qs.filter(q_obj)
+
+            f_names = [f.name for f in model_fields]
+            for obj in model_objects_qs[:150]:
+                row_vals = []
+                for fn in f_names:
+                    try:
+                        val = getattr(obj, fn, '—')
+                        if callable(val):
+                            val = val()
+                    except Exception:
+                        val = '—'
+                    row_vals.append(str(val) if val is not None else '—')
+                formatted_objects.append({
+                    'pk': obj.pk,
+                    'repr': str(obj),
+                    'field_values': row_vals,
+                })
+
+        elif active_section == 'model_form' and dynamic_form is None:
+            instance = None
+            if target_pk:
+                instance = target_model_cls.objects.filter(pk=target_pk).first()
+            DynamicFormClass = modelform_factory(target_model_cls, fields='__all__')
+            dynamic_form = DynamicFormClass(instance=instance)
+
+    # Section Data Querying
+    staff_list = None
+    student_list_qs = None
+    subject_list_qs = None
+    timetable_summary = []
+    audit_logs = []
+
+    if active_section == 'staff':
+        staff_list = Staff.objects.all().order_by('staff_id')
+        if query:
+            staff_list = staff_list.filter(Q(name__icontains=query) | Q(staff_id__icontains=query) | Q(email__icontains=query))
+        if role_filter:
+            staff_list = staff_list.filter(Q(role=role_filter) | Q(secondary_roles__icontains=role_filter))
+
+    elif active_section == 'students':
+        student_list_qs = Student.objects.all()
+        if query:
+            student_list_qs = student_list_qs.filter(Q(student_name__icontains=query) | Q(roll_number__icontains=query) | Q(student_email__icontains=query))
+        if sem_filter:
+            try:
+                sem_n = int(sem_filter)
+                student_list_qs = student_list_qs.filter(current_semester=sem_n)
+            except ValueError:
+                pass
+        if batch_filter in ['A', 'B']:
+            student_list_qs = student_list_qs.filter(lab_batch=batch_filter)
+
+        if sort_by == 'roll_desc':
+            student_list_qs = student_list_qs.order_by('-roll_number')
+        elif sort_by in ['name_asc', 'name']:
+            student_list_qs = student_list_qs.order_by('student_name')
+        elif sort_by == 'name_desc':
+            student_list_qs = student_list_qs.order_by('-student_name')
+        else:
+            student_list_qs = student_list_qs.order_by('roll_number')
+
+    elif active_section == 'courses':
+        subject_list_qs = Subject.objects.all().select_related('staff', 'staff_batch_b').order_by('semester', 'code')
+        if query:
+            subject_list_qs = subject_list_qs.filter(Q(code__icontains=query) | Q(name__icontains=query))
+        if sem_filter:
+            try:
+                subject_list_qs = subject_list_qs.filter(semester=int(sem_filter))
+            except ValueError:
+                pass
+
+    elif active_section == 'timetables':
+        for s in range(1, 9):
+            is_pub = Timetable.objects.filter(semester=s, is_published=True).exists()
+            entry_cnt = Timetable.objects.filter(semester=s).count()
+            timetable_summary.append({
+                'semester': s,
+                'is_published': is_pub,
+                'entry_count': entry_cnt
+            })
+
+    elif active_section == 'logs':
+        try:
+            from django.contrib.admin.models import LogEntry
+            audit_logs = LogEntry.objects.all().select_related('user', 'content_type').order_by('-action_time')[:100]
+        except Exception:
+            audit_logs = []
+
+    context = {
+        'current_staff': current_staff,
+        'active_section': active_section,
+        'query': query,
+        'sem_filter': sem_filter,
+        'batch_filter': batch_filter,
+        'role_filter': role_filter,
+        'sort_by': sort_by,
+        'total_staff': total_staff,
+        'total_students': total_students,
+        'total_subjects': total_subjects,
+        'published_tt_count': published_tt_count,
+        'pending_bonafides': pending_bonafides,
+        'pending_doc_requests': pending_doc_requests,
+        'pending_leaves': pending_leaves,
+        'staff_list': staff_list,
+        'student_list': student_list_qs[:250] if student_list_qs is not None else None,
+        'subject_list': subject_list_qs,
+        'timetable_summary': timetable_summary,
+        'audit_logs': audit_logs,
+        'all_models_by_app': all_models_by_app,
+        'app_label': app_label,
+        'model_name': model_name,
+        'target_model_meta': target_model_meta,
+        'model_fields': model_fields,
+        'model_objects': model_objects_qs[:150] if model_objects_qs is not None else None,
+        'formatted_objects': formatted_objects,
+        'dynamic_form': dynamic_form,
+        'target_pk': target_pk,
+    }
+
+    return render(request, 'staff/custom_admin_portal.html', context)
+
 
 

@@ -375,6 +375,12 @@
                 <option value="B" {% if selected_batch == 'B' %}selected{% endif %}>Batch B</option>
                 <option value="Unassigned" {% if selected_batch == 'Unassigned' %}selected{% endif %}>Unassigned</option>
             </select>
+            <select name="sort_by" class="filter-select" onchange="this.form.submit()">
+                <option value="roll_asc" {% if sort_by == 'roll_asc' or not sort_by %}selected{% endif %}>🔢 Roll No (Asc)</option>
+                <option value="roll_desc" {% if sort_by == 'roll_desc' %}selected{% endif %}>🔢 Roll No (Desc)</option>
+                <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>🔤 Name (A-Z)</option>
+                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>🔤 Name (Z-A)</option>
+            </select>
             <input type="text" name="start_roll" class="search-input" placeholder="Start Roll..."
                 value="{{ start_roll|default:'' }}">
             <input type="text" name="end_roll" class="search-input" placeholder="End Roll..."
