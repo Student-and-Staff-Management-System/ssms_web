@@ -1827,30 +1827,291 @@ html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
     color: #0f172a !important;
 }
 
-/* ================== DESKTOP NAVBAR OPTIMIZATION ================== */
+/* ==========================================================================
+   DESKTOP (MIN-WIDTH: 992PX) HIGH-PRECISION ALIGNMENT & THEME OVERHAUL
+   ========================================================================== */
 @media (min-width: 992px) {
     /* Hide duplicate 'Back to Dashboard' pill in navbar on desktop */
     .navbar-nav .nav-item a[href*="/staffs/dashboard/"] {
         display: none !important;
     }
 
-    /* Style top navbar search inputs cleanly */
+    /* 1. Sidebar & Content Boundaries */
+    .main-sidebar, .sidebar {
+        width: 250px !important;
+        min-width: 250px !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        z-index: 1030 !important;
+        background: #ffffff !important;
+        border-right: 1px solid #e2e8f0 !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03) !important;
+    }
+
+    .main-header {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+        padding: 8px 24px !important;
+    }
+
+    .content-wrapper {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+        padding: 24px 32px 60px !important;
+        background-color: #f8fafc !important;
+        min-height: calc(100vh - 57px) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Prevent sidebar labels from clipping */
+    .nav-sidebar .nav-item .nav-link {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 10px 14px !important;
+        margin: 2px 10px !important;
+        border-radius: 8px !important;
+        color: #334155 !important;
+        font-weight: 500 !important;
+    }
+
+    .nav-sidebar .nav-item .nav-link p,
+    .nav-sidebar .nav-item .nav-link span,
+    .brand-link span,
+    .nav-header {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 0.88rem !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* 2. Top Navbar Header Elements */
+    .main-header .navbar-nav {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 16px !important;
+    }
+
+    .navbar-search, .main-header .form-inline {
+        display: flex !important;
+        align-items: center !important;
+        max-width: 240px !important;
+    }
+
     .navbar-search .form-control, .form-inline .form-control {
-        border-radius: 8px 0 0 8px !important;
+        height: 36px !important;
+        border-radius: 6px 0 0 6px !important;
         border: 1px solid #cbd5e1 !important;
-        font-size: 0.85rem !important;
+        font-size: 0.82rem !important;
+        padding: 4px 10px !important;
         background: #f8fafc !important;
+        width: 170px !important;
     }
 
     .navbar-search .btn, .form-inline .btn {
-        border-radius: 0 8px 8px 0 !important;
+        height: 36px !important;
+        border-radius: 0 6px 6px 0 !important;
         background: #5a7d7c !important;
         border: 1px solid #4a6b69 !important;
         color: #ffffff !important;
+        margin-left: 0 !important;
+        padding: 0 12px !important;
     }
 
-    /* Clean spacing for content-wrapper on desktop */
-    .content-wrapper {
-        padding: 10px 20px 40px !important;
+    /* 3. Table Header Pill Reset - Force Solid Row Headers */
+    #changelist table thead,
+    #result_list thead,
+    .results table thead,
+    .table thead {
+        display: table-header-group !important;
+        background: #f1f5f9 !important;
+    }
+
+    #changelist table thead tr,
+    #result_list thead tr,
+    .results table thead tr,
+    .table thead tr {
+        display: table-row !important;
+        background: #f1f5f9 !important;
+    }
+
+    #changelist table thead th,
+    #result_list thead th,
+    .results table thead th,
+    .table thead th {
+        display: table-cell !important;
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        font-size: 0.78rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        padding: 12px 14px !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        height: auto !important;
+    }
+
+    #changelist table thead th a,
+    #result_list thead th a,
+    .results table thead th a,
+    .table thead th a,
+    th.sortable a,
+    th .text a,
+    th a {
+        background: transparent !important;
+        color: #334155 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        text-transform: uppercase !important;
+        font-weight: 700 !important;
+        font-size: 0.78rem !important;
+        text-decoration: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+        height: auto !important;
+        width: auto !important;
+    }
+
+    #changelist table thead th a:hover,
+    #result_list thead th a:hover,
+    .results table thead th a:hover,
+    th.sortable a:hover,
+    th .text a:hover {
+        color: #5a7d7c !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* 4. Table Body & Row Alignment */
+    #changelist .results, .results {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        overflow-x: auto !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        margin-bottom: 20px !important;
+        display: block !important;
+        width: 100% !important;
+    }
+
+    #changelist table, #result_list, .results table {
+        display: table !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 0 !important;
+    }
+
+    #changelist table tbody, #result_list tbody, .results table tbody {
+        display: table-row-group !important;
+    }
+
+    #changelist table tbody tr, #result_list tbody tr, .results table tbody tr {
+        display: table-row !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    #changelist table tbody td, #result_list tbody td, .results table tbody td {
+        display: table-cell !important;
+        padding: 12px 14px !important;
+        vertical-align: middle !important;
+        font-size: 0.88rem !important;
+        color: #1e293b !important;
+        border-top: none !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        white-space: nowrap !important;
+        text-align: left !important;
+    }
+
+    #changelist table tbody tr:hover, #result_list tbody tr:hover {
+        background-color: #f8fafc !important;
+    }
+
+    /* 5. Changelist Search & Filter Form Bar Alignment */
+    #changelist-form .actions,
+    #changelist-search,
+    .change-list-filters {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 12px 18px !important;
+        margin-bottom: 16px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 12px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    }
+
+    #changelist-search input[type="text"] {
+        height: 38px !important;
+        border-radius: 6px !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 6px 12px !important;
+        font-size: 0.85rem !important;
+        min-width: 240px !important;
+        background: #ffffff !important;
+    }
+
+    #changelist-search input[type="submit"],
+    .actions button,
+    .actions .button {
+        height: 38px !important;
+        padding: 0 16px !important;
+        border-radius: 6px !important;
+        background: #5a7d7c !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        border: none !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+    }
+
+    .change-list-filters select,
+    .actions select,
+    #changelist-form select {
+        height: 38px !important;
+        padding: 6px 12px !important;
+        border-radius: 6px !important;
+        border: 1px solid #cbd5e1 !important;
+        font-size: 0.85rem !important;
+        background: #ffffff !important;
+        color: #1e293b !important;
+        font-weight: 500 !important;
+    }
+
+    .action-checkbox, td.action-checkbox, th.action-checkbox-column {
+        width: 44px !important;
+        text-align: center !important;
+    }
+
+    .action-checkbox input[type="checkbox"] {
+        width: 16px !important;
+        height: 16px !important;
+        cursor: pointer !important;
+        accent-color: #5a7d7c !important;
     }
 }

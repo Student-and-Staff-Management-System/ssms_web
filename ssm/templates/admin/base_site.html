@@ -76,13 +76,38 @@
     }
 
     #changelist table thead th {
-        background: var(--accent-light) !important;
-        color: var(--primary-dark) !important;
-        font-weight: 600;
-        padding: 12px 15px !important;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        border-bottom: 2px solid var(--primary-color);
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        padding: 12px 14px !important;
+        text-transform: uppercase !important;
+        font-size: 0.8rem !important;
+        border-bottom: 2px solid #5a7d7c !important;
+        white-space: nowrap !important;
+        letter-spacing: 0.04em;
+    }
+
+    #changelist table thead th a,
+    #changelist table thead th a:hover,
+    #result_list thead th a,
+    th.sortable a,
+    th .text a {
+        background: transparent !important;
+        color: #334155 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        text-transform: uppercase !important;
+        font-weight: 700 !important;
+        font-size: 0.8rem !important;
+        text-decoration: none !important;
+        transform: none !important;
+        opacity: 1 !important;
     }
 
     #changelist table tbody td {
@@ -96,10 +121,10 @@
         background-color: #f0fffe;
     }
 
-    /* Buttons - Comprehensive Targeting */
-    body .button,
+    /* Buttons - Comprehensive Targeting (Excludes table header links) */
+    body .button:not(th a),
     body .submit-row input,
-    body a.button,
+    body a.button:not(th a),
     body .object-tools a,
     body input[type="submit"],
     body input[type="button"],
@@ -128,9 +153,9 @@
         text-decoration: none;
     }
 
-    body .button:hover,
+    body .button:not(th a):hover,
     body .submit-row input:hover,
-    body a.button:hover,
+    body a.button:not(th a):hover,
     body .object-tools a:hover,
     body input[type="submit"]:hover,
     body input[type="button"]:hover,

@@ -65,37 +65,68 @@ body {
     line-height: 1.2;
 }
 
-/* ================== Sidebar ================== */
-.main-sidebar {
-    background-color: var(--secondary-bg) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    border-right: none !important;
+/* ================== Sidebar Menu Optimization ================== */
+.main-sidebar, .sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Sidebar Brand Link */
+.brand-link {
+    background: #eef2f2 !important;
+    border-bottom: 1px solid rgba(90, 125, 124, 0.2) !important;
+    padding: 12px 16px !important;
+}
+
+.brand-link span {
+    color: #4a6b69 !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+}
+
+/* Sidebar Nav Header (Category Labels) */
+.nav-header {
+    color: #64748b !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 12px 16px 4px !important;
 }
 
 /* Sidebar Links */
 .nav-sidebar .nav-item .nav-link {
-    color: var(--text-primary) !important;
-    border-radius: 8px !important;
-    margin-bottom: 4px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    color: #1e293b !important;
+    border-radius: 10px !important;
+    margin: 3px 8px !important;
+    padding: 9px 14px !important;
+    font-weight: 500 !important;
+    font-size: 0.88rem !important;
+    transition: all 0.2s ease !important;
 }
 
 .nav-sidebar .nav-item .nav-link:hover {
-    background-color: var(--light-accent-bg) !important;
-    color: var(--accent-color) !important;
-    transform: translateX(5px);
+    background-color: #eef2f2 !important;
+    color: #4a6b69 !important;
+    transform: translateX(3px) !important;
 }
 
 .nav-sidebar .nav-item .nav-link.active {
-    background-color: var(--accent-color) !important;
+    background: #5a7d7c !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 10px rgba(90, 125, 124, 0.3);
+    font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(90, 125, 124, 0.3) !important;
 }
 
 .nav-sidebar .nav-icon {
-    color: inherit !important;
-    font-size: 1.1em;
+    color: #5a7d7c !important;
+    font-size: 1.05rem !important;
+    margin-right: 8px !important;
+}
+
+.nav-sidebar .nav-item .nav-link.active .nav-icon {
+    color: #ffffff !important;
 }
 
 /* ================== Cards (Modules) ================== */
@@ -1274,5 +1305,813 @@ td .btn {
     .table-responsive {
         overflow-x: auto !important;
         overflow-y: visible !important;
+    }
+}
+
+/* ================== DJANGO ADMIN FILTER_HORIZONTAL RESPONSIVE UI ================== */
+.selector {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+    align-items: center !important;
+    margin: 10px 0 !important;
+}
+
+.selector .selector-available,
+.selector .selector-chosen {
+    flex: 1 1 280px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.selector .selector-available h2,
+.selector .selector-chosen h2 {
+    background: var(--accent-color, #5a7d7c) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.88rem !important;
+    padding: 10px 14px !important;
+    border-radius: 8px 8px 0 0 !important;
+    margin: 0 !important;
+}
+
+.selector select {
+    width: 100% !important;
+    min-height: 220px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 0 0 8px 8px !important;
+    padding: 8px !important;
+    font-size: 0.9rem !important;
+    font-family: inherit !important;
+    box-sizing: border-box !important;
+}
+
+.selector select option {
+    padding: 6px 10px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-radius: 4px !important;
+    margin-bottom: 2px !important;
+    font-weight: 500 !important;
+}
+
+.selector select option:checked {
+    background-color: var(--light-accent-bg, #eef2f2) !important;
+    color: var(--accent-color, #5a7d7c) !important;
+    font-weight: 700 !important;
+}
+
+.selector .selector-chooser {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 8px 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    list-style: none !important;
+}
+
+.selector .selector-chooser li {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.selector .selector-chooser a {
+    background: var(--light-accent-bg, #eef2f2) !important;
+    color: var(--accent-color, #5a7d7c) !important;
+    border: 1px solid rgba(90, 125, 124, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+}
+
+.selector .selector-chooser a:hover {
+    background: var(--accent-color, #5a7d7c) !important;
+    color: #ffffff !important;
+}
+
+.selector-filter input {
+    width: 100% !important;
+    padding: 8px 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    margin-bottom: 6px !important;
+    box-sizing: border-box !important;
+}
+
+/* Django Admin Mobile Change Form Optimizations */
+@media (max-width: 768px) {
+    .selector {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .selector .selector-available,
+    .selector .selector-chosen {
+        width: 100% !important;
+        flex: none !important;
+    }
+
+    .form-row {
+        padding: 10px !important;
+        overflow-x: hidden !important;
+    }
+
+    #content-main, .change-form, .module, .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+
+    .submit-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+        padding: 12px !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        right: 0 !important;
+    }
+
+    .submit-row input, .submit-row a, .submit-row button {
+        width: 100% !important;
+        margin: 0 !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+
+    .form-group, .fieldBox {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ================== DJANGO ADMIN DASHBOARD CARD & NAVBAR MOBILE OVERHAUL ================== */
+
+/* 1. Global Box-Sizing & Container Boundary Fix */
+html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+}
+
+/* 2. Top Header Navbar Mobile Fix */
+@media (max-width: 991px) {
+    .main-header {
+        padding: 6px 12px !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+
+    .main-header .navbar-nav {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 6px !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .main-header .nav-item {
+        margin: 2px 0 !important;
+    }
+
+    .navbar-nav .nav-item a[href*="/staffs/dashboard/"] {
+        margin: 0 !important;
+        padding: 6px 12px !important;
+        font-size: 0.78rem !important;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 6px 8px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Hide duplicate floating search items causing right edge overflow on mobile */
+    .navbar-search, .main-header .form-inline, .navbar-nav .dropdown-menu-right, .navbar-nav .dropdown {
+        display: none !important;
+    }
+}
+
+/* 3. Dashboard App Cards & Model Row Layout Fix */
+.card-body.p-0 {
+    padding: 8px !important;
+    box-sizing: border-box !important;
+}
+
+.card-body .table {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    border-collapse: collapse !important;
+    box-sizing: border-box !important;
+}
+
+.card-body .table tbody {
+    display: block !important;
+    width: 100% !important;
+}
+
+.card-body .table tr {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 8px !important;
+    border-bottom: 1px solid var(--light-accent-bg, #eef2f2) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.card-body .table td {
+    border: none !important;
+    padding: 2px 0 !important;
+    vertical-align: middle !important;
+}
+
+.card-body .table td:first-child {
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    flex: 1 1 140px !important;
+    word-break: break-word !important;
+}
+
+.card-body .table td:last-child {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    flex-shrink: 0 !important;
+}
+
+.card-body .table td .btn {
+    padding: 5px 12px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+    box-shadow: none !important;
+}
+
+/* 4. Model List Table Views & Search Controls */
+@media (max-width: 768px) {
+    #changelist {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    #changelist-form {
+        width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    #changelist-search {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+    }
+
+    #changelist-search input[type="text"] {
+        width: 100% !important;
+        padding: 10px 14px !important;
+        box-sizing: border-box !important;
+    }
+
+    .actions {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    .actions select, .actions button, .actions span {
+        width: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .results {
+        overflow-x: auto !important;
+        width: 100% !important;
+        border-radius: 8px !important;
+    }
+
+    .results table {
+        width: 100% !important;
+        min-width: 600px !important;
+    }
+}
+
+/* ================== MOBILE UI HIGH PRECISION TOUCH OPTIMIZATIONS ================== */
+@media (max-width: 768px) {
+    /* 1. Sticky Mobile Header & Navigation */
+    .main-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1040 !important;
+        background: #ffffff !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06) !important;
+        padding: 8px 12px !important;
+    }
+
+    .main-header .navbar-nav {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+    }
+
+    /* Hide non-essential redundant top navbar items on phones */
+    .navbar-nav .nav-item:not(:first-child):not(:has(a[href*="/staffs/dashboard/"])) {
+        display: none !important;
+    }
+
+    .navbar-nav .nav-item a[href*="/staffs/dashboard/"] {
+        font-size: 0.76rem !important;
+        padding: 5px 12px !important;
+        border-radius: 20px !important;
+        margin: 0 !important;
+    }
+
+    /* 2. Content & Page Header */
+    .content-header {
+        padding: 12px 14px 6px !important;
+    }
+
+    .content-header h1 {
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+    }
+
+    .breadcrumb {
+        background: transparent !important;
+        padding: 0 !important;
+        font-size: 0.75rem !important;
+    }
+
+    .content {
+        padding: 0 10px 90px 10px !important;
+    }
+
+    /* 3. Touch-Friendly App Dashboard Cards (Model Rows) */
+    .card {
+        border-radius: 12px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+        margin-bottom: 14px !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .card-header {
+        padding: 10px 14px !important;
+    }
+
+    .card-title {
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+    }
+
+    .card-body .table tr {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 12px !important;
+        background: #ffffff !important;
+        border-radius: 8px !important;
+        border: 1px solid #f1f5f9 !important;
+        margin-bottom: 8px !important;
+        gap: 8px !important;
+    }
+
+    .card-body .table td:first-child {
+        width: 100% !important;
+        font-size: 0.92rem !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+    }
+
+    .card-body .table td:last-child {
+        width: 100% !important;
+        display: flex !important;
+        gap: 8px !important;
+        justify-content: stretch !important;
+    }
+
+    .card-body .table td .btn {
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 7px 10px !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        min-height: 38px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* 4. Form Layouts & Inputs */
+    .form-group, .form-row, .fieldBox {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        margin-bottom: 12px !important;
+        width: 100% !important;
+    }
+
+    .form-group label, .form-row label, .fieldBox label {
+        width: 100% !important;
+        margin-bottom: 4px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        color: #334155 !important;
+    }
+
+    .form-control, select, input[type="text"], input[type="number"], input[type="password"], input[type="email"], textarea {
+        width: 100% !important;
+        min-height: 42px !important;
+        font-size: 0.9rem !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 5. Sticky Touch-Friendly Submit Bar */
+    .submit-row {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        border-top: 1px solid #e2e8f0 !important;
+        padding: 10px 14px !important;
+        margin: 0 !important;
+        z-index: 1050 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .submit-row input[type="submit"], .submit-row button, .submit-row .deletelink {
+        width: 100% !important;
+        min-height: 44px !important;
+        font-size: 0.88rem !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}
+
+/* Classic Site Theme Button Text Color Overrides for Admin Console */
+.btn-adm-add, a.btn-adm-add {
+    color: #ffffff !important;
+    background-color: #5a7d7c !important;
+    border: 1px solid #4a6b69 !important;
+}
+
+.btn-adm-add:hover, a.btn-adm-add:hover {
+    background-color: #4a6b69 !important;
+    color: #ffffff !important;
+}
+
+.btn-adm-change, a.btn-adm-change {
+    color: #4a6b69 !important;
+    background-color: #eef2f2 !important;
+    border: 1px solid rgba(90, 125, 124, 0.3) !important;
+}
+
+.btn-adm-change:hover, a.btn-adm-change:hover {
+    background-color: #5a7d7c !important;
+    color: #ffffff !important;
+}
+
+.btn-return-portal, a.btn-return-portal {
+    color: #4a6b69 !important;
+    background-color: #eef2f2 !important;
+    border: 1px solid rgba(90, 125, 124, 0.3) !important;
+}
+
+.btn-return-portal:hover, a.btn-return-portal:hover {
+    background-color: #5a7d7c !important;
+    color: #ffffff !important;
+}
+
+.admin-header-title {
+    color: #4a6b69 !important;
+}
+
+.admin-model-name, a.admin-model-name {
+    color: #0f172a !important;
+}
+
+/* ==========================================================================
+   DESKTOP (MIN-WIDTH: 992PX) HIGH-PRECISION ALIGNMENT & THEME OVERHAUL
+   ========================================================================== */
+@media (min-width: 992px) {
+    /* Hide duplicate 'Back to Dashboard' pill in navbar on desktop */
+    .navbar-nav .nav-item a[href*="/staffs/dashboard/"] {
+        display: none !important;
+    }
+
+    /* 1. Sidebar & Content Boundaries */
+    .main-sidebar, .sidebar {
+        width: 250px !important;
+        min-width: 250px !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        z-index: 1030 !important;
+        background: #ffffff !important;
+        border-right: 1px solid #e2e8f0 !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03) !important;
+    }
+
+    .main-header {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+        padding: 8px 24px !important;
+    }
+
+    .content-wrapper {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+        padding: 24px 32px 60px !important;
+        background-color: #f8fafc !important;
+        min-height: calc(100vh - 57px) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Prevent sidebar labels from clipping */
+    .nav-sidebar .nav-item .nav-link {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 10px 14px !important;
+        margin: 2px 10px !important;
+        border-radius: 8px !important;
+        color: #334155 !important;
+        font-weight: 500 !important;
+    }
+
+    .nav-sidebar .nav-item .nav-link p,
+    .nav-sidebar .nav-item .nav-link span,
+    .brand-link span,
+    .nav-header {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 0.88rem !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* 2. Top Navbar Header Elements */
+    .main-header .navbar-nav {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 16px !important;
+    }
+
+    .navbar-search, .main-header .form-inline {
+        display: flex !important;
+        align-items: center !important;
+        max-width: 240px !important;
+    }
+
+    .navbar-search .form-control, .form-inline .form-control {
+        height: 36px !important;
+        border-radius: 6px 0 0 6px !important;
+        border: 1px solid #cbd5e1 !important;
+        font-size: 0.82rem !important;
+        padding: 4px 10px !important;
+        background: #f8fafc !important;
+        width: 170px !important;
+    }
+
+    .navbar-search .btn, .form-inline .btn {
+        height: 36px !important;
+        border-radius: 0 6px 6px 0 !important;
+        background: #5a7d7c !important;
+        border: 1px solid #4a6b69 !important;
+        color: #ffffff !important;
+        margin-left: 0 !important;
+        padding: 0 12px !important;
+    }
+
+    /* 3. Table Header Pill Reset - Force Solid Row Headers */
+    #changelist table thead,
+    #result_list thead,
+    .results table thead,
+    .table thead {
+        display: table-header-group !important;
+        background: #f1f5f9 !important;
+    }
+
+    #changelist table thead tr,
+    #result_list thead tr,
+    .results table thead tr,
+    .table thead tr {
+        display: table-row !important;
+        background: #f1f5f9 !important;
+    }
+
+    #changelist table thead th,
+    #result_list thead th,
+    .results table thead th,
+    .table thead th {
+        display: table-cell !important;
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        font-size: 0.78rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        padding: 12px 14px !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        height: auto !important;
+    }
+
+    #changelist table thead th a,
+    #result_list thead th a,
+    .results table thead th a,
+    .table thead th a,
+    th.sortable a,
+    th .text a,
+    th a {
+        background: transparent !important;
+        color: #334155 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        text-transform: uppercase !important;
+        font-weight: 700 !important;
+        font-size: 0.78rem !important;
+        text-decoration: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+        height: auto !important;
+        width: auto !important;
+    }
+
+    #changelist table thead th a:hover,
+    #result_list thead th a:hover,
+    .results table thead th a:hover,
+    th.sortable a:hover,
+    th .text a:hover {
+        color: #5a7d7c !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* 4. Table Body & Row Alignment */
+    #changelist .results, .results {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        overflow-x: auto !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        margin-bottom: 20px !important;
+        display: block !important;
+        width: 100% !important;
+    }
+
+    #changelist table, #result_list, .results table {
+        display: table !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 0 !important;
+    }
+
+    #changelist table tbody, #result_list tbody, .results table tbody {
+        display: table-row-group !important;
+    }
+
+    #changelist table tbody tr, #result_list tbody tr, .results table tbody tr {
+        display: table-row !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    #changelist table tbody td, #result_list tbody td, .results table tbody td {
+        display: table-cell !important;
+        padding: 12px 14px !important;
+        vertical-align: middle !important;
+        font-size: 0.88rem !important;
+        color: #1e293b !important;
+        border-top: none !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        white-space: nowrap !important;
+        text-align: left !important;
+    }
+
+    #changelist table tbody tr:hover, #result_list tbody tr:hover {
+        background-color: #f8fafc !important;
+    }
+
+    /* 5. Changelist Search & Filter Form Bar Alignment */
+    #changelist-form .actions,
+    #changelist-search,
+    .change-list-filters {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 12px 18px !important;
+        margin-bottom: 16px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 12px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    }
+
+    #changelist-search input[type="text"] {
+        height: 38px !important;
+        border-radius: 6px !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 6px 12px !important;
+        font-size: 0.85rem !important;
+        min-width: 240px !important;
+        background: #ffffff !important;
+    }
+
+    #changelist-search input[type="submit"],
+    .actions button,
+    .actions .button {
+        height: 38px !important;
+        padding: 0 16px !important;
+        border-radius: 6px !important;
+        background: #5a7d7c !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        border: none !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+    }
+
+    .change-list-filters select,
+    .actions select,
+    #changelist-form select {
+        height: 38px !important;
+        padding: 6px 12px !important;
+        border-radius: 6px !important;
+        border: 1px solid #cbd5e1 !important;
+        font-size: 0.85rem !important;
+        background: #ffffff !important;
+        color: #1e293b !important;
+        font-weight: 500 !important;
+    }
+
+    .action-checkbox, td.action-checkbox, th.action-checkbox-column {
+        width: 44px !important;
+        text-align: center !important;
+    }
+
+    .action-checkbox input[type="checkbox"] {
+        width: 16px !important;
+        height: 16px !important;
+        cursor: pointer !important;
+        accent-color: #5a7d7c !important;
     }
 }
