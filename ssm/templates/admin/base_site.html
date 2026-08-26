@@ -376,29 +376,67 @@
             margin-bottom: 15px !important;
         }
 
-        /* 4. IMPROVED HORIZONTAL SCROLLING FOR TABLES */
-        /* 4. AGGRESSIVE HORIZONTAL SCROLLING */
+        /* 4. HIGH-DENSITY HORIZONTAL SWIPEABLE MOBILE TABLES */
         body #changelist .results,
-        body .module table,
+        body .results,
         body .inline-group .tabular,
-        body #content-main table,
-        body .results table {
+        body #changelist-form {
             display: block !important;
             width: 100% !important;
             overflow-x: auto !important;
             -webkit-overflow-scrolling: touch !important;
             margin-bottom: 15px !important;
-            border: none !important;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
         }
 
         body #changelist table,
-        body .module table table,
-        body .inline-group table,
+        body #result_list,
         body .results table {
-            min-width: 900px !important;
-            /* Force width to trigger scroll */
-            width: auto !important;
-            max-width: none !important;
+            display: table !important;
+            min-width: 750px !important;
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        body #changelist table thead, body #result_list thead, body .results table thead {
+            display: table-header-group !important;
+            background: #f1f5f9 !important;
+        }
+
+        body #changelist table thead tr, body #result_list thead tr, body .results table thead tr {
+            display: table-row !important;
+            background: #f1f5f9 !important;
+        }
+
+        body #changelist table thead th, body #result_list thead th, body .results table thead th {
+            display: table-cell !important;
+            white-space: nowrap !important;
+            padding: 10px 12px !important;
+            font-size: 0.78rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            color: #334155 !important;
+            border-bottom: 2px solid #5a7d7c !important;
+        }
+
+        body #changelist table tbody, body #result_list tbody, body .results table tbody {
+            display: table-row-group !important;
+        }
+
+        body #changelist table tbody tr, body #result_list tbody tr, body .results table tbody tr {
+            display: table-row !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+        }
+
+        body #changelist table tbody td, body #result_list tbody td, body .results table tbody td {
+            display: table-cell !important;
+            white-space: nowrap !important;
+            padding: 10px 12px !important;
+            font-size: 0.82rem !important;
+            color: #1e293b !important;
+            vertical-align: middle !important;
         }
 
         /* Visible scroll hint */

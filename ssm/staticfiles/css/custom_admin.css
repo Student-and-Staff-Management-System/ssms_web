@@ -1504,25 +1504,24 @@ html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
     }
 }
 
-/* 3. Dashboard App Cards & Model Row Layout Fix */
-.card-body.p-0 {
+/* 3. Dashboard App Cards (Summary rows on Index page only) */
+.dashboard .card-body.p-0 {
     padding: 8px !important;
     box-sizing: border-box !important;
 }
 
-.card-body .table {
+.dashboard .card-body .table {
     width: 100% !important;
     margin-bottom: 0 !important;
     border-collapse: collapse !important;
-    box-sizing: border-box !important;
 }
 
-.card-body .table tbody {
+.dashboard .card-body .table tbody {
     display: block !important;
     width: 100% !important;
 }
 
-.card-body .table tr {
+.dashboard .card-body .table tr {
     display: flex !important;
     flex-wrap: wrap !important;
     align-items: center !important;
@@ -1531,23 +1530,22 @@ html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
     border-bottom: 1px solid var(--light-accent-bg, #eef2f2) !important;
     gap: 8px !important;
     width: 100% !important;
-    box-sizing: border-box !important;
 }
 
-.card-body .table td {
+.dashboard .card-body .table td {
     border: none !important;
     padding: 2px 0 !important;
     vertical-align: middle !important;
 }
 
-.card-body .table td:first-child {
+.dashboard .card-body .table td:first-child {
     font-weight: 600 !important;
     font-size: 0.92rem !important;
     flex: 1 1 140px !important;
     word-break: break-word !important;
 }
 
-.card-body .table td:last-child {
+.dashboard .card-body .table td:last-child {
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
@@ -1556,7 +1554,7 @@ html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
     flex-shrink: 0 !important;
 }
 
-.card-body .table td .btn {
+.dashboard .card-body .table td .btn {
     padding: 5px 12px !important;
     font-size: 0.78rem !important;
     font-weight: 700 !important;
@@ -1566,16 +1564,74 @@ html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
     box-shadow: none !important;
 }
 
-/* 4. Model List Table Views & Search Controls */
+/* 4. Model List Table Views & Search Controls (Data Tables) */
 @media (max-width: 768px) {
-    #changelist {
+    #changelist, #changelist-form {
         width: 100% !important;
         box-sizing: border-box !important;
     }
 
-    #changelist-form {
+    #changelist-form,
+    #changelist .results,
+    .results {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
         width: 100% !important;
-        overflow-x: hidden !important;
+        max-width: 100% !important;
+        -webkit-overflow-scrolling: touch !important;
+        background: #ffffff !important;
+        border-radius: 10px !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    #changelist table,
+    #result_list,
+    .results table {
+        display: table !important;
+        width: 100% !important;
+        min-width: 750px !important;
+        border-collapse: collapse !important;
+        margin: 0 !important;
+    }
+
+    #changelist table thead, #result_list thead, .results table thead {
+        display: table-header-group !important;
+        background: #f1f5f9 !important;
+    }
+
+    #changelist table thead tr, #result_list thead tr, .results table thead tr {
+        display: table-row !important;
+        background: #f1f5f9 !important;
+    }
+
+    #changelist table thead th, #result_list thead th, .results table thead th {
+        display: table-cell !important;
+        white-space: nowrap !important;
+        padding: 10px 12px !important;
+        font-size: 0.76rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        color: #334155 !important;
+        border-bottom: 2px solid #5a7d7c !important;
+    }
+
+    #changelist table tbody, #result_list tbody, .results table tbody {
+        display: table-row-group !important;
+    }
+
+    #changelist table tbody tr, #result_list tbody tr, .results table tbody tr {
+        display: table-row !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    #changelist table tbody td, #result_list tbody td, .results table tbody td {
+        display: table-cell !important;
+        white-space: nowrap !important;
+        padding: 10px 12px !important;
+        font-size: 0.82rem !important;
+        color: #1e293b !important;
+        vertical-align: middle !important;
     }
 
     #changelist-search {
@@ -1605,17 +1661,6 @@ html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
         width: 100% !important;
         margin: 0 !important;
         box-sizing: border-box !important;
-    }
-
-    .results {
-        overflow-x: auto !important;
-        width: 100% !important;
-        border-radius: 8px !important;
-    }
-
-    .results table {
-        width: 100% !important;
-        min-width: 600px !important;
     }
 }
 
@@ -1671,7 +1716,7 @@ html, body, .wrapper, .content-wrapper, .content, .container, .container-fluid {
         padding: 0 10px 90px 10px !important;
     }
 
-    /* 3. Touch-Friendly App Dashboard Cards (Model Rows) */
+    /* 3. Touch-Friendly App Dashboard Cards */
     .card {
         border-radius: 12px !important;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
