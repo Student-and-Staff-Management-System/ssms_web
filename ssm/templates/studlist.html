@@ -79,42 +79,65 @@
 
         /* Search Bar */
         .search-container {
-            margin-bottom: 14px;
-            display: grid;
-            grid-template-columns: 1fr 160px auto auto;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             align-items: center;
         }
 
         .search-input {
-            padding: 12px;
+            padding: 11px 14px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             font-family: 'Poppins', sans-serif;
+            font-size: 0.9em;
+        }
+
+        .search-container .search-input[name="q"] {
+            flex: 2;
+            min-width: 220px;
+        }
+
+        .search-container .search-input[name="start_roll"],
+        .search-container .search-input[name="end_roll"] {
+            flex: 1;
+            min-width: 110px;
         }
 
         .filter-select {
-            padding: 12px;
+            padding: 11px 14px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             font-family: 'Poppins', sans-serif;
             background: white;
+            font-size: 0.9em;
+            flex: 1;
+            min-width: 135px;
+            cursor: pointer;
         }
 
         .search-btn {
-            padding: 12px 18px;
+            padding: 11px 20px;
             background-color: var(--text-primary);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             white-space: nowrap;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .search-btn:hover {
+            background-color: #0f172a;
         }
 
         /* List */
         .student-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
         }
 
@@ -140,13 +163,13 @@
 
         .student-card-header {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            align-items: flex-start;
+            gap: 14px;
         }
 
         .student-img-container {
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid var(--light-accent-bg);
@@ -166,13 +189,14 @@
         }
 
         .student-info h3 {
-            margin: 0 0 4px 0;
-            font-size: 1.1em;
+            margin: 0;
+            font-size: 1.05em;
             color: var(--text-primary);
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            line-height: 1.3;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
         }
 
         .student-info p {
@@ -345,6 +369,12 @@
                 {% endfor %}
                 <option value="9" {% if selected_semester == '9' %}selected{% endif %}> Completed</option>
             </select>
+            <select name="batch" class="filter-select">
+                <option value="">All Batches</option>
+                <option value="A" {% if selected_batch == 'A' %}selected{% endif %}>Batch A</option>
+                <option value="B" {% if selected_batch == 'B' %}selected{% endif %}>Batch B</option>
+                <option value="Unassigned" {% if selected_batch == 'Unassigned' %}selected{% endif %}>Unassigned</option>
+            </select>
             <input type="text" name="start_roll" class="search-input" placeholder="Start Roll..."
                 value="{{ start_roll|default:'' }}">
             <input type="text" name="end_roll" class="search-input" placeholder="End Roll..."
@@ -371,14 +401,23 @@
                     </div>
                     <div class="student-info" style="flex: 1; min-width: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                            <h3 style="margin: 0; font-size: 1.1em; font-weight: 600;">{{ student.student_name }}</h3>
+                            <h3 style="margin: 0; font-size: 1.05em; font-weight: 600; line-height: 1.3; word-break: break-word; overflow-wrap: break-word; color: #0f172a;">{{ student.student_name }}</h3>
                             {% if student.is_password_changed %}
-                                <span style="background: #e2fbe8; color: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Registered</span>
+                                <span style="background: #e2fbe8; color: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Registered</span>
                             {% else %}
-                                <span style="background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Not Registered</span>
+                                <span style="background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Not Registered</span>
                             {% endif %}
                         </div>
-                        <p style="margin: 4px 0 0 0;">{{ student.roll_number }}<br>{{ student.program_level }}</p>
+                        <div style="margin-top: 5px; font-size: 0.82rem; color: #64748b; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
+                            <span style="font-weight: 600; color: #334155;">{{ student.roll_number }}</span>
+                            <span style="color: #cbd5e1;">•</span>
+                            <span>Sem {{ student.current_semester }}</span>
+                            {% if student.lab_batch %}
+                                <span style="padding: 1px 6px; border-radius: 4px; background: {% if student.lab_batch == 'A' %}#eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;{% else %}#f0fdf4; color: #15803d; border: 1px solid #bbf7d0;{% endif %} font-weight: 700; font-size: 0.7rem;">Batch {{ student.lab_batch }}</span>
+                            {% else %}
+                                <span style="padding: 1px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; font-weight: 500; font-size: 0.7rem;">No Batch</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 

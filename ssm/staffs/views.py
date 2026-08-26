@@ -897,6 +897,7 @@ def student_list(request):
 
     query = request.GET.get('q')
     semester = request.GET.get('semester')
+    batch = request.GET.get('batch')
     start_roll = request.GET.get('start_roll')
     end_roll = request.GET.get('end_roll')
     
@@ -909,6 +910,7 @@ def student_list(request):
             students = students.filter(current_semester=current_staff.assigned_semester)
             if current_staff.assigned_batch in ['A', 'B']:
                 students = students.filter(lab_batch=current_staff.assigned_batch)
+                batch = current_staff.assigned_batch
             # Override semester filter to be the assigned one (or hide the filter in template)
             semester = str(current_staff.assigned_semester) 
     except Staff.DoesNotExist:
@@ -930,6 +932,12 @@ def student_list(request):
                 students = students.filter(current_semester=semester_num)
         except ValueError:
             pass  # ignore invalid semester input
+
+    if batch:
+        if batch in ['A', 'B']:
+            students = students.filter(lab_batch=batch)
+        elif batch == 'Unassigned':
+            students = students.filter(Q(lab_batch__isnull=True) | Q(lab_batch=''))
 
     if start_roll:
         students = students.filter(roll_number__gte=start_roll)
@@ -962,6 +970,7 @@ def student_list(request):
             'Student Email', 
             'Program Level', 
             'Current Semester', 
+            'Lab Batch',
             'Starting Year (Joining Year)', 
             'Ending Year', 
             'Status',
@@ -973,7 +982,7 @@ def student_list(request):
         for item in students_with_completion:
             s = item['student']
             existing_map[s.roll_number] = item
- 
+
         # Determine sequence if start_roll and end_roll are numeric
         try:
             start_int = int(start_roll) if start_roll else None
@@ -981,7 +990,7 @@ def student_list(request):
             is_range = (start_int is not None and end_int is not None)
         except (ValueError, TypeError):
             is_range = False
- 
+
         if is_range and start_int <= end_int:
             # Generate all roll numbers in the sequence preserving string length
             length = len(start_roll)
@@ -1007,6 +1016,7 @@ def student_list(request):
                         s.student_email or '',
                         s.program_level,
                         s.current_semester,
+                        s.lab_batch or '',
                         s.joining_year or '',
                         s.ending_year or '',
                         status_str,
@@ -1018,6 +1028,7 @@ def student_list(request):
                         f'="{r_num}"',
                         '',
                         'Not Found (Not Generated)',
+                        '',
                         '',
                         '',
                         '',
@@ -1046,6 +1057,7 @@ def student_list(request):
                     s.student_email or '',
                     s.program_level,
                     s.current_semester,
+                    s.lab_batch or '',
                     s.joining_year or '',
                     s.ending_year or '',
                     status_str,
@@ -1058,6 +1070,7 @@ def student_list(request):
         'students_with_completion': students_with_completion,
         'query': query,
         'selected_semester': semester,
+        'selected_batch': batch,
         'start_roll': start_roll,
         'end_roll': end_roll
     })
