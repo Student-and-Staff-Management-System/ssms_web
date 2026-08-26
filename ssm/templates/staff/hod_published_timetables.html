@@ -923,18 +923,60 @@
                     {% if p_item %}
                       {% if p_item.is_batch %}
                         <div style="font-size: 0.76rem; background: #eff6ff; padding: 4px 6px; border-radius: 6px; border: 1px solid #bfdbfe; margin-bottom: 3px;">
-                          <strong>A:</strong> {{ p_item.A.subject.code|default:p_item.A.subject_code|default:"—" }} {% if p_item.A.staff.name or p_item.A.staff_name %}<span style="color:#64748b;">({{ p_item.A.staff.name|default:p_item.A.staff_name }})</span>{% endif %}
+                          <strong>A:</strong>
+                          {% if p_item.A %}
+                            {% if p_item.A.subject_code %}
+                              {{ p_item.A.subject_code }}
+                            {% elif p_item.A.subject and p_item.A.subject.code %}
+                              {{ p_item.A.subject.code }}
+                            {% else %}
+                              —
+                            {% endif %}
+                            {% if p_item.A.staff_name %}
+                              <span style="color:#64748b;">({{ p_item.A.staff_name }})</span>
+                            {% elif p_item.A.staff and p_item.A.staff.name %}
+                              <span style="color:#64748b;">({{ p_item.A.staff.name }})</span>
+                            {% endif %}
+                          {% else %}
+                            <span style="color: #94a3b8;">—</span>
+                          {% endif %}
                         </div>
                         <div style="font-size: 0.76rem; background: #f0fdf4; padding: 4px 6px; border-radius: 6px; border: 1px solid #bbf7d0;">
-                          <strong>B:</strong> {{ p_item.B.subject.code|default:p_item.B.subject_code|default:"—" }} {% if p_item.B.staff.name or p_item.B.staff_name %}<span style="color:#64748b;">({{ p_item.B.staff.name|default:p_item.B.staff_name }})</span>{% endif %}
+                          <strong>B:</strong>
+                          {% if p_item.B %}
+                            {% if p_item.B.subject_code %}
+                              {{ p_item.B.subject_code }}
+                            {% elif p_item.B.subject and p_item.B.subject.code %}
+                              {{ p_item.B.subject.code }}
+                            {% else %}
+                              —
+                            {% endif %}
+                            {% if p_item.B.staff_name %}
+                              <span style="color:#64748b;">({{ p_item.B.staff_name }})</span>
+                            {% elif p_item.B.staff and p_item.B.staff.name %}
+                              <span style="color:#64748b;">({{ p_item.B.staff.name }})</span>
+                            {% endif %}
+                          {% else %}
+                            <span style="color: #94a3b8;">—</span>
+                          {% endif %}
                         </div>
                       {% else %}
-                        <strong style="color: #1e293b; font-size: 0.85rem;">{{ p_item.subject.code|default:p_item.subject_code|default:"—" }}</strong>
-                        {% if p_item.staff.name or p_item.staff_name %}
-                        <div style="font-size: 0.76rem; color: #64748b; margin-top: 2px;">👤 {{ p_item.staff.name|default:p_item.staff_name }}</div>
+                        {% if p_item.subject_code %}
+                          <strong style="color: #1e293b; font-size: 0.85rem;">{{ p_item.subject_code }}</strong>
+                        {% elif p_item.subject and p_item.subject.code %}
+                          <strong style="color: #1e293b; font-size: 0.85rem;">{{ p_item.subject.code }}</strong>
+                        {% else %}
+                          <strong style="color: #1e293b; font-size: 0.85rem;">—</strong>
                         {% endif %}
+
+                        {% if p_item.staff_name %}
+                          <div style="font-size: 0.76rem; color: #64748b; margin-top: 2px;">👤 {{ p_item.staff_name }}</div>
+                        {% elif p_item.staff and p_item.staff.name %}
+                          <div style="font-size: 0.76rem; color: #64748b; margin-top: 2px;">👤 {{ p_item.staff.name }}</div>
+                        {% endif %}
+
                         {% if p_item.batch and p_item.batch != 'All' %}
-                        <span style="font-size: 0.7rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 1px 5px; border-radius: 4px;">Batch {{ p_item.batch }}</span>
+                          <span style="font-size: 0.7rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 1px 5px; border-radius: 4px;">Batch {{ p_item.batch }}</span>
                         {% endif %}
                       {% endif %}
                     {% else %}
