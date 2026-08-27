@@ -1492,6 +1492,46 @@ td .btn {
     font-size: 0.8rem !important;
 }
 
+/* ================== SELECTOR REORDER CONTROLS ================== */
+.selector-reorder-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+    margin-bottom: 6px !important;
+    flex-wrap: wrap !important;
+}
+
+.selector-reorder-bar button {
+    background: var(--light-accent-bg, #eef2f2) !important;
+    color: var(--accent-color, #5a7d7c) !important;
+    border: 1px solid rgba(90, 125, 124, 0.35) !important;
+    border-radius: 6px !important;
+    padding: 5px 12px !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease-in-out !important;
+    outline: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.selector-reorder-bar button:hover {
+    background: var(--accent-color, #5a7d7c) !important;
+    color: #ffffff !important;
+    border-color: var(--accent-color, #5a7d7c) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(90, 125, 124, 0.25) !important;
+}
+
+.selector-reorder-bar button:active {
+    transform: translateY(0) !important;
+}
+
 .selector-filter input {
     width: 100% !important;
     padding: 8px 12px !important;
