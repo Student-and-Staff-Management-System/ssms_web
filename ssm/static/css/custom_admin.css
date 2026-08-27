@@ -1367,9 +1367,9 @@ td .btn {
     flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 10px !important;
-    padding: 8px 0 !important;
-    margin: 0 !important;
+    gap: 12px !important;
+    padding: 10px 0 !important;
+    margin: 4px 0 !important;
     width: 100% !important;
     list-style: none !important;
 }
@@ -1380,23 +1380,116 @@ td .btn {
 }
 
 .selector .selector-chooser a {
-    background: var(--light-accent-bg, #eef2f2) !important;
-    color: var(--accent-color, #5a7d7c) !important;
-    border: 1px solid rgba(90, 125, 124, 0.3) !important;
+    text-indent: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    line-height: 1.2 !important;
     border-radius: 8px !important;
-    padding: 8px 16px !important;
+    padding: 8px 18px !important;
     font-weight: 700 !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    justify-content: center !important;
+    gap: 8px !important;
     cursor: pointer !important;
     text-decoration: none !important;
-    font-size: 0.85rem !important;
+    font-size: 0.88rem !important;
+    transition: all 0.2s ease-in-out !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
 }
 
-.selector .selector-chooser a:hover {
+/* Choose Button (.selector-add) */
+.selector .selector-chooser a.selector-add {
+    background: var(--light-accent-bg, #eef2f2) !important;
+    color: var(--accent-color, #5a7d7c) !important;
+    border: 1px solid rgba(90, 125, 124, 0.4) !important;
+}
+
+.selector .selector-chooser a.selector-add::before {
+    content: "\f055" !important; /* FontAwesome fa-circle-plus */
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-size: 0.95rem !important;
+}
+
+.selector .selector-chooser a.selector-add:hover,
+.selector .selector-chooser a.selector-add.active:hover {
     background: var(--accent-color, #5a7d7c) !important;
     color: #ffffff !important;
+    border-color: var(--accent-color, #5a7d7c) !important;
+    box-shadow: 0 4px 10px rgba(90, 125, 124, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Remove Button (.selector-remove) */
+.selector .selector-chooser a.selector-remove {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+    border: 1px solid rgba(220, 38, 38, 0.3) !important;
+}
+
+.selector .selector-chooser a.selector-remove::before {
+    content: "\f056" !important; /* FontAwesome fa-circle-minus */
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-size: 0.95rem !important;
+}
+
+.selector .selector-chooser a.selector-remove:hover,
+.selector .selector-chooser a.selector-remove.active:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #dc2626 !important;
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Disabled/Inactive State */
+.selector .selector-chooser a:not(.active) {
+    opacity: 0.65 !important;
+}
+
+/* Choose All & Clear All Styling */
+.selector a.selector-chooseall,
+.selector a.selector-clearall {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    color: var(--accent-color, #5a7d7c) !important;
+    text-decoration: none !important;
+    margin-top: 8px !important;
+    padding: 5px 12px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    background: var(--light-accent-bg, #eef2f2) !important;
+    border: 1px solid rgba(90, 125, 124, 0.2) !important;
+    height: auto !important;
+    text-indent: 0 !important;
+    overflow: visible !important;
+    line-height: normal !important;
+}
+
+.selector a.selector-chooseall:hover,
+.selector a.selector-clearall:hover {
+    color: #ffffff !important;
+    background: var(--accent-color, #5a7d7c) !important;
+    border-color: var(--accent-color, #5a7d7c) !important;
+}
+
+.selector a.selector-chooseall::after {
+    content: "\f101" !important; /* fa-angles-right */
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-size: 0.8rem !important;
+}
+
+.selector a.selector-clearall::before {
+    content: "\f100" !important; /* fa-angles-left */
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-size: 0.8rem !important;
 }
 
 .selector-filter input {
