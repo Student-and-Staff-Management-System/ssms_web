@@ -910,10 +910,10 @@
             </div>
 
             <div class="att-header-actions">
-                <a href="{% url 'staffs:attendance_calendar' subject.id %}" class="btn-action btn-calendar">Calendar 📅</a>
-                <a href="{% url 'staffs:overall_attendance_calendar' %}?subject_id={{ subject.id }}" class="btn-action btn-report">Overall Calendar 🌐</a>
-                <a href="{% url 'staffs:attendance_report' subject.id %}" class="btn-action btn-report">View Report 📊</a>
-                <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-dashboard">Dashboard ↩</a>
+                <a href="{% url 'staffs:attendance_calendar' subject.id %}" class="btn-action btn-calendar"><i class="ri-calendar-line"></i> Calendar</a>
+                <a href="{% url 'staffs:overall_attendance_calendar' %}?subject_id={{ subject.id }}" class="btn-action btn-report"><i class="ri-global-line"></i> Overall Calendar</a>
+                <a href="{% url 'staffs:attendance_report' subject.id %}" class="btn-action btn-report"><i class="ri-bar-chart-fill"></i> View Report</a>
+                <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-dashboard"><i class="ri-reply-line"></i> Dashboard</a>
             </div>
         </div>
 
@@ -925,7 +925,13 @@
 
         {% if is_upcoming %}
         <div class="messages upcoming-notice">
-            <span>🔒 <strong>Upcoming Class:</strong> {{ upcoming_reason }} Attendance recording is disabled until class time starts.</span>
+            <span><i class="ri-lock-line"></i> <strong>Upcoming Class:</strong> {{ upcoming_reason }} Attendance recording is disabled until class time starts.</span>
+        </div>
+        {% endif %}
+
+        {% if sub_req %}
+        <div class="messages" style="background: {% if sub_req.attendance_option == 'WITHOUT_ATTENDANCE' %}#fffbe0; color: #92400e; border: 1.5px solid #fef08a;{% else %}#e0f2fe; color: #0369a1; border: 1.5px solid #bae6fd;{% endif %} padding: 12px 16px; border-radius: 10px; font-weight: 500; margin-bottom: 12px;">
+            <span><i class="ri-user-shared-line"></i> <strong>Alternate Class Coverage:</strong> You are taking attendance as an Alternate for <strong>{{ sub_req.requester.name }}</strong>. Mode: <strong>{% if sub_req.attendance_option == 'WITHOUT_ATTENDANCE' %}Without Attendance (Credited to Primary Subject Staff){% else %}With Attendance (Credited to Temp Staff){% endif %}</strong>.</span>
         </div>
         {% endif %}
 

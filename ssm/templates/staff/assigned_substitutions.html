@@ -156,10 +156,10 @@
 <div class="container">
         <div class="page-header">
             <div>
-                <h1>👩‍🏫 Assigned Alternates</h1>
+                <h1><i class="ri-user-shared-line" style="color: var(--primary);"></i> Assigned Alternates</h1>
                 <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Classes you have agreed to cover</div>
             </div>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
+            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back"><i class="ri-arrow-left-line"></i> Dashboard</a>
         </div>
 
         {% if assigned_classes %}
@@ -179,6 +179,14 @@
                 
                 <div class="period-info">Period {{ req.period }}</div>
                 <div class="subject-name">{{ req.subject.name }}</div>
+
+                <div style="margin-bottom: 8px;">
+                    {% if req.attendance_option == 'WITHOUT_ATTENDANCE' %}
+                        <span style="background:#fffbe0; color:#92400e; border: 1px solid #fef08a; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-block;">Without Attendance (Primary Staff Credit)</span>
+                    {% else %}
+                        <span style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; display: inline-block;">With Attendance (Temp Staff Credit)</span>
+                    {% endif %}
+                </div>
                 
                 <div class="requester-info">
                     <strong>Requested by:</strong><br>
@@ -195,9 +203,10 @@
         </div>
         {% else %}
         <div style="text-align: center; padding: 60px 20px; background: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-            <div style="font-size: 3rem; margin-bottom: 15px;">☕</div>
+            <div style="font-size: 3rem; margin-bottom: 15px;"><i class="ri-cup-line" style="color: var(--primary);"></i></div>
             <h3 style="color: var(--primary); margin-bottom: 8px;">No Assigned Classes</h3>
             <p style="color: var(--muted);">You haven't been assigned as an alternate for any classes yet.</p>
         </div>
         {% endif %}
+</div>
 {% endblock %}

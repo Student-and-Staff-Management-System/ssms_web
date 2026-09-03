@@ -83,8 +83,27 @@ def staff_dashboard(request):
         template_name = 'staff/staffdash_office.html'
     elif active_role == 'Technical Officer':
         template_name = 'staff/staffdash_technical.html'
-    elif active_role in ['HOD', 'Admin'] or (staff.is_staff_admin and active_role not in ['Course Incharge', 'Class Incharge', 'Scholarship Officer', 'Office Staff', 'Technical Officer']):
+    elif active_role == 'HOD' or (staff.role == 'HOD' and active_role == 'Admin'):
         template_name = 'staff/staffdash_hod.html'
+    elif active_role == 'Admin':
+        # Admin access granted to non-HOD staff: display their primary role's dashboard
+        if staff.role == 'Class Incharge':
+            template_name = 'staff/staffdash_class.html'
+            if staff.assigned_semester:
+                student_qs = Student.objects.filter(current_semester=staff.assigned_semester)
+                if staff.assigned_batch in ['A', 'B']:
+                    student_qs = student_qs.filter(lab_batch=staff.assigned_batch)
+                student_count = student_qs.count()
+            else:
+                student_count = 0
+        elif staff.role == 'Office Staff':
+            template_name = 'staff/staffdash_office.html'
+        elif staff.role == 'Technical Officer':
+            template_name = 'staff/staffdash_technical.html'
+        elif staff.role == 'Scholarship Officer':
+            template_name = 'staff/staffdash_scholarship.html'
+        else:
+            template_name = 'staff/staffdash_course.html'
     else:
         template_name = 'staff/staffdash_course.html'
         
@@ -109,7 +128,7 @@ def staff_dashboard(request):
                 subj.dashboard_batch = 'None'
         
     # Calculate pending leaves for notification badge
-    from students.models import LeaveRequest, BonafideRequest, ScholarshipInfo
+    from students.models import LeaveRequest, BonafideRequest, ScholarshipInfo, Club
     from staffs.models import StaffLeaveRequest, News
     pending_leaves_count = 0
     pending_staff_leaves_count = 0
@@ -247,6 +266,7 @@ def staff_dashboard(request):
     # ── Today's Class Schedule ─────────────────────────────────────────────
     import datetime
     from students.models import StudentAttendance
+    from .models import ClassSubstitutionRequest
 
     today_date_obj = timezone.now().date()
     today_date = today_date_obj.strftime('%Y-%m-%d')
@@ -254,13 +274,55 @@ def staff_dashboard(request):
     today_schedule = []
     unmarked_done_count = 0
 
+    # Fetch approved alternate substitution requests where current staff is substitute for today
+    approved_substitutions = list(ClassSubstitutionRequest.objects.filter(
+        substitute=staff,
+        date=today_date_obj,
+        status='Approved'
+    ).select_related('subject', 'requester'))
+
+    # Periods where current staff handed off their class to an alternate for today (approved)
+    handed_off_periods = set(ClassSubstitutionRequest.objects.filter(
+        requester=staff,
+        date=today_date_obj,
+        status='Approved'
+    ).values_list('period', flat=True))
+
+    today_tt_entries = []
     if today_weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
-        today_tt_entries = Timetable.objects.filter(
+        today_tt_entries = list(Timetable.objects.filter(
             staff=staff, day=today_weekday
-        ).select_related('subject').order_by('period')
-        
+        ).select_related('subject'))
+
+    # Exclude periods current staff handed off to an alternate
+    effective_tt_entries = [e for e in today_tt_entries if e.period not in handed_off_periods]
+
+    class SyntheticTTEntry:
+        def __init__(self, subject, period, day, semester, attendance_option, requester_name):
+            self.subject = subject
+            self.period = period
+            self.day = day
+            self.semester = semester
+            self.batch = 'All'
+            self.is_alternate = True
+            self.attendance_option = attendance_option
+            self.requester_name = requester_name
+
+    for sub in approved_substitutions:
+        effective_tt_entries.append(SyntheticTTEntry(
+            subject=sub.subject,
+            period=sub.period,
+            day=today_weekday,
+            semester=sub.subject.semester,
+            attendance_option=sub.attendance_option,
+            requester_name=sub.requester.name
+        ))
+
+    effective_tt_entries.sort(key=lambda x: x.period if x.period else 0)
+
+    if effective_tt_entries:
         # Pre-fetch attendance records for today to check status per subject & period
-        subject_ids = [e.subject.id for e in today_tt_entries if e.subject]
+        subject_ids = [e.subject.id for e in effective_tt_entries if e.subject]
         attendance_records = StudentAttendance.objects.filter(
             date=today_date_obj,
             subject_id__in=subject_ids
@@ -284,7 +346,7 @@ def staff_dashboard(request):
 
         # Determine effective batch & group contiguous period sequences per (subject, batch)
         entry_data = []
-        for entry in today_tt_entries:
+        for entry in effective_tt_entries:
             if not entry.subject:
                 entry_data.append((entry, None, False))
                 continue
@@ -295,8 +357,8 @@ def staff_dashboard(request):
             name_upper = (subject.name or '').upper()
             is_lab = (s_type == 'Lab' or getattr(subject, 'lab', None) is not None or 'LAB' in name_upper or 'PRACTICAL' in name_upper or 'LAB' in code_upper or 'CP' in code_upper)
 
-            eff_batch = entry.batch
-            if is_lab:
+            eff_batch = getattr(entry, 'batch', 'All')
+            if is_lab and not getattr(entry, 'is_alternate', False):
                 if subject.staff == staff and subject.staff_batch_b and subject.staff_batch_b != staff:
                     eff_batch = 'A'
                 elif subject.staff_batch_b == staff and subject.staff != staff:
@@ -360,7 +422,7 @@ def staff_dashboard(request):
 
             subject = first_entry.subject
             is_lab = item['is_lab']
-            batch = item['batch'] or first_entry.batch
+            batch = item['batch'] or getattr(first_entry, 'batch', 'All')
 
             is_marked = False
             if subject:
@@ -379,12 +441,15 @@ def staff_dashboard(request):
                 'period_display': period_display,
                 'subject': subject,
                 'batch': batch,
-                'semester': first_entry.semester,
+                'semester': getattr(first_entry, 'semester', getattr(subject, 'semester', None)),
                 'start': start_str,
                 'end': end_str,
                 'status': status,
                 'is_marked': is_marked,
                 'is_lab': is_lab,
+                'is_alternate': getattr(first_entry, 'is_alternate', False),
+                'attendance_option': getattr(first_entry, 'attendance_option', None),
+                'requester_name': getattr(first_entry, 'requester_name', None),
             })
 
         # Merge duplicate lab cards for the same subject and period_display (e.g., Batch A and Batch B)
@@ -518,6 +583,8 @@ def staff_dashboard(request):
         'has_unmarked_done': has_unmarked_done,
         'all_assigned_roles': all_assigned_roles,
         'active_role': active_role,
+        'is_hod_or_admin': (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or active_role == 'HOD'),
+        'my_ic_clubs': Club.objects.filter(staff_incharge=staff).prefetch_related('memberships', 'events'),
     }
     dashboard_context.update(_get_portfolio_summary_stats(staff))
     return render(request, template_name, dashboard_context)
@@ -898,6 +965,7 @@ def student_list(request):
     query = request.GET.get('q')
     semester = request.GET.get('semester')
     batch = request.GET.get('batch')
+    program_level = request.GET.get('program_level')
     start_roll = request.GET.get('start_roll')
     end_roll = request.GET.get('end_roll')
     
@@ -939,6 +1007,9 @@ def student_list(request):
         elif batch == 'Unassigned':
             students = students.filter(Q(lab_batch__isnull=True) | Q(lab_batch=''))
 
+    if program_level:
+        students = students.filter(program_level=program_level)
+
     if start_roll:
         students = students.filter(roll_number__gte=start_roll)
     if end_roll:
@@ -965,15 +1036,49 @@ def student_list(request):
             'missing_fields': comp['missing_fields'],
         })
 
-    if request.GET.get('export') == 'csv':
-        import csv
+    if request.GET.get('export') in ['csv', 'excel', 'true']:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
         from django.http import HttpResponse
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="student_directory.csv"'
-        writer = csv.writer(response)
-        
-        # CSV Headers
-        writer.writerow([
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Student Directory"
+
+        header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+        header_fill = PatternFill(start_color='1E293B', end_color='1E293B', fill_type='solid')
+
+        # Color definitions for registration & completion status:
+        # Not Registered -> Soft Red
+        style_not_reg = {
+            'fill': PatternFill(start_color='FEE2E2', end_color='FEE2E2', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=True, color='991B1B'),
+        }
+        # Registered but < 100% complete -> Soft Yellow
+        style_partial = {
+            'fill': PatternFill(start_color='FEF9C3', end_color='FEF9C3', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=True, color='854D0E'),
+        }
+        # Registered AND 100% complete -> Soft Green
+        style_full = {
+            'fill': PatternFill(start_color='DCFCE7', end_color='DCFCE7', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=True, color='166534'),
+        }
+        # Placeholder not in DB -> Soft Gray
+        style_not_found = {
+            'fill': PatternFill(start_color='F1F5F9', end_color='F1F5F9', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=False, color='64748B'),
+        }
+
+        thin_border = Border(
+            left=Side(style='thin', color='CBD5E1'),
+            right=Side(style='thin', color='CBD5E1'),
+            top=Side(style='thin', color='CBD5E1'),
+            bottom=Side(style='thin', color='CBD5E1')
+        )
+
+        headers = [
             'Roll Number', 
             'Register Number', 
             'Student Name', 
@@ -981,19 +1086,25 @@ def student_list(request):
             'Program Level', 
             'Current Semester', 
             'Lab Batch',
-            'Starting Year (Joining Year)', 
+            'Joining Year', 
             'Ending Year', 
-            'Status',
-            'Missing Details'
-        ])
-        
-        # Map existing students by roll_number for fast lookup
+            'Registration & Completion Status',
+            'Missing Profile Details'
+        ]
+        ws.append(headers)
+
+        for col_num in range(1, len(headers) + 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = thin_border
+
         existing_map = {}
         for item in students_with_completion:
             s = item['student']
             existing_map[s.roll_number] = item
 
-        # Determine sequence if start_roll and end_roll are numeric
         try:
             start_int = int(start_roll) if start_roll else None
             end_int = int(end_roll) if end_roll else None
@@ -1001,79 +1112,122 @@ def student_list(request):
         except (ValueError, TypeError):
             is_range = False
 
+        rows_data = []
+
         if is_range and start_int <= end_int:
-            # Generate all roll numbers in the sequence preserving string length
             length = len(start_roll)
             sequence_rolls = [str(x).zfill(length) for x in range(start_int, end_int + 1)]
-            
             for r_num in sequence_rolls:
                 if r_num in existing_map:
                     item = existing_map[r_num]
                     s = item['student']
                     pct = item['completion_pct']
-                    if s.is_password_changed:
-                        status_str = f"Registered ({pct}%)"
-                    elif s.password and s.password.strip() != "":
-                        status_str = "Not Registered (Password Generated)"
+
+                    if not s.is_password_changed:
+                        st_style = style_not_reg
+                        st_str = "Not Registered (Password Generated)" if (s.password and s.password.strip() != "") else "No Password Generated"
+                    elif pct < 100:
+                        st_style = style_partial
+                        st_str = f"Registered ({pct}% Complete)"
                     else:
-                        status_str = "No Password Generated"
-                    
-                    missing_str = ", ".join(item['missing_fields'])
-                    writer.writerow([
-                        f'="{s.roll_number}"',
-                        f'="{s.register_number}"' if s.register_number else '',
-                        s.student_name,
-                        s.student_email or '',
-                        s.program_level,
-                        s.current_semester,
-                        s.lab_batch or '',
-                        s.joining_year or '',
-                        s.ending_year or '',
-                        status_str,
-                        missing_str
-                    ])
+                        st_style = style_full
+                        st_str = "Registered (100% Complete)"
+
+                    missing_str = ", ".join(item['missing_fields']) if item['missing_fields'] else "None"
+                    rows_data.append({
+                        'values': [
+                            str(s.roll_number or ''),
+                            str(s.register_number or ''),
+                            s.student_name,
+                            s.student_email or '',
+                            s.program_level or '',
+                            s.current_semester or '',
+                            f"Batch {s.lab_batch}" if s.lab_batch else '',
+                            s.joining_year or '',
+                            s.ending_year or '',
+                            st_str,
+                            missing_str
+                        ],
+                        'style': st_style
+                    })
                 else:
-                    # In-between roll number not in DB
-                    writer.writerow([
-                        f'="{r_num}"',
-                        '',
-                        'Not Found (Not Generated)',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        'No Password Generated',
-                        'Not Found'
-                    ])
+                    rows_data.append({
+                        'values': [
+                            str(r_num),
+                            '',
+                            'Not Found (Not Generated)',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            'No Password Generated',
+                            'Not Found'
+                        ],
+                        'style': style_not_found
+                    })
         else:
-            # Fallback: Just output existing filtered records
             for item in students_with_completion:
                 s = item['student']
                 pct = item['completion_pct']
-                if s.is_password_changed:
-                    status_str = f"Registered ({pct}%)"
-                elif s.password and s.password.strip() != "":
-                    status_str = "Not Registered (Password Generated)"
+
+                if not s.is_password_changed:
+                    st_style = style_not_reg
+                    st_str = "Not Registered (Password Generated)" if (s.password and s.password.strip() != "") else "No Password Generated"
+                elif pct < 100:
+                    st_style = style_partial
+                    st_str = f"Registered ({pct}% Complete)"
                 else:
-                    status_str = "No Password Generated"
-                
-                missing_str = ", ".join(item['missing_fields'])
-                writer.writerow([
-                    f'="{s.roll_number}"',
-                    f'="{s.register_number}"' if s.register_number else '',
-                    s.student_name,
-                    s.student_email or '',
-                    s.program_level,
-                    s.current_semester,
-                    s.lab_batch or '',
-                    s.joining_year or '',
-                    s.ending_year or '',
-                    status_str,
-                    missing_str
-                ])
-            
+                    st_style = style_full
+                    st_str = "Registered (100% Complete)"
+
+                missing_str = ", ".join(item['missing_fields']) if item['missing_fields'] else "None"
+                rows_data.append({
+                    'values': [
+                        str(s.roll_number or ''),
+                        str(s.register_number or ''),
+                        s.student_name,
+                        s.student_email or '',
+                        s.program_level or '',
+                        s.current_semester or '',
+                        f"Batch {s.lab_batch}" if s.lab_batch else '',
+                        s.joining_year or '',
+                        s.ending_year or '',
+                        st_str,
+                        missing_str
+                    ],
+                    'style': st_style
+                })
+
+        for row_idx, r_data in enumerate(rows_data, start=2):
+            ws.append(r_data['values'])
+            st = r_data['style']
+
+            for col_idx in range(1, 12):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.border = thin_border
+                cell.number_format = '@'
+
+                if col_idx in [1, 2, 5, 6, 7, 8, 9, 10]:
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                else:
+                    cell.alignment = Alignment(horizontal='left', vertical='center')
+
+                cell.fill = st['fill']
+                if col_idx == 10:
+                    cell.font = st['font']
+
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = get_column_letter(col[0].column)
+            ws.column_dimensions[col_letter].width = max(max_len + 4, 14)
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="student_directory.xlsx"'
+        wb.save(response)
         return response
 
     return render(request, 'studlist.html', {
@@ -1081,6 +1235,7 @@ def student_list(request):
         'query': query,
         'selected_semester': semester,
         'selected_batch': batch,
+        'selected_program_level': program_level,
         'start_roll': start_roll,
         'end_roll': end_roll,
         'sort_by': sort_by,
@@ -1675,12 +1830,13 @@ def manage_attendance(request, subject_id):
         date_obj = datetime.date.today()
 
     # Check for Substitution
-    is_substitute = ClassSubstitutionRequest.objects.filter(
+    sub_req = ClassSubstitutionRequest.objects.filter(
         substitute=current_staff,
         subject=subject,
         date=date_obj,
         status='Approved'
-    ).exists()
+    ).first()
+    is_substitute = sub_req is not None
 
     # Access Control
     if not current_staff.is_staff_admin and subject.staff != current_staff and subject.staff_batch_b != current_staff and not is_substitute:
@@ -2009,6 +2165,7 @@ def manage_attendance(request, subject_id):
         'count_all': count_all,
         'count_batch_a': count_batch_a,
         'count_batch_b': count_batch_b,
+        'sub_req': sub_req,
     })
 
 
@@ -4565,10 +4722,13 @@ def manage_substitutions(request):
     
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'request_substitute':
+        if action in ['request_substitute', 'request_alternate']:
             period = int(request.POST.get('period'))
-            substitute_id = request.POST.get('substitute_id')
+            substitute_id = request.POST.get('substitute_id') or request.POST.get('alternate_id')
             subject_id = request.POST.get('subject_id')
+            attendance_option = request.POST.get('attendance_option', 'WITH_ATTENDANCE').strip()
+            if attendance_option not in ['WITH_ATTENDANCE', 'WITHOUT_ATTENDANCE']:
+                attendance_option = 'WITH_ATTENDANCE'
             
             substitute = get_object_or_404(Staff, staff_id=substitute_id)
             subject = get_object_or_404(Subject, id=subject_id)
@@ -4581,22 +4741,27 @@ def manage_substitutions(request):
                 defaults={
                     'substitute': substitute,
                     'subject': subject,
+                    'attendance_option': attendance_option,
                     'status': 'Pending'
                 }
             )
             from django.conf import settings
             from django.core.mail import send_mail
-            messages.success(request, f"Alternate request sent to {substitute.name}.")
+            mode_label = "With Attendance" if attendance_option == 'WITH_ATTENDANCE' else "Without Attendance"
+            messages.success(request, f"Alternate request ({mode_label}) sent to {substitute.name}.")
             # Notify Substitute
             from .utils import send_staff_notification
-            send_staff_notification(substitute, "📅 Alternate Request", f"{staff.name} requested you to act as alternate for Period {period} on {selected_date}.", url="/staffs/substitutions/incoming/")
-            send_mail(
-                "Class Alternate Request",
-                f"Hello {substitute.name},\n\n{staff.name} has requested you to cover their class on {selected_date}, Period {period}.\n\nPlease log in to accept or reject this request.\n\nLink: http://127.0.0.1:8000/staffs/substitutions/incoming/",
-                settings.DEFAULT_FROM_EMAIL,
-                [substitute.email],
-                fail_silently=True
-            )
+            send_staff_notification(substitute, "📅 Alternate Request", f"{staff.name} requested you as alternate ({mode_label}) for Period {period} on {selected_date}.", url="/staffs/substitutions/incoming/")
+            try:
+                send_mail(
+                    "Class Alternate Request",
+                    f"Hello {substitute.name},\n\n{staff.name} has requested you to cover their class ({mode_label}) on {selected_date}, Period {period}.\n\nPlease log in to accept or reject this request.\n\nLink: http://127.0.0.1:8000/staffs/substitutions/incoming/",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [substitute.email],
+                    fail_silently=True
+                )
+            except Exception:
+                pass
             
             return redirect(f'/staffs/substitutions/manage/?date={selected_date}')
             
@@ -4639,13 +4804,16 @@ def incoming_substitutions(request):
             req.save()
             messages.success(request, f"You have accepted the alternate request for Period {req.period} on {req.date}.")
             send_staff_notification(req.requester, "✅ Alternate Accepted", f"{staff.name} accepted your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
-            send_mail(
-                "Alternate Request Accepted",
-                f"Hello {req.requester.name},\n\n{staff.name} has accepted your alternate request for {req.date}, Period {req.period}.",
-                settings.DEFAULT_FROM_EMAIL,
-                [req.requester.email],
-                fail_silently=True
-            )
+            try:
+                send_mail(
+                    "Alternate Request Accepted",
+                    f"Hello {req.requester.name},\n\n{staff.name} has accepted your alternate request for {req.date}, Period {req.period}.",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [req.requester.email],
+                    fail_silently=True
+                )
+            except Exception:
+                pass
 
         elif action == 'reject':
             req.status = 'Rejected'
@@ -4653,13 +4821,16 @@ def incoming_substitutions(request):
             req.save()
             messages.success(request, f"You have rejected the alternate request for Period {req.period} on {req.date}.")
             send_staff_notification(req.requester, "❌ Alternate Rejected", f"{staff.name} rejected your request for Period {req.period} on {req.date}.", url="/staffs/substitutions/manage/")
-            send_mail(
-                "Alternate Request Rejected",
-                f"Hello {req.requester.name},\n\n{staff.name} has rejected your alternate request for {req.date}, Period {req.period}.\nReason: {req.rejection_reason}\n\nPlease request another staff member.",
-                settings.DEFAULT_FROM_EMAIL,
-                [req.requester.email],
-                fail_silently=True
-            )
+            try:
+                send_mail(
+                    "Alternate Request Rejected",
+                    f"Hello {req.requester.name},\n\n{staff.name} has rejected your alternate request for {req.date}, Period {req.period}.\nReason: {req.rejection_reason}\n\nPlease request another staff member.",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [req.requester.email],
+                    fail_silently=True
+                )
+            except Exception:
+                pass
             
         return redirect('staffs:incoming_substitutions')
         
@@ -6483,7 +6654,7 @@ def manage_semesters(request):
         pass
 
     if selected_semester:
-        students = Student.objects.filter(current_semester=selected_semester)
+        students = Student.objects.filter(current_semester=selected_semester).exclude(program_level='PHD')
         if 'current_staff' in locals() and current_staff and current_staff.has_role('Class Incharge') and current_staff.assigned_batch in ['A', 'B']:
             students = students.filter(lab_batch=current_staff.assigned_batch)
     
@@ -8355,13 +8526,13 @@ def admin_portal_dashboard(request):
             if target_type == 'staff':
                 st = Staff.objects.filter(staff_id=target_id).first()
                 if st and new_pass:
-                    st.password = new_pass
+                    st.set_password(new_pass)
                     st.save()
                     messages.success(request, f"Password successfully updated for Staff {st.staff_id} ({st.name}).")
             elif target_type == 'student':
                 std = Student.objects.filter(roll_number=target_id).first()
                 if std and new_pass:
-                    std.password = new_pass
+                    std.set_password(new_pass)
                     std.save()
                     messages.success(request, f"Password successfully updated for Student {std.roll_number} ({std.student_name}).")
 
@@ -8371,7 +8542,8 @@ def admin_portal_dashboard(request):
             if st:
                 st.is_active = not getattr(st, 'is_active', True)
                 st.save()
-                messages.info(request, f"Staff {st.staff_id} status updated.")
+                status_str = "Activated" if st.is_active else "Deactivated"
+                messages.info(request, f"Staff {st.staff_id} ({st.name}) status updated to {status_str}.")
 
         elif admin_action == 'publish_timetable':
             target_sem = request.POST.get('semester')
@@ -8381,6 +8553,16 @@ def admin_portal_dashboard(request):
                     t_qs = Timetable.objects.filter(semester=sem_num)
                     new_val = not t_qs.filter(is_published=True).exists()
                     t_qs.update(is_published=new_val)
+                    if new_val:
+                        try:
+                            create_timetable_version_snapshot(
+                                academic_year='2026-2027',
+                                semester=sem_num,
+                                staff_user=current_staff,
+                                version_name=f"Published via Custom Admin (Sem {sem_num})"
+                            )
+                        except Exception:
+                            pass
                     status_text = "Published" if new_val else "Unpublished"
                     messages.success(request, f"Semester {sem_num} Timetable is now {status_text}!")
                 except ValueError:
@@ -8434,6 +8616,10 @@ def admin_portal_dashboard(request):
             target_model_cls = None
 
     if target_model_cls:
+        exclude_fields = []
+        if model_name in ['Student', 'Staff']:
+            exclude_fields.append('password')
+
         # Generic POST Handling (Save & Delete for any model object)
         if request.method == 'POST':
             admin_action = request.POST.get('admin_action')
@@ -8443,7 +8629,7 @@ def admin_portal_dashboard(request):
                 if target_pk:
                     instance = target_model_cls.objects.filter(pk=target_pk).first()
 
-                DynamicFormClass = modelform_factory(target_model_cls, fields='__all__')
+                DynamicFormClass = modelform_factory(target_model_cls, fields='__all__', exclude=exclude_fields if exclude_fields else None)
                 form_inst = DynamicFormClass(request.POST, request.FILES, instance=instance)
                 if form_inst.is_valid():
                     obj = form_inst.save()
@@ -8525,7 +8711,7 @@ def admin_portal_dashboard(request):
             instance = None
             if target_pk:
                 instance = target_model_cls.objects.filter(pk=target_pk).first()
-            DynamicFormClass = modelform_factory(target_model_cls, fields='__all__')
+            DynamicFormClass = modelform_factory(target_model_cls, fields='__all__', exclude=exclude_fields if exclude_fields else None)
             dynamic_form = DynamicFormClass(instance=instance)
 
     # Section Data Querying
@@ -8586,10 +8772,11 @@ def admin_portal_dashboard(request):
 
     elif active_section == 'logs':
         try:
-            from django.contrib.admin.models import LogEntry
-            audit_logs = LogEntry.objects.all().select_related('user', 'content_type').order_by('-action_time')[:100]
+            from staffs.models import AuditLog
+            audit_logs = AuditLog.objects.all().order_by('-timestamp')[:100]
         except Exception:
             audit_logs = []
+
 
     context = {
         'current_staff': current_staff,
@@ -8623,6 +8810,523 @@ def admin_portal_dashboard(request):
     }
 
     return render(request, 'staff/custom_admin_portal.html', context)
+
+
+def hod_sports_teams(request):
+    """
+    Extracurricular Activities - HOD Sports Team Management Console.
+    Includes equal split auto-assign algorithm across years & batches.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    
+    # Check HOD or Admin access
+    if not (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
+        messages.error(request, "Access Denied: Sports Team Management is reserved for Head of Department / Admin.")
+        return redirect('staffs:staff_dashboard')
+
+    from students.models import Student, SPORTS_TEAM_CHOICES
+
+    TEAMS = ['Team A', 'Team B', 'Team C', 'Team D']
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action in ['auto_assign', 'shuffle']:
+            import random
+            # Equal split algorithm: Group students by Academic Year and Lab Batch
+            year_batch_groups = {}
+            all_students = list(Student.objects.all())
+
+            for std in all_students:
+                sem = std.current_semester or 1
+                year = (sem + 1) // 2
+                batch = std.lab_batch or 'Unassigned'
+                key = (year, batch)
+                if key not in year_batch_groups:
+                    year_batch_groups[key] = []
+                year_batch_groups[key].append(std)
+
+            total_updated = 0
+            team_index = random.randint(0, 3) if action == 'shuffle' else 0
+
+            # Sort cohort keys to ensure deterministic ordering
+            sorted_keys = sorted(year_batch_groups.keys())
+
+            if action == 'shuffle':
+                random.shuffle(sorted_keys)
+
+            for key in sorted_keys:
+                std_group = year_batch_groups[key]
+                if action == 'shuffle':
+                    random.shuffle(std_group)
+                else:
+                    std_group.sort(key=lambda s: (s.current_semester or 1, s.lab_batch or '', s.roll_number))
+
+                for std in std_group:
+                    std.sports_team = TEAMS[team_index % 4]
+                    std.save(update_fields=['sports_team'])
+                    team_index += 1
+                    total_updated += 1
+
+            verb = "shuffled and re-assigned" if action == 'shuffle' else "auto-assigned"
+            messages.success(request, f"Successfully {verb} {total_updated} students across the 4 sports teams with equal year and batch distribution.")
+            return redirect('staffs:hod_sports_teams')
+
+        elif action == 'clear_teams':
+            Student.objects.update(sports_team=None)
+            messages.success(request, "Cleared all sports team assignments.")
+            return redirect('staffs:hod_sports_teams')
+
+    # GET Filter parameters
+    sel_team = request.POST.get('team') or request.GET.get('team', '')
+    sel_year = request.POST.get('year') or request.GET.get('year', '')
+    sel_batch = request.POST.get('batch') or request.GET.get('batch', '')
+    search_q = request.POST.get('search') or request.GET.get('search', '')
+
+    students_qs = Student.objects.all()
+
+    if search_q:
+        students_qs = students_qs.filter(
+            Q(student_name__icontains=search_q) |
+            Q(roll_number__icontains=search_q) |
+            Q(register_number__icontains=search_q)
+        )
+
+    if sel_team:
+        if sel_team == 'Unassigned':
+            students_qs = students_qs.filter(Q(sports_team__isnull=True) | Q(sports_team=''))
+        else:
+            students_qs = students_qs.filter(sports_team=sel_team)
+
+    if sel_year:
+        try:
+            yr = int(sel_year)
+            min_sem = (yr - 1) * 2 + 1
+            max_sem = yr * 2
+            students_qs = students_qs.filter(current_semester__gte=min_sem, current_semester__lte=max_sem)
+        except ValueError:
+            pass
+
+    if sel_batch:
+        if sel_batch == 'Unassigned':
+            students_qs = students_qs.filter(Q(lab_batch__isnull=True) | Q(lab_batch=''))
+        else:
+            students_qs = students_qs.filter(lab_batch=sel_batch)
+
+    students_list = list(students_qs.order_by('current_semester', 'lab_batch', 'roll_number'))
+
+    team_lists = [
+        {'name': 'Team A (Red Dragons)', 'key': 'Team A', 'badge_class': 'badge-team-a', 'icon': 'ri-fire-fill', 'students': [s for s in students_list if s.sports_team == 'Team A']},
+        {'name': 'Team B (Blue Falcons)', 'key': 'Team B', 'badge_class': 'badge-team-b', 'icon': 'ri-flashlight-fill', 'students': [s for s in students_list if s.sports_team == 'Team B']},
+        {'name': 'Team C (Green Titans)', 'key': 'Team C', 'badge_class': 'badge-team-c', 'icon': 'ri-shield-flash-fill', 'students': [s for s in students_list if s.sports_team == 'Team C']},
+        {'name': 'Team D (Yellow Eagles)', 'key': 'Team D', 'badge_class': 'badge-team-d', 'icon': 'ri-sun-fill', 'students': [s for s in students_list if s.sports_team == 'Team D']},
+        {'name': 'Unassigned Students', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', 'students': [s for s in students_list if not s.sports_team or s.sports_team not in TEAMS]},
+    ]
+
+    # Calculate Breakdown Matrix (Team x Year x Batch)
+    team_stats = {
+        'Team A': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
+        'Team B': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
+        'Team C': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
+        'Team D': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
+        'Unassigned': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
+    }
+
+    all_students_all = Student.objects.all()
+    for s in all_students_all:
+        t_key = s.sports_team if s.sports_team in TEAMS else 'Unassigned'
+        sem = s.current_semester or 1
+        yr = (sem + 1) // 2
+
+        team_stats[t_key]['total'] += 1
+
+        if yr == 1: team_stats[t_key]['year1'] += 1
+        elif yr == 2: team_stats[t_key]['year2'] += 1
+        elif yr == 3: team_stats[t_key]['year3'] += 1
+        elif yr >= 4: team_stats[t_key]['year4'] += 1
+
+        if s.lab_batch == 'A': team_stats[t_key]['batchA'] += 1
+        elif s.lab_batch == 'B': team_stats[t_key]['batchB'] += 1
+
+    team_stats_list = [
+        {'name': 'Team A (Red Dragons)', 'key': 'Team A', 'badge_class': 'badge-team-a', 'icon': 'ri-fire-fill', **team_stats['Team A']},
+        {'name': 'Team B (Blue Falcons)', 'key': 'Team B', 'badge_class': 'badge-team-b', 'icon': 'ri-flashlight-fill', **team_stats['Team B']},
+        {'name': 'Team C (Green Titans)', 'key': 'Team C', 'badge_class': 'badge-team-c', 'icon': 'ri-shield-flash-fill', **team_stats['Team C']},
+        {'name': 'Team D (Yellow Eagles)', 'key': 'Team D', 'badge_class': 'badge-team-d', 'icon': 'ri-sun-fill', **team_stats['Team D']},
+        {'name': 'Unassigned', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', **team_stats['Unassigned']},
+    ]
+
+    return render(request, 'staff/hod_sports_teams.html', {
+        'staff': staff,
+        'search_results': students_list,
+        'team_choices': SPORTS_TEAM_CHOICES,
+        'team_stats_list': team_stats_list,
+        'sel_team': sel_team,
+        'sel_year': sel_year,
+        'sel_batch': sel_batch,
+        'search_q': search_q,
+        'total_students_count': all_students_all.count(),
+        'assigned_count': all_students_all.exclude(sports_team__isnull=True).exclude(sports_team='').count(),
+    })
+
+
+def export_sports_teams(request):
+    """
+    Excel (.xlsx) Export view for Sports Team Rosters with team color coding.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if not (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
+        messages.error(request, "Access Denied: Export reserved for HOD / Admin.")
+        return redirect('staffs:staff_dashboard')
+
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from django.http import HttpResponse
+    from students.models import Student
+
+    sel_team = request.GET.get('team', '')
+    sel_year = request.GET.get('year', '')
+    sel_batch = request.GET.get('batch', '')
+    search_q = request.GET.get('search', '')
+
+    students_qs = Student.objects.all()
+
+    if search_q:
+        students_qs = students_qs.filter(
+            Q(student_name__icontains=search_q) |
+            Q(roll_number__icontains=search_q) |
+            Q(register_number__icontains=search_q)
+        )
+
+    if sel_team:
+        if sel_team == 'Unassigned':
+            students_qs = students_qs.filter(Q(sports_team__isnull=True) | Q(sports_team=''))
+        else:
+            students_qs = students_qs.filter(sports_team=sel_team)
+
+    if sel_year:
+        try:
+            yr = int(sel_year)
+            min_sem = (yr - 1) * 2 + 1
+            max_sem = yr * 2
+            students_qs = students_qs.filter(current_semester__gte=min_sem, current_semester__lte=max_sem)
+        except ValueError:
+            pass
+
+    if sel_batch:
+        if sel_batch == 'Unassigned':
+            students_qs = students_qs.filter(Q(lab_batch__isnull=True) | Q(lab_batch=''))
+        else:
+            students_qs = students_qs.filter(lab_batch=sel_batch)
+
+    students_qs = students_qs.order_by('sports_team', 'current_semester', 'lab_batch', 'roll_number')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Sports Teams Roster"
+
+    # Styling definitions
+    header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='1E293B', end_color='1E293B', fill_type='solid')
+
+    team_styles = {
+        'Team A': {
+            'fill': PatternFill(start_color='FEE2E2', end_color='FEE2E2', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=True, color='991B1B'),
+            'label': 'Team A (Red Dragons)'
+        },
+        'Team B': {
+            'fill': PatternFill(start_color='E0F2FE', end_color='E0F2FE', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=True, color='075985'),
+            'label': 'Team B (Blue Falcons)'
+        },
+        'Team C': {
+            'fill': PatternFill(start_color='DCFCE7', end_color='DCFCE7', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=True, color='166534'),
+            'label': 'Team C (Green Titans)'
+        },
+        'Team D': {
+            'fill': PatternFill(start_color='FEF9C3', end_color='FEF9C3', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=True, color='854D0E'),
+            'label': 'Team D (Yellow Eagles)'
+        },
+        'Unassigned': {
+            'fill': PatternFill(start_color='F1F5F9', end_color='F1F5F9', fill_type='solid'),
+            'font': Font(name='Calibri', size=10, bold=False, color='64748B'),
+            'label': 'Unassigned'
+        }
+    }
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    headers = ['Roll Number', 'Register Number', 'Student Name', 'Academic Year', 'Semester', 'Lab Batch', 'Sports Team']
+    ws.append(headers)
+
+    # Style Header Row
+    for col_num in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+        cell.border = thin_border
+
+    # Data Rows
+    for row_idx, s in enumerate(students_qs, start=2):
+        sem = s.current_semester or 1
+        yr = (sem + 1) // 2
+        team_key = s.sports_team if s.sports_team in team_styles else 'Unassigned'
+        style_info = team_styles[team_key]
+
+        ws.append([
+            str(s.roll_number or ''),
+            str(s.register_number or ''),
+            s.student_name,
+            f"Year {yr}",
+            f"Sem {sem}",
+            f"Batch {s.lab_batch}" if s.lab_batch else "Unassigned",
+            style_info['label']
+        ])
+
+        # Style Data Cells
+        for col_idx in range(1, 8):
+            cell = ws.cell(row=row_idx, column=col_idx)
+            cell.border = thin_border
+            cell.number_format = '@'
+
+            if col_idx in [4, 5, 6]:
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+            else:
+                cell.alignment = Alignment(horizontal='left', vertical='center')
+
+            cell.fill = style_info['fill']
+            if col_idx == 7:
+                cell.font = style_info['font']
+
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 14)
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="sports_teams_roster.xlsx"'
+    wb.save(response)
+    return response
+
+
+def hod_clubs_manage(request):
+    """
+    HOD Extracurricular Club Management Console.
+    Allows HOD to view clubs, create clubs, assign 1 Staff IC and up to 2 Student Coordinators.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    is_hod_or_admin = (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD')
+
+    from students.models import Club, Student, ClubEvent, ClubAttendance, ClubMembership
+
+    clubs = Club.objects.all().prefetch_related('student_coordinators', 'memberships', 'events')
+    staff_members = Staff.objects.all().order_by('name')
+    all_students = Student.objects.all().order_by('roll_number')
+
+    clubs_data = []
+    for c in clubs:
+        total_members = c.memberships.count()
+        total_events = c.events.count()
+        total_attendances = ClubAttendance.objects.filter(event__club=c).count()
+        present_attendances = ClubAttendance.objects.filter(event__club=c, is_present=True).count()
+        pct = round((present_attendances / total_attendances * 100), 1) if total_attendances > 0 else 0.0
+
+        sc_list = list(c.student_coordinators.all())
+        sc1_id = sc_list[0].pk if len(sc_list) > 0 else None
+        sc2_id = sc_list[1].pk if len(sc_list) > 1 else None
+
+        clubs_data.append({
+            'club': c,
+            'total_members': total_members,
+            'total_events': total_events,
+            'attendance_pct': pct,
+            'coordinators': sc_list,
+            'sc1_id': sc1_id,
+            'sc2_id': sc2_id,
+        })
+
+    return render(request, 'staff/hod_clubs.html', {
+        'staff': staff,
+        'is_hod_or_admin': is_hod_or_admin,
+        'clubs_data': clubs_data,
+        'staff_members': staff_members,
+        'all_students': all_students,
+        'category_choices': Club.CATEGORY_CHOICES,
+    })
+
+
+def hod_club_create(request):
+    """
+    HOD Action to Create a new Club with 1 Staff IC and 2 Student Coordinators.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    if not (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
+        messages.error(request, "Access Denied: Reserved for HOD / Admin.")
+        return redirect('staffs:hod_clubs_manage')
+
+    if request.method == 'POST':
+        from students.models import Club, Student
+
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        category = request.POST.get('category', 'Technical')
+        staff_ic_id = request.POST.get('staff_incharge')
+        sc1_id = request.POST.get('student_coordinator_1')
+        sc2_id = request.POST.get('student_coordinator_2')
+
+        if not name:
+            messages.error(request, "Club name is required.")
+            return redirect('staffs:hod_clubs_manage')
+
+        if Club.objects.filter(name__iexact=name).exists():
+            messages.error(request, f"A club named '{name}' already exists.")
+            return redirect('staffs:hod_clubs_manage')
+
+        staff_ic = Staff.objects.filter(id=staff_ic_id).first() if staff_ic_id else None
+        club = Club.objects.create(
+            name=name,
+            description=description,
+            category=category,
+            staff_incharge=staff_ic
+        )
+
+        sc_ids = [s_id for s_id in [sc1_id, sc2_id] if s_id]
+        if sc_ids:
+            sc_students = Student.objects.filter(pk__in=sc_ids)
+            club.student_coordinators.set(sc_students)
+
+        messages.success(request, f"Successfully created club '{club.name}' and assigned coordinators.")
+        return redirect('staffs:hod_clubs_manage')
+
+    return redirect('staffs:hod_clubs_manage')
+
+
+def hod_club_edit(request, club_id):
+    """
+    HOD Action to Edit Club details, Staff IC, and Student Coordinators.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    from students.models import Club, Student
+    club = get_object_or_404(Club, id=club_id)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        category = request.POST.get('category', 'Technical')
+        staff_ic_id = request.POST.get('staff_incharge')
+        sc1_id = request.POST.get('student_coordinator_1')
+        sc2_id = request.POST.get('student_coordinator_2')
+
+        if name:
+            club.name = name
+        club.description = description
+        club.category = category
+        club.staff_incharge = Staff.objects.filter(id=staff_ic_id).first() if staff_ic_id else None
+        club.save()
+
+        sc_ids = [s_id for s_id in [sc1_id, sc2_id] if s_id]
+        sc_students = Student.objects.filter(pk__in=sc_ids)
+        club.student_coordinators.set(sc_students)
+
+        messages.success(request, f"Updated club '{club.name}' configuration successfully.")
+        return redirect('staffs:hod_clubs_manage')
+
+    return redirect('staffs:hod_clubs_manage')
+
+
+def hod_club_delete(request, club_id):
+    """
+    HOD Action to Delete a Club.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    from students.models import Club
+    club = get_object_or_404(Club, id=club_id)
+
+    if request.method == 'POST':
+        name = club.name
+        club.delete()
+        messages.success(request, f"Deleted club '{name}'.")
+
+    return redirect('staffs:hod_clubs_manage')
+
+
+def staff_club_detail(request, club_id):
+    """
+    Detailed Club Console for Staff In-Charge and HOD.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance, Student
+    is_hod_or_admin = (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD')
+
+    club = get_object_or_404(Club, id=club_id)
+
+    memberships = ClubMembership.objects.filter(club=club).select_related('student').order_by('student__current_semester', 'student__roll_number')
+    events = ClubEvent.objects.filter(club=club).order_by('-event_date')
+
+    members_stats = []
+    total_events_count = events.count()
+
+    for m in memberships:
+        s = m.student
+        attended_count = ClubAttendance.objects.filter(event__club=club, student=s, is_present=True).count()
+        pct = round((attended_count / total_events_count * 100), 1) if total_events_count > 0 else 0.0
+        members_stats.append({
+            'membership': m,
+            'student': s,
+            'attended_count': attended_count,
+            'total_events_count': total_events_count,
+            'pct': pct,
+        })
+
+    sc_list = list(club.student_coordinators.all())
+    sc1_id = sc_list[0].pk if len(sc_list) > 0 else None
+    sc2_id = sc_list[1].pk if len(sc_list) > 1 else None
+
+    return render(request, 'staff/staff_club_detail.html', {
+        'staff': staff,
+        'club': club,
+        'members_stats': members_stats,
+        'events': events,
+        'coordinators': sc_list,
+        'is_hod_or_admin': is_hod_or_admin,
+        'staff_members': Staff.objects.all().order_by('name'),
+        'all_students': Student.objects.all().order_by('roll_number'),
+        'category_choices': Club.CATEGORY_CHOICES,
+        'sc1_id': sc1_id,
+        'sc2_id': sc2_id,
+    })
 
 
 

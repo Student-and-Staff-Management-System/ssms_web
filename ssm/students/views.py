@@ -225,6 +225,13 @@ def register_student(request):
         data = request.POST
         files = request.FILES
         
+        # Pre-compress all incoming files before form validation runs
+        from ssm.validators import compress_file
+        for fkey in files:
+            uploaded_file = files[fkey]
+            if uploaded_file:
+                compress_file(uploaded_file)
+        
         # Helper to get instance or None (or create empty if OneToOne is strictly required to exist, but Forms handle None/New fine)
         # However, for Updates, we MUST pass instance if we want to update.
         # Since we use OneToOne, we can check if related obj exists.
@@ -2529,4 +2536,192 @@ def apply_scholarship(request):
         'bank_info': bank_info,
         'type_choices': SCHOLARSHIP_TYPE_CHOICES,
     }
-    return render(request, 'students/apply_scholarship.html', context)
+    return render(request, 'students/apply_scholarship.html', context)
+
+
+@student_login_required
+def student_clubs_view(request):
+    """
+    Student View: Displays joined clubs and visual attendance statistics.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance
+
+    memberships = ClubMembership.objects.filter(student=student).select_related('club')
+    coordinated_clubs = student.coordinated_clubs.filter(is_active=True)
+
+    clubs_stats = []
+    for m in memberships:
+        c = m.club
+        total_events = c.events.count()
+        attended_events = ClubAttendance.objects.filter(event__club=c, student=student, is_present=True).count()
+        pct = round((attended_events / total_events * 100), 1) if total_events > 0 else 0.0
+
+        recent_events = c.events.order_by('-event_date')[:5]
+        event_history = []
+        for ev in recent_events:
+            att = ClubAttendance.objects.filter(event=ev, student=student).first()
+            event_history.append({
+                'event': ev,
+                'is_present': att.is_present if att else None
+            })
+
+        clubs_stats.append({
+            'club': c,
+            'joined_date': m.joined_date,
+            'total_events': total_events,
+            'attended_events': attended_events,
+            'pct': pct,
+            'event_history': event_history,
+        })
+
+    return render(request, 'student/student_clubs.html', {
+        'student': student,
+        'clubs_stats': clubs_stats,
+        'coordinated_clubs': coordinated_clubs,
+    })
+
+
+@student_login_required
+def coordinator_club_console(request, club_id):
+    """
+    Student Coordinator Workspace: Manage club members across all years and log attendance.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance
+
+    club = get_object_or_404(Club, id=club_id)
+    if not club.student_coordinators.filter(pk=student.pk).exists():
+        messages.error(request, "Access Denied: You are not a coordinator for this club.")
+        return redirect('student_clubs_view')
+
+    memberships = ClubMembership.objects.filter(club=club).select_related('student').order_by('student__current_semester', 'student__roll_number')
+    events = ClubEvent.objects.filter(club=club).order_by('-event_date')
+
+    existing_member_ids = memberships.values_list('student_id', flat=True)
+    available_students = Student.objects.exclude(pk__in=existing_member_ids).order_by('current_semester', 'roll_number')
+
+    return render(request, 'student/coordinator_console.html', {
+        'student': student,
+        'club': club,
+        'memberships': memberships,
+        'events': events,
+        'available_students': available_students,
+    })
+
+
+@student_login_required
+def coordinator_add_member(request, club_id):
+    """
+    Student Coordinator Action: Add a student from any year to the club roster.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    from students.models import Club, ClubMembership
+
+    club = get_object_or_404(Club, id=club_id)
+    if not club.student_coordinators.filter(pk=student.pk).exists():
+        messages.error(request, "Access Denied.")
+        return redirect('student_clubs_view')
+
+    if request.method == 'POST':
+        target_student_id = request.POST.get('student_id')
+        target_roll = request.POST.get('roll_number', '').strip()
+
+        target_student = None
+        if target_student_id:
+            target_student = Student.objects.filter(pk=target_student_id).first()
+        elif target_roll:
+            target_student = Student.objects.filter(roll_number__iexact=target_roll).first()
+
+        if not target_student:
+            messages.error(request, "Student not found.")
+            return redirect('coordinator_club_console', club_id=club.id)
+
+        membership, created = ClubMembership.objects.get_or_create(club=club, student=target_student)
+        if created:
+            messages.success(request, f"Added {target_student.student_name} ({target_student.roll_number}) to {club.name}.")
+        else:
+            messages.info(request, f"{target_student.student_name} is already a member of {club.name}.")
+
+    return redirect('coordinator_club_console', club_id=club.id)
+
+
+@student_login_required
+def coordinator_remove_member(request, club_id, student_id):
+    """
+    Student Coordinator Action: Remove a student from the club roster.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    from students.models import Club, ClubMembership
+
+    club = get_object_or_404(Club, id=club_id)
+    if not club.student_coordinators.filter(pk=student.pk).exists():
+        messages.error(request, "Access Denied.")
+        return redirect('student_clubs_view')
+
+    if request.method == 'POST':
+        target_student = get_object_or_404(Student, pk=student_id)
+        ClubMembership.objects.filter(club=club, student=target_student).delete()
+        messages.success(request, f"Removed {target_student.student_name} from {club.name}.")
+
+    return redirect('coordinator_club_console', club_id=club.id)
+
+
+@student_login_required
+def coordinator_log_attendance(request, club_id):
+    """
+    Student Coordinator Action: Log attendance for a new club event.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance
+
+    club = get_object_or_404(Club, id=club_id)
+    if not club.student_coordinators.filter(pk=student.pk).exists():
+        messages.error(request, "Access Denied.")
+        return redirect('student_clubs_view')
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        event_date = request.POST.get('event_date')
+        description = request.POST.get('description', '').strip()
+        present_student_ids = request.POST.getlist('present_students')
+
+        if not title or not event_date:
+            messages.error(request, "Event title and date are required.")
+            return redirect('coordinator_club_console', club_id=club.id)
+
+        event = ClubEvent.objects.create(
+            club=club,
+            title=title,
+            event_date=event_date,
+            description=description,
+            created_by_student=student
+        )
+
+        memberships = ClubMembership.objects.filter(club=club).select_related('student')
+        present_set = set(map(str, present_student_ids))
+
+        attendances_to_create = []
+        for m in memberships:
+            s_pk = str(m.student.pk)
+            is_p = (s_pk in present_set)
+            attendances_to_create.append(ClubAttendance(
+                event=event,
+                student=m.student,
+                is_present=is_p
+            ))
+
+        ClubAttendance.objects.bulk_create(attendances_to_create)
+        messages.success(request, f"Logged attendance for event '{event.title}' on {event.event_date}.")
+
+    return redirect('coordinator_club_console', club_id=club.id)

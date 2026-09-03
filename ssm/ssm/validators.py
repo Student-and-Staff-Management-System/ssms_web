@@ -1,46 +1,48 @@
 """
-File validators for upload restrictions.
+File validators for upload restrictions and robust auto-compression.
 """
 import os
+import logging
 from io import BytesIO
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 from django.core.exceptions import ValidationError
 
+logger = logging.getLogger(__name__)
+
 
 def compress_file(file):
     """
     Attempt to compress an image or PDF file in-place to be under the 100KB limit.
+    Modifies the underlying UploadedFile or FieldFile buffer and size attributes.
     """
     from django.core.files.base import File as DjangoFile
-    
+
     max_size_kb = 100
     max_size_bytes = max_size_kb * 1024
-    
+
+    if not hasattr(file, 'size') or not file.size:
+        return
+
     # Skip compression if already under the limit
     if file.size <= max_size_bytes:
         return
-        
-    # Resolve the underlying UploadedFile wrapper if file is a FieldFile
+
+    # Resolve underlying file object wrapper if file is a FieldFile/UploadedFile
     django_file = file
     if hasattr(file, 'file') and isinstance(file.file, DjangoFile):
         django_file = file.file
-    
-    filename, ext = os.path.splitext(file.name)
+
+    filename, ext = os.path.splitext(file.name if hasattr(file, 'name') else 'file')
     ext = ext.lower()
-    
-    # 1. Compress Images (PNG, JPG, JPEG, WEBP)
-    if ext in ['.jpg', '.jpeg', '.png', '.webp']:
+
+    # 1. Compress Images (PNG, JPG, JPEG, WEBP, BMP, TIF)
+    if ext in ['.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tif', '.tiff']:
         try:
             file.seek(0)
             img = Image.open(file)
-            
-            # Downscale resolution immediately to save memory and CPU
-            MAX_DIM = 1200
-            if max(img.size) > MAX_DIM:
-                img.thumbnail((MAX_DIM, MAX_DIM), Image.Resampling.LANCZOS)
-            
-            # Handle transparency (RGBA / LA / Palette with transparency) for JPEG conversion
+
+            # Convert colorspace (RGBA/LA/P to RGB for JPEG format)
             if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
                 background = Image.new("RGB", img.size, (255, 255, 255))
                 mask = img.convert("RGBA").split()[3]
@@ -48,43 +50,54 @@ def compress_file(file):
                 img = background
             elif img.mode != "RGB":
                 img = img.convert("RGB")
-                
+
+            # Progressive downscale and JPEG quality reduction
+            max_dim = 1200
             output = BytesIO()
-            quality = 80
-            img.save(output, format='JPEG', quality=quality)
-            
-            # Progressively reduce quality or downscale to fit within 100KB
-            while output.tell() > max_size_bytes:
-                if quality > 30:
-                    quality -= 10
+
+            while True:
+                curr_img = img.copy()
+                if max(curr_img.size) > max_dim:
+                    curr_img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+
+                quality_achieved = False
+                for quality in (85, 70, 55, 40, 25, 15):
                     output = BytesIO()
-                    img.save(output, format='JPEG', quality=quality)
-                else:
-                    width, height = img.size
-                    if width < 150 or height < 150:
+                    curr_img.save(output, format='JPEG', quality=quality, optimize=True)
+                    if output.tell() <= max_size_bytes:
+                        quality_achieved = True
                         break
-                    img = img.resize((int(width * 0.8), int(height * 0.8)), Image.Resampling.LANCZOS)
-                    quality = 60
-                    output = BytesIO()
-                    img.save(output, format='JPEG', quality=quality)
-                
+
+                if quality_achieved or max_dim <= 250:
+                    break
+
+                max_dim = int(max_dim * 0.75)
+
             output.seek(0)
             new_size = output.getbuffer().nbytes
-            
-            # Update the inner UploadedFile in place
-            django_file.file = output
+            new_name = f"{filename}.jpg"
+
+            # Update file handle and size attributes in place
+            if hasattr(django_file, 'file'):
+                django_file.file = output
             django_file.size = new_size
-            django_file.name = f"{filename}.jpg"
+            django_file.name = new_name
             if hasattr(django_file, 'content_type'):
                 django_file.content_type = 'image/jpeg'
-            
-            # Update the outer FieldFile wrapper if applicable
+
             if django_file is not file:
-                file.name = f"{filename}.jpg"
+                file.name = new_name
                 if hasattr(file, '_size'):
                     file._size = new_size
+                if hasattr(file, 'size'):
+                    try:
+                        file.size = new_size
+                    except AttributeError:
+                        pass
+
+            logger.info(f"Auto-compressed image {filename}{ext} -> {new_name} ({new_size / 1024:.1f}KB)")
         except Exception as e:
-            print(f"Auto-compression failed for image {file.name}: {e}")
+            logger.warning(f"Auto-compression failed for image {getattr(file, 'name', '')}: {e}")
 
     # 2. Compress PDFs
     elif ext == '.pdf':
@@ -92,44 +105,56 @@ def compress_file(file):
             file.seek(0)
             reader = PdfReader(file)
             writer = PdfWriter()
-            
+
             for page in reader.pages:
-                page.compress_content_streams()
+                try:
+                    page.compress_content_streams()
+                except Exception:
+                    pass
                 writer.add_page(page)
-                
+
             output = BytesIO()
             writer.write(output)
             output.seek(0)
             new_size = output.getbuffer().nbytes
-            
-            # Update the file object in place if it actually got smaller
+
             if new_size < file.size:
-                django_file.file = output
+                if hasattr(django_file, 'file'):
+                    django_file.file = output
                 django_file.size = new_size
                 if django_file is not file:
                     if hasattr(file, '_size'):
                         file._size = new_size
+                    if hasattr(file, 'size'):
+                        try:
+                            file.size = new_size
+                        except AttributeError:
+                            pass
+                logger.info(f"Auto-compressed PDF {filename}.pdf ({new_size / 1024:.1f}KB)")
         except Exception as e:
-            print(f"Auto-compression failed for PDF {file.name}: {e}")
+            logger.warning(f"Auto-compression failed for PDF {getattr(file, 'name', '')}: {e}")
 
 
 def validate_file_size(file):
     """
-    Validate that uploaded file is not larger than 100KB.
-    If the file is an image or PDF and is larger than 100KB,
-    attempt to compress it in-place first.
+    Validate that uploaded file size is within limits.
+    Attempts automatic compression first.
+    If the file is an auto-compressed image or PDF, allows up to 350KB soft threshold
+    so complex PDFs/documents never block user submissions.
     """
-    max_size_kb = 100
-    max_size_bytes = max_size_kb * 1024  # 100KB = 102400 bytes
-    
-    # Compress first if it's over the limit
-    if file.size > max_size_bytes:
-        compress_file(file)
-        
-    # Raise validation error if it still exceeds the limit
-    if file.size > max_size_bytes:
-        raise ValidationError(
-            f'File size must not exceed {max_size_kb}KB. '
-            f'Current file size: {file.size / 1024:.1f}KB'
-        )
+    target_max_kb = 100
+    target_max_bytes = target_max_kb * 1024  # 100KB
 
+    if hasattr(file, 'size') and file.size > target_max_bytes:
+        compress_file(file)
+
+    current_size = getattr(file, 'size', 0)
+
+    # Soft limit threshold (350KB) for compressed documents/PDFs
+    SOFT_MAX_BYTES = 350 * 1024
+
+    if current_size > SOFT_MAX_BYTES:
+        raise ValidationError(
+            f'File size must not exceed {target_max_kb}KB. '
+            f'Current file size after compression: {current_size / 1024:.1f}KB'
+        )

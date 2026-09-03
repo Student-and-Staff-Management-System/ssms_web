@@ -1214,6 +1214,11 @@ class ClassSubstitutionRequest(models.Model):
         ('Cancelled', 'Cancelled')
     ]
     
+    ATTENDANCE_OPTION_CHOICES = [
+        ('WITH_ATTENDANCE', 'With Attendance (Credited to Temp Staff)'),
+        ('WITHOUT_ATTENDANCE', 'Without Attendance (Credited to Primary Subject Staff)'),
+    ]
+
     requester = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='substitution_requests_made')
     substitute = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='substitution_requests_received')
     
@@ -1224,6 +1229,12 @@ class ClassSubstitutionRequest(models.Model):
     # Optional link to leave request
     leave_request = models.ForeignKey('StaffLeaveRequest', on_delete=models.SET_NULL, null=True, blank=True)
     
+    attendance_option = models.CharField(
+        max_length=20,
+        choices=ATTENDANCE_OPTION_CHOICES,
+        default='WITH_ATTENDANCE',
+        help_text="Specifies whether attendance credit goes to temp staff or primary subject staff."
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     rejection_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

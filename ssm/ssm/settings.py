@@ -264,7 +264,7 @@ AWS_STORAGE_BUCKET_NAME = os.getenv('R2_BUCKET_NAME')  # Your R2 bucket name
 AWS_S3_ENDPOINT_URL = os.getenv('R2_ENDPOINT_URL')  # Points to Cloudflare, not AWS
 AWS_S3_REGION_NAME = 'auto'  # R2 uses 'auto' for region
 AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_S3_FILE_OVERWRITE = False
+AWS_S3_FILE_OVERWRITE = True
 AWS_DEFAULT_ACL = None  # R2 doesn't use ACLs
 AWS_QUERYSTRING_AUTH = False  # Don't add auth params to URLs
 

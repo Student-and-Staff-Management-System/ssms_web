@@ -93,6 +93,13 @@ urlpatterns = [
     path('document-request/apply/', views.apply_document_request, name='apply_document_request'),
     path('scholarships/apply/', views.apply_scholarship, name='apply_scholarship'),
     
+    # Club Activities (Student & Coordinator)
+    path('clubs/', views.student_clubs_view, name='student_clubs_view'),
+    path('clubs/<int:club_id>/coordinator/', views.coordinator_club_console, name='coordinator_club_console'),
+    path('clubs/<int:club_id>/add-member/', views.coordinator_add_member, name='coordinator_add_member'),
+    path('clubs/<int:club_id>/remove-member/<str:student_id>/', views.coordinator_remove_member, name='coordinator_remove_member'),
+    path('clubs/<int:club_id>/log-attendance/', views.coordinator_log_attendance, name='coordinator_log_attendance'),
+    
     # Scholar URLs
     path('scholar/login/', scholars_views.scholar_login, name='scholar_login'),
     path('scholar/register/step1/', scholars_views.scholar_register_step1, name='scholar_register_step1'),

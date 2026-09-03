@@ -1,0 +1,394 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Extracurricular Activities - Sports Teams | HOD Console{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sports-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px 60px 16px;
+        font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    }
+
+    .sports-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        background: var(--surface, #ffffff);
+        padding: 24px 28px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        border: 1px solid var(--border, #e2e8f0);
+        margin-bottom: 24px;
+    }
+
+    .sports-title-box h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-dark, #334155);
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sports-title-box p {
+        font-size: 0.85rem;
+        color: var(--text-muted, #64748b);
+        margin: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 16px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-shuffle {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        color: white;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+    .btn-shuffle:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+    }
+
+    .btn-export {
+        background: #10b981;
+        color: white;
+    }
+    .btn-export:hover {
+        background: #059669;
+    }
+
+    .btn-clear {
+        background: #ef4444;
+        color: white;
+    }
+    .btn-clear:hover {
+        background: #dc2626;
+    }
+
+    .btn-print {
+        background: #64748b;
+        color: white;
+    }
+    .btn-print:hover {
+        background: #475569;
+    }
+
+    .btn-back {
+        background: var(--bg-body, #f8fafc);
+        color: var(--text-main, #1e293b);
+        border: 1px solid var(--border, #cbd5e1);
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        background: white;
+        padding: 18px 22px;
+        border-radius: 14px;
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .metric-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+
+    .metric-info h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+    }
+
+    .metric-info span {
+        font-size: 0.8rem;
+        color: var(--text-muted, #64748b);
+    }
+
+    /* Summary Matrix */
+    .matrix-section {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+        margin-bottom: 28px;
+    }
+
+    .matrix-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-dark, #1e293b);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .matrix-table-wrap {
+        overflow-x: auto;
+    }
+
+    .matrix-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+    }
+
+    .matrix-table th {
+        background: var(--bg-body, #f8fafc);
+        padding: 14px;
+        text-align: center;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid var(--border, #e2e8f0);
+    }
+
+    .matrix-table td {
+        padding: 14px;
+        text-align: center;
+        border-bottom: 1px solid var(--border, #f1f5f9);
+    }
+
+    /* Team Badges */
+    .team-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.82rem;
+    }
+
+    .badge-team-a { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .badge-team-b { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+    .badge-team-c { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .badge-team-d { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+    .badge-unassigned { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+    .export-banner {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border: 1px solid #86efac;
+        padding: 24px 28px;
+        border-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .export-banner-text h4 {
+        margin: 0 0 4px 0;
+        font-size: 1rem;
+        color: #166534;
+        font-weight: 700;
+    }
+
+    .export-banner-text p {
+        margin: 0;
+        font-size: 0.82rem;
+        color: #15803d;
+    }
+
+    @media print {
+        .sports-header, .header-actions, .btn-action, .export-banner {
+            display: none !important;
+        }
+        .sports-container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+        body {
+            background: white !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sports-container">
+
+    <!-- Header -->
+    <div class="sports-header">
+        <div class="sports-title-box">
+            <h1><i class="ri-trophy-line" style="color: #f59e0b;"></i> Extracurricular Activities — Sports Teams</h1>
+            <p>Balanced equal split distribution of year and batch students across 4 sports teams</p>
+        </div>
+
+        <div class="header-actions">
+            <!-- Shuffle Button -->
+            <form method="POST" style="margin: 0;" onsubmit="return confirm('Clicking Shuffle will randomly re-shuffle students equally across Year & Batch into the 4 sports teams. Proceed?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="shuffle">
+                <button type="submit" class="btn-action btn-shuffle" title="Redo equal split shuffling">
+                    <i class="ri-shuffle-line"></i> Shuffle Teams
+                </button>
+            </form>
+
+            <!-- Export CSV -->
+            <a href="{% url 'staffs:export_sports_teams' %}" class="btn-action btn-export">
+                <i class="ri-file-excel-line"></i> Export CSV / Excel
+            </a>
+
+            <!-- Clear Teams -->
+            <form method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to clear all sports team assignments?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="clear_teams">
+                <button type="submit" class="btn-action btn-clear" title="Clear all team assignments">
+                    <i class="ri-delete-bin-line"></i> Clear All
+                </button>
+            </form>
+
+            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-back">
+                <i class="ri-arrow-left-line"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" style="padding: 12px 18px; border-radius: 10px; margin-bottom: 10px; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+            <i class="ri-information-fill"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Key Metrics Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #e0f2fe; color: #0284c7;">
+                <i class="ri-group-line"></i>
+            </div>
+            <div class="metric-info">
+                <h3>{{ total_students_count }}</h3>
+                <span>Total Students</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #dcfce7; color: #166534;">
+                <i class="ri-checkbox-circle-line"></i>
+            </div>
+            <div class="metric-info">
+                <h3>{{ assigned_count }}</h3>
+                <span>Assigned to Teams</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #fef9c3; color: #854d0e;">
+                <i class="ri-shield-user-line"></i>
+            </div>
+            <div class="metric-info">
+                <h3>{{ total_students_count|add:"-"|add:assigned_count }}</h3>
+                <span>Unassigned Students</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon" style="background: #f3e8ff; color: #7e22ce;">
+                <i class="ri-flag-line"></i>
+            </div>
+            <div class="metric-info">
+                <h3>4 Teams</h3>
+                <span>Red, Blue, Green, Yellow</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Distribution Summary Matrix -->
+    <div class="matrix-section">
+        <div class="matrix-title">
+            <i class="ri-bar-chart-grouped-line" style="color: #2563eb;"></i> Equal Split Distribution Matrix
+        </div>
+        <div class="matrix-table-wrap">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Sports Team</th>
+                        <th>Total Members</th>
+                        <th>Year 1 (Sem 1-2)</th>
+                        <th>Year 2 (Sem 3-4)</th>
+                        <th>Year 3 (Sem 5-6)</th>
+                        <th>Year 4 (Sem 7-8)</th>
+                        <th>Batch A</th>
+                        <th>Batch B</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in team_stats_list %}
+                    <tr {% if row.key == 'Unassigned' %}style="background: #f8fafc; font-weight: 600;"{% endif %}>
+                        <td style="text-align: left;">
+                            <span class="team-badge {{ row.badge_class }}"><i class="{{ row.icon }}"></i> {{ row.name }}</span>
+                        </td>
+                        <td><strong>{{ row.total }}</strong></td>
+                        <td>{{ row.year1 }}</td>
+                        <td>{{ row.year2 }}</td>
+                        <td>{{ row.year3 }}</td>
+                        <td>{{ row.year4 }}</td>
+                        <td>{{ row.batchA }}</td>
+                        <td>{{ row.batchB }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Clean Export Banner -->
+    <div class="export-banner">
+        <div class="export-banner-text">
+            <h4><i class="ri-file-excel-line"></i> Ready for Sports Day & Department Notices</h4>
+            <p>All {{ total_students_count }} students are balanced across Team A, B, C, & D. Download full rosters for sports day announcements and department notices.</p>
+        </div>
+        <a href="{% url 'staffs:export_sports_teams' %}" class="btn-action btn-export">
+            <i class="ri-download-2-line"></i> Download Full Rosters (CSV/Excel)
+        </a>
+    </div>
+
+</div>
+{% endblock %}

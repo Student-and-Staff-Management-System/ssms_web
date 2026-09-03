@@ -57,7 +57,7 @@
                         {{student.student_name }}</div>
                     <div class="print-meta" style="font-size: 10pt;">
                         Roll No: {{ student.roll_number }} &nbsp;|&nbsp;
-                        {{ student.get_program_level_display }} - Sem {{ student.current_semester }}
+                        {{ student.get_program_level_display }} - {% if student.program_level == 'PHD' %}Joined {{ student.joining_year|default:"N/A" }}{% else %}Sem {{ student.current_semester }}{% endif %}
                     </div>
                 </div>
             </div>
@@ -155,7 +155,9 @@
                         <div class="detail-item">
                             <strong>Current Status</strong>
                             <span>
-                                {% if student.current_semester > 8 %}
+                                {% if student.program_level == 'PHD' %}
+                                <span style="color: #7e22ce; font-weight: 600;">PhD Scholar (Joined {{ student.joining_year|default:"-" }})</span>
+                                {% elif student.current_semester > 8 %}
                                 <span style="color: var(--success-color); font-weight: 600;">Course Completed</span>
                                 {% else %}
                                 Semester {{ student.current_semester }}

@@ -436,7 +436,7 @@
                 {% endif %}
                 <div>
                     <h1>{{ student.student_name }}</h1>
-                    <p class="subtitle">{{ student.roll_number }} | {{ student.program_level }}</p>
+                    <p class="subtitle">{{ student.roll_number }} | {% if student.program_level == 'PHD' %}PhD Scholar (Joined {{ student.joining_year|default:"N/A" }}){% else %}{{ student.get_program_level_display|default:student.program_level }}{% endif %}</p>
                 </div>
             </div>
             <a href="{% url 'staffs:student_list' %}" class="action-btn">← Back to List</a>

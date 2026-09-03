@@ -108,6 +108,13 @@ class Caste(models.Model):
     def __str__(self):
         return self.name
 
+SPORTS_TEAM_CHOICES = [
+    ('Team A', 'Team A (Red Dragons)'),
+    ('Team B', 'Team B (Blue Falcons)'),
+    ('Team C', 'Team C (Green Titans)'),
+    ('Team D', 'Team D (Yellow Eagles)'),
+]
+
 class Student(models.Model):
     roll_number = models.CharField(max_length=20, primary_key=True)
     register_number = models.CharField(max_length=20, blank=True, null=True)
@@ -125,6 +132,15 @@ class Student(models.Model):
     lab_batch = models.CharField(max_length=1, choices=[('A', 'Batch A'), ('B', 'Batch B')], blank=True, null=True)
     is_class_representative = models.BooleanField(default=False, verbose_name="Class Representative")
     
+    # Extracurricular & Sports
+    sports_team = models.CharField(
+        max_length=50,
+        choices=SPORTS_TEAM_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Assigned Sports Team for extracurricular activities"
+    )
+
     # Security Questions (Added to fix DB sync issue)
     security_question_1 = models.CharField(max_length=255, blank=True, null=True)
     security_answer_1 = models.CharField(max_length=255, blank=True, null=True)
@@ -1042,4 +1058,61 @@ class PhDProgress(models.Model):
             'completion_dates': completion_dates,
             'unlocked_stages': unlocked_stages,
         }
+
+
+class Club(models.Model):
+    CATEGORY_CHOICES = [
+        ('Technical', 'Technical'),
+        ('Cultural', 'Cultural'),
+        ('Sports', 'Sports'),
+        ('Social', 'Social Service'),
+        ('Academic', 'Academic & Literacy'),
+    ]
+    name = models.CharField(max_length=150, unique=True)
+    description = models.TextField(blank=True, null=True)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Technical')
+    staff_incharge = models.ForeignKey('staffs.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='incharge_clubs')
+    student_coordinators = models.ManyToManyField(Student, blank=True, related_name='coordinated_clubs')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ClubMembership(models.Model):
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='memberships')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='club_memberships')
+    joined_date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('club', 'student')
+
+    def __str__(self):
+        return f"{self.student.student_name} - {self.club.name}"
+
+
+class ClubEvent(models.Model):
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='events')
+    title = models.CharField(max_length=200)
+    event_date = models.DateField()
+    description = models.TextField(blank=True, null=True)
+    created_by_student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.club.name} - {self.title} ({self.event_date})"
+
+
+class ClubAttendance(models.Model):
+    event = models.ForeignKey(ClubEvent, on_delete=models.CASCADE, related_name='attendances')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='club_attendances')
+    is_present = models.BooleanField(default=True)
+    remarks = models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('event', 'student')
+
+    def __str__(self):
+        return f"{self.student.student_name} - {self.event.title} ({'Present' if self.is_present else 'Absent'})"
 

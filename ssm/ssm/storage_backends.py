@@ -16,7 +16,7 @@ class R2Storage(S3Boto3Storage):
     
     # R2-specific settings
     region_name = 'auto'  # R2 uses 'auto' for region
-    file_overwrite = False  # Don't overwrite existing files
+    file_overwrite = True  # Overwrite existing files on upload to reduce unwanted duplicate storage
     default_acl = None  # R2 doesn't use ACLs like S3
     
     # Performance settings

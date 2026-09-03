@@ -51,12 +51,13 @@
 
     <!-- Tabbed Dashboard Navigation -->
     <div class="dash-tabs">
-        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)">📊 Overview</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)">📈 My Profile Stats</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)">📖 Academics</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholars', this)">🎓 Research Scholars</button>
+        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)"><i class="ri-dashboard-3-line"></i> Overview</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)"><i class="ri-line-chart-line"></i> My Profile Stats</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)"><i class="ri-book-open-line"></i> Academics</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholars', this)"><i class="ri-graduation-cap-line"></i> Research Scholars</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-dept-tasks', this)"><i class="ri-task-line"></i> Tasks & Roles</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-admin', this)">🏢 Administration</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-extracurricular', this)"><i class="ri-trophy-line"></i> Extracurriculars</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-admin', this)"><i class="ri-building-4-line"></i> Administration</button>
     </div>
 
     <!-- ================= TAB: MY PROFILE STATS ================= -->
@@ -81,7 +82,7 @@
                 <!-- Staff Leave Stats -->
                 <a href="{% url 'staffs:hod_leave_dashboard' %}" class="stat-card">
                     {% if pending_staff_leaves_count > 0 %} <div class="pulse-ring"></div> {% endif %}
-                    <div class="stat-icon amber">👔</div>
+                    <div class="stat-icon amber"><i class="ri-user-unfollow-line"></i></div>
                     <div class="stat-info">
                         <h3>{{ pending_staff_leaves_count }}</h3>
                         <span>Staff Leave Requests</span>
@@ -91,7 +92,7 @@
                 <!-- Student Leave Stats -->
                 <a href="{% url 'staffs:view_leave_requests' %}" class="stat-card">
                     {% if pending_leaves_count > 0 %} <div class="pulse-ring"></div> {% endif %}
-                    <div class="stat-icon blue">📝</div>
+                    <div class="stat-icon blue"><i class="ri-file-text-line"></i></div>
                     <div class="stat-info">
                         <h3>{{ pending_leaves_count }}</h3>
                         <span>Student Leave Requests</span>
@@ -101,7 +102,7 @@
                 <!-- Designation & Additional Post Approvals Stats -->
                 <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="stat-card">
                     {% if pending_portfolio_count > 0 %} <div class="pulse-ring"></div> {% endif %}
-                    <div class="stat-icon" style="background: #eef6f6; color: var(--primary);">💼</div>
+                    <div class="stat-icon" style="background: #eef6f6; color: var(--primary);"><i class="ri-briefcase-line"></i></div>
                     <div class="stat-info">
                         <h3>{{ pending_portfolio_count }}</h3>
                         <span>Designation & Post Approvals</span>
@@ -110,10 +111,19 @@
 
                 <!-- Total Students -->
                 <a href="{% url 'staffs:student_list' %}" class="stat-card">
-                    <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;">👨‍🎓</div>
+                    <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;"><i class="ri-group-line"></i></div>
                     <div class="stat-info">
                         <h3>{{ student_count }}</h3>
                         <span>Total Students</span>
+                    </div>
+                </a>
+
+                <!-- Sports Teams Extracurricular -->
+                <a href="{% url 'staffs:hod_sports_teams' %}" class="stat-card" style="text-decoration: none; color: inherit;">
+                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="ri-trophy-line"></i></div>
+                    <div class="stat-info">
+                        <h3>4 Teams</h3>
+                        <span>Sports & Extracurriculars</span>
                     </div>
                 </a>
             </div>
@@ -196,9 +206,25 @@
         {% include 'staff/includes/rs_widget.html' %}
     </div>
 
-    <!-- ================= TAB: DEPARTMENTAL TASKS & ROLES ================= -->
-    <div id="dash-tab-dept-tasks" class="dash-tab-content">
-        {% include 'staff/includes/dept_tasks_widget.html' %}
+    <!-- ================= TAB: EXTRACURRICULAR ACTIVITIES ================= -->
+    <div id="dash-tab-extracurricular" class="dash-tab-content">
+        <section class="actions-section" style="margin-top: 0;">
+            <div class="section-header">
+                <h3>Extracurricular & Sports Activities</h3>
+            </div>
+            <div class="actions-grid">
+                <a href="{% url 'staffs:hod_sports_teams' %}" class="action-tile" style="border: 1px solid #f59e0b;">
+                    <div class="action-tile-icon"><i class="ri-trophy-line" style="color: #f59e0b; font-size: 1.8rem;"></i></div>
+                    <h4>Sports Team Assignments</h4>
+                    <p>Auto-assign & manage 4 sports teams with equal year and batch distribution.</p>
+                </a>
+                <a href="{% url 'staffs:hod_clubs_manage' %}" class="action-tile" style="border: 1px solid #5a7d7c;">
+                    <div class="action-tile-icon"><i class="ri-team-line" style="color: #5a7d7c; font-size: 1.8rem;"></i></div>
+                    <h4>Student Club Management</h4>
+                    <p>Create & manage clubs, assign Staff IC (1) & Student Coordinators (2), track attendance logs.</p>
+                </a>
+            </div>
+        </section>
     </div>
 
     <!-- ================= TAB 4: ADMINISTRATION ================= -->
@@ -254,10 +280,15 @@
                     <h4>Department Tasks & Roles</h4>
                     <p>Assign 58 official department roles to staff via checkboxes & export reports.</p>
                 </a>
-                <a href="{% url 'staffs:timetable' %}" class="action-tile" style="border: 1px solid var(--primary-light);">
-                    <div class="action-tile-icon">📅</div>
-                    <h4>Master Timetable Hub</h4>
-                    <p>View schedules, edit grid, assign lab batches & track history in 1 place.</p>
+                <a href="{% url 'staffs:hod_sports_teams' %}" class="action-tile" style="border: 1px solid #f59e0b;">
+                    <div class="action-tile-icon">🏆</div>
+                    <h4>Sports Teams Assignment</h4>
+                    <p>Equal split distribution of year & batch students across 4 sports teams.</p>
+                </a>
+                <a href="{% url 'staffs:hod_clubs_manage' %}" class="action-tile" style="border: 1px solid #3b82f6;">
+                    <div class="action-tile-icon">👥</div>
+                    <h4>Student Club Management</h4>
+                    <p>Create clubs, assign Staff IC (1) & Student Coordinators (2), track attendance logs.</p>
                 </a>
             </div>
         </section>

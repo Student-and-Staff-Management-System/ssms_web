@@ -362,6 +362,12 @@
         <form method="GET" class="search-container">
             <input type="text" name="q" class="search-input" placeholder="Search by Name, Roll, or Email..."
                 value="{{ query|default:'' }}">
+            <select name="program_level" class="filter-select">
+                <option value="">All Programs</option>
+                <option value="UG" {% if selected_program_level == 'UG' %}selected{% endif %}>UG</option>
+                <option value="PG" {% if selected_program_level == 'PG' %}selected{% endif %}>PG</option>
+                <option value="PHD" {% if selected_program_level == 'PHD' %}selected{% endif %}>🎓 PhD Scholars</option>
+            </select>
             <select name="semester" class="filter-select">
                 <option value="">All Semesters</option>
                 {% for i in "12345678"|make_list %}
@@ -387,7 +393,7 @@
                 value="{{ end_roll|default:'' }}">
             <button type="submit" class="search-btn">Search</button>
             <button type="button" onclick="exportCSV()" class="action-btn" style="background-color: #16a34a; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 5px; height: 100%; border: none;">
-                📥 Export CSV
+                <i class="ri-file-excel-line"></i> Export Excel
             </button>
         </form>
 
@@ -417,11 +423,16 @@
                         <div style="margin-top: 5px; font-size: 0.82rem; color: #64748b; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
                             <span style="font-weight: 600; color: #334155;">{{ student.roll_number }}</span>
                             <span style="color: #cbd5e1;">•</span>
-                            <span>Sem {{ student.current_semester }}</span>
-                            {% if student.lab_batch %}
-                                <span style="padding: 1px 6px; border-radius: 4px; background: {% if student.lab_batch == 'A' %}#eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;{% else %}#f0fdf4; color: #15803d; border: 1px solid #bbf7d0;{% endif %} font-weight: 700; font-size: 0.7rem;">Batch {{ student.lab_batch }}</span>
+                            {% if student.program_level == 'PHD' %}
+                                <span style="font-weight: 600; color: #6d28d9;">Joined {{ student.joining_year|default:"N/A" }}</span>
+                                <span style="padding: 1px 6px; border-radius: 4px; background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; font-weight: 700; font-size: 0.7rem;">PhD Scholar</span>
                             {% else %}
-                                <span style="padding: 1px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; font-weight: 500; font-size: 0.7rem;">No Batch</span>
+                                <span>Sem {{ student.current_semester }}</span>
+                                {% if student.lab_batch %}
+                                    <span style="padding: 1px 6px; border-radius: 4px; background: {% if student.lab_batch == 'A' %}#eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;{% else %}#f0fdf4; color: #15803d; border: 1px solid #bbf7d0;{% endif %} font-weight: 700; font-size: 0.7rem;">Batch {{ student.lab_batch }}</span>
+                                {% else %}
+                                    <span style="padding: 1px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; font-weight: 500; font-size: 0.7rem;">No Batch</span>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>

@@ -36,7 +36,7 @@
     <div class="stats-column" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px;">
         <!-- Bonafide Requests -->
         <a href="{% url 'staffs:office_manage_bonafide' %}" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
-            <div class="stat-icon" style="background: #e0f2fe; color: #0284c7; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">📜</div>
+            <div class="stat-icon" style="background: #e0f2fe; color: #0284c7; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;"><i class="ri-file-certificate-line"></i></div>
             <div class="stat-info">
                 <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700;">{{ pending_bonafide_count }}</h3>
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Bonafide Requests</span>
@@ -45,7 +45,7 @@
 
         <!-- Original Document Requests (10th/12th/TC) -->
         <a href="{% url 'staffs:office_manage_document_requests' %}" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #5a7d7c; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
-            <div class="stat-icon" style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">📁</div>
+            <div class="stat-icon" style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;"><i class="ri-folder-open-line"></i></div>
             <div class="stat-info">
                 <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark, #4a6b69);">{{ pending_doc_count }} <span style="font-size: 0.85rem; color: #d97706; font-weight: 600;">({{ unreturned_doc_count }} unreturned)</span></h3>
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Document Requests</span>
@@ -54,7 +54,7 @@
 
         <!-- Scholarship Portal -->
         <a href="{% url 'staffs:scholarship_manager' %}" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
-            <div class="stat-icon" style="background: #f0fdf4; color: #16a34a; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">💰</div>
+            <div class="stat-icon" style="background: #f0fdf4; color: #16a34a; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;"><i class="ri-money-dollar-circle-line"></i></div>
             <div class="stat-info">
                 <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #16a34a;">Scholarships</h3>
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Applications & Audit</span>
@@ -63,7 +63,7 @@
 
         <!-- Total Students -->
         <a href="{% url 'staffs:student_list' %}" class="stat-card" style="text-decoration: none; color: inherit; transition: transform 0.2s; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 16px;">
-            <div class="stat-icon" style="background: #e0e7ff; color: #4338ca; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">👨‍🎓</div>
+            <div class="stat-icon" style="background: #e0e7ff; color: #4338ca; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;"><i class="ri-group-line"></i></div>
             <div class="stat-info">
                 <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700;">{{ student_count }}</h3>
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Enrolled Students</span>

@@ -143,10 +143,10 @@
 <div class="container">
         <div class="page-header">
             <div>
-                <h1>📥 Incoming Alternates</h1>
+                <h1><i class="ri-inbox-archive-line" style="color: var(--primary);"></i> Incoming Alternates</h1>
                 <div style="font-size:0.9rem; color:var(--muted); margin-top:4px;">Classes assigned to you by colleagues</div>
             </div>
-            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">← Dashboard</a>
+            <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back"><i class="ri-arrow-left-line"></i> Dashboard</a>
         </div>
 
         {% if messages %}
@@ -164,7 +164,7 @@
             <div class="req-card" style="border-left-color: #f39c12;">
                 <div class="req-header">
                     <div class="req-title">{{ req.requester.name }} requested an alternate</div>
-                    <div class="req-date">🗓️ {{ req.date|date:"l, M d, Y" }}</div>
+                    <div class="req-date"><i class="ri-calendar-event-line"></i> {{ req.date|date:"l, M d, Y" }}</div>
                 </div>
                 
                 <div class="req-details">
@@ -180,6 +180,16 @@
                         <span class="detail-label">Semester</span>
                         <span class="detail-value">Semester {{ req.subject.semester }}</span>
                     </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Attendance Mode</span>
+                        <span class="detail-value">
+                            {% if req.attendance_option == 'WITHOUT_ATTENDANCE' %}
+                                <span class="badge" style="background:#fffbe0; color:#92400e; border: 1px solid #fef08a;">Without Attendance (Primary Staff Credit)</span>
+                            {% else %}
+                                <span class="badge" style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd;">With Attendance (Temp Staff Credit)</span>
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="actions">
@@ -187,7 +197,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="action" value="accept">
                         <input type="hidden" name="request_id" value="{{ req.id }}">
-                        <button type="submit" class="btn btn-accept">✅ Accept</button>
+                        <button type="submit" class="btn btn-accept"><i class="ri-check-line"></i> Accept</button>
                     </form>
 
                     <form method="POST" style="display: flex; gap: 10px; flex-grow: 1;">
@@ -195,14 +205,14 @@
                         <input type="hidden" name="action" value="reject">
                         <input type="hidden" name="request_id" value="{{ req.id }}">
                         <input type="text" name="rejection_reason" placeholder="Reason for rejection (Optional)" style="flex-grow: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit;">
-                        <button type="submit" class="btn btn-reject">❌ Reject</button>
+                        <button type="submit" class="btn btn-reject"><i class="ri-close-line"></i> Reject</button>
                     </form>
                 </div>
             </div>
             {% endfor %}
         {% else %}
             <div style="text-align: center; padding: 40px; background: white; border-radius: var(--radius); color: var(--muted); margin-bottom: 30px;">
-                <div style="font-size: 2rem; margin-bottom: 10px;">☕</div>
+                <div style="font-size: 2rem; margin-bottom: 10px;"><i class="ri-cup-line" style="color: var(--primary);"></i></div>
                 <p>You have no pending alternate requests.</p>
             </div>
         {% endif %}
@@ -211,12 +221,19 @@
         <div class="history-section">
             <h3 style="margin-bottom: 20px; color: var(--primary);">History</h3>
             {% for req in history %}
-            <div class="req-card" style="border-left-color: {% if req.status == 'Approved' %}#2ecc71{% else %}#e74c3c{% endif %}; opacity: 0.8;">
+            <div class="req-card" style="border-left-color: {% if req.status == 'Approved' %}#2ecc71{% else %}#e74c3c{% endif %}; opacity: 0.85;">
                 <div class="req-header" style="padding-bottom: 10px; margin-bottom: 10px;">
                     <div style="font-weight: 500;">
                         {{ req.requester.name }} | {{ req.date|date:"M d, Y" }} | P{{ req.period }} ({{ req.subject.code }})
                     </div>
-                    <span class="badge badge-{{ req.status|lower }}">{{ req.status }}</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        {% if req.attendance_option == 'WITHOUT_ATTENDANCE' %}
+                            <span class="badge" style="background:#fffbe0; color:#92400e; border: 1px solid #fef08a;">Without Attendance</span>
+                        {% else %}
+                            <span class="badge" style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd;">With Attendance</span>
+                        {% endif %}
+                        <span class="badge badge-{{ req.status|lower }}">{{ req.status }}</span>
+                    </div>
                 </div>
                 {% if req.status == 'Rejected' and req.rejection_reason %}
                 <div style="font-size: 0.85rem; color: var(--danger);">Reason: {{ req.rejection_reason }}</div>

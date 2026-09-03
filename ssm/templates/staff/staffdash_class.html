@@ -51,12 +51,15 @@
 
     <!-- Tabbed Dashboard Navigation -->
     <div class="dash-tabs">
-        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)">📊 Overview</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)">📈 My Profile Stats</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)">📖 Academics</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholars', this)">🎓 Research Scholars</button>
+        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)"><i class="ri-dashboard-3-line"></i> Overview</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)"><i class="ri-line-chart-line"></i> My Profile Stats</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)"><i class="ri-book-open-line"></i> Academics</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholars', this)"><i class="ri-graduation-cap-line"></i> Research Scholars</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-dept-tasks', this)"><i class="ri-task-line"></i> Tasks & Roles</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-students', this)">👨‍🎓 Student Management</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-students', this)"><i class="ri-group-line"></i> Student Management</button>
+        {% if my_ic_clubs %}
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-clubs', this)"><i class="ri-team-line"></i> Club Activities</button>
+        {% endif %}
     </div>
 
     <!-- ================= TAB: MY PROFILE STATS ================= -->
@@ -81,7 +84,7 @@
                 <!-- Semester Card -->
                 {% if staff.assigned_semester %}
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;">🏛️</div>
+                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="ri-building-line"></i></div>
                     <div class="stat-info">
                         <h3>Sem {{ staff.assigned_semester }}{% if staff.assigned_batch and staff.assigned_batch != 'All' %} (Batch {{ staff.assigned_batch }}){% endif %}</h3>
                         <span>Current Semester</span>
@@ -92,7 +95,7 @@
                 <!-- Leave Requests -->
                 <a href="{% url 'staffs:view_leave_requests' %}" class="stat-card" style="text-decoration: none; color: inherit;">
                     {% if pending_leaves_count > 0 %} <div class="pulse-ring"></div> {% endif %}
-                    <div class="stat-icon blue">📝</div>
+                    <div class="stat-icon blue"><i class="ri-file-text-line"></i></div>
                     <div class="stat-info">
                         <h3>{{ pending_leaves_count }}</h3>
                         <span>Leave Requests</span>
@@ -101,7 +104,7 @@
 
                 <!-- Assigned Students -->
                 <a href="{% url 'staffs:student_list' %}" class="stat-card" style="text-decoration: none; color: inherit;">
-                    <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;">👨‍🎓</div>
+                    <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;"><i class="ri-group-line"></i></div>
                     <div class="stat-info">
                         <h3>{{ student_count }}</h3>
                         <span>Assigned Students</span>
@@ -110,7 +113,7 @@
 
                 <!-- Attendance Deficit Link -->
                 <a href="{% url 'staffs:attendance_deficit_list' %}" class="stat-card" style="text-decoration: none; color: inherit;">
-                    <div class="stat-icon" style="background: #fee2e2; color: #ef4444;">📉</div>
+                    <div class="stat-icon" style="background: #fee2e2; color: #ef4444;"><i class="ri-line-chart-down-line"></i></div>
                     <div class="stat-info">
                         <h3>Alerts</h3>
                         <span>Low Attendance</span>
@@ -238,7 +241,42 @@
                     <h4>Assign Lab Batches</h4>
                     <p>Divide students into batches for practical lab sessions.</p>
                 </a>
+                {% if my_ic_clubs %}
+                {% for c in my_ic_clubs %}
+                <a href="{% url 'staffs:staff_club_detail' c.id %}" class="action-tile" style="border: 1px solid #5a7d7c; background: #f4f8f8;">
+                    <div class="action-tile-icon">👥</div>
+                    <h4>{{ c.name }} (Staff IC)</h4>
+                    <p>{{ c.category }} Club Console — Manage {{ c.memberships.count }} members, events & attendance logs.</p>
+                </a>
+                {% endfor %}
+                {% elif is_hod_or_admin %}
+                <a href="{% url 'staffs:hod_clubs_manage' %}" class="action-tile" style="border: 1px solid #5a7d7c;">
+                    <div class="action-tile-icon">👥</div>
+                    <h4>Student Club Management</h4>
+                    <p>Create & manage clubs, assign Staff IC (1) & Student Coordinators (2).</p>
+                </a>
+                {% endif %}
             </div>
         </section>
     </div>
+
+    {% if my_ic_clubs %}
+    <!-- ================= TAB: CLUB ACTIVITIES ================= -->
+    <div id="dash-tab-clubs" class="dash-tab-content">
+        <section class="actions-section" style="margin-top: 0;">
+            <div class="section-header">
+                <h3>Extracurricular Club Activities (Staff In-Charge)</h3>
+            </div>
+            <div class="actions-grid">
+                {% for c in my_ic_clubs %}
+                <a href="{% url 'staffs:staff_club_detail' c.id %}" class="action-tile" style="border: 1px solid #5a7d7c;">
+                    <div class="action-tile-icon"><i class="ri-team-line" style="color: #5a7d7c; font-size: 1.8rem;"></i></div>
+                    <h4>{{ c.name }}</h4>
+                    <p>{{ c.category }} Club Console | Manage {{ c.memberships.count }} members, events & attendance logs.</p>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+    {% endif %}
 {% endblock %}

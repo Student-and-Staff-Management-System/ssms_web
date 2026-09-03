@@ -79,6 +79,7 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('roll_number', 'student_name', 'student_email')
     list_filter = ('current_semester', 'program_level', 'ug_entry_type')
     actions = ['promote_students']
+    exclude = ('password',)
     
     inlines = [
         PersonalInfoInline,

@@ -159,6 +159,15 @@ urlpatterns = [
     path('department-tasks/export-staff/', views.export_staff_tasks_csv, name='export_staff_tasks_csv'),
     path('department-tasks/export-matrix/', views.export_task_matrix_csv, name='export_task_matrix_csv'),
 
+    # Extracurricular Activities - Sports Team Assignment & Clubs
+    path('extracurricular/sports-teams/', views.hod_sports_teams, name='hod_sports_teams'),
+    path('extracurricular/sports-teams/export/', views.export_sports_teams, name='export_sports_teams'),
+    path('extracurricular/clubs/', views.hod_clubs_manage, name='hod_clubs_manage'),
+    path('extracurricular/clubs/create/', views.hod_club_create, name='hod_club_create'),
+    path('extracurricular/clubs/<int:club_id>/edit/', views.hod_club_edit, name='hod_club_edit'),
+    path('extracurricular/clubs/<int:club_id>/delete/', views.hod_club_delete, name='hod_club_delete'),
+    path('extracurricular/clubs/<int:club_id>/detail/', views.staff_club_detail, name='staff_club_detail'),
+
     # Web Push
     path('webpush/', include('webpush.urls')),
     path('send-notification/', views.send_custom_notification, name='send_custom_notification'),

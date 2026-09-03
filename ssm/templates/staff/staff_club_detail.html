@@ -1,0 +1,334 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}{{ club.name }} Console | Extracurricular Activities{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --theme-teal: #5a7d7c;
+        --theme-teal-dark: #4a6b69;
+        --theme-teal-light: #eef2f2;
+        --theme-border: #dee2e6;
+        --theme-slate: #2c3e50;
+    }
+
+    .console-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px 60px 16px;
+        font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    }
+
+    .header-card {
+        background: white;
+        padding: 24px 28px;
+        border-radius: 14px;
+        border: 1px solid var(--theme-border);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-back {
+        background: #f8f9fa;
+        color: #212529;
+        border: 1px solid var(--theme-border);
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 18px 22px;
+        border-radius: 12px;
+        border: 1px solid var(--theme-border);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid var(--theme-border);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .custom-table th {
+        background: #f8f9fa;
+        padding: 12px 14px;
+        text-align: left;
+        color: #495057;
+        border-bottom: 2px solid var(--theme-border);
+    }
+
+    .custom-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .progress-bar-bg {
+        width: 100px;
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: var(--theme-teal);
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="console-container">
+
+    <!-- Header -->
+    <div class="header-card">
+        <div>
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 3px 10px; border-radius: 6px; background: var(--theme-teal-light); color: var(--theme-teal-dark); border: 1px solid rgba(90, 125, 124, 0.2);">
+                {{ club.category }} Club
+            </span>
+            <h1 style="margin: 8px 0 4px 0; font-size: 1.45rem; color: var(--theme-slate);">{{ club.name }}</h1>
+            <p style="margin: 0; font-size: 0.85rem; color: #6c757d;">
+                Staff In-Charge: <strong>{{ club.staff_incharge.name|default:"Unassigned" }}</strong> | 
+                Student Coordinators: 
+                {% for sc in coordinators %}
+                    <span style="background: #f8f9fa; padding: 2px 6px; border-radius: 4px; font-weight: 600; border: 1px solid #e9ecef;">{{ sc.student_name }}</span>
+                {% empty %}None{% endfor %}
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            {% if is_hod_or_admin %}
+            <button onclick="document.getElementById('editDetailClubModal').style.display='flex';" class="btn-action" style="background: var(--theme-teal); color: white;">
+                <i class="ri-edit-line"></i> Edit Staff IC & Coordinators
+            </button>
+            {% endif %}
+            <a href="{% url 'staffs:hod_clubs_manage' %}" class="btn-action btn-back">
+                <i class="ri-arrow-left-line"></i> Back to Clubs
+            </a>
+        </div>
+    </div>
+
+    {% if is_hod_or_admin %}
+    <!-- Edit Modal -->
+    <div id="editDetailClubModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(33, 37, 41, 0.5); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 14px; width: 100%; max-width: 540px; padding: 24px 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--theme-slate);"><i class="ri-edit-line" style="color: var(--theme-teal);"></i> Edit Staff IC & Coordinators</h3>
+                <button onclick="document.getElementById('editDetailClubModal').style.display='none';" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #6c757d;">&times;</button>
+            </div>
+
+            <form method="POST" action="{% url 'staffs:hod_club_edit' club.id %}">
+                {% csrf_token %}
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Club Name *</label>
+                    <input type="text" name="name" value="{{ club.name }}" required style="padding: 9px 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.85rem;">
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Category</label>
+                    <select name="category" style="padding: 9px 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.85rem;">
+                        {% for cat_val, cat_label in category_choices %}
+                        <option value="{{ cat_val }}" {% if club.category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Description</label>
+                    <textarea name="description" rows="2" style="padding: 9px 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.85rem;">{{ club.description|default:'' }}</textarea>
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Staff In-Charge (1 Staff)</label>
+                    <select name="staff_incharge" style="padding: 9px 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.85rem;">
+                        <option value="">Select Staff In-Charge...</option>
+                        {% for st in staff_members %}
+                        <option value="{{ st.id }}" {% if club.staff_incharge_id == st.id %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Student Coordinator 1</label>
+                        <select name="student_coordinator_1" style="padding: 9px 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.85rem;">
+                            <option value="">Select Student 1...</option>
+                            {% for std in all_students %}
+                            <option value="{{ std.pk }}" {% if sc1_id == std.pk %}selected{% endif %}>{{ std.roll_number }} - {{ std.student_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Student Coordinator 2</label>
+                        <select name="student_coordinator_2" style="padding: 9px 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 0.85rem;">
+                            <option value="">Select Student 2...</option>
+                            {% for std in all_students %}
+                            <option value="{{ std.pk }}" {% if sc2_id == std.pk %}selected{% endif %}>{{ std.roll_number }} - {{ std.student_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" onclick="document.getElementById('editDetailClubModal').style.display='none';" class="btn-action btn-back">Cancel</button>
+                    <button type="submit" class="btn-action" style="background: var(--theme-teal); color: white;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--theme-teal-light); color: var(--theme-teal-dark); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-group-line"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.3rem; color: var(--theme-slate);">{{ members_stats|length }}</h3>
+                <span style="font-size: 0.8rem; color: #6c757d;">Active Club Members</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-calendar-event-line"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.3rem; color: var(--theme-slate);">{{ events|length }}</h3>
+                <span style="font-size: 0.8rem; color: #6c757d;">Events & Meetings Conducted</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Roster & Visual Attendance -->
+    <div class="table-card">
+        <h3 style="margin: 0 0 16px 0; font-size: 1.05rem; color: var(--theme-slate);">
+            <i class="ri-contacts-book-line" style="color: var(--theme-teal);"></i> Student Member Roster & Visual Attendance Stats
+        </h3>
+
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Roll Number</th>
+                        <th>Register Number</th>
+                        <th>Student Name</th>
+                        <th>Year & Sem</th>
+                        <th>Lab Batch</th>
+                        <th>Attended / Total</th>
+                        <th>Visual Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in members_stats %}
+                    <tr>
+                        <td style="color: #adb5bd;">{{ forloop.counter }}</td>
+                        <td><strong>{{ row.student.roll_number }}</strong></td>
+                        <td>{{ row.student.register_number|default:"-" }}</td>
+                        <td>{{ row.student.student_name }}</td>
+                        <td>Sem {{ row.student.current_semester }}</td>
+                        <td>{% if row.student.lab_batch %}Batch {{ row.student.lab_batch }}{% else %}-{% endif %}</td>
+                        <td><strong>{{ row.attended_count }}</strong> / {{ row.total_events_count }}</td>
+                        <td>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: {{ row.pct }}%; {% if row.pct < 75 %}background: #d97706;{% endif %} {% if row.pct < 50 %}background: #c62828;{% endif %}"></div>
+                            </div>
+                            <strong>{{ row.pct }}%</strong>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 30px; color: #6c757d;">
+                            No members added to this club yet. Student Coordinators can add members from their console.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Event History -->
+    <div class="table-card">
+        <h3 style="margin: 0 0 16px 0; font-size: 1.05rem; color: var(--theme-slate);">
+            <i class="ri-history-line" style="color: var(--theme-teal-dark);"></i> Event & Activity Logs
+        </h3>
+
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Event Date</th>
+                        <th>Event Title</th>
+                        <th>Description</th>
+                        <th>Logged By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ev in events %}
+                    <tr>
+                        <td style="color: #adb5bd;">{{ forloop.counter }}</td>
+                        <td><strong>{{ ev.event_date|date:"d M Y" }}</strong></td>
+                        <td>{{ ev.title }}</td>
+                        <td>{{ ev.description|default:"-" }}</td>
+                        <td>{{ ev.created_by_student.student_name|default:"Coordinator" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 24px; color: #6c757d;">
+                            No event attendance logged yet for this club.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

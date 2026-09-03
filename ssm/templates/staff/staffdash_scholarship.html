@@ -51,11 +51,14 @@
 
     <!-- Tabbed Dashboard Navigation -->
     <div class="dash-tabs">
-        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)">📊 Overview</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)">📈 My Profile Stats</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)">📖 Academics</button>
+        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)"><i class="ri-dashboard-3-line"></i> Overview</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)"><i class="ri-line-chart-line"></i> My Profile Stats</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)"><i class="ri-book-open-line"></i> Academics</button>
         <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-dept-tasks', this)"><i class="ri-task-line"></i> Tasks & Roles</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholarships', this)">💰 Scholarships</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholarships', this)"><i class="ri-money-dollar-circle-line"></i> Scholarships</button>
+        {% if my_ic_clubs %}
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-clubs', this)"><i class="ri-team-line"></i> Club Activities</button>
+        {% endif %}
     </div>
 
     <!-- ================= TAB: MY PROFILE STATS ================= -->
@@ -76,7 +79,7 @@
             <div class="stats-column">
                 <!-- Scholarship Count -->
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">🎓</div>
+                    <div class="stat-icon" style="background: #dbeafe; color: #2563eb;"><i class="ri-graduation-cap-line"></i></div>
                     <div class="stat-info">
                         <h3>{{ scholarship_students.count }}</h3>
                         <span>Students Found</span>
@@ -85,7 +88,7 @@
 
                 <!-- Leave Info -->
                 <a href="{% url 'staffs:staff_apply_leave' %}" class="stat-card" style="text-decoration: none; color: inherit;">
-                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;">✈️</div>
+                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="ri-plane-line"></i></div>
                     <div class="stat-info">
                         <h3>Leave</h3>
                         <span>Apply for Leave</span>
@@ -196,4 +199,24 @@
     <div id="dash-tab-dept-tasks" class="dash-tab-content">
         {% include 'staff/includes/dept_tasks_widget.html' %}
     </div>
+
+    {% if my_ic_clubs %}
+    <!-- ================= TAB: CLUB ACTIVITIES ================= -->
+    <div id="dash-tab-clubs" class="dash-tab-content">
+        <section class="actions-section" style="margin-top: 0;">
+            <div class="section-header">
+                <h3>Extracurricular Club Activities (Staff In-Charge)</h3>
+            </div>
+            <div class="actions-grid">
+                {% for c in my_ic_clubs %}
+                <a href="{% url 'staffs:staff_club_detail' c.id %}" class="action-tile" style="border: 1px solid #5a7d7c;">
+                    <div class="action-tile-icon"><i class="ri-team-line" style="color: #5a7d7c; font-size: 1.8rem;"></i></div>
+                    <h4>{{ c.name }}</h4>
+                    <p>{{ c.category }} Club Console | Manage {{ c.memberships.count }} members, events & attendance logs.</p>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+    {% endif %}
 {% endblock %}

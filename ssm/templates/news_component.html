@@ -3,7 +3,7 @@
     <!-- Header Row -->
     <div class="board-header">
         <div class="board-title">
-            <span class="board-icon">📢</span>
+            <span class="board-icon"><i class="ri-megaphone-line"></i></span>
             <h3>Notice Board</h3>
         </div>
         <div class="board-filters">
@@ -37,7 +37,7 @@
                         </div>
                         <p class="feed-item-text">
                             {% if news.link %}
-                            <a href="{{ news.link }}" target="_blank" class="feed-link">{{ news.content }} 🔗</a>
+                            <a href="{{ news.link }}" target="_blank" class="feed-link">{{ news.content }} <i class="ri-external-link-line"></i></a>
                             {% else %}
                             {{ news.content }}
                             {% endif %}
@@ -46,7 +46,7 @@
                             <span class="feed-target-badge {{ news.target|lower }}">{{ news.target }}</span>
                             {% if news.document %}
                             <a href="{{ news.document.url }}" target="_blank" class="feed-doc-link">
-                                📎 Document
+                                <i class="ri-attachment-2"></i> Document
                             </a>
                             {% endif %}
                         </div>
@@ -56,7 +56,7 @@
             </div>
         {% else %}
             <div class="empty-board">
-                <span class="empty-icon">📭</span>
+                <span class="empty-icon"><i class="ri-inbox-line"></i></span>
                 <p>No active notices or announcements.</p>
             </div>
         {% endif %}
@@ -455,7 +455,7 @@
         const docLink = item.querySelector('.feed-doc-link');
         let docHtml = '';
         if (docLink) {
-            docHtml = `<a href="${docLink.getAttribute('href')}" target="_blank" class="spotlight-doc-btn">📎 View Document</a>`;
+            docHtml = `<a href="${docLink.getAttribute('href')}" target="_blank" class="spotlight-doc-btn"><i class="ri-attachment-2"></i> View Document</a>`;
         }
 
         spotlight.innerHTML = `

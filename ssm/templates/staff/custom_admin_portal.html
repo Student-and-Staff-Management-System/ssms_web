@@ -672,6 +672,7 @@
                                 <th>Designation</th>
                                 <th>Primary Role</th>
                                 <th>Secondary Roles</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -690,17 +691,34 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <button onclick="openPasswordModal('staff', '{{ st.staff_id }}', '{{ st.name|escapejs }}')" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem; background: #0f172a;">
-                                        🔑 Reset Pass
-                                    </button>
-                                    <a href="{% url 'staffs:update_staff_roles' st.staff_id %}" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem;">
-                                        ✏️ Edit Roles
-                                    </a>
+                                    {% if st.is_active %}
+                                        <span class="role-badge badge-emerald">Active</span>
+                                    {% else %}
+                                        <span class="role-badge badge-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px; align-items: center;">
+                                        <button onclick="openPasswordModal('staff', '{{ st.staff_id }}', '{{ st.name|escapejs }}')" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem; background: #0f172a;">
+                                            🔑 Reset Pass
+                                        </button>
+                                        <form method="POST" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="admin_action" value="toggle_staff_status">
+                                            <input type="hidden" name="target_id" value="{{ st.staff_id }}">
+                                            <button type="submit" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem; background: {% if st.is_active %}#dc2626{% else %}#059669{% endif %};">
+                                                {% if st.is_active %}🔒 Deactivate{% else %}🔓 Activate{% endif %}
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'staffs:update_staff_roles' st.staff_id %}" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem;">
+                                            ✏️ Edit Roles
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" style="text-align: center; color: var(--admin-text-muted); padding: 24px;">No staff records found.</td>
+                                <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 24px;">No staff records found.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -873,22 +891,26 @@
                         <thead>
                             <tr>
                                 <th>Timestamp</th>
-                                <th>User</th>
+                                <th>Actor</th>
+                                <th>Type</th>
                                 <th>Action</th>
-                                <th>Details</th>
+                                <th>Message / Details</th>
+                                <th>IP Address</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for log in audit_logs %}
                             <tr>
-                                <td>{{ log.action_time|date:"Y-m-d H:i:s" }}</td>
-                                <td><strong>{{ log.user.username }}</strong></td>
-                                <td><span class="role-badge badge-primary">{{ log.get_action_flag_display }}</span></td>
-                                <td>{{ log.change_message|default:log.object_repr }}</td>
+                                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                                <td><strong>{{ log.actor_name|default:log.actor_id|default:"System" }}</strong></td>
+                                <td><span class="role-badge badge-blue">{{ log.actor_type|default:"System"|title }}</span></td>
+                                <td><span class="role-badge badge-primary">{{ log.get_action_display|default:log.action }}</span></td>
+                                <td>{{ log.message }}</td>
+                                <td><span style="font-family: monospace; font-size: 0.8rem; color: var(--admin-text-muted);">{{ log.ip_address|default:"—" }}</span></td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" style="text-align: center; color: var(--admin-text-muted); padding: 24px;">No system audit log entries recorded yet.</td>
+                                <td colspan="6" style="text-align: center; color: var(--admin-text-muted); padding: 24px;">No system audit log entries recorded yet.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -963,9 +985,19 @@
                                         <td>{{ val }}</td>
                                     {% endfor %}
                                     <td>
-                                        <a href="?section=model_form&app_label={{ app_label }}&model_name={{ model_name }}&pk={{ obj.pk }}" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem;">
-                                            ✏️ Edit
-                                        </a>
+                                        <div style="display: flex; gap: 6px;">
+                                            <a href="?section=model_form&app_label={{ app_label }}&model_name={{ model_name }}&pk={{ obj.pk }}" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem;">
+                                                ✏️ Edit
+                                            </a>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="admin_action" value="delete_model_object">
+                                                <input type="hidden" name="pk" value="{{ obj.pk }}">
+                                                <button type="submit" class="btn-admin-primary" style="padding: 4px 10px; font-size: 0.78rem; background: #dc2626;">
+                                                    🗑️ Delete
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}

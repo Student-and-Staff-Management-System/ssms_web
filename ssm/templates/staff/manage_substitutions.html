@@ -211,8 +211,15 @@
                             </td>
                             <td>
                                 {% if data.request %}
-                                    <div style="margin-bottom: 5px;">{{ data.request.alternate.name }}</div>
+                                    <div style="margin-bottom: 4px;"><strong>{{ data.request.substitute.name }}</strong></div>
                                     <span class="badge badge-{{ data.request.status|lower }}">{{ data.request.status }}</span>
+                                    <div style="margin-top: 4px;">
+                                        {% if data.request.attendance_option == 'WITHOUT_ATTENDANCE' %}
+                                            <span class="badge" style="background:#fffbe0; color:#92400e; border: 1px solid #fef08a;">Without Attendance (Primary Staff Credit)</span>
+                                        {% else %}
+                                            <span class="badge" style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd;">With Attendance (Temp Staff Credit)</span>
+                                        {% endif %}
+                                    </div>
                                     {% if data.request.status == 'Rejected' %}
                                         <div style="font-size:0.8rem; color:var(--danger); margin-top:4px;">Reason: {{ data.request.rejection_reason }}</div>
                                     {% endif %}
@@ -233,16 +240,20 @@
                                     <span style="font-size:0.85rem; color:var(--success); font-weight:500;">Locked ✓</span>
                                     {% endif %}
                                 {% else %}
-                                    <form method="POST" style="display: flex; gap: 8px;">
+                                    <form method="POST" style="display: flex; gap: 8px; flex-wrap: wrap;">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="request_alternate">
                                         <input type="hidden" name="period" value="{{ data.period }}">
                                         <input type="hidden" name="subject_id" value="{{ data.subject.id }}">
-                                        <select name="alternate_id" class="form-control" style="padding: 6px; font-size: 0.85rem; width: 150px;" required>
+                                        <select name="alternate_id" class="form-control" style="padding: 6px; font-size: 0.82rem; width: 140px;" required>
                                             <option value="">Select Staff...</option>
                                             {% for s in other_staff %}
                                             <option value="{{ s.staff_id }}">{{ s.name }}</option>
                                             {% endfor %}
+                                        </select>
+                                        <select name="attendance_option" class="form-control" style="padding: 6px; font-size: 0.82rem; width: 160px;" required>
+                                            <option value="WITH_ATTENDANCE">With Attendance (Temp Staff)</option>
+                                            <option value="WITHOUT_ATTENDANCE">Without Attendance (Primary Staff)</option>
                                         </select>
                                         <button type="submit" class="btn" style="padding: 6px 12px; font-size: 0.85rem;">Assign</button>
                                     </form>
