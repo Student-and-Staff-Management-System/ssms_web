@@ -1,168 +1,148 @@
-{% extends 'base.html' %}
+{% extends 'stddash.html' %}
 {% load static %}
 
-{% block title %}{{ club.name }} — Coordinator Workspace{% endblock %}
+{% block page_title %}{{ club.name }} — Student Coordinator Workspace{% endblock %}
+
+{% block header_title %}
+<div style="display: flex; align-items: center; gap: 12px;">
+    <a href="{% url 'student_clubs_view' %}" style="text-decoration: none; color: #64748b; font-size: 1.4rem; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#1e293b'" onmouseout="this.style.color='#64748b'" title="Back to Clubs">&larr;</a>
+    <h1 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+        <i class="ri-user-star-line" style="color: #5a7d7c;"></i> {{ club.name }}
+        <span style="font-size: 0.8rem; font-weight: 600; padding: 3px 10px; border-radius: 6px; background: #eef2f2; color: #4a6b69; border: 1px solid rgba(90,125,124,0.3);">Coordinator Console</span>
+    </h1>
+</div>
+{% endblock %}
+
+{% block header_actions %}
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <button onclick="document.getElementById('addMemberModal').style.display='flex';" class="action-btn" style="background: #5a7d7c; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25);">
+        <i class="ri-user-add-line"></i> Add Student (All Years)
+    </button>
+    <button onclick="document.getElementById('logAttendanceModal').style.display='flex';" class="action-btn" style="background: #2c3e50; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.25);">
+        <i class="ri-calendar-check-line"></i> Log Event Attendance
+    </button>
+</div>
+{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root {
-        --theme-teal: #5a7d7c;
-        --theme-teal-dark: #4a6b69;
-        --theme-teal-light: #eef2f2;
-        --theme-border: #dee2e6;
-        --theme-slate: #2c3e50;
-    }
-
-    .coo-container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 30px 16px 60px 16px;
-        font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-    }
-
-    .coo-header {
-        background: var(--theme-slate);
-        color: white;
-        padding: 24px 28px;
-        border-radius: 14px;
-        margin-bottom: 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-
-    .btn-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 9px 16px;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        border: none;
-        transition: all 0.2s ease;
-    }
-
-    .btn-teal { background: var(--theme-teal); color: white; }
-    .btn-teal:hover { background: var(--theme-teal-dark); color: white; }
-
-    .btn-outline-light { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
-    .btn-outline-light:hover { background: rgba(255,255,255,0.25); color: white; }
-
-    .card-box {
+    .coo-card-box {
         background: white;
         border-radius: 14px;
-        border: 1px solid var(--theme-border);
-        box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
         padding: 24px;
         margin-bottom: 24px;
     }
-
     .custom-table {
         width: 100%;
         border-collapse: collapse;
         font-size: 0.85rem;
     }
-
     .custom-table th {
-        background: #f8f9fa;
+        background: #f8fafc;
         padding: 12px 14px;
         text-align: left;
-        color: #495057;
-        border-bottom: 2px solid var(--theme-border);
+        color: #475569;
+        font-weight: 600;
+        border-bottom: 2px solid #e2e8f0;
     }
-
     .custom-table td {
         padding: 12px 14px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
     }
-
+    .custom-table tbody tr:hover {
+        background: #f8fafc;
+    }
     .modal-overlay {
-        display: none;
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(33, 37, 41, 0.5);
-        backdrop-filter: blur(4px);
-        z-index: 1000;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: none;
         align-items: center;
         justify-content: center;
+        z-index: 2000;
+        padding: 16px;
     }
-
     .modal-card {
         background: white;
-        border-radius: 14px;
+        border-radius: 16px;
         width: 100%;
         max-width: 580px;
         padding: 24px 28px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         max-height: 90vh;
         overflow-y: auto;
     }
-
     .form-group {
         display: flex;
         flex-direction: column;
         gap: 6px;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }
-
+    .form-group label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #475569;
+    }
     .form-control {
-        padding: 9px 12px;
-        border: 1px solid #ced4da;
+        padding: 10px 14px;
+        border: 1px solid #cbd5e1;
         border-radius: 8px;
-        font-size: 0.85rem;
+        font-size: 0.88rem;
         outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
     .form-control:focus {
-        border-color: var(--theme-teal);
+        border-color: #5a7d7c;
+        box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.18);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="coo-container">
-
-    <!-- Header -->
-    <div class="coo-header">
-        <div>
-            <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 3px 10px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #f8f9fa;">
-                Student Coordinator Console
-            </span>
-            <h1 style="margin: 8px 0 4px 0; font-size: 1.45rem;">{{ club.name }}</h1>
-            <p style="margin: 0; font-size: 0.85rem; color: #ced4da;">Manage cross-year student rosters and log activity attendance</p>
-        </div>
-
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button onclick="document.getElementById('addMemberModal').style.display='flex';" class="btn-action btn-teal">
-                <i class="ri-user-add-line"></i> Add Student (All Years)
-            </button>
-            <button onclick="document.getElementById('logAttendanceModal').style.display='flex';" class="btn-action btn-outline-light">
-                <i class="ri-calendar-check-line"></i> Log Event Attendance
-            </button>
-            <a href="{% url 'student_clubs_view' %}" class="btn-action btn-outline-light">
-                <i class="ri-arrow-left-line"></i> Back to Clubs
-            </a>
-        </div>
-    </div>
+<div style="margin-top: 20px;">
 
     <!-- Alert Messages -->
     {% if messages %}
     <div style="margin-bottom: 20px;">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}" style="padding: 12px 18px; border-radius: 8px; margin-bottom: 10px; font-size: 0.88rem; background: var(--theme-teal-light); color: var(--theme-teal-dark); border: 1px solid rgba(90, 125, 124, 0.3);">
-            <i class="ri-information-fill"></i> {{ message }}
+        <div style="padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;
+            {% if message.tags == 'success' %}background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+            {% elif message.tags == 'error' %}background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+            {% else %}background: #eef2f2; color: #4a6b69; border: 1px solid rgba(90, 125, 124, 0.3);{% endif %}">
+            <span><i class="ri-information-fill" style="font-size: 1.1rem;"></i></span>
+            <span style="font-weight: 500;">{{ message }}</span>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
+    <!-- Subtitle Banner -->
+    <div style="background: white; padding: 18px 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h3 style="margin: 0 0 4px 0; font-size: 1.1rem; color: #1e293b;">Roster Management & Meeting Attendance Logger</h3>
+            <p style="margin: 0; font-size: 0.85rem; color: #64748b;">Add cross-year student members, track event histories, and log present members seamlessly.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div style="background: #f8fafc; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 600; color: #334155;">
+                Active Members: <span style="color: #5a7d7c;">{{ memberships|length }}</span>
+            </div>
+            <div style="background: #f8fafc; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 600; color: #334155;">
+                Events Logged: <span style="color: #2c3e50;">{{ events|length }}</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Member Roster -->
-    <div class="card-box">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0; font-size: 1.05rem; color: var(--theme-slate);"><i class="ri-group-line" style="color: var(--theme-teal);"></i> Club Member Roster ({{ memberships|length }})</h3>
+    <div class="coo-card-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.05rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-group-line" style="color: #5a7d7c;"></i> Club Member Roster ({{ memberships|length }})
+            </h3>
         </div>
 
         <div style="overflow-x: auto;">
@@ -182,17 +162,17 @@
                 <tbody>
                     {% for m in memberships %}
                     <tr>
-                        <td style="color: #adb5bd;">{{ forloop.counter }}</td>
-                        <td><strong>{{ m.student.roll_number }}</strong></td>
+                        <td style="color: #94a3b8;">{{ forloop.counter }}</td>
+                        <td><strong style="color: #5a7d7c;">{{ m.student.roll_number }}</strong></td>
                         <td>{{ m.student.register_number|default:"-" }}</td>
-                        <td>{{ m.student.student_name }}</td>
+                        <td><strong>{{ m.student.student_name }}</strong></td>
                         <td>Sem {{ m.student.current_semester }}</td>
                         <td>{% if m.student.lab_batch %}Batch {{ m.student.lab_batch }}{% else %}-{% endif %}</td>
                         <td>{{ m.joined_date|date:"d M Y" }}</td>
                         <td style="text-align: right;">
                             <form method="POST" action="{% url 'coordinator_remove_member' club.id m.student.pk %}" style="margin:0;" onsubmit="return confirm('Remove {{ m.student.student_name }} from {{ club.name }}?');">
                                 {% csrf_token %}
-                                <button type="submit" style="background: #ffebee; color: #c62828; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">
+                                <button type="submit" style="background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: background 0.2s;" onmouseover="this.style.background='#ffcdd2'" onmouseout="this.style.background='#ffebee'">
                                     <i class="ri-user-unfollow-line"></i> Remove
                                 </button>
                             </form>
@@ -200,8 +180,8 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 30px; color: #6c757d;">
-                            No students added to this club yet. Click 'Add Student (All Years)' above to build your roster.
+                        <td colspan="8" style="text-align: center; padding: 36px; color: #94a3b8;">
+                            No students added to this club yet. Click '+ Add Student (All Years)' above to build your club roster.
                         </td>
                     </tr>
                     {% endfor %}
@@ -211,8 +191,10 @@
     </div>
 
     <!-- Event History -->
-    <div class="card-box">
-        <h3 style="margin: 0 0 16px 0; font-size: 1.05rem; color: var(--theme-slate);"><i class="ri-history-line" style="color: var(--theme-teal-dark);"></i> Logged Events & Meetings</h3>
+    <div class="coo-card-box">
+        <h3 style="margin: 0 0 16px 0; font-size: 1.05rem; color: #1e293b; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
+            <i class="ri-history-line" style="color: #2c3e50;"></i> Logged Events & Activity Meetings
+        </h3>
         <div style="overflow-x: auto;">
             <table class="custom-table">
                 <thead>
@@ -220,22 +202,22 @@
                         <th>#</th>
                         <th>Event Date</th>
                         <th>Event Title</th>
-                        <th>Description</th>
+                        <th>Description / Agenda</th>
                         <th>Logged By</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for ev in events %}
                     <tr>
-                        <td style="color: #adb5bd;">{{ forloop.counter }}</td>
+                        <td style="color: #94a3b8;">{{ forloop.counter }}</td>
                         <td><strong>{{ ev.event_date|date:"d M Y" }}</strong></td>
-                        <td>{{ ev.title }}</td>
+                        <td><strong>{{ ev.title }}</strong></td>
                         <td>{{ ev.description|default:"-" }}</td>
                         <td>{{ ev.created_by_student.student_name|default:"Coordinator" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 24px; color: #6c757d;">No events logged yet.</td>
+                        <td colspan="5" style="text-align: center; padding: 28px; color: #94a3b8;">No activity events logged yet. Click 'Log Event Attendance' above to record meeting attendance.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -248,33 +230,35 @@
 <!-- Add Member Modal -->
 <div id="addMemberModal" class="modal-overlay">
     <div class="modal-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0; font-size: 1.1rem; color: var(--theme-slate);"><i class="ri-user-add-line" style="color: var(--theme-teal);"></i> Add Student (Cross-Year)</h3>
-            <button onclick="document.getElementById('addMemberModal').style.display='none';" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #6c757d;">&times;</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.15rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-user-add-line" style="color: #5a7d7c;"></i> Add Student (Cross-Year Roster)
+            </h3>
+            <button onclick="document.getElementById('addMemberModal').style.display='none';" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b;">&times;</button>
         </div>
 
         <form method="POST" action="{% url 'coordinator_add_member' club.id %}">
             {% csrf_token %}
             <div class="form-group">
-                <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Select Student from Directory</label>
+                <label>Select Student from Directory</label>
                 <select name="student_id" class="form-control">
                     <option value="">Select Student...</option>
                     {% for std in available_students %}
-                    <option value="{{ std.pk }}">{{ std.roll_number }} - {{ std.student_name }} (Sem {{ std.current_semester }})</option>
+                    <option value="{{ std.pk }}">{{ std.roll_number }} — {{ std.student_name }} (Sem {{ std.current_semester }})</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <div style="text-align: center; margin: 10px 0; color: #adb5bd; font-size: 0.8rem;">— OR ENTER ROLL NUMBER —</div>
+            <div style="text-align: center; margin: 14px 0; color: #94a3b8; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em;">— OR ENTER ROLL NUMBER —</div>
 
             <div class="form-group">
-                <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Roll Number</label>
+                <label>Roll Number</label>
                 <input type="text" name="roll_number" placeholder="e.g. 2338010001" class="form-control">
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                <button type="button" onclick="document.getElementById('addMemberModal').style.display='none';" class="btn-action" style="background: #f8f9fa; color: #212529; border: 1px solid var(--theme-border);">Cancel</button>
-                <button type="submit" class="btn-action btn-teal">Add to Roster</button>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                <button type="button" onclick="document.getElementById('addMemberModal').style.display='none';" style="padding: 9px 18px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Cancel</button>
+                <button type="submit" style="padding: 9px 18px; border-radius: 8px; border: none; background: #5a7d7c; color: white; font-weight: 600; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25);">Add to Roster</button>
             </div>
         </form>
     </div>
@@ -283,47 +267,63 @@
 <!-- Log Attendance Modal -->
 <div id="logAttendanceModal" class="modal-overlay">
     <div class="modal-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0; font-size: 1.1rem; color: var(--theme-slate);"><i class="ri-calendar-check-line" style="color: var(--theme-teal);"></i> Log Club Event Attendance</h3>
-            <button onclick="document.getElementById('logAttendanceModal').style.display='none';" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #6c757d;">&times;</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.15rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-calendar-check-line" style="color: #2c3e50;"></i> Log Club Event Attendance
+            </h3>
+            <button onclick="document.getElementById('logAttendanceModal').style.display='none';" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b;">&times;</button>
         </div>
 
         <form method="POST" action="{% url 'coordinator_log_attendance' club.id %}">
             {% csrf_token %}
             <div class="form-group">
-                <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Event / Meeting Title *</label>
+                <label>Event / Meeting Title *</label>
                 <input type="text" name="title" required placeholder="e.g. Weekly Coding Workshop, Guest Lecture" class="form-control">
             </div>
 
             <div class="form-group">
-                <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Event Date *</label>
+                <label>Event Date *</label>
                 <input type="date" name="event_date" required class="form-control">
             </div>
 
             <div class="form-group">
-                <label style="font-size: 0.8rem; font-weight: 600; color: #495057;">Description / Agenda</label>
+                <label>Description / Agenda</label>
                 <textarea name="description" rows="2" placeholder="Brief event details..." class="form-control"></textarea>
             </div>
 
             <div class="form-group">
-                <label style="font-size: 0.85rem; font-weight: 700; color: var(--theme-slate);">Mark Present Members (Check present students):</label>
-                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ced4da; border-radius: 8px; padding: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="margin: 0;">Mark Present Members (Check present students):</label>
+                    <button type="button" onclick="toggleSelectAllMembers(this)" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: #475569;">
+                        Toggle Select All
+                    </button>
+                </div>
+                <div id="memberChecklistContainer" style="max-height: 220px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; background: #fafafa;">
                     {% for m in memberships %}
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #e9ecef; cursor: pointer; font-size: 0.85rem;">
-                        <input type="checkbox" name="present_students" value="{{ m.student.pk }}" checked style="width: 16px; height: 16px; accent-color: var(--theme-teal);">
-                        <span><strong>{{ m.student.roll_number }}</strong> — {{ m.student.student_name }} (Sem {{ m.student.current_semester }})</span>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 0.85rem; color: #334155;">
+                        <input type="checkbox" name="present_students" value="{{ m.student.pk }}" checked style="width: 16px; height: 16px; accent-color: #5a7d7c;">
+                        <span><strong style="color: #5a7d7c;">{{ m.student.roll_number }}</strong> — {{ m.student.student_name }} (Sem {{ m.student.current_semester }})</span>
                     </label>
                     {% empty %}
-                    <p style="margin: 0; color: #adb5bd; font-size: 0.8rem;">No members in roster to mark attendance.</p>
+                    <p style="margin: 0; color: #94a3b8; font-size: 0.82rem; text-align: center; padding: 12px;">No members in roster to mark attendance.</p>
                     {% endfor %}
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                <button type="button" onclick="document.getElementById('logAttendanceModal').style.display='none';" class="btn-action" style="background: #f8f9fa; color: #212529; border: 1px solid var(--theme-border);">Cancel</button>
-                <button type="submit" class="btn-action btn-teal">Submit Attendance Log</button>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                <button type="button" onclick="document.getElementById('logAttendanceModal').style.display='none';" style="padding: 9px 18px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Cancel</button>
+                <button type="submit" style="padding: 9px 18px; border-radius: 8px; border: none; background: #2c3e50; color: white; font-weight: 600; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.25);">Submit Attendance Log</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    function toggleSelectAllMembers(btn) {
+        const checkboxes = document.querySelectorAll('#memberChecklistContainer input[type="checkbox"]');
+        if (!checkboxes.length) return;
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+    }
+</script>
 {% endblock %}

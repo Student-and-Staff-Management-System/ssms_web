@@ -1,181 +1,174 @@
-{% extends 'base.html' %}
+{% extends 'stddash.html' %}
 {% load static %}
 
-{% block title %}My Extracurricular Clubs | Student Portal{% endblock %}
+{% block page_title %}My Extracurricular Clubs | Student Portal{% endblock %}
+
+{% block header_title %}
+<div style="display: flex; align-items: center; gap: 12px;">
+    <a href="{% url 'student_dashboard' %}" style="text-decoration: none; color: #64748b; font-size: 1.4rem; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#1e293b'" onmouseout="this.style.color='#64748b'" title="Back to Dashboard">&larr;</a>
+    <h1 style="margin: 0;">👥 My Extracurricular Clubs</h1>
+</div>
+{% endblock %}
+
+{% block header_actions %}
+{% for cc in coordinated_clubs %}
+<a href="{% url 'coordinator_club_console' cc.id %}" class="action-btn" style="background: #5a7d7c; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25); transition: transform 0.2s;">
+    <i class="ri-user-star-line"></i> {{ cc.name }} Coordinator Console
+</a>
+{% endfor %}
+{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root {
-        --theme-teal: #5a7d7c;
-        --theme-teal-dark: #4a6b69;
-        --theme-teal-light: #eef2f2;
-        --theme-border: #dee2e6;
-        --theme-slate: #2c3e50;
-    }
-
-    .student-clubs-container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 30px 16px 60px 16px;
-        font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-    }
-
-    .page-title {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
+    .club-card-container {
         background: white;
-        padding: 24px 28px;
         border-radius: 14px;
+        border: 1px solid #e2e8f0;
         box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-        border: 1px solid var(--theme-border);
-        margin-bottom: 24px;
-    }
-
-    .btn-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 9px 16px;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        border: none;
-        transition: all 0.2s ease;
-    }
-
-    .btn-teal {
-        background: var(--theme-teal);
-        color: white;
-        box-shadow: 0 3px 10px rgba(90, 125, 124, 0.25);
-    }
-    .btn-teal:hover {
-        background: var(--theme-teal-dark);
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .btn-back {
-        background: #f8f9fa;
-        color: #212529;
-        border: 1px solid var(--theme-border);
-    }
-
-    .club-stat-card {
-        background: white;
-        border-radius: 14px;
-        border: 1px solid var(--theme-border);
-        box-shadow: 0 4px 14px rgba(0,0,0,0.03);
         padding: 24px;
         margin-bottom: 24px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
-    .progress-bar-bg {
+    .club-card-container:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+    }
+    .club-cat-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: #eef2f2;
+        color: #4a6b69;
+        border: 1px solid rgba(90, 125, 124, 0.25);
+        display: inline-block;
+    }
+    .progress-track {
         width: 100%;
-        height: 12px;
-        background: #e9ecef;
+        height: 10px;
+        background: #f1f5f9;
         border-radius: 6px;
         overflow: hidden;
-        margin: 10px 0;
+        margin: 8px 0;
     }
-
-    .progress-bar-fill {
+    .progress-fill {
         height: 100%;
-        background: var(--theme-teal);
+        background: #5a7d7c;
         border-radius: 6px;
-        transition: width 0.5s ease;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    .badge-present { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
-    .badge-absent { background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+    .badge-present {
+        background: #dcfce7;
+        color: #15803d;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .badge-absent {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="student-clubs-container">
-
-    <!-- Header -->
-    <div class="page-title">
-        <div>
-            <h1 style="margin: 0 0 4px 0; font-size: 1.45rem; color: var(--theme-slate);"><i class="ri-team-line" style="color: var(--theme-teal);"></i> My Extracurricular Clubs</h1>
-            <p style="margin: 0; font-size: 0.85rem; color: #6c757d;">Visual attendance stats, event history, and club memberships</p>
-        </div>
-
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            {% for cc in coordinated_clubs %}
-            <a href="{% url 'coordinator_club_console' cc.id %}" class="btn-action btn-teal">
-                <i class="ri-user-star-line"></i> {{ cc.name }} Coordinator Console
-            </a>
-            {% endfor %}
-            <a href="{% url 'student_dashboard' %}" class="btn-action btn-back">
-                <i class="ri-arrow-left-line"></i> Dashboard
-            </a>
-        </div>
-    </div>
+<div style="margin-top: 20px;">
 
     <!-- Alert Messages -->
     {% if messages %}
     <div style="margin-bottom: 20px;">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}" style="padding: 12px 18px; border-radius: 8px; margin-bottom: 10px; font-size: 0.88rem; background: var(--theme-teal-light); color: var(--theme-teal-dark); border: 1px solid rgba(90, 125, 124, 0.3);">
-            <i class="ri-information-fill"></i> {{ message }}
+        <div style="padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;
+            {% if message.tags == 'success' %}background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+            {% elif message.tags == 'error' %}background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+            {% else %}background: #eef2f2; color: #4a6b69; border: 1px solid rgba(90, 125, 124, 0.3);{% endif %}">
+            <span><i class="ri-information-fill" style="font-size: 1.1rem;"></i></span>
+            <span style="font-weight: 500;">{{ message }}</span>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
+    <!-- Subtitle Banner -->
+    <div style="background: white; padding: 18px 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h3 style="margin: 0 0 4px 0; font-size: 1.1rem; color: #1e293b;">Departmental Clubs & Extracurricular Activities</h3>
+            <p style="margin: 0; font-size: 0.85rem; color: #64748b;">Monitor your attendance scores, activity logs, and coordinator privileges across active clubs.</p>
+        </div>
+        <div style="background: #f8fafc; padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 600; color: #334155;">
+            Total Enrolled: <span style="color: #5a7d7c;">{{ clubs_stats|length }}</span>
+        </div>
+    </div>
+
     <!-- Joined Clubs & Visual Stats -->
     {% for item in clubs_stats %}
     {% with c=item.club %}
-    <div class="club-stat-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+    <div class="club-card-container">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 16px;">
             <div>
-                <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 3px 10px; border-radius: 6px; background: var(--theme-teal-light); color: var(--theme-teal-dark); border: 1px solid rgba(90, 125, 124, 0.2);">
-                    {{ c.category }}
-                </span>
-                <h3 style="margin: 6px 0 2px 0; font-size: 1.25rem; color: var(--theme-slate);">{{ c.name }}</h3>
-                <p style="margin: 0; font-size: 0.82rem; color: #6c757d;">Joined on {{ item.joined_date|date:"M d, Y" }} | Staff IC: <strong>{{ c.staff_incharge.name|default:"Unassigned" }}</strong></p>
+                <span class="club-cat-badge">{{ c.category }}</span>
+                <h2 style="margin: 8px 0 4px 0; font-size: 1.3rem; color: #1e293b;">{{ c.name }}</h2>
+                <p style="margin: 0; font-size: 0.84rem; color: #64748b;">
+                    Member Since: <strong>{{ item.joined_date|date:"M d, Y" }}</strong> | 
+                    Staff In-Charge: <strong>{{ c.staff_incharge.name|default:"Unassigned" }}</strong>
+                </p>
             </div>
 
-            <div style="text-align: right;">
-                <div style="font-size: 1.4rem; font-weight: 700; color: var(--theme-slate);">{{ item.pct }}%</div>
-                <span style="font-size: 0.78rem; color: #6c757d;">Attendance Score</span>
+            <div style="text-align: right; background: #f8fafc; padding: 12px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: {% if item.pct >= 75 %}#15803d{% elif item.pct >= 50 %}#d97706{% else %}#b91c1c{% endif %};">
+                    {{ item.pct }}%
+                </div>
+                <span style="font-size: 0.78rem; font-weight: 600; color: #64748b;">Attendance Score</span>
             </div>
         </div>
 
-        <!-- Visual Progress Bar -->
-        <div style="margin-top: 16px;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #495057;">
-                <span>Progress Visualizer</span>
+        <!-- Progress Bar Visualizer -->
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 600; color: #475569; margin-bottom: 4px;">
+                <span>Activity Progress</span>
                 <span>{{ item.attended_events }} / {{ item.total_events }} Meetings Attended</span>
             </div>
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" style="width: {{ item.pct }}%; {% if item.pct < 75 %}background: #d97706;{% endif %} {% if item.pct < 50 %}background: #c62828;{% endif %}"></div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ item.pct }}%; {% if item.pct < 75 and item.pct >= 50 %}background: #f59e0b;{% elif item.pct < 50 %}background: #ef4444;{% endif %}"></div>
             </div>
         </div>
 
-        <!-- Recent Event Attendance Log -->
-        <div style="margin-top: 18px;">
-            <h4 style="margin: 0 0 10px 0; font-size: 0.88rem; color: #343a40;"><i class="ri-history-line"></i> Recent Activity Logs</h4>
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+        <!-- Recent Event Logs -->
+        <div>
+            <h4 style="margin: 0 0 12px 0; font-size: 0.92rem; color: #334155; display: flex; align-items: center; gap: 6px;">
+                <i class="ri-history-line" style="color: #5a7d7c;"></i> Recent Activity & Meeting History
+            </h4>
+            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
                     <thead>
-                        <tr style="background: #f8f9fa;">
-                            <th style="padding: 8px 12px; text-align: left; color: #6c757d;">Date</th>
-                            <th style="padding: 8px 12px; text-align: left; color: #6c757d;">Event Title</th>
-                            <th style="padding: 8px 12px; text-align: right; color: #6c757d;">Status</th>
+                        <tr style="background: #f8fafc; color: #475569; text-align: left;">
+                            <th style="padding: 10px 14px; font-weight: 600;">Date</th>
+                            <th style="padding: 10px 14px; font-weight: 600;">Event / Agenda</th>
+                            <th style="padding: 10px 14px; font-weight: 600; text-align: right;">Attendance Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for eh in item.event_history %}
-                        <tr style="border-bottom: 1px solid #e9ecef;">
-                            <td style="padding: 8px 12px;">{{ eh.event.event_date|date:"d M Y" }}</td>
-                            <td style="padding: 8px 12px;"><strong>{{ eh.event.title }}</strong></td>
-                            <td style="padding: 8px 12px; text-align: right;">
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 10px 14px; color: #334155; white-space: nowrap;"><strong>{{ eh.event.event_date|date:"d M Y" }}</strong></td>
+                            <td style="padding: 10px 14px; color: #1e293b;">
+                                <strong>{{ eh.event.title }}</strong>
+                                {% if eh.event.description %}
+                                <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">{{ eh.event.description }}</div>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px 14px; text-align: right; white-space: nowrap;">
                                 {% if eh.is_present %}
                                     <span class="badge-present"><i class="ri-checkbox-circle-fill"></i> Attended</span>
                                 {% else %}
@@ -185,7 +178,9 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" style="padding: 12px; text-align: center; color: #adb5bd;">No events recorded yet for this club.</td>
+                            <td colspan="3" style="padding: 18px; text-align: center; color: #94a3b8;">
+                                No activity logs recorded yet for this club.
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -195,10 +190,14 @@
     </div>
     {% endwith %}
     {% empty %}
-    <div style="background: white; padding: 40px; text-align: center; border-radius: 14px; border: 1px dashed var(--theme-border); color: #6c757d;">
-        <i class="ri-team-line" style="font-size: 2.5rem; color: var(--theme-teal);"></i>
-        <h3 style="margin: 10px 0 4px 0; color: var(--theme-slate);">Not Enrolled in Any Student Clubs Yet</h3>
-        <p style="font-size: 0.85rem;">Contact your Student Coordinators or Staff In-Charge to get added to departmental clubs.</p>
+    <div style="background: white; padding: 48px 24px; text-align: center; border-radius: 14px; border: 2px dashed #cbd5e1; color: #64748b; margin-top: 20px;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #eef2f2; color: #5a7d7c; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 14px;">
+            <i class="ri-team-line"></i>
+        </div>
+        <h3 style="margin: 0 0 6px 0; color: #1e293b; font-size: 1.2rem;">Not Enrolled in Any Student Clubs Yet</h3>
+        <p style="margin: 0 auto; max-width: 480px; font-size: 0.88rem; color: #64748b; line-height: 1.5;">
+            You have not been added to any departmental clubs yet. Contact your Student Coordinators or Staff In-Charge to register your participation in departmental clubs.
+        </p>
     </div>
     {% endfor %}
 

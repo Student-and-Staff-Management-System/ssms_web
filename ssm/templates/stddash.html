@@ -277,7 +277,9 @@
             display: none !important;
         }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     {% block extra_css %}{% endblock %}
+    {% block styles %}{% endblock %}
 </head>
 
 <body>
@@ -334,6 +336,9 @@
                 </a>
                 <a href="{% url 'apply_scholarship' %}" class="nav-link">
                     <span class="icon">🎓</span> Apply for Scholarship
+                </a>
+                <a href="{% url 'student_clubs_view' %}" class="nav-link">
+                    <span class="icon">👥</span> Extracurricular Clubs
                 </a>
                 <a href="#" onclick="openFeeChallanModal(); return false;" class="nav-link">
                     <span class="icon">💳</span> Fee Challans
