@@ -5672,6 +5672,7 @@ def portfolio_add_conference(request):
         item = ConferenceParticipation(
             participation_type=request.POST.get('participation_type', 'Presented'),
             national_international=request.POST.get('national_international', 'National'),
+            author_name=request.POST.get('author_name', '').strip(),
             year_of_publication=request.POST.get('year_of_publication', ''),
             title_of_paper=request.POST.get('title_of_paper', ''),
             title_of_proceedings=request.POST.get('title_of_proceedings', ''),
@@ -5688,7 +5689,7 @@ def portfolio_add_conference(request):
         item.save()
         _save_item_students(item, request)
         
-        # Link co-authors and auto-generate author_name
+        # Link co-authors and preserve custom author_name
         co_authors = request.POST.getlist('co_authors')
         selected_staffs = [staff]
         for cid in co_authors:
@@ -5698,8 +5699,9 @@ def portfolio_add_conference(request):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
-        item.save()
+        if not item.author_name:
+            item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+            item.save()
         item.staff.set(selected_staffs)
         
         messages.success(request, "Conference entry added successfully.")
@@ -5721,6 +5723,7 @@ def portfolio_add_journal(request):
             national_international=request.POST.get('national_international', 'National'),
             published_month=request.POST.get('published_month', ''),
             published_year=request.POST.get('published_year', ''),
+            author_name=request.POST.get('author_name', '').strip(),
             title_of_paper=request.POST.get('title_of_paper', ''),
             journal_name=request.POST.get('journal_name', ''),
             volume_number=request.POST.get('volume_number', ''),
@@ -5739,7 +5742,7 @@ def portfolio_add_journal(request):
         item.save()
         _save_item_students(item, request)
         
-        # Link co-authors and auto-generate author_name
+        # Link co-authors and preserve custom author_name
         co_authors = request.POST.getlist('co_authors')
         selected_staffs = [staff]
         for cid in co_authors:
@@ -5749,8 +5752,9 @@ def portfolio_add_journal(request):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
-        item.save()
+        if not item.author_name:
+            item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+            item.save()
         item.staff.set(selected_staffs)
                 
         messages.success(request, "Journal publication added successfully.")
@@ -5770,6 +5774,7 @@ def portfolio_add_book(request):
         from .models import BookPublication
         item = BookPublication(
             type=request.POST.get('type', 'Book'),
+            author_name=request.POST.get('author_name', '').strip(),
             title_of_book=request.POST.get('title_of_book', ''),
             publisher_name=request.POST.get('publisher_name', ''),
             publisher_address=request.POST.get('publisher_address', ''),
@@ -5785,7 +5790,7 @@ def portfolio_add_book(request):
         item.save()
         _save_item_students(item, request)
         
-        # Link co-authors and auto-generate author_name
+        # Link co-authors and preserve custom author_name
         co_authors = request.POST.getlist('co_authors')
         selected_staffs = [staff]
         for cid in co_authors:
@@ -5795,8 +5800,9 @@ def portfolio_add_book(request):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
-        item.save()
+        if not item.author_name:
+            item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+            item.save()
         item.staff.set(selected_staffs)
                 
         messages.success(request, "Book/Article entry added successfully.")
@@ -6043,6 +6049,7 @@ def portfolio_add_patent(request):
             status=request.POST.get('status', 'Applied'),
             application_year=request.POST.get('application_year', '').strip(),
             grant_year=request.POST.get('grant_year', '').strip(),
+            inventors=request.POST.get('inventors', '').strip(),
             funding_agency=request.POST.get('funding_agency', '').strip(),
             description=request.POST.get('description', '').strip(),
         )
@@ -6052,7 +6059,7 @@ def portfolio_add_patent(request):
         item.save()
         _save_item_students(item, request)
         
-        # Link co-inventors and auto-generate inventors field
+        # Link co-inventors and preserve inventors field
         co_authors = request.POST.getlist('co_authors')
         selected_staffs = [staff]
         for cid in co_authors:
@@ -6062,8 +6069,9 @@ def portfolio_add_patent(request):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.inventors = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
-        item.save()
+        if not item.inventors:
+            item.inventors = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+            item.save()
         item.staff.set(selected_staffs)
         
         messages.success(request, "Patent added successfully.")
@@ -6090,6 +6098,7 @@ def portfolio_edit_patent(request, pk):
         item.status = request.POST.get('status', 'Applied')
         item.application_year = request.POST.get('application_year', '').strip()
         item.grant_year = request.POST.get('grant_year', '').strip()
+        item.inventors = request.POST.get('inventors', '').strip()
         item.funding_agency = request.POST.get('funding_agency', '').strip()
         item.description = request.POST.get('description', '').strip()
 
@@ -6109,7 +6118,8 @@ def portfolio_edit_patent(request, pk):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.inventors = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        if not item.inventors:
+            item.inventors = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
         item.save()
         item.staff.set(selected_staffs)
         
@@ -6134,6 +6144,7 @@ def portfolio_edit_conference(request, pk):
     if request.method == 'POST':
         item.participation_type = request.POST.get('participation_type', 'Presented')
         item.national_international = request.POST.get('national_international', 'National')
+        item.author_name = request.POST.get('author_name', '').strip()
         item.year_of_publication = request.POST.get('year_of_publication', '').strip()
         item.title_of_paper = request.POST.get('title_of_paper', '').strip()
         item.title_of_proceedings = request.POST.get('title_of_proceedings', '').strip()
@@ -6152,7 +6163,7 @@ def portfolio_edit_conference(request, pk):
         item.save()
         _save_item_students(item, request)
         
-        # Link co-authors and auto-generate author_name
+        # Link co-authors and preserve author_name
         co_authors = request.POST.getlist('co_authors')
         selected_staffs = [staff]
         for cid in co_authors:
@@ -6162,7 +6173,8 @@ def portfolio_edit_conference(request, pk):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        if not item.author_name:
+            item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
         item.save()
         item.staff.set(selected_staffs)
         
@@ -6191,6 +6203,7 @@ def portfolio_edit_journal(request, pk):
         item.national_international = request.POST.get('national_international', 'National')
         item.published_month = request.POST.get('published_month', '').strip()
         item.published_year = request.POST.get('published_year', '').strip()
+        item.author_name = request.POST.get('author_name', '').strip()
         item.title_of_paper = request.POST.get('title_of_paper', '').strip()
         item.journal_name = request.POST.get('journal_name', '').strip()
         item.volume_number = request.POST.get('volume_number', '').strip()
@@ -6211,7 +6224,7 @@ def portfolio_edit_journal(request, pk):
         item.save()
         _save_item_students(item, request)
         
-        # Update ManyToMany co-authors and auto-generate author_name
+        # Update ManyToMany co-authors and preserve author_name
         co_authors = request.POST.getlist('co_authors')
         selected_staffs = [staff]
         for cid in co_authors:
@@ -6221,7 +6234,8 @@ def portfolio_edit_journal(request, pk):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        if not item.author_name:
+            item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
         item.save()
         item.staff.set(selected_staffs)
         
@@ -6248,6 +6262,7 @@ def portfolio_edit_book(request, pk):
     
     if request.method == 'POST':
         item.type = request.POST.get('type', 'Book')
+        item.author_name = request.POST.get('author_name', '').strip()
         item.title_of_book = request.POST.get('title_of_book', '').strip()
         item.publisher_name = request.POST.get('publisher_name', '').strip()
         item.publisher_address = request.POST.get('publisher_address', '').strip()
@@ -6265,7 +6280,7 @@ def portfolio_edit_book(request, pk):
         item.save()
         _save_item_students(item, request)
         
-        # Update ManyToMany co-authors and auto-generate author_name
+        # Update ManyToMany co-authors and preserve author_name
         co_authors = request.POST.getlist('co_authors')
         selected_staffs = [staff]
         for cid in co_authors:
@@ -6275,7 +6290,8 @@ def portfolio_edit_book(request, pk):
                     selected_staffs.append(co_staff)
                 except Staff.DoesNotExist:
                     pass
-        item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
+        if not item.author_name:
+            item.author_name = ", ".join([f"{s.salutation} {s.name}".strip() for s in selected_staffs])
         item.save()
         item.staff.set(selected_staffs)
         

@@ -482,7 +482,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author(s) / Linked Faculty *</label>
+                <label>Author Name(s) *</label>
+                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}" placeholder="" required>
+                <div class="form-help">Enter author name(s) as published on the paper.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Faculty / Co-Authors</label>
                 <div class="scrollable-checklist">
                     <!-- Me option -->
                     <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
@@ -499,7 +504,7 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-                <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
+                <div class="form-help">Select system faculty members to link this entry to their portfolio.</div>
             </div>
             <div class="form-group">
                 <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>
@@ -591,7 +596,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author(s) / Linked Faculty *</label>
+                <label>Author Name(s) *</label>
+                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}" placeholder="e.g. Dr. John Doe, Prof. Jane Smith, et al." required>
+                <div class="form-help">Enter author name(s) as published on the paper.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Faculty / Co-Authors</label>
                 <div class="scrollable-checklist">
                     <!-- Me option -->
                     <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
@@ -608,7 +618,7 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-                <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
+                <div class="form-help">Select system faculty members to link this entry to their portfolio.</div>
             </div>
             <div class="form-group">
                 <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>
@@ -714,7 +724,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Author(s) / Linked Faculty *</label>
+                <label>Author Name(s) *</label>
+                <input type="text" name="author_name" value="{% if item %}{{ item.author_name }}{% endif %}" placeholder="e.g. Dr. John Doe, Prof. Jane Smith, et al." required>
+                <div class="form-help">Enter author name(s) as published on the book/article.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Faculty / Co-Authors</label>
                 <div class="scrollable-checklist">
                     <!-- Me option -->
                     <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
@@ -731,7 +746,7 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-                <div class="form-help">Select all faculty co-authors. This entry will reflect in their portfolios too.</div>
+                <div class="form-help">Select system faculty members to link this entry to their portfolio.</div>
             </div>
             <div class="form-group">
                 <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>
@@ -811,7 +826,12 @@
                 <input type="text" name="title" value="{% if item %}{{ item.title }}{% endif %}" required>
             </div>
             <div class="form-group">
-                <label>Inventor(s) / Linked Faculty *</label>
+                <label>Inventor Name(s) *</label>
+                <input type="text" name="inventors" value="{% if item %}{{ item.inventors }}{% endif %}" placeholder="e.g. Dr. John Doe, Prof. Jane Smith, et al." required>
+                <div class="form-help">Enter inventor names as filed in the patent application.</div>
+            </div>
+            <div class="form-group">
+                <label>Linked Faculty / Co-Inventors</label>
                 <div class="scrollable-checklist">
                     <label style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; color: var(--primary-dark);">
                         <input type="checkbox" name="co_authors" value="{{ staff.staff_id }}" checked style="width: auto; margin: 0;"> 
@@ -827,7 +847,7 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-                <div class="form-help">Select all co-inventors. This will appear in their portfolios too.</div>
+                <div class="form-help">Select system faculty members to link this patent to their portfolio.</div>
             </div>
             <div class="form-group">
                 <label>Linked Student Scholar(s) (Guided Scholars & Students)</label>

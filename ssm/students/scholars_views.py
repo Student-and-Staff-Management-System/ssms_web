@@ -760,6 +760,9 @@ def scholar_portfolio_add(request, form_type):
             item = ConferenceParticipation(student=student)
             item.participation_type = request.POST.get('participation_type', 'Presented')
             item.national_international = request.POST.get('national_international', 'National')
+            item.author_name = request.POST.get('author_name', '').strip()
+            if not item.author_name:
+                item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.title_of_proceedings = request.POST.get('title_of_proceedings', '').strip()
@@ -771,7 +774,6 @@ def scholar_portfolio_add(request, form_type):
             item.place_of_publication = request.POST.get('place_of_publication', '').strip()
             item.publisher_proceedings = request.POST.get('publisher_proceedings', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
-            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
             item.staff.set(selected_staffs)
             messages.success(request, "Conference added.")
@@ -781,6 +783,9 @@ def scholar_portfolio_add(request, form_type):
             item.national_international = request.POST.get('national_international', 'National')
             item.published_month = request.POST.get('published_month', '').strip()
             item.published_year = request.POST.get('published_year', '').strip()
+            item.author_name = request.POST.get('author_name', '').strip()
+            if not item.author_name:
+                item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.journal_name = request.POST.get('journal_name', '').strip()
             item.volume_number = request.POST.get('volume_number', '').strip()
@@ -789,7 +794,6 @@ def scholar_portfolio_add(request, form_type):
             item.page_numbers_from = request.POST.get('page_numbers_from', '').strip()
             item.page_numbers_to = request.POST.get('page_numbers_to', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
-            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
             item.staff.set(selected_staffs)
             messages.success(request, "Journal added.")
@@ -797,6 +801,9 @@ def scholar_portfolio_add(request, form_type):
         elif form_type == 'book':
             item = BookPublication(student=student)
             item.type = request.POST.get('type', 'Book')
+            item.author_name = request.POST.get('author_name', '').strip()
+            if not item.author_name:
+                item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.title_of_book = request.POST.get('title_of_book', '').strip()
             item.publisher_name = request.POST.get('publisher_name', '').strip()
             item.publisher_address = request.POST.get('publisher_address', '').strip()
@@ -807,7 +814,6 @@ def scholar_portfolio_add(request, form_type):
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.url_address = request.POST.get('url_address', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
-            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
             item.staff.set(selected_staffs)
             messages.success(request, "Book added.")
@@ -890,6 +896,9 @@ def scholar_portfolio_edit(request, form_type, pk):
         if form_type == 'conference':
             item.participation_type = request.POST.get('participation_type', 'Presented')
             item.national_international = request.POST.get('national_international', 'National')
+            item.author_name = request.POST.get('author_name', '').strip()
+            if not item.author_name:
+                item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.title_of_proceedings = request.POST.get('title_of_proceedings', '').strip()
@@ -901,7 +910,6 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.place_of_publication = request.POST.get('place_of_publication', '').strip()
             item.publisher_proceedings = request.POST.get('publisher_proceedings', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
-            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
             item.staff.set(selected_staffs)
             messages.success(request, "Conference updated.")
@@ -910,6 +918,9 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.national_international = request.POST.get('national_international', 'National')
             item.published_month = request.POST.get('published_month', '').strip()
             item.published_year = request.POST.get('published_year', '').strip()
+            item.author_name = request.POST.get('author_name', '').strip()
+            if not item.author_name:
+                item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.title_of_paper = request.POST.get('title_of_paper', '').strip()
             item.journal_name = request.POST.get('journal_name', '').strip()
             item.volume_number = request.POST.get('volume_number', '').strip()
@@ -918,13 +929,15 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.page_numbers_from = request.POST.get('page_numbers_from', '').strip()
             item.page_numbers_to = request.POST.get('page_numbers_to', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
-            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
             item.staff.set(selected_staffs)
             messages.success(request, "Journal updated.")
             
         elif form_type == 'book':
             item.type = request.POST.get('type', 'Book')
+            item.author_name = request.POST.get('author_name', '').strip()
+            if not item.author_name:
+                item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.title_of_book = request.POST.get('title_of_book', '').strip()
             item.publisher_name = request.POST.get('publisher_name', '').strip()
             item.publisher_address = request.POST.get('publisher_address', '').strip()
@@ -935,7 +948,6 @@ def scholar_portfolio_edit(request, form_type, pk):
             item.year_of_publication = request.POST.get('year_of_publication', '').strip()
             item.url_address = request.POST.get('url_address', '').strip()
             if 'supporting_document' in request.FILES: item.supporting_document = request.FILES['supporting_document']
-            item.author_name = ", ".join([student.student_name] + [f"{s.salutation} {s.name}".strip() for s in selected_staffs])
             item.save()
             item.staff.set(selected_staffs)
             messages.success(request, "Book updated.")
