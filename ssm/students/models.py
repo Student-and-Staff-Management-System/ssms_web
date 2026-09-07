@@ -1072,12 +1072,22 @@ class Club(models.Model):
     description = models.TextField(blank=True, null=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Technical')
     staff_incharge = models.ForeignKey('staffs.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='incharge_clubs')
+    staff_incharge_2 = models.ForeignKey('staffs.Staff', on_delete=models.SET_NULL, null=True, blank=True, related_name='incharge_clubs_2')
     student_coordinators = models.ManyToManyField(Student, blank=True, related_name='coordinated_clubs')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+    @property
+    def staff_incharge_display(self):
+        names = []
+        if self.staff_incharge:
+            names.append(self.staff_incharge.name)
+        if self.staff_incharge_2:
+            names.append(self.staff_incharge_2.name)
+        return ", ".join(names) if names else "Unassigned"
 
 
 class ClubMembership(models.Model):
@@ -1115,4 +1125,22 @@ class ClubAttendance(models.Model):
 
     def __str__(self):
         return f"{self.student.student_name} - {self.event.title} ({'Present' if self.is_present else 'Absent'})"
+
+
+class ClubJoinRequest(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='join_requests')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='club_join_requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('club', 'student')
+
+    def __str__(self):
+        return f"{self.student.student_name} -> {self.club.name} ({self.status})"
 

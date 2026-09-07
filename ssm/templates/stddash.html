@@ -383,300 +383,256 @@
 
             {% block content %}
 
-            <!-- Quick Info Bar -->
-            <div class="quick-actions-bar" style="display: block;">
-                <!-- Profile Completion Status (Visible if incomplete) -->
-                {% if not is_profile_complete or profile_completion_percentage < 100 %} <div
-                    style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 180px;">
-                        <h4 style="margin: 0 0 5px 0; color: #be123c;">⚠️ Complete Your Profile</h4>
-                        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: #881337;">Your profile is
-                            <strong>{{profile_completion_percentage }}%</strong> complete. Please update your details
-                            to access full features.
-                        </p>
-                        <div
-                            style="background: #fecdd3; height: 8px; border-radius: 4px; margin-bottom: 10px; width: 100%; max-width: 400px; overflow: hidden;">
-                            <div
-                                style="background: #e11d48; height: 100%; width: {{ profile_completion_percentage|default:0 }}%; border-radius: 4px;">
-                            </div>
+            <!-- Quick Info Bar / Profile Strip -->
+            <div style="background: #ffffff; padding: 18px 22px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 14px rgba(0,0,0,0.03); margin-bottom: 24px;">
+                {% if not is_profile_complete or profile_completion_percentage < 100 %}
+                <!-- Profile Completion Status -->
+                <div style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 220px;">
+                        <h4 style="margin: 0 0 4px 0; color: #be123c; font-size: 0.95rem;">⚠️ Complete Your Profile</h4>
+                        <p style="margin: 0 0 6px 0; font-size: 0.85rem; color: #881337;">Your profile is <strong>{{ profile_completion_percentage }}%</strong> complete. Please update your details to access full features.</p>
+                        <div style="background: #fecdd3; height: 6px; border-radius: 3px; width: 100%; max-width: 380px; overflow: hidden;">
+                            <div style="background: #e11d48; height: 100%; width: {{ profile_completion_percentage|default:0 }}%; border-radius: 3px;"></div>
                         </div>
                         {% if profile_missing_fields %}
-                        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;">
                             {% for field in profile_missing_fields %}
-                            <span style="font-size: 0.75rem; background: white; color: #be123c; border: 1px solid #fda4af; border-radius: 4px; padding: 2px 7px; font-weight: 500;">{{ field }}</span>
+                            <span style="font-size: 0.72rem; background: white; color: #be123c; border: 1px solid #fda4af; border-radius: 4px; padding: 2px 6px; font-weight: 500;">{{ field }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}
                     </div>
-                    <a href="{% url 'student_register' %}" class="btn"
-                        style="background: #e11d48; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; white-space: nowrap; margin-top: 4px;">Complete
-                        Now &rarr;</a>
-            </div>
-            {% endif %}
-
-            <div
-                style="display: flex; gap: 40px; color: #475569; font-size: 0.95rem; align-items: center; overflow-x: auto;">
-                <div title="Name"><span style="margin-right: 5px;">👤</span> {{ student.student_name }}</div>
-                <div title="Semester"><span style="margin-right: 5px;">🎓</span> Sem {{ student.current_semester }}
-                </div>
-                <div title="Batch"><span style="margin-right: 5px;">📅</span> {{ student.joining_year }}
-                    -{{student.ending_year }}</div>
-                {% if student.lab_batch %}
-                <div title="Class Batch" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
-                    <span style="font-size: 0.85rem;">🔬</span> Batch {{ student.lab_batch }}
+                    <a href="{% url 'student_register' %}" class="btn" style="background: #e11d48; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">Complete Now &rarr;</a>
                 </div>
                 {% endif %}
-                <div title="Email"><span style="margin-right: 5px;">📧</span> {{student.student_email|default:"--"}}
-                </div>
-                <div title="Mobile"><span style="margin-right: 5px;">📱</span>
-                    {{ student.personalinfo.student_mobile|default:"--" }}</div>
-                <div title="Blood Group"><span style="margin-right: 5px;">🩸</span>
-                    {{ student.personalinfo.get_blood_group_display|default:"--" }}</div>
-                <div title="DOB"><span style="margin-right: 5px;">🎂</span>
-                    {{ student.personalinfo.date_of_birth|date:"d M Y"|default:"--" }}</div>
-            </div>
-    </div>
 
-    <!-- Dashboard Grid -->
-    <div class="dashboard-main-grid">
-
-        <!-- Left Column: Calendar & Graphs -->
-        <div class="dash-col">
-
-            <!-- Attendance Calendar (Left Top) -->
-            <div class="chart-card" id="calendarCard">
-                <div class="calendar-header-static">
-                    <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">
-                        📅 Attendance Calendar
-                    </h3>
-                    <a href="{% url 'student_attendance' %}"
-                        style="font-size: 0.8rem; color: #64748b; text-decoration: none;">View Attendance
-                        &rarr;</a>
-                </div>
-
-                <div class="calendar-body" id="calendarBody" style="margin-top: 10px;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <button onclick="changeMonth(-1)"
-                            style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">◀</button>
-                        <h4 id="currentMonthYear" style="margin: 0; color: #334155; font-size: 0.95rem;">January
-                            2026</h4>
-                        <button onclick="changeMonth(1)"
-                            style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">▶</button>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; font-size: 0.85rem; color: #475569;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-weight: 600; color: #1e293b;" title="Student Name">
+                        👤 {{ student.student_name }}
                     </div>
-
-                    <div class="calendar-grid" id="calendarGrid">
-                        <!-- JS will populate this -->
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-weight: 600; color: #1e293b;" title="Current Semester">
+                        🎓 Sem {{ student.current_semester }}
                     </div>
-
-                    <div id="selectedDateDetails"
-                        style="margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; display: none;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
-                            <strong id="detailDate" style="color: #334155;"></strong>
-                            <span onclick="document.getElementById('selectedDateDetails').style.display='none'"
-                                style="cursor:pointer; color:#94a3b8;">×</span>
-                        </div>
-                        <ul id="detailList" style="list-style: none; padding: 0; margin: 0; color: #64748b;">
-                        </ul>
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;" title="Academic Batch">
+                        📅 {{ student.joining_year }} - {{ student.ending_year }}
                     </div>
-                </div>
-            </div>
-
-            <!-- Marks Graph -->
-            <div class="chart-card" style="margin-top: 25px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0; color: var(--primary-color);">Academic Performance</h3>
-                    <a href="{% url 'cgpa_history' %}" class="btn-sm btn-outline"
-                        style="font-size: 0.8rem; padding: 2px 8px;">View History</a>
-                </div>
-                <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Current CGPA:
-                    <strong>{{cgpa}}</strong>
-                </p>
-                <canvas id="marksChart"></canvas>
-            </div>
-
-            <!-- Leave Status Widget (New) -->
-            <div class="chart-card" style="margin-top: 25px; min-height: auto;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0; color: var(--primary-color);">Leave Status</h3>
-                    <a href="{% url 'apply_leave' %}" class="btn-sm btn-outline"
-                        style="font-size: 0.8rem; padding: 2px 8px;">Apply / View All</a>
-                </div>
-
-                <div style="font-size: 0.9rem;">
-                    {% if recent_leaves %}
-                    <table style="width: 100%; border-collapse: collapse;">
-                        {% for leave in recent_leaves %}
-                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 8px 0; color: #334155;">
-                                <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
-                                <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"}}
-                                    -{{leave.end_date|date:"d M" }}</div>
-                            </td>
-                            <td style="padding: 8px 0; text-align: right;">
-                                <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;"
-                                    class="{% if 'Approved' in leave.status %}color-approved{% elif 'Rejected' in leave.status %}color-rejected{% else %}color-pending{% endif %}">
-                                    {{ leave.status }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                    {% else %}
-                    <p style="color: #94a3b8; text-align: center; margin: 10px 0;">No recent leave requests.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-
-
-        </div>
-
-        <!-- Right Column: News & Widgets -->
-        <div class="dash-col">
-            <!-- News Widget (Top Right) -->
-            {% include 'news_component.html' %}
-
-            <!-- Class Representatives Widget -->
-            {% if class_representatives %}
-            <div class="chart-card" style="margin-top: 25px; border-left: 4px solid #e67e22; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-                <h3 style="margin: 0 0 12px 0; color: #5a7d7c; display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600;">
-                    📢 Class Representatives (Batch {{ student.lab_batch }})
-                </h3>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    {% for rep in class_representatives %}
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span style="font-weight: 600; color: #334155;">{{ rep.student_name }}</span>
-                        <span style="font-size: 0.8rem; color: #64748b; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">{{ rep.roll_number }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- Class Contacts & Officers Widget -->
-            <div class="chart-card" style="margin-top: 25px; border-left: 4px solid #3b82f6; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-                <h3 style="margin: 0 0 12px 0; color: #5a7d7c; display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600;">
-                    👥 Department Contacts & Officers
-                </h3>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    {% if class_incharge %}
-                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 600; color: #334155;">{{ class_incharge.name }}</span>
-                            <span style="font-size: 0.75rem; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Class Incharge{% if class_incharge.assigned_batch and class_incharge.assigned_batch != 'All' %} (Batch {{ class_incharge.assigned_batch }}){% endif %}</span>
-                        </div>
-                        {% if class_incharge.mobile_number %}
-                        <div style="font-size: 0.8rem; color: #64748b;">📞 {{ class_incharge.mobile_number }}</div>
-                        {% endif %}
+                    {% if student.lab_batch %}
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 6px 12px; border-radius: 8px; font-weight: 600;" title="Class Batch">
+                        🔬 Batch {{ student.lab_batch }}
                     </div>
                     {% endif %}
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;" title="Email">
+                        📧 {{ student.student_email|default:"--" }}
+                    </div>
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;" title="Mobile Number">
+                        📱 {{ student.personalinfo.student_mobile|default:"--" }}
+                    </div>
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;" title="Blood Group">
+                        🩸 {{ student.personalinfo.get_blood_group_display|default:"--" }}
+                    </div>
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;" title="Date of Birth">
+                        🎂 {{ student.personalinfo.date_of_birth|date:"d M Y"|default:"--" }}
+                    </div>
+                </div>
+            </div>
 
-                    {% for tt_inc in timetable_incharges %}
-                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 600; color: #334155;">{{ tt_inc.name }}</span>
-                            <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Timetable Incharge</span>
+            <!-- Dashboard Grid -->
+            <div class="dashboard-main-grid">
+
+                <!-- Left Column (Column 1) -->
+                <div class="dash-col" style="display: flex; flex-direction: column; gap: 20px;">
+
+                    <!-- Attendance Calendar -->
+                    <div class="chart-card" id="calendarCard" style="margin-top: 0;">
+                        <div class="calendar-header-static">
+                            <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">
+                                📅 Attendance Calendar
+                            </h3>
+                            <a href="{% url 'student_attendance' %}" style="font-size: 0.8rem; color: #64748b; text-decoration: none;">View Attendance &rarr;</a>
                         </div>
-                        {% if tt_inc.mobile_number %}
-                        <div style="font-size: 0.8rem; color: #64748b;">📞 {{ tt_inc.mobile_number }}</div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
 
-                    {% for sch_inc in scholarship_officers %}
-                    <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 600; color: #334155;">{{ sch_inc.name }}</span>
-                            <span style="font-size: 0.75rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Scholarship Officer</span>
+                        <div class="calendar-body" id="calendarBody" style="margin-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <button onclick="changeMonth(-1)" style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">◀</button>
+                                <h4 id="currentMonthYear" style="margin: 0; color: #334155; font-size: 0.95rem;">January 2026</h4>
+                                <button onclick="changeMonth(1)" style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #64748b;">▶</button>
+                            </div>
+
+                            <div class="calendar-grid" id="calendarGrid">
+                                <!-- JS will populate this -->
+                            </div>
+
+                            <div id="selectedDateDetails" style="margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; display: none;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                                    <strong id="detailDate" style="color: #334155;"></strong>
+                                    <span onclick="document.getElementById('selectedDateDetails').style.display='none'" style="cursor:pointer; color:#94a3b8;">×</span>
+                                </div>
+                                <ul id="detailList" style="list-style: none; padding: 0; margin: 0; color: #64748b;"></ul>
+                            </div>
                         </div>
-                        {% if sch_inc.mobile_number %}
-                        <div style="font-size: 0.8rem; color: #64748b;">📞 {{ sch_inc.mobile_number }}</div>
-                        {% endif %}
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
 
-            <!-- Standout Feature: Sticky Note -->
-            <div id="stickyWidget" class="sticky-note-widget">
-                <div class="sticky-pin"></div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <h4 style="margin: 0 0 10px 0; font-size:0.9rem; opacity:0.8;">📝 Quick Note</h4>
-                    <button onclick="toggleStickyNote()"
-                        style="background:none; border:none; cursor:pointer; font-size:1.2rem; line-height:1; opacity:0.5;">×</button>
-                </div>
-                <textarea id="stickyNoteInput" class="sticky-textarea"
-                    placeholder="Type a reminder here... (Auto-saved)"></textarea>
-            </div>
-
-            <!-- Extracurricular Clubs Widget -->
-            <div class="chart-card" style="margin-top: 25px; border-left: 4px solid #8b5cf6; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; color: #5a7d7c; display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600;">
-                        👥 Extracurricular Clubs
-                    </h3>
-                    <a href="{% url 'student_clubs_view' %}" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 3px 10px; border-radius: 6px; text-decoration: none;">View Portal &rarr;</a>
-                </div>
-                <p style="font-size: 0.82rem; color: #64748b; margin: 6px 0 0 0;">Check your club memberships, visual attendance progress bars, and coordinator tools.</p>
-            </div>
-
-            <!-- Attendance Graph -->
-            <div class="chart-card" style="margin-top: 25px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0; color: var(--primary-color);">Attendance</h3>
-                    <a href="{% url 'student_attendance' %}" class="btn-sm btn-outline"
-                        style="font-size: 0.8rem; padding: 2px 8px;">View All</a>
-                </div>
-                <canvas id="attendanceChart"></canvas>
-            </div>
-
-
-            <!-- Projects & Skills Widget -->
-            <div class="chart-card" style="margin-top: 25px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0; color: var(--primary-color);">Projects & Skills</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <a href="{% url 'student_editprofile' %}#skills" class="btn-sm btn-outline"
-                            style="font-size: 0.8rem; padding: 2px 8px;">+ Skill</a>
-                        <a href="{% url 'student_editprofile' %}#projects" class="btn-sm btn-outline"
-                            style="font-size: 0.8rem; padding: 2px 8px;">+ Project</a>
+                    <!-- Attendance Summary Doughnut Graph -->
+                    <div class="chart-card" style="margin-top: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">📊 Attendance Progress</h3>
+                            <a href="{% url 'student_attendance' %}" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 2px 8px;">View Details</a>
+                        </div>
+                        <div style="position: relative; max-width: 240px; max-height: 210px; margin: 0 auto;">
+                            <canvas id="attendanceChart"></canvas>
+                        </div>
                     </div>
-                </div>
-                <!-- ... Skills and Projects Loop (Keeping existing logic inside) ... -->
-                <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: #475569;">Skills</h4>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-                    {% for skill in skills %}
-                    <span
-                        style="background: rgba(90, 125, 124, 0.1); color: #5a7d7c; padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; border: 1px solid rgba(90, 125, 124, 0.2);">
-                        {{ skill.skill_name }} <small style="opacity: 0.8;">({{ skill.proficiency }})</small>
-                    </span>
-                    {% empty %}
-                    <p class="text-muted" style="font-size: 0.9rem;">No skills added yet.</p>
-                    {% endfor %}
-                </div>
 
-                <!-- Projects Section -->
-                <h4 style="margin: 0 0 8px 0; font-size: 0.95rem; color: #475569;">Projects</h4>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    {% for project in projects %}
-                    <div style="padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <strong style="color: #334155;">{{ project.title }}</strong>
-                            {% if project.project_link %}
-                            <a href="{{ project.project_link }}" target="_blank" style="text-decoration: none;">🔗</a>
+                    <!-- Marks / Academic Performance Graph -->
+                    <div class="chart-card" style="margin-top: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">📈 Academic Performance</h3>
+                            <a href="{% url 'cgpa_history' %}" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 2px 8px;">View History</a>
+                        </div>
+                        <p style="margin: 0 0 10px 0; font-size: 0.88rem; color: #64748b;">Current CGPA: <strong style="color: #1e293b;">{{ cgpa }}</strong></p>
+                        <div style="position: relative; width: 100%; max-height: 220px;">
+                            <canvas id="marksChart" style="max-height: 220px;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Leave Status Widget -->
+                    <div class="chart-card" style="margin-top: 0; min-height: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">📝 Leave Status</h3>
+                            <a href="{% url 'apply_leave' %}" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 2px 8px;">Apply / View All</a>
+                        </div>
+
+                        <div style="font-size: 0.88rem;">
+                            {% if recent_leaves %}
+                            <table style="width: 100%; border-collapse: collapse;">
+                                {% for leave in recent_leaves %}
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 8px 0; color: #334155;">
+                                        <div style="font-weight: 500;">{{ leave.get_leave_type_display }}</div>
+                                        <div style="font-size: 0.75rem; color: #64748b;">{{ leave.start_date|date:"d M"}} - {{ leave.end_date|date:"d M" }}</div>
+                                    </td>
+                                    <td style="padding: 8px 0; text-align: right;">
+                                        <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;" class="{% if 'Approved' in leave.status %}color-approved{% elif 'Rejected' in leave.status %}color-rejected{% else %}color-pending{% endif %}">
+                                            {{ leave.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            {% else %}
+                            <p style="color: #94a3b8; text-align: center; margin: 10px 0;">No recent leave requests.</p>
                             {% endif %}
                         </div>
-                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">{{
-                            project.description|truncatechars:60 }}</p>
                     </div>
-                    {% empty %}
-                    <p class="text-muted" style="font-size: 0.9rem;">No projects added yet.</p>
-                    {% endfor %}
+
+                </div>
+
+                <!-- Right Column (Column 2) -->
+                <div class="dash-col" style="display: flex; flex-direction: column; gap: 20px;">
+
+                    <!-- News Widget (Top Right) -->
+                    {% include 'news_component.html' %}
+
+                    <!-- Extracurricular Clubs Widget -->
+                    <div class="chart-card" style="margin-top: 0; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
+                            <h3 style="margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600;">
+                                👥 Extracurricular Clubs
+                            </h3>
+                            <a href="{% url 'student_clubs_view' %}" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; text-decoration: none;">View Portal &rarr;</a>
+                        </div>
+
+                        {% if my_club_list %}
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            {% for item in my_club_list %}
+                            <div style="padding: 10px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span style="font-weight: 600; color: #334155; font-size: 0.9rem;">{{ item.club.name }}</span>
+                                        {% if item.is_coordinator %}
+                                        <span style="font-size: 0.72rem; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">⭐ Coordinator</span>
+                                        {% endif %}
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span style="font-size: 0.72rem; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ item.club.category }}</span>
+                                        {% if item.is_coordinator %}
+                                        <a href="{% url 'coordinator_club_console' item.club.id %}" style="font-size: 0.75rem; background: #166534; color: #fff; padding: 2px 8px; border-radius: 4px; text-decoration: none; font-weight: 600;">Console &rarr;</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.8rem; color: #64748b;">
+                                    <span>Events Attended: {{ item.attended_events }}/{{ item.total_events }}</span>
+                                    {% if item.attendance_pct is not None %}
+                                    <span style="font-weight: 600;" class="{% if item.attendance_pct < 75 %}text-status-red{% else %}text-status-green{% endif %}">{{ item.attendance_pct }}% Attn</span>
+                                    {% else %}
+                                    <span style="font-size: 0.75rem; color: #94a3b8;">No events yet</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div style="text-align: center; padding: 16px 10px; background: #fafafa; border: 1px dashed #cbd5e1; border-radius: 8px;">
+                            <div style="font-size: 1.5rem; margin-bottom: 4px;">🏆</div>
+                            <h5 style="margin: 0 0 4px 0; color: #334155; font-size: 0.9rem; font-weight: 600;">No Joined Clubs</h5>
+                            <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 12px 0;">You haven't joined any campus clubs yet. Explore activities and events in the clubs portal!</p>
+                            <a href="{% url 'student_clubs_view' %}" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 5px 14px; background: #5a7d7c; color: #fff; border: none; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">Explore Clubs &rarr;</a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Standout Feature: Sticky Note -->
+                    <div id="stickyWidget" class="sticky-note-widget" style="margin-top: 0;">
+                        <div class="sticky-pin"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <h4 style="margin: 0 0 10px 0; font-size:0.9rem; opacity:0.8;">📝 Quick Note</h4>
+                            <button onclick="toggleStickyNote()" style="background:none; border:none; cursor:pointer; font-size:1.2rem; line-height:1; opacity:0.5;">×</button>
+                        </div>
+                        <textarea id="stickyNoteInput" class="sticky-textarea" placeholder="Type a reminder here... (Auto-saved)"></textarea>
+                    </div>
+
+                    <!-- Projects & Skills Widget -->
+                    <div class="chart-card" style="margin-top: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; color: var(--primary-color); font-size: 1rem;">Projects & Skills</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{% url 'student_editprofile' %}#skills" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 2px 8px;">+ Skill</a>
+                                <a href="{% url 'student_editprofile' %}#projects" class="btn-sm btn-outline" style="font-size: 0.8rem; padding: 2px 8px;">+ Project</a>
+                            </div>
+                        </div>
+
+                        <h4 style="margin: 0 0 8px 0; font-size: 0.92rem; color: #475569;">Skills</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+                            {% for skill in skills %}
+                            <span style="background: rgba(90, 125, 124, 0.1); color: #5a7d7c; padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; border: 1px solid rgba(90, 125, 124, 0.2);">
+                                {{ skill.skill_name }} <small style="opacity: 0.8;">({{ skill.proficiency }})</small>
+                            </span>
+                            {% empty %}
+                            <p class="text-muted" style="font-size: 0.85rem; color: #94a3b8; margin: 0;">No skills added yet.</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Projects Section -->
+                        <h4 style="margin: 0 0 8px 0; font-size: 0.92rem; color: #475569;">Projects</h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            {% for project in projects %}
+                            <div style="padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <strong style="color: #334155;">{{ project.title }}</strong>
+                                    {% if project.project_link %}
+                                    <a href="{{ project.project_link }}" target="_blank" style="text-decoration: none;">🔗</a>
+                                    {% endif %}
+                                </div>
+                                <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">{{ project.description|truncatechars:60 }}</p>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted" style="font-size: 0.85rem; color: #94a3b8; margin: 0;">No projects added yet.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
                 </div>
             </div>
-
-        </div>
     <!-- Academic History (Generic Layout) -->
     <div
         style="margin-top: 30px; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
@@ -973,10 +929,11 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     cutout: '70%',
                     plugins: {
                         legend: { position: 'bottom' },
-                        title: { display: true, text: 'Current Semester' }
+                        title: { display: false }
                     }
                 }
             });
@@ -1003,6 +960,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: { beginAtZero: true, max: 10 }
                     }

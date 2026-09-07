@@ -42,6 +42,30 @@
             background: rgba(17, 24, 39, 0.96);
         }
 
+        /* =========================================================
+           GLOBAL MODAL LAYER & VIEWPORT OVERFLOW FIX
+           Ensures all popup modals sit ABOVE fixed/sticky headers (z-index 1050)
+           and stay fully within viewport bounds so title & close (X) button are always clickable.
+           ========================================================= */
+        .modal-overlay,
+        .custom-modal-overlay,
+        .d-modal-overlay,
+        .room-modal-overlay,
+        .modal-backdrop,
+        [id$="Modal"],
+        [id*="Modal_"] {
+            z-index: 99999 !important;
+        }
+
+        .modal-card,
+        .custom-modal-card,
+        .d-modal-box,
+        .modal-content {
+            max-height: 85vh !important;
+            overflow-y: auto !important;
+            box-sizing: border-box !important;
+        }
+
         .header-top-row {
             height: 64px;
             padding: 0 28px;

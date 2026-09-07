@@ -15,9 +15,6 @@
 
 {% block header_actions %}
 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-    <button onclick="document.getElementById('addMemberModal').style.display='flex';" class="action-btn" style="background: #5a7d7c; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25);">
-        <i class="ri-user-add-line"></i> Add Student (All Years)
-    </button>
     <button onclick="document.getElementById('logAttendanceModal').style.display='flex';" class="action-btn" style="background: #2c3e50; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.25);">
         <i class="ri-calendar-check-line"></i> Log Event Attendance
     </button>
@@ -137,6 +134,68 @@
         </div>
     </div>
 
+    <!-- Pending Join Requests Box -->
+    <div class="coo-card-box" style="border-left: 4px solid #f59e0b;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.05rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-user-shared-line" style="color: #f59e0b;"></i> 📥 Pending Join Requests ({{ pending_requests|length }})
+            </h3>
+            <span style="font-size: 0.8rem; background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-weight: 600;">Action Required</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Roll Number</th>
+                        <th>Register Number</th>
+                        <th>Student Name</th>
+                        <th>Year & Sem</th>
+                        <th>Lab Batch</th>
+                        <th>Requested On</th>
+                        <th style="text-align: right;">Review Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in pending_requests %}
+                    <tr>
+                        <td style="color: #94a3b8;">{{ forloop.counter }}</td>
+                        <td><strong style="color: #5a7d7c;">{{ req.student.roll_number }}</strong></td>
+                        <td>{{ req.student.register_number|default:"-" }}</td>
+                        <td><strong>{{ req.student.student_name }}</strong></td>
+                        <td>Sem {{ req.student.current_semester }}</td>
+                        <td>{% if req.student.lab_batch %}Batch {{ req.student.lab_batch }}{% else %}-{% endif %}</td>
+                        <td>{{ req.created_at|date:"d M Y, h:i A" }}</td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <form method="POST" action="{% url 'coordinator_approve_request' club.id req.id %}" style="margin:0;">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: #166534; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(22,101,52,0.2);">
+                                        <i class="ri-check-line"></i> Approve
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'coordinator_reject_request' club.id req.id %}" style="margin:0;" onsubmit="return confirm('Reject join request from {{ req.student.student_name }}?');">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="ri-close-line"></i> Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 24px; color: #94a3b8;">
+                            No pending join requests at this time. Students can explore clubs and click "I'm Interested" to submit requests.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Member Roster -->
     <div class="coo-card-box">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
@@ -181,7 +240,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="8" style="text-align: center; padding: 36px; color: #94a3b8;">
-                            No students added to this club yet. Click '+ Add Student (All Years)' above to build your club roster.
+                            No official members in this club yet. Students can express interest on the clubs page to submit join requests.
                         </td>
                     </tr>
                     {% endfor %}
@@ -225,43 +284,6 @@
         </div>
     </div>
 
-</div>
-
-<!-- Add Member Modal -->
-<div id="addMemberModal" class="modal-overlay">
-    <div class="modal-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
-            <h3 style="margin: 0; font-size: 1.15rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-                <i class="ri-user-add-line" style="color: #5a7d7c;"></i> Add Student (Cross-Year Roster)
-            </h3>
-            <button onclick="document.getElementById('addMemberModal').style.display='none';" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b;">&times;</button>
-        </div>
-
-        <form method="POST" action="{% url 'coordinator_add_member' club.id %}">
-            {% csrf_token %}
-            <div class="form-group">
-                <label>Select Student from Directory</label>
-                <select name="student_id" class="form-control">
-                    <option value="">Select Student...</option>
-                    {% for std in available_students %}
-                    <option value="{{ std.pk }}">{{ std.roll_number }} — {{ std.student_name }} (Sem {{ std.current_semester }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div style="text-align: center; margin: 14px 0; color: #94a3b8; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em;">— OR ENTER ROLL NUMBER —</div>
-
-            <div class="form-group">
-                <label>Roll Number</label>
-                <input type="text" name="roll_number" placeholder="e.g. 2338010001" class="form-control">
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-                <button type="button" onclick="document.getElementById('addMemberModal').style.display='none';" style="padding: 9px 18px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Cancel</button>
-                <button type="submit" style="padding: 9px 18px; border-radius: 8px; border: none; background: #5a7d7c; color: white; font-weight: 600; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25);">Add to Roster</button>
-            </div>
-        </form>
-    </div>
 </div>
 
 <!-- Log Attendance Modal -->

@@ -121,7 +121,7 @@
                 <h2 style="margin: 8px 0 4px 0; font-size: 1.3rem; color: #1e293b;">{{ c.name }}</h2>
                 <p style="margin: 0; font-size: 0.84rem; color: #64748b;">
                     Member Since: <strong>{{ item.joined_date|date:"M d, Y" }}</strong> | 
-                    Staff In-Charge: <strong>{{ c.staff_incharge.name|default:"Unassigned" }}</strong>
+                    Staff In-Charge: <strong>{{ c.staff_incharge_display }}</strong>
                 </p>
             </div>
 
@@ -200,6 +200,64 @@
         </p>
     </div>
     {% endfor %}
+
+    <!-- Explore Campus Clubs Grid Section -->
+    <div style="margin-top: 40px; margin-bottom: 20px;">
+        <h2 style="font-size: 1.3rem; color: #1e293b; margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px;">
+            <i class="ri-compass-3-line" style="color: #5a7d7c;"></i> Explore Campus Clubs
+        </h2>
+        <p style="margin: 0 0 20px 0; font-size: 0.85rem; color: #64748b;">
+            Browse active departmental clubs and express interest to join. Your request will be sent to the Student Coordinators for review.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+            {% for item in explore_clubs %}
+            {% with c=item.club %}
+            <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between; gap: 14px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="club-cat-badge">{{ c.category }}</span>
+                        <span style="font-size: 0.78rem; color: #64748b; font-weight: 500;">👥 {{ item.member_count }} member{{ item.member_count|pluralize }}</span>
+                    </div>
+                    <h3 style="margin: 0 0 6px 0; font-size: 1.15rem; color: #1e293b;">{{ c.name }}</h3>
+                    {% if c.description %}
+                    <p style="margin: 0 0 10px 0; font-size: 0.83rem; color: #64748b; line-height: 1.4;">{{ c.description|truncatechars:120 }}</p>
+                    {% endif %}
+                    <div style="font-size: 0.8rem; color: #475569; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #f1f5f9;">
+                        <strong>Staff In-Charge:</strong> {{ c.staff_incharge_display }}
+                    </div>
+                </div>
+
+                <div style="margin-top: auto; border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+                    {% if item.is_coordinator %}
+                        <span style="font-size: 0.82rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 4px 12px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                            ⭐ Club Coordinator
+                        </span>
+                        <a href="{% url 'coordinator_club_console' c.id %}" class="btn-sm" style="background: #166534; color: white; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">Console &rarr;</a>
+                    {% elif item.is_member %}
+                        <span style="font-size: 0.82rem; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 4px 12px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="ri-checkbox-circle-line"></i> Joined Member
+                        </span>
+                    {% elif item.is_pending %}
+                        <span style="font-size: 0.82rem; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="ri-time-line"></i> Request Pending ⏳
+                        </span>
+                    {% else %}
+                        <form method="POST" action="{% url 'student_request_club_join' c.id %}" style="margin: 0; width: 100%;">
+                            {% csrf_token %}
+                            <button type="submit" style="width: 100%; background: #5a7d7c; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#4a6b69'" onmouseout="this.style.background='#5a7d7c'">
+                                <i class="ri-hand-heart-line"></i> I'm Interested (Join Request)
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endwith %}
+            {% empty %}
+            <p style="color: #94a3b8; text-align: center; grid-column: 1 / -1;">No active campus clubs available right now.</p>
+            {% endfor %}
+        </div>
+    </div>
 
 </div>
 {% endblock %}

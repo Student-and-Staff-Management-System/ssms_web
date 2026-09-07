@@ -561,6 +561,42 @@ def student_dashboard(request):
         if not class_incharge:
             class_incharge = ci_qs.first()
 
+    # Extracurricular Clubs Data
+    from students.models import ClubMembership, ClubAttendance
+    coordinated_clubs = list(student.coordinated_clubs.filter(is_active=True))
+    memberships = ClubMembership.objects.filter(student=student).select_related('club')
+    
+    # Collect all unique clubs (both coordinated and memberships)
+    club_dict = {}
+    for c in coordinated_clubs:
+        club_dict[c.id] = {
+            'club': c,
+            'is_coordinator': True,
+            'joined_date': None,
+        }
+        
+    for m in memberships:
+        c = m.club
+        if c.id not in club_dict:
+            club_dict[c.id] = {
+                'club': c,
+                'is_coordinator': False,
+                'joined_date': m.joined_date,
+            }
+        else:
+            club_dict[c.id]['joined_date'] = m.joined_date
+            
+    my_club_list = []
+    for cid, item in club_dict.items():
+        c = item['club']
+        total_events = c.events.count()
+        attended = ClubAttendance.objects.filter(event__club=c, student=student, is_present=True).count()
+        pct = round((attended / total_events * 100), 1) if total_events > 0 else None
+        item['total_events'] = total_events
+        item['attended_events'] = attended
+        item['attendance_pct'] = pct
+        my_club_list.append(item)
+
     # Helper for calendar data
     calendar_data = get_attendance_calendar_data(student)
 
@@ -580,6 +616,8 @@ def student_dashboard(request):
         'timetable_incharges': timetable_incharges,
         'scholarship_officers': scholarship_officers,
         'class_incharge': class_incharge,
+        'my_club_list': my_club_list,
+        'coordinated_clubs': coordinated_clubs,
 
         'today': timezone.now().strftime('%A'),
         'calendar_data': calendar_data,
@@ -2542,12 +2580,12 @@ def apply_scholarship(request):
 @student_login_required
 def student_clubs_view(request):
     """
-    Student View: Displays joined clubs and visual attendance statistics.
+    Student View: Displays joined clubs with attendance stats and all active clubs to explore & request to join.
     """
     roll_number = request.session.get('student_roll_number')
     student = get_object_or_404(Student, roll_number=roll_number)
 
-    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance
+    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance, ClubJoinRequest
 
     memberships = ClubMembership.objects.filter(student=student).select_related('club')
     coordinated_clubs = student.coordinated_clubs.filter(is_active=True)
@@ -2577,22 +2615,80 @@ def student_clubs_view(request):
             'event_history': event_history,
         })
 
+    # Explore Active Clubs & Request Statuses
+    all_clubs = Club.objects.filter(is_active=True).prefetch_related('student_coordinators', 'staff_incharge', 'staff_incharge_2')
+    joined_club_ids = set(memberships.values_list('club_id', flat=True))
+    coordinated_club_ids = set(coordinated_clubs.values_list('id', flat=True))
+    
+    user_requests = ClubJoinRequest.objects.filter(student=student)
+    pending_club_ids = set(user_requests.filter(status='PENDING').values_list('club_id', flat=True))
+    rejected_club_ids = set(user_requests.filter(status='REJECTED').values_list('club_id', flat=True))
+
+    explore_clubs = []
+    for c in all_clubs:
+        is_coord = c.id in coordinated_club_ids
+        is_member = c.id in joined_club_ids
+        is_pending = c.id in pending_club_ids
+        is_rejected = c.id in rejected_club_ids
+
+        explore_clubs.append({
+            'club': c,
+            'is_coordinator': is_coord,
+            'is_member': is_member,
+            'is_pending': is_pending,
+            'is_rejected': is_rejected,
+            'member_count': c.memberships.count(),
+        })
+
     return render(request, 'student/student_clubs.html', {
         'student': student,
         'clubs_stats': clubs_stats,
         'coordinated_clubs': coordinated_clubs,
+        'explore_clubs': explore_clubs,
     })
+
+
+@student_login_required
+def student_request_club_join(request, club_id):
+    """
+    Student Action: Click "I'm Interested" to send join request to Student Coordinators.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    from students.models import Club, ClubMembership, ClubJoinRequest
+
+    club = get_object_or_404(Club, id=club_id, is_active=True)
+
+    if request.method == 'POST':
+        # Check if already a member
+        if ClubMembership.objects.filter(club=club, student=student).exists():
+            messages.info(request, f"You are already a member of {club.name}.")
+            return redirect('student_clubs_view')
+
+        # Check or create join request
+        req, created = ClubJoinRequest.objects.get_or_create(club=club, student=student)
+        if not created and req.status == 'REJECTED':
+            req.status = 'PENDING'
+            req.save()
+            messages.success(request, f"Your join request for '{club.name}' has been re-submitted to the Student Coordinators.")
+        elif created or req.status == 'PENDING':
+            messages.success(request, f"Your join request for '{club.name}' has been sent to the Student Coordinators!")
+        else:
+            messages.info(request, f"Your join request status for '{club.name}' is {req.get_status_display()}.")
+
+    return redirect('student_clubs_view')
 
 
 @student_login_required
 def coordinator_club_console(request, club_id):
     """
-    Student Coordinator Workspace: Manage club members across all years and log attendance.
+    Student Coordinator Workspace: Manage club requests, member roster, and log attendance.
     """
     roll_number = request.session.get('student_roll_number')
     student = get_object_or_404(Student, roll_number=roll_number)
 
-    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance
+    from students.models import Club, ClubMembership, ClubEvent, ClubAttendance, ClubJoinRequest
 
     club = get_object_or_404(Club, id=club_id)
     if not club.student_coordinators.filter(pk=student.pk).exists():
@@ -2600,29 +2696,27 @@ def coordinator_club_console(request, club_id):
         return redirect('student_clubs_view')
 
     memberships = ClubMembership.objects.filter(club=club).select_related('student').order_by('student__current_semester', 'student__roll_number')
+    pending_requests = ClubJoinRequest.objects.filter(club=club, status='PENDING').select_related('student').order_by('-created_at')
     events = ClubEvent.objects.filter(club=club).order_by('-event_date')
-
-    existing_member_ids = memberships.values_list('student_id', flat=True)
-    available_students = Student.objects.exclude(pk__in=existing_member_ids).order_by('current_semester', 'roll_number')
 
     return render(request, 'student/coordinator_console.html', {
         'student': student,
         'club': club,
         'memberships': memberships,
+        'pending_requests': pending_requests,
         'events': events,
-        'available_students': available_students,
     })
 
 
 @student_login_required
-def coordinator_add_member(request, club_id):
+def coordinator_approve_request(request, club_id, request_id):
     """
-    Student Coordinator Action: Add a student from any year to the club roster.
+    Student Coordinator Action: Approve a student's join request.
     """
     roll_number = request.session.get('student_roll_number')
     student = get_object_or_404(Student, roll_number=roll_number)
 
-    from students.models import Club, ClubMembership
+    from students.models import Club, ClubMembership, ClubJoinRequest
 
     club = get_object_or_404(Club, id=club_id)
     if not club.student_coordinators.filter(pk=student.pk).exists():
@@ -2630,24 +2724,36 @@ def coordinator_add_member(request, club_id):
         return redirect('student_clubs_view')
 
     if request.method == 'POST':
-        target_student_id = request.POST.get('student_id')
-        target_roll = request.POST.get('roll_number', '').strip()
+        join_req = get_object_or_404(ClubJoinRequest, id=request_id, club=club)
+        join_req.status = 'APPROVED'
+        join_req.save()
 
-        target_student = None
-        if target_student_id:
-            target_student = Student.objects.filter(pk=target_student_id).first()
-        elif target_roll:
-            target_student = Student.objects.filter(roll_number__iexact=target_roll).first()
+        ClubMembership.objects.get_or_create(club=club, student=join_req.student)
+        messages.success(request, f"Approved {join_req.student.student_name} ({join_req.student.roll_number}) to join {club.name}.")
 
-        if not target_student:
-            messages.error(request, "Student not found.")
-            return redirect('coordinator_club_console', club_id=club.id)
+    return redirect('coordinator_club_console', club_id=club.id)
 
-        membership, created = ClubMembership.objects.get_or_create(club=club, student=target_student)
-        if created:
-            messages.success(request, f"Added {target_student.student_name} ({target_student.roll_number}) to {club.name}.")
-        else:
-            messages.info(request, f"{target_student.student_name} is already a member of {club.name}.")
+
+@student_login_required
+def coordinator_reject_request(request, club_id, request_id):
+    """
+    Student Coordinator Action: Reject a student's join request.
+    """
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+
+    from students.models import Club, ClubJoinRequest
+
+    club = get_object_or_404(Club, id=club_id)
+    if not club.student_coordinators.filter(pk=student.pk).exists():
+        messages.error(request, "Access Denied.")
+        return redirect('student_clubs_view')
+
+    if request.method == 'POST':
+        join_req = get_object_or_404(ClubJoinRequest, id=request_id, club=club)
+        join_req.status = 'REJECTED'
+        join_req.save()
+        messages.info(request, f"Rejected join request from {join_req.student.student_name}.")
 
     return redirect('coordinator_club_console', club_id=club.id)
 

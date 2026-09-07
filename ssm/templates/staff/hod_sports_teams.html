@@ -18,18 +18,18 @@
         align-items: center;
         flex-wrap: wrap;
         gap: 16px;
-        background: var(--surface, #ffffff);
-        padding: 24px 28px;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-        border: 1px solid var(--border, #e2e8f0);
+        background: #ffffff;
+        padding: 22px 28px;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        border: 1px solid #e2e8f0;
         margin-bottom: 24px;
     }
 
     .sports-title-box h1 {
-        font-size: 1.5rem;
+        font-size: 1.45rem;
         font-weight: 700;
-        color: var(--primary-dark, #334155);
+        color: #2c3e50;
         margin: 0 0 4px 0;
         display: flex;
         align-items: center;
@@ -38,7 +38,7 @@
 
     .sports-title-box p {
         font-size: 0.85rem;
-        color: var(--text-muted, #64748b);
+        color: #6c757d;
         margin: 0;
     }
 
@@ -54,7 +54,7 @@
         align-items: center;
         gap: 6px;
         padding: 9px 16px;
-        border-radius: 10px;
+        border-radius: 8px;
         font-size: 0.85rem;
         font-weight: 600;
         text-decoration: none;
@@ -64,21 +64,39 @@
     }
 
     .btn-shuffle {
-        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        background: #6d28d9;
         color: white;
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
     }
     .btn-shuffle:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
-    }
-
-    .btn-export {
-        background: #10b981;
+        background: #5b21b6;
         color: white;
     }
-    .btn-export:hover {
-        background: #059669;
+
+    .btn-export-boys {
+        background: #2563eb;
+        color: white;
+    }
+    .btn-export-boys:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .btn-export-girls {
+        background: #db2777;
+        color: white;
+    }
+    .btn-export-girls:hover {
+        background: #be185d;
+        color: white;
+    }
+
+    .btn-export-all {
+        background: #5a7d7c;
+        color: white;
+    }
+    .btn-export-all:hover {
+        background: #4a6b69;
+        color: white;
     }
 
     .btn-clear {
@@ -87,20 +105,16 @@
     }
     .btn-clear:hover {
         background: #dc2626;
-    }
-
-    .btn-print {
-        background: #64748b;
         color: white;
-    }
-    .btn-print:hover {
-        background: #475569;
     }
 
     .btn-back {
-        background: var(--bg-body, #f8fafc);
-        color: var(--text-main, #1e293b);
-        border: 1px solid var(--border, #cbd5e1);
+        background: #f8f9fa;
+        color: #212529;
+        border: 1px solid #dee2e6;
+    }
+    .btn-back:hover {
+        background: #e9ecef;
     }
 
     /* Metrics Grid */
@@ -113,9 +127,9 @@
 
     .metric-card {
         background: white;
-        padding: 18px 22px;
+        padding: 20px 22px;
         border-radius: 14px;
-        border: 1px solid var(--border, #e2e8f0);
+        border: 1px solid #e2e8f0;
         box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         display: flex;
         align-items: center;
@@ -129,39 +143,42 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
+        font-size: 1.35rem;
+        flex-shrink: 0;
     }
 
     .metric-info h3 {
         margin: 0;
-        font-size: 1.4rem;
+        font-size: 1.35rem;
         font-weight: 700;
-        color: var(--text-main, #0f172a);
+        color: #0f172a;
     }
 
     .metric-info span {
         font-size: 0.8rem;
-        color: var(--text-muted, #64748b);
+        color: #64748b;
     }
 
-    /* Summary Matrix */
+    /* Summary Matrix Section */
     .matrix-section {
         background: white;
-        border-radius: 16px;
-        padding: 24px;
-        border: 1px solid var(--border, #e2e8f0);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.03);
-        margin-bottom: 28px;
+        border-radius: 14px;
+        padding: 22px 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+        margin-bottom: 24px;
     }
 
     .matrix-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--primary-dark, #1e293b);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #2c3e50;
         margin-bottom: 16px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
     }
 
     .matrix-table-wrap {
@@ -175,18 +192,18 @@
     }
 
     .matrix-table th {
-        background: var(--bg-body, #f8fafc);
-        padding: 14px;
+        background: #f8fafc;
+        padding: 12px 14px;
         text-align: center;
         font-weight: 600;
         color: #475569;
-        border-bottom: 2px solid var(--border, #e2e8f0);
+        border-bottom: 2px solid #e2e8f0;
     }
 
     .matrix-table td {
-        padding: 14px;
+        padding: 12px 14px;
         text-align: center;
-        border-bottom: 1px solid var(--border, #f1f5f9);
+        border-bottom: 1px solid #f1f5f9;
     }
 
     /* Team Badges */
@@ -206,33 +223,138 @@
     .badge-team-d { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
     .badge-unassigned { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
-    .export-banner {
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-        border: 1px solid #86efac;
-        padding: 24px 28px;
-        border-radius: 16px;
+    /* Custom Confirmation Modal Overlays */
+    .custom-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
+        justify-content: center;
+        z-index: 99999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease-in-out;
     }
 
-    .export-banner-text h4 {
-        margin: 0 0 4px 0;
-        font-size: 1rem;
-        color: #166534;
+    .custom-modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .custom-modal-card {
+        background: #ffffff;
+        border-radius: 14px;
+        width: 90%;
+        max-width: 440px;
+        padding: 28px 24px 24px 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        transform: translateY(15px);
+        transition: all 0.2s ease;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+    }
+
+    .custom-modal-overlay.active .custom-modal-card {
+        transform: translateY(0);
+    }
+
+    .modal-icon-badge {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 14px;
+    }
+
+    .modal-icon-shuffle {
+        background: #f3e8ff;
+        color: #7e22ce;
+    }
+
+    .modal-icon-clear {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .custom-modal-title {
+        font-size: 1.2rem;
         font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 8px 0;
     }
 
-    .export-banner-text p {
-        margin: 0;
-        font-size: 0.82rem;
-        color: #15803d;
+    .custom-modal-body {
+        font-size: 0.88rem;
+        color: #64748b;
+        margin-bottom: 22px;
+        line-height: 1.5;
+    }
+
+    .modal-action-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn-modal-cancel {
+        padding: 9px 18px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: 1px solid #cbd5e1;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .btn-modal-cancel:hover {
+        background: #e2e8f0;
+    }
+
+    .btn-modal-confirm-shuffle {
+        padding: 9px 20px;
+        border-radius: 8px;
+        background: #6d28d9;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .btn-modal-confirm-shuffle:hover {
+        background: #5b21b6;
+    }
+
+    .btn-modal-confirm-clear {
+        padding: 9px 20px;
+        border-radius: 8px;
+        background: #ef4444;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .btn-modal-confirm-clear:hover {
+        background: #dc2626;
     }
 
     @media print {
-        .sports-header, .header-actions, .btn-action, .export-banner {
+        .sports-header, .header-actions, .btn-action, .custom-modal-overlay {
             display: none !important;
         }
         .sports-container {
@@ -253,32 +375,31 @@
     <div class="sports-header">
         <div class="sports-title-box">
             <h1><i class="ri-trophy-line" style="color: #f59e0b;"></i> Extracurricular Activities — Sports Teams</h1>
-            <p>Balanced equal split distribution of year and batch students across 4 sports teams</p>
+            <p>Auto-assign & manage sports team allocations across department students.</p>
         </div>
 
         <div class="header-actions">
-            <!-- Shuffle Button -->
-            <form method="POST" style="margin: 0;" onsubmit="return confirm('Clicking Shuffle will randomly re-shuffle students equally across Year & Batch into the 4 sports teams. Proceed?');">
+            <!-- Hidden Shuffle Form -->
+            <form id="shuffleForm" method="POST" style="display: none;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="shuffle">
-                <button type="submit" class="btn-action btn-shuffle" title="Redo equal split shuffling">
-                    <i class="ri-shuffle-line"></i> Shuffle Teams
-                </button>
             </form>
+            
+            <!-- Shuffle Trigger Button -->
+            <button type="button" class="btn-action btn-shuffle" onclick="openModal('shuffleModal')" title="Redo equal split shuffling">
+                <i class="ri-shuffle-line"></i> Shuffle Teams
+            </button>
 
-            <!-- Export CSV -->
-            <a href="{% url 'staffs:export_sports_teams' %}" class="btn-action btn-export">
-                <i class="ri-file-excel-line"></i> Export CSV / Excel
-            </a>
-
-            <!-- Clear Teams -->
-            <form method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to clear all sports team assignments?');">
+            <!-- Hidden Clear Form -->
+            <form id="clearForm" method="POST" style="display: none;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="clear_teams">
-                <button type="submit" class="btn-action btn-clear" title="Clear all team assignments">
-                    <i class="ri-delete-bin-line"></i> Clear All
-                </button>
             </form>
+
+            <!-- Clear Trigger Button -->
+            <button type="button" class="btn-action btn-clear" onclick="openModal('clearModal')" title="Clear all team assignments">
+                <i class="ri-delete-bin-line"></i> Clear All
+            </button>
 
             <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-back">
                 <i class="ri-arrow-left-line"></i> Dashboard
@@ -310,22 +431,22 @@
         </div>
 
         <div class="metric-card">
-            <div class="metric-icon" style="background: #dcfce7; color: #166534;">
-                <i class="ri-checkbox-circle-line"></i>
+            <div class="metric-icon" style="background: #dbeafe; color: #1d4ed8;">
+                <i class="ri-men-line"></i>
             </div>
             <div class="metric-info">
-                <h3>{{ assigned_count }}</h3>
-                <span>Assigned to Teams</span>
+                <h3>{{ total_boys_count }}</h3>
+                <span>Boys</span>
             </div>
         </div>
 
         <div class="metric-card">
-            <div class="metric-icon" style="background: #fef9c3; color: #854d0e;">
-                <i class="ri-shield-user-line"></i>
+            <div class="metric-icon" style="background: #fce7f3; color: #be185d;">
+                <i class="ri-women-line"></i>
             </div>
             <div class="metric-info">
-                <h3>{{ total_students_count|add:"-"|add:assigned_count }}</h3>
-                <span>Unassigned Students</span>
+                <h3>{{ total_girls_count }}</h3>
+                <span>Girls</span>
             </div>
         </div>
 
@@ -340,38 +461,37 @@
         </div>
     </div>
 
-    <!-- Team Distribution Summary Matrix -->
-    <div class="matrix-section">
+    <!-- 1. Boys Division Team Strength Matrix -->
+    <div class="matrix-section" style="border-top: 3px solid #2563eb;">
         <div class="matrix-title">
-            <i class="ri-bar-chart-grouped-line" style="color: #2563eb;"></i> Equal Split Distribution Matrix
+            <span><i class="ri-men-line" style="color: #2563eb;"></i> Boys Division Team Strength</span>
+            <a href="{% url 'staffs:export_sports_teams' %}?gender=Male" class="btn-action btn-export-boys">
+                <i class="ri-file-excel-line"></i> Export Boys List
+            </a>
         </div>
         <div class="matrix-table-wrap">
             <table class="matrix-table">
                 <thead>
                     <tr>
                         <th style="text-align: left;">Sports Team</th>
-                        <th>Total Members</th>
-                        <th>Year 1 (Sem 1-2)</th>
-                        <th>Year 2 (Sem 3-4)</th>
-                        <th>Year 3 (Sem 5-6)</th>
-                        <th>Year 4 (Sem 7-8)</th>
-                        <th>Batch A</th>
-                        <th>Batch B</th>
+                        <th style="background: #eff6ff; color: #1d4ed8;">Boys Strength</th>
+                        <th>Year 1</th>
+                        <th>Year 2</th>
+                        <th>Year 3</th>
+                        <th>Year 4</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in team_stats_list %}
+                    {% for row in boys_matrix_list %}
                     <tr {% if row.key == 'Unassigned' %}style="background: #f8fafc; font-weight: 600;"{% endif %}>
                         <td style="text-align: left;">
                             <span class="team-badge {{ row.badge_class }}"><i class="{{ row.icon }}"></i> {{ row.name }}</span>
                         </td>
-                        <td><strong>{{ row.total }}</strong></td>
+                        <td style="background: #f8fafc; font-weight: 700; color: #1d4ed8;">{{ row.total }}</td>
                         <td>{{ row.year1 }}</td>
                         <td>{{ row.year2 }}</td>
                         <td>{{ row.year3 }}</td>
                         <td>{{ row.year4 }}</td>
-                        <td>{{ row.batchA }}</td>
-                        <td>{{ row.batchB }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -379,16 +499,171 @@
         </div>
     </div>
 
-    <!-- Clean Export Banner -->
-    <div class="export-banner">
-        <div class="export-banner-text">
-            <h4><i class="ri-file-excel-line"></i> Ready for Sports Day & Department Notices</h4>
-            <p>All {{ total_students_count }} students are balanced across Team A, B, C, & D. Download full rosters for sports day announcements and department notices.</p>
+    <!-- 2. Girls Division Team Strength Matrix -->
+    <div class="matrix-section" style="border-top: 3px solid #db2777;">
+        <div class="matrix-title">
+            <span><i class="ri-women-line" style="color: #db2777;"></i> Girls Division Team Strength</span>
+            <a href="{% url 'staffs:export_sports_teams' %}?gender=Female" class="btn-action btn-export-girls">
+                <i class="ri-file-excel-line"></i> Export Girls List
+            </a>
         </div>
-        <a href="{% url 'staffs:export_sports_teams' %}" class="btn-action btn-export">
-            <i class="ri-download-2-line"></i> Download Full Rosters (CSV/Excel)
-        </a>
+        <div class="matrix-table-wrap">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Sports Team</th>
+                        <th style="background: #fdf2f8; color: #be185d;">Girls Strength</th>
+                        <th>Year 1</th>
+                        <th>Year 2</th>
+                        <th>Year 3</th>
+                        <th>Year 4</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in girls_matrix_list %}
+                    <tr {% if row.key == 'Unassigned' %}style="background: #f8fafc; font-weight: 600;"{% endif %}>
+                        <td style="text-align: left;">
+                            <span class="team-badge {{ row.badge_class }}"><i class="{{ row.icon }}"></i> {{ row.name }}</span>
+                        </td>
+                        <td style="background: #f8fafc; font-weight: 700; color: #be185d;">{{ row.total }}</td>
+                        <td>{{ row.year1 }}</td>
+                        <td>{{ row.year2 }}</td>
+                        <td>{{ row.year3 }}</td>
+                        <td>{{ row.year4 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 3. Overall Department Team Strength Matrix -->
+    <div class="matrix-section" style="border-top: 3px solid #5a7d7c;">
+        <div class="matrix-title">
+            <span><i class="ri-bar-chart-grouped-line" style="color: #5a7d7c;"></i> Overall Department Team Strength</span>
+            <a href="{% url 'staffs:export_sports_teams' %}" class="btn-action btn-export-all">
+                <i class="ri-file-excel-line"></i> Export Full Master List
+            </a>
+        </div>
+        <div class="matrix-table-wrap">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Sports Team</th>
+                        <th>Total Strength</th>
+                        <th style="background: #eff6ff; color: #1d4ed8;">Boys</th>
+                        <th style="background: #fdf2f8; color: #be185d;">Girls</th>
+                        <th>Year 1</th>
+                        <th>Year 2</th>
+                        <th>Year 3</th>
+                        <th>Year 4</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in combined_matrix_list %}
+                    <tr {% if row.key == 'Unassigned' %}style="background: #f8fafc; font-weight: 600;"{% endif %}>
+                        <td style="text-align: left;">
+                            <span class="team-badge {{ row.badge_class }}"><i class="{{ row.icon }}"></i> {{ row.name }}</span>
+                        </td>
+                        <td><strong>{{ row.total }}</strong></td>
+                        <td style="background: #f8fafc; font-weight: 600; color: #1d4ed8;">{{ row.boys }}</td>
+                        <td style="background: #f8fafc; font-weight: 600; color: #be185d;">{{ row.girls }}</td>
+                        <td>{{ row.year1 }}</td>
+                        <td>{{ row.year2 }}</td>
+                        <td>{{ row.year3 }}</td>
+                        <td>{{ row.year4 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </div>
+
+<!-- Custom Confirmation Modal for Shuffle -->
+<div id="shuffleModal" class="custom-modal-overlay">
+    <div class="custom-modal-card">
+        <div class="modal-icon-badge modal-icon-shuffle">
+            <i class="ri-shuffle-line"></i>
+        </div>
+        <h3 class="custom-modal-title">Shuffle Sports Teams</h3>
+        <p class="custom-modal-body">
+            Are you sure you want to shuffle all students into sports teams? Boys and Girls will be assigned equally across Team A, B, C, and D by Academic Year.
+        </p>
+        <div class="modal-action-buttons">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('shuffleModal')">Cancel</button>
+            <button type="button" class="btn-modal-confirm-shuffle" onclick="submitShuffleForm()">
+                <i class="ri-shuffle-line"></i> Confirm & Shuffle
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal for Clear -->
+<div id="clearModal" class="custom-modal-overlay">
+    <div class="custom-modal-card">
+        <div class="modal-icon-badge modal-icon-clear">
+            <i class="ri-delete-bin-line"></i>
+        </div>
+        <h3 class="custom-modal-title">Clear All Assignments</h3>
+        <p class="custom-modal-body">
+            Are you sure you want to clear all sports team assignments? All students will be moved to Unassigned.
+        </p>
+        <div class="modal-action-buttons">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('clearModal')">Cancel</button>
+            <button type="button" class="btn-modal-confirm-clear" onclick="submitClearForm()">
+                <i class="ri-delete-bin-line"></i> Clear All Teams
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    var modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+function closeModal(id) {
+    var modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function submitShuffleForm() {
+    var form = document.getElementById('shuffleForm');
+    if (form) {
+        form.submit();
+    }
+}
+
+function submitClearForm() {
+    var form = document.getElementById('clearForm');
+    if (form) {
+        form.submit();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.custom-modal-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.custom-modal-overlay.active').forEach(function(modal) {
+                modal.classList.remove('active');
+            });
+        }
+    });
+});
+</script>
 {% endblock %}

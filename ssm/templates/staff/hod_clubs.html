@@ -168,9 +168,12 @@
         top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(33, 37, 41, 0.5);
         backdrop-filter: blur(4px);
-        z-index: 1000;
+        z-index: 99999;
         align-items: center;
         justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
     }
 
     .modal-card {
@@ -180,6 +183,10 @@
         max-width: 540px;
         padding: 24px 28px;
         box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        max-height: 85vh;
+        overflow-y: auto;
+        box-sizing: border-box;
+        margin: auto;
     }
 
     .form-group {
@@ -187,6 +194,7 @@
         flex-direction: column;
         gap: 6px;
         margin-bottom: 14px;
+        min-width: 0;
     }
 
     .form-group label {
@@ -201,6 +209,11 @@
         border-radius: 8px;
         font-size: 0.85rem;
         outline: none;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        text-overflow: ellipsis;
+        min-width: 0;
     }
     .form-control:focus {
         border-color: var(--theme-teal);
@@ -215,7 +228,7 @@
     <div class="clubs-header">
         <div class="clubs-title">
             <h1><i class="ri-team-line" style="color: var(--theme-teal);"></i> Extracurricular Activities — Club Management</h1>
-            <p>Assign Staff In-Charge (1) & Student Coordinators (2) to manage student club activities</p>
+            <p>Assign Staff In-Charge (2) & Student Coordinators (2) to manage student club activities</p>
         </div>
 
         <div style="display: flex; gap: 10px;">
@@ -255,10 +268,15 @@
                 <p class="club-desc">{{ c.description|default:"Active student club for technical & co-curricular growth."|truncatechars:90 }}</p>
 
                 <div class="role-row">
-                    <span class="role-label"><i class="ri-user-star-line"></i> Staff IC (1):</span>
+                    <span class="role-label"><i class="ri-user-star-line"></i> Staff ICs (2):</span>
                     <span class="role-val">
-                        {% if c.staff_incharge %}
-                            {{ c.staff_incharge.name }}
+                        {% if c.staff_incharge or c.staff_incharge_2 %}
+                            {% if c.staff_incharge %}
+                                <span style="background: #f8f9fa; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-right: 4px; display: inline-block; border: 1px solid #e9ecef;">{{ c.staff_incharge.name }}</span>
+                            {% endif %}
+                            {% if c.staff_incharge_2 %}
+                                <span style="background: #f8f9fa; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-right: 4px; display: inline-block; border: 1px solid #e9ecef;">{{ c.staff_incharge_2.name }}</span>
+                            {% endif %}
                         {% else %}
                             <span style="color: #adb5bd; font-style: italic;">Unassigned</span>
                         {% endif %}
@@ -336,14 +354,26 @@
                         <textarea name="description" rows="2" class="form-control">{{ c.description|default:'' }}</textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label>Staff In-Charge (1 Staff)</label>
-                        <select name="staff_incharge" class="form-control">
-                            <option value="">Select Staff In-Charge...</option>
-                            {% for st in staff_members %}
-                            <option value="{{ st.id }}" {% if c.staff_incharge_id == st.id %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
-                            {% endfor %}
-                        </select>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Staff In-Charge 1</label>
+                            <select name="staff_incharge_1" class="form-control">
+                                <option value="">Select Staff 1...</option>
+                                {% for st in staff_members %}
+                                <option value="{{ st.id }}" {% if c.staff_incharge_id == st.id %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Staff In-Charge 2</label>
+                            <select name="staff_incharge_2" class="form-control">
+                                <option value="">Select Staff 2...</option>
+                                {% for st in staff_members %}
+                                <option value="{{ st.id }}" {% if c.staff_incharge_2_id == st.id %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -418,14 +448,26 @@
                 <textarea name="description" rows="2" placeholder="Brief objectives of the club..." class="form-control"></textarea>
             </div>
 
-            <div class="form-group">
-                <label>Staff In-Charge (1 Staff)</label>
-                <select name="staff_incharge" class="form-control">
-                    <option value="">Select Staff In-Charge...</option>
-                    {% for st in staff_members %}
-                    <option value="{{ st.id }}">{{ st.name }} ({{ st.department|default:"Dept" }})</option>
-                    {% endfor %}
-                </select>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>Staff In-Charge 1</label>
+                    <select name="staff_incharge_1" class="form-control">
+                        <option value="">Select Staff 1...</option>
+                        {% for st in staff_members %}
+                        <option value="{{ st.id }}">{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Staff In-Charge 2</label>
+                    <select name="staff_incharge_2" class="form-control">
+                        <option value="">Select Staff 2...</option>
+                        {% for st in staff_members %}
+                        <option value="{{ st.id }}">{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">

@@ -584,7 +584,7 @@ def staff_dashboard(request):
         'all_assigned_roles': all_assigned_roles,
         'active_role': active_role,
         'is_hod_or_admin': (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or active_role == 'HOD'),
-        'my_ic_clubs': Club.objects.filter(staff_incharge=staff).prefetch_related('memberships', 'events'),
+        'my_ic_clubs': Club.objects.filter(Q(staff_incharge=staff) | Q(staff_incharge_2=staff)).distinct().prefetch_related('memberships', 'events'),
     }
     dashboard_context.update(_get_portfolio_summary_stats(staff))
     return render(request, template_name, dashboard_context)
@@ -8831,7 +8831,9 @@ def admin_portal_dashboard(request):
 def hod_sports_teams(request):
     """
     Extracurricular Activities - HOD Sports Team Management Console.
-    Includes equal split auto-assign algorithm across years & batches.
+    Includes gender-segregated equal split auto-assign algorithm across academic years.
+    Guarantees equal allocation per gender division (e.g. 100 girls -> 25 each, 80 boys -> 20 each).
+    Filtered strictly for UG current 1st, 2nd, 3rd, and 4th year students (Sem 1-8), excluding PG & PhD.
     """
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
@@ -8847,151 +8849,201 @@ def hod_sports_teams(request):
 
     TEAMS = ['Team A', 'Team B', 'Team C', 'Team D']
 
+    # Base Queryset: UG Current 1st to 4th Year Students Only (Sem 1 to 8), excluding PG and PhD Research Scholars
+    def get_ug_students():
+        return Student.objects.select_related('personalinfo').filter(
+            current_semester__gte=1,
+            current_semester__lte=8
+        ).exclude(
+            program_level__in=['PG', 'PHD']
+        ).filter(
+            scholar_profile__isnull=True
+        )
+
     if request.method == 'POST':
         action = request.POST.get('action')
 
         if action in ['auto_assign', 'shuffle']:
             import random
-            # Equal split algorithm: Group students by Academic Year and Lab Batch
-            year_batch_groups = {}
-            all_students = list(Student.objects.all())
+            
+            all_students = list(get_ug_students())
+
+            # Separate students into Male, Female, and Other groups
+            male_by_year = {1: [], 2: [], 3: [], 4: []}
+            female_by_year = {1: [], 2: [], 3: [], 4: []}
+            other_by_year = {1: [], 2: [], 3: [], 4: []}
 
             for std in all_students:
                 sem = std.current_semester or 1
-                year = (sem + 1) // 2
-                batch = std.lab_batch or 'Unassigned'
-                key = (year, batch)
-                if key not in year_batch_groups:
-                    year_batch_groups[key] = []
-                year_batch_groups[key].append(std)
+                yr = min(4, max(1, (sem + 1) // 2))
+                p_info = getattr(std, 'personalinfo', None)
+                gender = p_info.gender if (p_info and p_info.gender) else ''
+
+                if gender == 'Male':
+                    male_by_year[yr].append(std)
+                elif gender == 'Female':
+                    female_by_year[yr].append(std)
+                else:
+                    other_by_year[yr].append(std)
 
             total_updated = 0
-            team_index = random.randint(0, 3) if action == 'shuffle' else 0
 
-            # Sort cohort keys to ensure deterministic ordering
-            sorted_keys = sorted(year_batch_groups.keys())
-
-            if action == 'shuffle':
-                random.shuffle(sorted_keys)
-
-            for key in sorted_keys:
-                std_group = year_batch_groups[key]
+            # 1. Distribute Boys (Male) equally across 4 teams
+            male_index = random.randint(0, 3) if action == 'shuffle' else 0
+            for yr in [1, 2, 3, 4]:
+                group = male_by_year[yr]
                 if action == 'shuffle':
-                    random.shuffle(std_group)
+                    random.shuffle(group)
                 else:
-                    std_group.sort(key=lambda s: (s.current_semester or 1, s.lab_batch or '', s.roll_number))
+                    group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
 
-                for std in std_group:
-                    std.sports_team = TEAMS[team_index % 4]
+                for std in group:
+                    std.sports_team = TEAMS[male_index % 4]
                     std.save(update_fields=['sports_team'])
-                    team_index += 1
+                    male_index += 1
+                    total_updated += 1
+
+            # 2. Distribute Girls (Female) equally across 4 teams
+            female_index = random.randint(0, 3) if action == 'shuffle' else 0
+            for yr in [1, 2, 3, 4]:
+                group = female_by_year[yr]
+                if action == 'shuffle':
+                    random.shuffle(group)
+                else:
+                    group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+
+                for std in group:
+                    std.sports_team = TEAMS[female_index % 4]
+                    std.save(update_fields=['sports_team'])
+                    female_index += 1
+                    total_updated += 1
+
+            # 3. Distribute Other/Unspecified gender students equally
+            other_index = random.randint(0, 3) if action == 'shuffle' else 0
+            for yr in [1, 2, 3, 4]:
+                group = other_by_year[yr]
+                if action == 'shuffle':
+                    random.shuffle(group)
+                else:
+                    group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+
+                for std in group:
+                    std.sports_team = TEAMS[other_index % 4]
+                    std.save(update_fields=['sports_team'])
+                    other_index += 1
                     total_updated += 1
 
             verb = "shuffled and re-assigned" if action == 'shuffle' else "auto-assigned"
-            messages.success(request, f"Successfully {verb} {total_updated} students across the 4 sports teams with equal year and batch distribution.")
+            messages.success(request, f"Successfully {verb} {total_updated} UG students across the 4 sports teams with exact Boys & Girls gender equality.")
             return redirect('staffs:hod_sports_teams')
 
         elif action == 'clear_teams':
-            Student.objects.update(sports_team=None)
-            messages.success(request, "Cleared all sports team assignments.")
+            get_ug_students().update(sports_team=None)
+            messages.success(request, "Cleared all sports team assignments for UG students.")
             return redirect('staffs:hod_sports_teams')
 
-    # GET Filter parameters
-    sel_team = request.POST.get('team') or request.GET.get('team', '')
-    sel_year = request.POST.get('year') or request.GET.get('year', '')
-    sel_batch = request.POST.get('batch') or request.GET.get('batch', '')
-    search_q = request.POST.get('search') or request.GET.get('search', '')
-
-    students_qs = Student.objects.all()
-
-    if search_q:
-        students_qs = students_qs.filter(
-            Q(student_name__icontains=search_q) |
-            Q(roll_number__icontains=search_q) |
-            Q(register_number__icontains=search_q)
-        )
-
-    if sel_team:
-        if sel_team == 'Unassigned':
-            students_qs = students_qs.filter(Q(sports_team__isnull=True) | Q(sports_team=''))
-        else:
-            students_qs = students_qs.filter(sports_team=sel_team)
-
-    if sel_year:
-        try:
-            yr = int(sel_year)
-            min_sem = (yr - 1) * 2 + 1
-            max_sem = yr * 2
-            students_qs = students_qs.filter(current_semester__gte=min_sem, current_semester__lte=max_sem)
-        except ValueError:
-            pass
-
-    if sel_batch:
-        if sel_batch == 'Unassigned':
-            students_qs = students_qs.filter(Q(lab_batch__isnull=True) | Q(lab_batch=''))
-        else:
-            students_qs = students_qs.filter(lab_batch=sel_batch)
-
-    students_list = list(students_qs.order_by('current_semester', 'lab_batch', 'roll_number'))
-
-    team_lists = [
-        {'name': 'Team A (Red Dragons)', 'key': 'Team A', 'badge_class': 'badge-team-a', 'icon': 'ri-fire-fill', 'students': [s for s in students_list if s.sports_team == 'Team A']},
-        {'name': 'Team B (Blue Falcons)', 'key': 'Team B', 'badge_class': 'badge-team-b', 'icon': 'ri-flashlight-fill', 'students': [s for s in students_list if s.sports_team == 'Team B']},
-        {'name': 'Team C (Green Titans)', 'key': 'Team C', 'badge_class': 'badge-team-c', 'icon': 'ri-shield-flash-fill', 'students': [s for s in students_list if s.sports_team == 'Team C']},
-        {'name': 'Team D (Yellow Eagles)', 'key': 'Team D', 'badge_class': 'badge-team-d', 'icon': 'ri-sun-fill', 'students': [s for s in students_list if s.sports_team == 'Team D']},
-        {'name': 'Unassigned Students', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', 'students': [s for s in students_list if not s.sports_team or s.sports_team not in TEAMS]},
-    ]
-
-    # Calculate Breakdown Matrix (Team x Year x Batch)
-    team_stats = {
-        'Team A': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
-        'Team B': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
-        'Team C': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
-        'Team D': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
-        'Unassigned': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0, 'batchA': 0, 'batchB': 0},
+    # Calculate Matrix Summaries: Boys Division, Girls Division, and Combined
+    boys_stats = {
+        'Team A': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team B': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team C': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team D': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Unassigned': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
     }
 
-    all_students_all = Student.objects.all()
+    girls_stats = {
+        'Team A': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team B': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team C': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team D': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Unassigned': {'total': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+    }
+
+    combined_stats = {
+        'Team A': {'total': 0, 'boys': 0, 'girls': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team B': {'total': 0, 'boys': 0, 'girls': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team C': {'total': 0, 'boys': 0, 'girls': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Team D': {'total': 0, 'boys': 0, 'girls': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+        'Unassigned': {'total': 0, 'boys': 0, 'girls': 0, 'year1': 0, 'year2': 0, 'year3': 0, 'year4': 0},
+    }
+
+    all_students_all = get_ug_students()
+    
+    total_boys_count = 0
+    assigned_boys_count = 0
+    total_girls_count = 0
+    assigned_girls_count = 0
+
     for s in all_students_all:
         t_key = s.sports_team if s.sports_team in TEAMS else 'Unassigned'
         sem = s.current_semester or 1
-        yr = (sem + 1) // 2
+        yr = min(4, max(1, (sem + 1) // 2))
+        p_info = getattr(s, 'personalinfo', None)
+        gender = p_info.gender if (p_info and p_info.gender) else ''
 
-        team_stats[t_key]['total'] += 1
+        yr_field = f"year{yr}"
 
-        if yr == 1: team_stats[t_key]['year1'] += 1
-        elif yr == 2: team_stats[t_key]['year2'] += 1
-        elif yr == 3: team_stats[t_key]['year3'] += 1
-        elif yr >= 4: team_stats[t_key]['year4'] += 1
+        if gender == 'Male':
+            total_boys_count += 1
+            if t_key != 'Unassigned':
+                assigned_boys_count += 1
+            boys_stats[t_key]['total'] += 1
+            boys_stats[t_key][yr_field] += 1
+            combined_stats[t_key]['boys'] += 1
+        elif gender == 'Female':
+            total_girls_count += 1
+            if t_key != 'Unassigned':
+                assigned_girls_count += 1
+            girls_stats[t_key]['total'] += 1
+            girls_stats[t_key][yr_field] += 1
+            combined_stats[t_key]['girls'] += 1
 
-        if s.lab_batch == 'A': team_stats[t_key]['batchA'] += 1
-        elif s.lab_batch == 'B': team_stats[t_key]['batchB'] += 1
+        combined_stats[t_key]['total'] += 1
+        combined_stats[t_key][yr_field] += 1
 
-    team_stats_list = [
-        {'name': 'Team A (Red Dragons)', 'key': 'Team A', 'badge_class': 'badge-team-a', 'icon': 'ri-fire-fill', **team_stats['Team A']},
-        {'name': 'Team B (Blue Falcons)', 'key': 'Team B', 'badge_class': 'badge-team-b', 'icon': 'ri-flashlight-fill', **team_stats['Team B']},
-        {'name': 'Team C (Green Titans)', 'key': 'Team C', 'badge_class': 'badge-team-c', 'icon': 'ri-shield-flash-fill', **team_stats['Team C']},
-        {'name': 'Team D (Yellow Eagles)', 'key': 'Team D', 'badge_class': 'badge-team-d', 'icon': 'ri-sun-fill', **team_stats['Team D']},
-        {'name': 'Unassigned', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', **team_stats['Unassigned']},
+    boys_matrix_list = [
+        {'name': 'Team A (Red Dragons)', 'key': 'Team A', 'badge_class': 'badge-team-a', 'icon': 'ri-fire-fill', **boys_stats['Team A']},
+        {'name': 'Team B (Blue Falcons)', 'key': 'Team B', 'badge_class': 'badge-team-b', 'icon': 'ri-flashlight-fill', **boys_stats['Team B']},
+        {'name': 'Team C (Green Titans)', 'key': 'Team C', 'badge_class': 'badge-team-c', 'icon': 'ri-shield-flash-fill', **boys_stats['Team C']},
+        {'name': 'Team D (Yellow Eagles)', 'key': 'Team D', 'badge_class': 'badge-team-d', 'icon': 'ri-sun-fill', **boys_stats['Team D']},
+        {'name': 'Unassigned Boys', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', **boys_stats['Unassigned']},
+    ]
+
+    girls_matrix_list = [
+        {'name': 'Team A (Red Dragons)', 'key': 'Team A', 'badge_class': 'badge-team-a', 'icon': 'ri-fire-fill', **girls_stats['Team A']},
+        {'name': 'Team B (Blue Falcons)', 'key': 'Team B', 'badge_class': 'badge-team-b', 'icon': 'ri-flashlight-fill', **girls_stats['Team B']},
+        {'name': 'Team C (Green Titans)', 'key': 'Team C', 'badge_class': 'badge-team-c', 'icon': 'ri-shield-flash-fill', **girls_stats['Team C']},
+        {'name': 'Team D (Yellow Eagles)', 'key': 'Team D', 'badge_class': 'badge-team-d', 'icon': 'ri-sun-fill', **girls_stats['Team D']},
+        {'name': 'Unassigned Girls', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', **girls_stats['Unassigned']},
+    ]
+
+    combined_matrix_list = [
+        {'name': 'Team A (Red Dragons)', 'key': 'Team A', 'badge_class': 'badge-team-a', 'icon': 'ri-fire-fill', **combined_stats['Team A']},
+        {'name': 'Team B (Blue Falcons)', 'key': 'Team B', 'badge_class': 'badge-team-b', 'icon': 'ri-flashlight-fill', **combined_stats['Team B']},
+        {'name': 'Team C (Green Titans)', 'key': 'Team C', 'badge_class': 'badge-team-c', 'icon': 'ri-shield-flash-fill', **combined_stats['Team C']},
+        {'name': 'Team D (Yellow Eagles)', 'key': 'Team D', 'badge_class': 'badge-team-d', 'icon': 'ri-sun-fill', **combined_stats['Team D']},
+        {'name': 'Unassigned Students', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', **combined_stats['Unassigned']},
     ]
 
     return render(request, 'staff/hod_sports_teams.html', {
         'staff': staff,
-        'search_results': students_list,
         'team_choices': SPORTS_TEAM_CHOICES,
-        'team_stats_list': team_stats_list,
-        'sel_team': sel_team,
-        'sel_year': sel_year,
-        'sel_batch': sel_batch,
-        'search_q': search_q,
+        'boys_matrix_list': boys_matrix_list,
+        'girls_matrix_list': girls_matrix_list,
+        'combined_matrix_list': combined_matrix_list,
         'total_students_count': all_students_all.count(),
         'assigned_count': all_students_all.exclude(sports_team__isnull=True).exclude(sports_team='').count(),
+        'total_boys_count': total_boys_count,
+        'assigned_boys_count': assigned_boys_count,
+        'total_girls_count': total_girls_count,
+        'assigned_girls_count': assigned_girls_count,
     })
 
 
 def export_sports_teams(request):
     """
-    Excel (.xlsx) Export view for Sports Team Rosters with team color coding.
+    Excel (.xlsx) Export view for Sports Team Rosters with team color coding & separate Boys/Girls support.
+    Filtered strictly for UG current 1st, 2nd, 3rd, and 4th year students (Sem 1-8), excluding PG & PhD.
     """
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
@@ -9007,19 +9059,23 @@ def export_sports_teams(request):
     from django.http import HttpResponse
     from students.models import Student
 
+    sel_gender = request.GET.get('gender', '')
     sel_team = request.GET.get('team', '')
-    sel_year = request.GET.get('year', '')
-    sel_batch = request.GET.get('batch', '')
-    search_q = request.GET.get('search', '')
 
-    students_qs = Student.objects.all()
+    students_qs = Student.objects.select_related('personalinfo').filter(
+        current_semester__gte=1,
+        current_semester__lte=8
+    ).exclude(
+        program_level__in=['PG', 'PHD']
+    ).filter(
+        scholar_profile__isnull=True
+    )
 
-    if search_q:
-        students_qs = students_qs.filter(
-            Q(student_name__icontains=search_q) |
-            Q(roll_number__icontains=search_q) |
-            Q(register_number__icontains=search_q)
-        )
+    if sel_gender:
+        if sel_gender == 'Unspecified':
+            students_qs = students_qs.filter(Q(personalinfo__gender__isnull=True) | Q(personalinfo__gender=''))
+        else:
+            students_qs = students_qs.filter(personalinfo__gender=sel_gender)
 
     if sel_team:
         if sel_team == 'Unassigned':
@@ -9027,26 +9083,31 @@ def export_sports_teams(request):
         else:
             students_qs = students_qs.filter(sports_team=sel_team)
 
-    if sel_year:
-        try:
-            yr = int(sel_year)
-            min_sem = (yr - 1) * 2 + 1
-            max_sem = yr * 2
-            students_qs = students_qs.filter(current_semester__gte=min_sem, current_semester__lte=max_sem)
-        except ValueError:
-            pass
+    students_qs = students_qs.order_by('sports_team', 'personalinfo__gender', 'current_semester', 'roll_number')
 
-    if sel_batch:
-        if sel_batch == 'Unassigned':
-            students_qs = students_qs.filter(Q(lab_batch__isnull=True) | Q(lab_batch=''))
+    if sel_gender:
+        if sel_gender == 'Unspecified':
+            students_qs = students_qs.filter(Q(personalinfo__gender__isnull=True) | Q(personalinfo__gender=''))
         else:
-            students_qs = students_qs.filter(lab_batch=sel_batch)
+            students_qs = students_qs.filter(personalinfo__gender=sel_gender)
 
-    students_qs = students_qs.order_by('sports_team', 'current_semester', 'lab_batch', 'roll_number')
+    if sel_team:
+        if sel_team == 'Unassigned':
+            students_qs = students_qs.filter(Q(sports_team__isnull=True) | Q(sports_team=''))
+        else:
+            students_qs = students_qs.filter(sports_team=sel_team)
+
+    students_qs = students_qs.order_by('sports_team', 'personalinfo__gender', 'current_semester', 'roll_number')
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Sports Teams Roster"
+    
+    sheet_title = "Sports Teams Roster"
+    if sel_gender == 'Male':
+        sheet_title = "Boys Sports Roster"
+    elif sel_gender == 'Female':
+        sheet_title = "Girls Sports Roster"
+    ws.title = sheet_title
 
     # Styling definitions
     header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
@@ -9087,7 +9148,7 @@ def export_sports_teams(request):
         bottom=Side(style='thin', color='CBD5E1')
     )
 
-    headers = ['Roll Number', 'Register Number', 'Student Name', 'Academic Year', 'Semester', 'Lab Batch', 'Sports Team']
+    headers = ['Roll Number', 'Register Number', 'Student Name', 'Gender', 'Academic Year', 'Semester', 'Sports Team']
     ws.append(headers)
 
     # Style Header Row
@@ -9104,14 +9165,16 @@ def export_sports_teams(request):
         yr = (sem + 1) // 2
         team_key = s.sports_team if s.sports_team in team_styles else 'Unassigned'
         style_info = team_styles[team_key]
+        p_info = getattr(s, 'personalinfo', None)
+        gender_val = p_info.gender if (p_info and p_info.gender) else 'Unspecified'
 
         ws.append([
             str(s.roll_number or ''),
             str(s.register_number or ''),
             s.student_name,
+            gender_val,
             f"Year {yr}",
             f"Sem {sem}",
-            f"Batch {s.lab_batch}" if s.lab_batch else "Unassigned",
             style_info['label']
         ])
 
@@ -9136,10 +9199,17 @@ def export_sports_teams(request):
         col_letter = get_column_letter(col[0].column)
         ws.column_dimensions[col_letter].width = max(max_len + 4, 14)
 
+    filename = "sports_teams_roster"
+    if sel_gender == 'Male':
+        filename = "boys_sports_teams_roster"
+    elif sel_gender == 'Female':
+        filename = "girls_sports_teams_roster"
+    filename += ".xlsx"
+
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename="sports_teams_roster.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     wb.save(response)
     return response
 
@@ -9211,7 +9281,8 @@ def hod_club_create(request):
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
         category = request.POST.get('category', 'Technical')
-        staff_ic_id = request.POST.get('staff_incharge')
+        staff_ic_id = request.POST.get('staff_incharge_1') or request.POST.get('staff_incharge')
+        staff_ic2_id = request.POST.get('staff_incharge_2')
         sc1_id = request.POST.get('student_coordinator_1')
         sc2_id = request.POST.get('student_coordinator_2')
 
@@ -9224,11 +9295,13 @@ def hod_club_create(request):
             return redirect('staffs:hod_clubs_manage')
 
         staff_ic = Staff.objects.filter(id=staff_ic_id).first() if staff_ic_id else None
+        staff_ic2 = Staff.objects.filter(id=staff_ic2_id).first() if staff_ic2_id else None
         club = Club.objects.create(
             name=name,
             description=description,
             category=category,
-            staff_incharge=staff_ic
+            staff_incharge=staff_ic,
+            staff_incharge_2=staff_ic2
         )
 
         sc_ids = [s_id for s_id in [sc1_id, sc2_id] if s_id]
@@ -9244,7 +9317,7 @@ def hod_club_create(request):
 
 def hod_club_edit(request, club_id):
     """
-    HOD Action to Edit Club details, Staff IC, and Student Coordinators.
+    HOD Action to Edit Club details, Staff ICs (2), and Student Coordinators (2).
     """
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
@@ -9256,7 +9329,8 @@ def hod_club_edit(request, club_id):
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
         category = request.POST.get('category', 'Technical')
-        staff_ic_id = request.POST.get('staff_incharge')
+        staff_ic_id = request.POST.get('staff_incharge_1') or request.POST.get('staff_incharge')
+        staff_ic2_id = request.POST.get('staff_incharge_2')
         sc1_id = request.POST.get('student_coordinator_1')
         sc2_id = request.POST.get('student_coordinator_2')
 
@@ -9265,6 +9339,7 @@ def hod_club_edit(request, club_id):
         club.description = description
         club.category = category
         club.staff_incharge = Staff.objects.filter(id=staff_ic_id).first() if staff_ic_id else None
+        club.staff_incharge_2 = Staff.objects.filter(id=staff_ic2_id).first() if staff_ic2_id else None
         club.save()
 
         sc_ids = [s_id for s_id in [sc1_id, sc2_id] if s_id]

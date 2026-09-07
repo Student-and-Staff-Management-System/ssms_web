@@ -95,8 +95,10 @@ urlpatterns = [
     
     # Club Activities (Student & Coordinator)
     path('clubs/', views.student_clubs_view, name='student_clubs_view'),
+    path('clubs/<int:club_id>/join-request/', views.student_request_club_join, name='student_request_club_join'),
     path('clubs/<int:club_id>/coordinator/', views.coordinator_club_console, name='coordinator_club_console'),
-    path('clubs/<int:club_id>/add-member/', views.coordinator_add_member, name='coordinator_add_member'),
+    path('clubs/<int:club_id>/requests/<int:request_id>/approve/', views.coordinator_approve_request, name='coordinator_approve_request'),
+    path('clubs/<int:club_id>/requests/<int:request_id>/reject/', views.coordinator_reject_request, name='coordinator_reject_request'),
     path('clubs/<int:club_id>/remove-member/<str:student_id>/', views.coordinator_remove_member, name='coordinator_remove_member'),
     path('clubs/<int:club_id>/log-attendance/', views.coordinator_log_attendance, name='coordinator_log_attendance'),
     
