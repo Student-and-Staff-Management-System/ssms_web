@@ -463,8 +463,8 @@ def student_dashboard(request):
     ).order_by('-date', '-id')
 
     # Calculate Attendance (Current Semester Only)
-    total_classes = StudentAttendance.objects.filter(student=student, subject__semester=student.current_semester).count()
-    present_classes = StudentAttendance.objects.filter(student=student, subject__semester=student.current_semester, status='Present').count()
+    total_classes = StudentAttendance.objects.filter(student=student, subject__semester=student.current_semester).exclude(status='Holiday').count()
+    present_classes = StudentAttendance.objects.filter(student=student, subject__semester=student.current_semester, status__in=['Present', 'OD']).count()
     attendance_percentage = 0
     if total_classes > 0:
         attendance_percentage = round((present_classes / total_classes) * 100, 1)
@@ -483,8 +483,8 @@ def student_dashboard(request):
         subject_data = []
         for sub in current_subs:
             # Calculate Subject Attendance
-            sub_total = StudentAttendance.objects.filter(student=student, subject=sub).count()
-            sub_present = StudentAttendance.objects.filter(student=student, subject=sub, status='Present').count()
+            sub_total = StudentAttendance.objects.filter(student=student, subject=sub).exclude(status='Holiday').count()
+            sub_present = StudentAttendance.objects.filter(student=student, subject=sub, status__in=['Present', 'OD']).count()
             sub_attn = round((sub_present / sub_total) * 100, 1) if sub_total > 0 else 0
 
             try:
@@ -1221,20 +1221,22 @@ def student_attendance(request):
             student=student,
             subject=subject
         )
-        total_classes = attendance_entries.count()
-        present_count = attendance_entries.filter(status='Present').count()
+        total_classes = attendance_entries.exclude(status='Holiday').count()
+        present_count = attendance_entries.filter(status__in=['Present', 'OD']).count()
         absent_count = attendance_entries.filter(status='Absent').count()
+        holiday_count = attendance_entries.filter(status='Holiday').count()
         
         if total_classes > 0:
             percentage = (present_count / total_classes) * 100
         else:
-            percentage = 0
+            percentage = 100.0 if holiday_count > 0 else 0
             
         subject_data = {
             'subject': subject,
             'total_classes': total_classes,
             'present': present_count,
             'absent': absent_count,
+            'holiday': holiday_count,
             'percentage': round(percentage, 1),
             'status_color': 'success' if percentage >= 75 else ('warning' if percentage >= 65 else 'danger')
         }

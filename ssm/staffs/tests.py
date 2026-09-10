@@ -97,12 +97,15 @@ class LabManagementTestCase(TestCase):
         lab = Lab.objects.create(
             name="Web Tech Lab",
             short_name="IT-LAB-05",
-            staff=self.staff_member
+            staff=self.staff_member,
+            assistant_staff=self.hod
         )
         self.assertEqual(lab.name, "Web Tech Lab")
         self.assertEqual(lab.short_name, "IT-LAB-05")
         self.assertEqual(lab.staff, self.staff_member)
+        self.assertEqual(lab.assistant_staff, self.hod)
         self.assertIn(lab, self.staff_member.assigned_labs.all())
+        self.assertIn(lab, self.hod.assigned_assistant_labs.all())
 
     def test_hod_manage_labs_view_access(self):
         # Non-logged in users should redirect to login
@@ -128,39 +131,176 @@ class LabManagementTestCase(TestCase):
         session['staff_id'] = self.hod.staff_id
         session.save()
 
-        # 1. Create Lab via POST
+        # 1. Create Lab via POST with IC and Assistant
         post_data = {
             'action': 'create',
             'name': 'New OS Lab',
             'short_name': 'OS-LAB-10',
-            'staff_id': self.staff_member.staff_id
+            'staff_id': self.hod.staff_id,
+            'assistant_staff_id': self.staff_member.staff_id
         }
         response = self.client.post(reverse('staffs:hod_manage_labs'), post_data)
         self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
         self.assertTrue(Lab.objects.filter(short_name='OS-LAB-10').exists())
         lab = Lab.objects.get(short_name='OS-LAB-10')
         self.assertEqual(lab.name, 'New OS Lab')
-        self.assertEqual(lab.staff, self.staff_member)
+        self.assertEqual(lab.staff, self.hod)
+        self.assertEqual(lab.assistant_staff, self.staff_member)
 
-        # 2. Edit Lab via POST
+        # 2. Edit Lab via POST (Unassign Assistant)
         edit_data = {
             'action': 'edit',
             'lab_id': lab.id,
             'name': 'Updated OS Lab',
             'short_name': 'OS-LAB-11',
-            'staff_id': '' # Unassign
+            'staff_id': self.hod.staff_id,
+            'assistant_staff_id': '' # Unassign
         }
         response = self.client.post(reverse('staffs:hod_manage_labs'), edit_data)
         self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
         lab.refresh_from_db()
         self.assertEqual(lab.name, 'Updated OS Lab')
         self.assertEqual(lab.short_name, 'OS-LAB-11')
-        self.assertIsNone(lab.staff)
+        self.assertIsNone(lab.assistant_staff)
 
         # 3. Delete Lab via GET delete route
         response = self.client.get(reverse('staffs:hod_delete_lab', args=[lab.id]))
         self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
         self.assertFalse(Lab.objects.filter(id=lab.id).exists())
+
+    def test_lab_assistant_timetable_and_attendance_restriction(self):
+        lab = Lab.objects.create(
+            name="Data Science Lab",
+            short_name="DS-LAB-01",
+            staff=self.hod,
+            assistant_staff=self.staff_member
+        )
+        subject = Subject.objects.create(
+            name="Data Structures Lab",
+            code="CS501L",
+            semester=5,
+            subject_type="Lab",
+            staff=self.hod,
+            lab=lab
+        )
+        Timetable.objects.create(
+            academic_year="2026-2027",
+            semester=5,
+            day="Monday",
+            period=1,
+            subject=subject,
+            staff=self.hod
+        )
+
+        # Log in as Assistant Staff
+        session = self.client.session
+        session['staff_id'] = self.staff_member.staff_id
+        session.save()
+
+        # Check My Timetable includes the lab where user is Assistant
+        response = self.client.get(reverse('staffs:my_timetable'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("CS501L", response.content.decode())
+        self.assertIn("Lab Assistant", response.content.decode())
+
+        # Check manage_attendance access is BLOCKED for Lab Assistant
+        att_response = self.client.get(reverse('staffs:manage_attendance', args=[subject.id]))
+        self.assertRedirects(att_response, reverse('staffs:staff_dashboard'))
+
+    def test_subject_level_assistant_staff_assignment(self):
+        subject = Subject.objects.create(
+            name="3-Hour Advanced Lab",
+            code="IT505L",
+            semester=5,
+            subject_type="Lab",
+            staff=self.hod,
+            assistant_staff=self.staff_member
+        )
+        Timetable.objects.create(
+            academic_year="2026-2027",
+            semester=5,
+            day="Tuesday",
+            period=1,
+            subject=subject,
+            staff=self.hod
+        )
+
+        session = self.client.session
+        session['staff_id'] = self.staff_member.staff_id
+        session.save()
+
+        # Check Assistant timetable displays subject
+        response = self.client.get(reverse('staffs:my_timetable'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("IT505L", response.content.decode())
+        self.assertIn("Lab Assistant", response.content.decode())
+
+        # Check attendance marking blocked for Assistant staff
+        att_response = self.client.get(reverse('staffs:manage_attendance', args=[subject.id]))
+        self.assertRedirects(att_response, reverse('staffs:staff_dashboard'))
+
+    def test_dual_assistant_staff_assignment(self):
+        # Create a second assistant staff
+        asst_b = Staff.objects.create(
+            staff_id="ASST02",
+            name="Assistant Two",
+            email="asst2@example.com",
+            role="Technical Officer",
+            is_active=True
+        )
+        subject = Subject.objects.create(
+            name="Network Security Lab",
+            code="CS508L",
+            semester=5,
+            subject_type="Lab",
+            staff=self.hod,
+            staff_batch_b=self.hod,
+            assistant_staff=self.staff_member,
+            assistant_staff_batch_b=asst_b
+        )
+        self.assertEqual(subject.assistant_staff, self.staff_member)
+        self.assertEqual(subject.assistant_staff_batch_b, asst_b)
+
+        # Log in as Assistant B
+        session = self.client.session
+        session['staff_id'] = asst_b.staff_id
+        session.save()
+
+        # Attendance check blocked for Assistant B as well
+        att_response = self.client.get(reverse('staffs:manage_attendance', args=[subject.id]))
+        self.assertRedirects(att_response, reverse('staffs:staff_dashboard'))
+
+    def test_multi_period_lab_uniform_color_slot(self):
+        subject = Subject.objects.create(
+            name="3-Hour Web Tech Lab",
+            code="6IT10",
+            semester=6,
+            subject_type="Lab",
+            staff=self.hod,
+            assistant_staff=self.staff_member
+        )
+        # Create 3 period slots for this Lab on Tuesday (Periods 5, 6, 7)
+        for p in [5, 6, 7]:
+            Timetable.objects.create(
+                academic_year="2026-2027",
+                semester=6,
+                day="Tuesday",
+                period=p,
+                subject=subject,
+                staff=self.hod
+            )
+
+        session = self.client.session
+        session['staff_id'] = self.staff_member.staff_id
+        session.save()
+
+        response = self.client.get(reverse('staffs:my_timetable'))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        # Verify that period-slot-5 is used for all 3 lab periods and period-slot-6/7 are not assigned to table cells
+        self.assertEqual(html.count("my-period period-slot-5"), 3)
+        self.assertNotIn("my-period period-slot-6", html)
+        self.assertNotIn("my-period period-slot-7", html)
 
     def test_hod_create_edit_delete_class_mapping(self):
         session = self.client.session
@@ -199,6 +339,110 @@ class LabManagementTestCase(TestCase):
         response = self.client.get(reverse('staffs:hod_delete_class_mapping', args=[cm.id]))
         self.assertRedirects(response, reverse('staffs:hod_manage_labs'))
         self.assertFalse(ClassMapping.objects.filter(id=cm.id).exists())
+
+    def test_academic_calendar_override_working_saturday(self):
+        from staffs.models import AcademicCalendarOverride
+        from staffs.utils import get_effective_day_order
+        import datetime
+
+        sat_date = datetime.date(2026, 9, 12)  # A Saturday
+        override = AcademicCalendarOverride.objects.create(
+            date=sat_date,
+            day_type='WorkingDay',
+            day_order='Monday',
+            title='Working Saturday (Monday Order)'
+        )
+
+        day_name, is_hol, is_sat, ov = get_effective_day_order(sat_date)
+        self.assertEqual(day_name, 'Monday')
+        self.assertFalse(is_hol)
+        self.assertTrue(is_sat)
+        self.assertEqual(ov, override)
+
+    def test_mark_as_holiday_in_attendance(self):
+        from students.models import Student, StudentAttendance
+        from staffs.models import Subject, Timetable
+        import datetime
+
+        student = Student.objects.create(
+            roll_number="2026TEST01",
+            student_name="Test Student",
+            student_email="teststudent@example.com",
+            current_semester=5
+        )
+        subject = Subject.objects.create(
+            name="Cloud Computing",
+            code="CS509",
+            semester=5,
+            subject_type="Theory",
+            staff=self.hod
+        )
+        Timetable.objects.create(
+            academic_year="2026-2027",
+            semester=5,
+            day="Monday",
+            period=1,
+            subject=subject,
+            staff=self.hod
+        )
+
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        test_date = datetime.date(2026, 9, 7)  # Monday
+        post_data = {
+            'attendance_date': test_date.strftime('%Y-%m-%d'),
+            'mark_as_holiday': 'true'
+        }
+        response = self.client.post(reverse('staffs:manage_attendance', args=[subject.id]), post_data)
+        self.assertEqual(response.status_code, 302)
+
+        att = StudentAttendance.objects.filter(student=student, subject=subject, date=test_date).first()
+        self.assertIsNotNone(att)
+        self.assertEqual(att.status, 'Holiday')
+
+    def test_attendance_calculation_excludes_holidays(self):
+        from students.models import Student, StudentAttendance
+        from staffs.models import Subject
+        import datetime
+
+        student = Student.objects.create(
+            roll_number="2026TEST02",
+            student_name="Test Student Two",
+            student_email="teststudent2@example.com",
+            current_semester=5
+        )
+        subject = Subject.objects.create(
+            name="Data Science",
+            code="CS510",
+            semester=5,
+            subject_type="Theory",
+            staff=self.hod
+        )
+
+        # Create 1 Present attendance record and 1 Holiday attendance record
+        StudentAttendance.objects.create(
+            student=student,
+            subject=subject,
+            date=datetime.date(2026, 9, 1),
+            status='Present'
+        )
+        StudentAttendance.objects.create(
+            student=student,
+            subject=subject,
+            date=datetime.date(2026, 9, 2),
+            status='Holiday'
+        )
+
+        attendances = StudentAttendance.objects.filter(student=student, subject=subject)
+        total_conducted = attendances.exclude(status='Holiday').count()
+        presents = attendances.filter(status__in=['Present', 'OD']).count()
+        percentage = round((presents / total_conducted) * 100, 2)
+
+        self.assertEqual(total_conducted, 1)
+        self.assertEqual(presents, 1)
+        self.assertEqual(percentage, 100.0)
 
     def test_subject_location_assignment_and_live_visualisation(self):
         session = self.client.session

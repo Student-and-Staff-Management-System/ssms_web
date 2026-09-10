@@ -72,10 +72,15 @@ urlpatterns = [
     path('staff/list/', views.staff_list, name='staff_list'),
     path('staff/<str:staff_id>/profile/', views.view_faculty_profile, name='view_faculty_profile'),
     
-    # Class Substitutions
+    # Class Substitutions & Hour Swapping
     path('substitutions/manage/', views.manage_substitutions, name='manage_substitutions'),
     path('substitutions/incoming/', views.incoming_substitutions, name='incoming_substitutions'),
     path('substitutions/assigned/', views.assigned_substitutions, name='assigned_substitutions'),
+    path('hour-swap/manage/', views.manage_hour_swaps, name='manage_hour_swaps'),
+    path('hour-swap/incoming/', views.incoming_hour_swaps, name='incoming_hour_swaps'),
+    # Staff Notifications Panel
+    path('notifications/read/<int:notif_id>/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
     
     # Passed Out Students
     path('assign-batches/', views.assign_lab_batches, name='assign_lab_batches'),
@@ -108,6 +113,7 @@ urlpatterns = [
     path('staff/update-roles/<str:staff_id>/', views.update_staff_roles, name='update_staff_roles'),
     path('hod/manage-labs/', views.hod_manage_labs, name='hod_manage_labs'),
     path('hod/manage-labs/delete/<int:lab_id>/', views.hod_delete_lab, name='hod_delete_lab'),
+    path('academic-calendar/', views.academic_calendar_console, name='academic_calendar_console'),
     path('hod/manage-class-mapping/delete/<int:class_id>/', views.hod_delete_class_mapping, name='hod_delete_class_mapping'),
     path('hod/live-class-visualisation/', views.hod_live_class_visualisation, name='hod_live_class_visualisation'),
     

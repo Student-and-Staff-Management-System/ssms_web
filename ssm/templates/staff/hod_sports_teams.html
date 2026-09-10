@@ -72,6 +72,15 @@
         color: white;
     }
 
+    .btn-assign-unassigned {
+        background: #059669;
+        color: white;
+    }
+    .btn-assign-unassigned:hover {
+        background: #047857;
+        color: white;
+    }
+
     .btn-export-boys {
         background: #2563eb;
         color: white;
@@ -379,6 +388,19 @@
         </div>
 
         <div class="header-actions">
+            {% if unassigned_count > 0 %}
+            <!-- Hidden Assign Unassigned Form -->
+            <form id="assignUnassignedForm" method="POST" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="assign_unassigned">
+            </form>
+            
+            <!-- Assign Unassigned Trigger Button -->
+            <button type="button" class="btn-action btn-assign-unassigned" onclick="document.getElementById('assignUnassignedForm').submit();" title="Assign unassigned students without disturbing existing team assignments">
+                <i class="ri-user-add-line"></i> Assign Unassigned ({{ unassigned_count }})
+            </button>
+            {% endif %}
+
             <!-- Hidden Shuffle Form -->
             <form id="shuffleForm" method="POST" style="display: none;">
                 {% csrf_token %}

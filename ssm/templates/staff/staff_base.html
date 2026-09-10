@@ -345,6 +345,174 @@
             display: block !important;
         }
 
+        /* Universal Staff Notification Panel */
+        .notif-bell-btn {
+            background: var(--bg-body, #f8fafc);
+            border: 1px solid var(--border, #e2e8f0);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .notif-bell-btn:hover {
+            background: var(--primary-light, #eef2f2);
+            border-color: var(--primary, #5a7d7c);
+        }
+
+        .notif-badge-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+            animation: pulseNotif 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseNotif {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+        }
+
+        .notif-dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            width: 350px;
+            max-width: 90vw;
+            background: var(--surface, #ffffff);
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 16px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+            display: none;
+            z-index: 1090;
+            overflow: hidden;
+        }
+
+        .notif-dropdown-menu.open-dropdown {
+            display: block !important;
+        }
+
+        .notif-dropdown-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-body, #f8fafc);
+        }
+
+        body.dark-theme .notif-dropdown-header {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .btn-mark-all-read {
+            background: none;
+            border: none;
+            color: var(--primary, #5a7d7c);
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-mark-all-read:hover {
+            text-decoration: underline;
+        }
+
+        .notif-list-container {
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .notif-item-link {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            text-decoration: none;
+            color: var(--text-main, #0f172a);
+            transition: background 0.18s ease;
+        }
+
+        .notif-item-link:hover {
+            background: var(--surface-hover, #f1f5f9);
+        }
+
+        .notif-item-link.unread-notif {
+            background: var(--primary-light, #eef2f2);
+        }
+
+        body.dark-theme .notif-item-link.unread-notif {
+            background: rgba(90, 125, 124, 0.12);
+        }
+
+        .notif-icon-col {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: var(--primary-light, #eef2f2);
+            color: var(--primary-dark, #4a6b69);
+        }
+
+        .notif-title-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            line-height: 1.25;
+            color: var(--text-main, #0f172a);
+        }
+
+        .notif-message-text {
+            font-size: 0.78rem;
+            color: var(--text-secondary, #475569);
+            margin-top: 3px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .notif-time-text {
+            font-size: 0.7rem;
+            color: var(--text-muted, #64748b);
+            margin-top: 4px;
+        }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .notif-empty-box {
+            padding: 30px 16px;
+            text-align: center;
+        }
+
         .brand-title {
             white-space: nowrap;
         }
@@ -617,6 +785,61 @@
                 </a>
                 {% endif %}
 
+                <!-- Universal Staff Notifications Dropdown -->
+                <div style="position: relative; flex-shrink: 0;">
+                    <button onclick="toggleNotificationMenu()" class="notif-bell-btn" title="Notifications" aria-label="Notifications">
+                        <i class="ri-notification-3-line" style="font-size: 1.15rem; color: var(--text-main);"></i>
+                        {% if unread_notifications_count %}
+                        <span class="notif-badge-count" id="notifBadgeCount">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </button>
+
+                    <!-- Notifications Dropdown Panel -->
+                    <div class="notif-dropdown-menu" id="notificationDropdown">
+                        <div class="notif-dropdown-header">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="ri-notification-3-fill" style="color: var(--primary, #5a7d7c);"></i>
+                                <span style="font-weight: 700; font-size: 0.92rem; color: var(--text-main);">Notifications</span>
+                            </div>
+                            {% if unread_notifications_count %}
+                            <button onclick="markAllNotificationsAsRead()" class="btn-mark-all-read" title="Mark all as read">
+                                <i class="ri-check-double-line"></i> Mark read
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="notif-list-container">
+                            {% if staff_recent_notifications %}
+                                {% for n in staff_recent_notifications %}
+                                <a href="{% url 'staffs:mark_notification_read' n.id %}" class="notif-item-link {% if not n.is_read %}unread-notif{% endif %}">
+                                    <div class="notif-icon-col">
+                                        {% if n.notification_type == 'hour_swap' %}<i class="ri-swap-box-line"></i>
+                                        {% elif n.notification_type == 'substitution' %}<i class="ri-user-shared-line"></i>
+                                        {% elif n.notification_type == 'leave' %}<i class="ri-send-plane-line"></i>
+                                        {% elif n.notification_type == 'bonafide' %}<i class="ri-award-line"></i>
+                                        {% elif n.notification_type == 'document' %}<i class="ri-folder-user-line"></i>
+                                        {% elif n.notification_type == 'portfolio' %}<i class="ri-checkbox-circle-line"></i>
+                                        {% else %}<i class="ri-notification-line"></i>{% endif %}
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div class="notif-title-text">{{ n.title }}</div>
+                                        <div class="notif-message-text">{{ n.message }}</div>
+                                        <div class="notif-time-text">{{ n.created_at|timesince }} ago</div>
+                                    </div>
+                                    {% if not n.is_read %}
+                                    <span class="unread-dot"></span>
+                                    {% endif %}
+                                </a>
+                                {% endfor %}
+                            {% else %}
+                                <div class="notif-empty-box">
+                                    <i class="ri-notification-off-line" style="font-size: 1.8rem; color: var(--text-muted);"></i>
+                                    <p style="margin-top: 6px; font-size: 0.84rem; color: var(--text-muted);">No new notifications.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Profile Trigger -->
                 <div style="position: relative; flex-shrink: 0;">
                     <button onclick="toggleProfileMenu()" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px;">
@@ -689,6 +912,9 @@
                 <a href="{% url 'staffs:my_timetable' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-calendar-schedule-line"></i></span> <span class="title">My Timetable</span>
                 </a>
+                <a href="{% url 'staffs:academic_calendar_console' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-calendar-event-line"></i></span> <span class="title">Academic Calendar</span>
+                </a>
                 <a href="{% url 'staffs:overall_attendance_calendar' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Attendance Calendar</span>
                 </a>
@@ -710,9 +936,16 @@
                 <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-user-shared-line"></i></span> <span class="title">Request Alternate</span>
                 </a>
+                <a href="{% url 'staffs:manage_hour_swaps' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-swap-box-line"></i></span> <span class="title">Mutual Hour Swap</span>
+                    {% if pending_hour_swaps_count %}
+                    <span class="badge">{{ pending_hour_swaps_count }}</span>
+                    {% endif %}
+                </a>
                 <a href="{% url 'staffs:incoming_substitutions' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-inbox-archive-line"></i></span> <span class="title">Incoming Requests</span>
                 </a>
+
                 <a href="{% url 'staffs:assigned_substitutions' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-presentation-line"></i></span> <span class="title">Assigned Classes</span>
                 </a>
@@ -996,6 +1229,8 @@
                 closeAllDropdowns();
                 const profileDropdown = document.getElementById('profileDropdown');
                 if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
+                const notifDropdown = document.getElementById('notificationDropdown');
+                if (notifDropdown) notifDropdown.classList.remove('open-dropdown');
                 return;
             }
 
@@ -1009,15 +1244,46 @@
                 closeAllDropdowns();
                 const profileDropdown = document.getElementById('profileDropdown');
                 if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
+                const notifDropdown = document.getElementById('notificationDropdown');
+                if (notifDropdown) notifDropdown.classList.remove('open-dropdown');
             }
         });
 
         // Toggle User Profile Dropdown
         function toggleProfileMenu() {
+            const notifMenu = document.getElementById('notificationDropdown');
+            if (notifMenu) notifMenu.classList.remove('open-dropdown');
             const menu = document.getElementById('profileDropdown');
             if (menu) {
                 menu.classList.toggle('open-dropdown');
             }
+        }
+
+        // Toggle Notifications Dropdown
+        function toggleNotificationMenu() {
+            const profileDropdown = document.getElementById('profileDropdown');
+            if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
+            const notifMenu = document.getElementById('notificationDropdown');
+            if (notifMenu) {
+                notifMenu.classList.toggle('open-dropdown');
+            }
+        }
+
+        function markAllNotificationsAsRead() {
+            fetch("{% url 'staffs:mark_all_notifications_read' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(res => res.json()).then(data => {
+                if (data.status === 'success') {
+                    const badge = document.getElementById('notifBadgeCount');
+                    if (badge) badge.style.display = 'none';
+                    document.querySelectorAll('.unread-notif').forEach(el => el.classList.remove('unread-notif'));
+                    document.querySelectorAll('.unread-dot').forEach(el => el.remove());
+                }
+            }).catch(err => console.error(err));
         }
 
         // Search Portal Tools

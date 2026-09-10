@@ -549,6 +549,29 @@
             color: #7f1d1d;
         }
 
+        /* Card Holiday State */
+        .student-card.holiday {
+            background: #fff5f5;
+            border-color: #fecaca;
+        }
+        .student-card.holiday .status-pill-badge {
+            background: #dc2626;
+            color: #ffffff;
+        }
+        .student-card.holiday .st-roll {
+            color: #991b1b;
+        }
+
+        /* Card OD State */
+        .student-card.od {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+        .student-card.od .status-pill-badge {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
         /* Card Unmarked State */
         .student-card.unmarked .status-pill-badge {
             background: #e2e8f0;
@@ -910,6 +933,7 @@
             </div>
 
             <div class="att-header-actions">
+                <a href="{% url 'staffs:academic_calendar_console' %}" class="btn-action btn-calendar"><i class="ri-calendar-event-line"></i> Academic Calendar</a>
                 <a href="{% url 'staffs:attendance_calendar' subject.id %}" class="btn-action btn-calendar"><i class="ri-calendar-line"></i> Calendar</a>
                 <a href="{% url 'staffs:overall_attendance_calendar' %}?subject_id={{ subject.id }}" class="btn-action btn-report"><i class="ri-global-line"></i> Overall Calendar</a>
                 <a href="{% url 'staffs:attendance_report' subject.id %}" class="btn-action btn-report"><i class="ri-bar-chart-fill"></i> View Report</a>
@@ -921,6 +945,16 @@
         {% for message in messages %}
         <div class="messages {{ message.tags }}">{{ message }}</div>
         {% endfor %}
+        {% endif %}
+
+        {% if is_calendar_holiday %}
+        <div class="messages" style="background: #fef2f2; color: #991b1b; border: 1.5px solid #fecaca; padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <span><i class="ri-umbrella-line"></i> <strong>Academic Calendar Holiday:</strong> Today ({{ current_date }}) is configured as a <strong>Holiday ({% if calendar_override %}{{ calendar_override.title }}{% else %}Institute Leave{% endif %})</strong>. Sessions marked as Holiday are excluded from attendance calculations.</span>
+        </div>
+        {% elif is_working_saturday %}
+        <div class="messages" style="background: #eff6ff; color: #1e40af; border: 1.5px solid #bfdbfe; padding: 12px 16px; border-radius: 10px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <span><i class="ri-calendar-check-line"></i> <strong>Special Working Day Order:</strong> Today is a <strong>Working Saturday following {{ day_name }} Order</strong> ({{ calendar_override.title }}). Scheduled {{ day_name }} timetable entries apply today.</span>
+        </div>
         {% endif %}
 
         {% if is_upcoming %}
@@ -940,12 +974,12 @@
             <div class="session-date-info">
                 <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
                     <span style="font-size: 1.1rem;">📅</span>
-                    <h3 class="session-date-title">Recording for {{ current_date }}{% if current_period %} • {{ current_period.label }}{% endif %}</h3>
+                    <h3 class="session-date-title">Recording for {{ current_date }}{% if is_working_saturday %} ({{ day_name }} Order){% endif %}{% if current_period %} • {{ current_period.label }}{% endif %}</h3>
                 </div>
 
                 {% if today_periods %}
                 <div class="period-quick-bar">
-                    <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Today's Periods:</span>
+                    <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Scheduled Periods:</span>
                     {% for p in today_periods %}
                     <a href="{{ p.url }}" class="period-tab-chip {{ p.status_class }} {% if p.is_selected %}active{% endif %}" title="{{ p.label }}">
                         {{ p.badge }} ({{ p.start }}–{{ p.end }}) • {{ p.status_badge }}
@@ -1015,6 +1049,7 @@
                     <button type="button" class="btn-bulk-fast btn-bulk-pres" onclick="markAllVisible('Present')" title="Mark visible students as Present">✅ Mark All Present</button>
                     <button type="button" class="btn-bulk-fast btn-bulk-abs" onclick="markAllVisible('Absent')" title="Mark visible students as Absent">❌ Mark All Absent</button>
                     <button type="button" class="btn-bulk-fast btn-bulk-clear" onclick="clearAllVisible()" title="Clear attendance selections for visible students">🧹 Clear Attendance</button>
+                    <button type="submit" name="mark_as_holiday" value="true" class="btn-bulk-fast" style="color: #991b1b; background: #fef2f2; border-color: #fecaca;" onclick="return confirm('Mark this class session as a Holiday for all students? It will be excluded from attendance calculations.');" title="Mark session as Holiday (excluded from attendance calculation)">🏖️ Mark as Holiday</button>
                 </div>
             </div>
 
@@ -1023,11 +1058,11 @@
                 <div class="student-grid" id="studentGrid">
                     {% for student in students %}
                     {% with status=attendance_map|get_item:student.roll_number|default:'' %}
-                    <div class="student-card {% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% else %}unmarked{% endif %}"
+                    <div class="student-card {% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% elif status == 'Holiday' %}holiday{% elif status == 'OD' %}od{% else %}unmarked{% endif %}"
                          id="card_{{ student.roll_number }}"
                          data-roll="{{ student.roll_number|lower }}"
                          data-name="{{ student.student_name|lower }}"
-                         data-status="{% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% else %}unmarked{% endif %}"
+                         data-status="{% if status == 'Present' %}present{% elif status == 'Absent' %}absent{% elif status == 'Holiday' %}holiday{% elif status == 'OD' %}od{% else %}unmarked{% endif %}"
                          onclick="toggleAttendance('{{ student.roll_number }}')">
 
                         <div class="st-roll">{{ student.roll_number }}</div>
@@ -1040,9 +1075,15 @@
                         <input type="radio" name="status_{{ student.roll_number }}" value="Absent"
                             id="radio_absent_{{ student.roll_number }}" {% if status == 'Absent' %}checked{% endif%}
                             style="display:none;">
+                        <input type="radio" name="status_{{ student.roll_number }}" value="Holiday"
+                            id="radio_holiday_{{ student.roll_number }}" {% if status == 'Holiday' %}checked{% endif%}
+                            style="display:none;">
+                        <input type="radio" name="status_{{ student.roll_number }}" value="OD"
+                            id="radio_od_{{ student.roll_number }}" {% if status == 'OD' %}checked{% endif%}
+                            style="display:none;">
 
                         <div class="status-pill-badge" id="badge_{{ student.roll_number }}">
-                            {% if status == 'Present' %}✅ Present{% elif status == 'Absent' %}❌ Absent{% else %}⚪ Unmarked{% endif %}
+                            {% if status == 'Present' %}✅ Present{% elif status == 'Absent' %}❌ Absent{% elif status == 'Holiday' %}🏖️ Holiday{% elif status == 'OD' %}🎖️ OD{% else %}⚪ Unmarked{% endif %}
                         </div>
                     </div>
                     {% endwith %}

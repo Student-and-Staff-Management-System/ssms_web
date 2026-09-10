@@ -361,6 +361,10 @@
                 <span>Your assigned period</span>
             </div>
             <div class="legend-item">
+                <div class="legend-dot" style="background: #f59e0b;"></div>
+                <span>Lab Assistant duty</span>
+            </div>
+            <div class="legend-item">
                 <div class="legend-dot dot-today"></div>
                 <span>Today's row</span>
             </div>
@@ -394,21 +398,51 @@
 
                         <!-- Period 1 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.0 and periods.0.is_mine %}my-period period-slot-1{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.0 and periods.0.is_mine %}my-period {{ periods.0.slot_class|default:'period-slot-1' }}{% endif %}">
                             {% with p=periods.0 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
                             <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
+                            {% if p.is_assistant_only %}
+                            <span class="asst-badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; font-size:0.65rem; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block;" title="Assigned as Lab Assistant">
+                                <i class="ri-user-star-line"></i> Assistant
+                            </span>
+                            {% elif p.subject.subject_type == 'Lab' %}
+                                {% if p.subject.assistant_staff or p.subject.assistant_staff_batch_b or p.subject.lab.assistant_staff %}
+                                <span style="font-size: 0.65rem; color: #475569; display: block; margin-top: 2px; font-weight: 500;">
+                                    {% if p.subject.assistant_staff and p.subject.assistant_staff_batch_b and p.subject.assistant_staff_id != p.subject.assistant_staff_batch_b_id %}
+                                        Asst: A: {{ p.subject.assistant_staff.name }} | B: {{ p.subject.assistant_staff_batch_b.name }}
+                                    {% else %}
+                                        Asst: {% if p.subject.assistant_staff %}{{ p.subject.assistant_staff.name }}{% elif p.subject.assistant_staff_batch_b %}{{ p.subject.assistant_staff_batch_b.name }}{% elif p.subject.lab %}{{ p.subject.lab.assistant_staff.name }}{% endif %}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% endif %}
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
                         <!-- Period 2 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.1 and periods.1.is_mine %}my-period period-slot-2{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.1 and periods.1.is_mine %}my-period {{ periods.1.slot_class|default:'period-slot-2' }}{% endif %}">
                             {% with p=periods.1 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
                             <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
+                            {% if p.is_assistant_only %}
+                            <span class="asst-badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; font-size:0.65rem; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block;" title="Assigned as Lab Assistant">
+                                <i class="ri-user-star-line"></i> Assistant
+                            </span>
+                            {% elif p.subject.subject_type == 'Lab' %}
+                                {% if p.subject.assistant_staff or p.subject.assistant_staff_batch_b or p.subject.lab.assistant_staff %}
+                                <span style="font-size: 0.65rem; color: #475569; display: block; margin-top: 2px; font-weight: 500;">
+                                    {% if p.subject.assistant_staff and p.subject.assistant_staff_batch_b and p.subject.assistant_staff_id != p.subject.assistant_staff_batch_b_id %}
+                                        Asst: A: {{ p.subject.assistant_staff.name }} | B: {{ p.subject.assistant_staff_batch_b.name }}
+                                    {% else %}
+                                        Asst: {% if p.subject.assistant_staff %}{{ p.subject.assistant_staff.name }}{% elif p.subject.assistant_staff_batch_b %}{{ p.subject.assistant_staff_batch_b.name }}{% elif p.subject.lab %}{{ p.subject.lab.assistant_staff.name }}{% endif %}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% endif %}
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -416,21 +450,51 @@
 
                         <!-- Period 3 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.2 and periods.2.is_mine %}my-period period-slot-3{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.2 and periods.2.is_mine %}my-period {{ periods.2.slot_class|default:'period-slot-3' }}{% endif %}">
                             {% with p=periods.2 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
                             <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
+                            {% if p.is_assistant_only %}
+                            <span class="asst-badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; font-size:0.65rem; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block;" title="Assigned as Lab Assistant">
+                                <i class="ri-user-star-line"></i> Assistant
+                            </span>
+                            {% elif p.subject.subject_type == 'Lab' %}
+                                {% if p.subject.assistant_staff or p.subject.assistant_staff_batch_b or p.subject.lab.assistant_staff %}
+                                <span style="font-size: 0.65rem; color: #475569; display: block; margin-top: 2px; font-weight: 500;">
+                                    {% if p.subject.assistant_staff and p.subject.assistant_staff_batch_b and p.subject.assistant_staff_id != p.subject.assistant_staff_batch_b_id %}
+                                        Asst: A: {{ p.subject.assistant_staff.name }} | B: {{ p.subject.assistant_staff_batch_b.name }}
+                                    {% else %}
+                                        Asst: {% if p.subject.assistant_staff %}{{ p.subject.assistant_staff.name }}{% elif p.subject.assistant_staff_batch_b %}{{ p.subject.assistant_staff_batch_b.name }}{% elif p.subject.lab %}{{ p.subject.lab.assistant_staff.name }}{% endif %}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% endif %}
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
                         <!-- Period 4 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.3 and periods.3.is_mine %}my-period period-slot-4{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.3 and periods.3.is_mine %}my-period {{ periods.3.slot_class|default:'period-slot-4' }}{% endif %}">
                             {% with p=periods.3 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
                             <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
+                            {% if p.is_assistant_only %}
+                            <span class="asst-badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; font-size:0.65rem; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block;" title="Assigned as Lab Assistant">
+                                <i class="ri-user-star-line"></i> Assistant
+                            </span>
+                            {% elif p.subject.subject_type == 'Lab' %}
+                                {% if p.subject.assistant_staff or p.subject.assistant_staff_batch_b or p.subject.lab.assistant_staff %}
+                                <span style="font-size: 0.65rem; color: #475569; display: block; margin-top: 2px; font-weight: 500;">
+                                    {% if p.subject.assistant_staff and p.subject.assistant_staff_batch_b and p.subject.assistant_staff_id != p.subject.assistant_staff_batch_b_id %}
+                                        Asst: A: {{ p.subject.assistant_staff.name }} | B: {{ p.subject.assistant_staff_batch_b.name }}
+                                    {% else %}
+                                        Asst: {% if p.subject.assistant_staff %}{{ p.subject.assistant_staff.name }}{% elif p.subject.assistant_staff_batch_b %}{{ p.subject.assistant_staff_batch_b.name }}{% elif p.subject.lab %}{{ p.subject.lab.assistant_staff.name }}{% endif %}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% endif %}
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
@@ -438,31 +502,76 @@
 
                         <!-- Period 5 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.4 and periods.4.is_mine %}my-period period-slot-5{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.4 and periods.4.is_mine %}my-period {{ periods.4.slot_class|default:'period-slot-5' }}{% endif %}">
                             {% with p=periods.4 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
                             <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
+                            {% if p.is_assistant_only %}
+                            <span class="asst-badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; font-size:0.65rem; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block;" title="Assigned as Lab Assistant">
+                                <i class="ri-user-star-line"></i> Assistant
+                            </span>
+                            {% elif p.subject.subject_type == 'Lab' %}
+                                {% if p.subject.assistant_staff or p.subject.assistant_staff_batch_b or p.subject.lab.assistant_staff %}
+                                <span style="font-size: 0.65rem; color: #475569; display: block; margin-top: 2px; font-weight: 500;">
+                                    {% if p.subject.assistant_staff and p.subject.assistant_staff_batch_b and p.subject.assistant_staff_id != p.subject.assistant_staff_batch_b_id %}
+                                        Asst: A: {{ p.subject.assistant_staff.name }} | B: {{ p.subject.assistant_staff_batch_b.name }}
+                                    {% else %}
+                                        Asst: {% if p.subject.assistant_staff %}{{ p.subject.assistant_staff.name }}{% elif p.subject.assistant_staff_batch_b %}{{ p.subject.assistant_staff_batch_b.name }}{% elif p.subject.lab %}{{ p.subject.lab.assistant_staff.name }}{% endif %}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% endif %}
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
                         <!-- Period 6 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.5 and periods.5.is_mine %}my-period period-slot-6{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.5 and periods.5.is_mine %}my-period {{ periods.5.slot_class|default:'period-slot-6' }}{% endif %}">
                             {% with p=periods.5 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
                             <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
+                            {% if p.is_assistant_only %}
+                            <span class="asst-badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; font-size:0.65rem; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block;" title="Assigned as Lab Assistant">
+                                <i class="ri-user-star-line"></i> Assistant
+                            </span>
+                            {% elif p.subject.subject_type == 'Lab' %}
+                                {% if p.subject.assistant_staff or p.subject.assistant_staff_batch_b or p.subject.lab.assistant_staff %}
+                                <span style="font-size: 0.65rem; color: #475569; display: block; margin-top: 2px; font-weight: 500;">
+                                    {% if p.subject.assistant_staff and p.subject.assistant_staff_batch_b and p.subject.assistant_staff_id != p.subject.assistant_staff_batch_b_id %}
+                                        Asst: A: {{ p.subject.assistant_staff.name }} | B: {{ p.subject.assistant_staff_batch_b.name }}
+                                    {% else %}
+                                        Asst: {% if p.subject.assistant_staff %}{{ p.subject.assistant_staff.name }}{% elif p.subject.assistant_staff_batch_b %}{{ p.subject.assistant_staff_batch_b.name }}{% elif p.subject.lab %}{{ p.subject.lab.assistant_staff.name }}{% endif %}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% endif %}
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
 
                         <!-- Period 7 -->
                         <td
-                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.6 and periods.6.is_mine %}my-period period-slot-7{% endif %}">
+                            class="period-cell {% if day == today_name %}today-row{% endif %} {% if periods.6 and periods.6.is_mine %}my-period {{ periods.6.slot_class|default:'period-slot-7' }}{% endif %}">
                             {% with p=periods.6 %}{% if p and p.subject %}
                             <span class="subject-code">{{ p.subject.code }}</span>
                             <span class="subject-name">{{ p.subject.name|truncatechars:22 }}</span>
                             <span class="sem-badge">Sem {{ p.semester|default:p.subject.semester }}{% if p.batch_display %}, {{ p.batch_display }}{% elif p.batch and p.batch != 'All' %}, Batch {{ p.batch }}{% elif p.subject.assigned_batch and p.subject.assigned_batch != 'Both' %}, Batch {{ p.subject.assigned_batch }}{% endif %}</span>
+                            {% if p.is_assistant_only %}
+                            <span class="asst-badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700; font-size:0.65rem; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block;" title="Assigned as Lab Assistant">
+                                <i class="ri-user-star-line"></i> Assistant
+                            </span>
+                            {% elif p.subject.subject_type == 'Lab' %}
+                                {% if p.subject.assistant_staff or p.subject.assistant_staff_batch_b or p.subject.lab.assistant_staff %}
+                                <span style="font-size: 0.65rem; color: #475569; display: block; margin-top: 2px; font-weight: 500;">
+                                    {% if p.subject.assistant_staff and p.subject.assistant_staff_batch_b and p.subject.assistant_staff_id != p.subject.assistant_staff_batch_b_id %}
+                                        Asst: A: {{ p.subject.assistant_staff.name }} | B: {{ p.subject.assistant_staff_batch_b.name }}
+                                    {% else %}
+                                        Asst: {% if p.subject.assistant_staff %}{{ p.subject.assistant_staff.name }}{% elif p.subject.assistant_staff_batch_b %}{{ p.subject.assistant_staff_batch_b.name }}{% elif p.subject.lab %}{{ p.subject.lab.assistant_staff.name }}{% endif %}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% endif %}
                             {% else %}<span class="empty-slot">─</span>{% endif %}{% endwith %}
                         </td>
                     </tr>

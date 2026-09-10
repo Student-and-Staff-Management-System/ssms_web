@@ -211,6 +211,17 @@
                                         <td class="subject-cell {% if e.subject.subject_type == 'Lab' %}lab-cell{% endif %}" colspan="{{ cell.colspan }}">
                                             <span class="subject-code">{{ e.subject.code }}</span>
                                             {% if e.staff %}<span class="staff-name">{{ e.staff.name }}</span>{% endif %}
+                                             {% if e.subject.subject_type == 'Lab' %}
+                                                 {% if e.subject.assistant_staff and e.subject.assistant_staff_batch_b and e.subject.assistant_staff_id != e.subject.assistant_staff_batch_b_id %}
+                                                     <span class="staff-name" style="font-size:.68rem; color:#b45309; display:block;">Asst: A: {{ e.subject.assistant_staff.name }} | B: {{ e.subject.assistant_staff_batch_b.name }}</span>
+                                                 {% elif e.subject.assistant_staff %}
+                                                     <span class="staff-name" style="font-size:.68rem; color:#b45309; display:block;">Asst: {{ e.subject.assistant_staff.name }}</span>
+                                                 {% elif e.subject.assistant_staff_batch_b %}
+                                                     <span class="staff-name" style="font-size:.68rem; color:#b45309; display:block;">Asst: {{ e.subject.assistant_staff_batch_b.name }}</span>
+                                                 {% elif e.subject.lab and e.subject.lab.assistant_staff %}
+                                                     <span class="staff-name" style="font-size:.68rem; color:#b45309; display:block;">Asst: {{ e.subject.lab.assistant_staff.name }}</span>
+                                                 {% endif %}
+                                             {% endif %}
                                             {% if e.subject.subject_type == 'Lab' and cell.colspan > 1 %}
                                                 <span class="staff-name" style="font-size:.7rem;color:var(--primary-color)">Lab · {{ cell.colspan }}h</span>
                                             {% endif %}

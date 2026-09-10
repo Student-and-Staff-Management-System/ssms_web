@@ -1,0 +1,251 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Academic Calendar & Day Order Console | SSM{% endblock %}
+{% block page_title %}Academic Calendar & Day Order Console{% endblock %}
+{% block page_subtitle %}Manage Govt/Institute Holidays and Working Saturdays with custom Day Orders{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cal-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+    .cal-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        align-items: end;
+    }
+    .form-group label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .form-control:focus {
+        border-color: #5a7d7c;
+        box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15);
+    }
+    .btn-submit {
+        background: #5a7d7c;
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-submit:hover {
+        background: #4a6b69;
+    }
+    .badge-holiday {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+    .badge-working {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+    .override-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+    }
+    .override-table th, .override-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+        font-size: 0.88rem;
+    }
+    .override-table th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px 16px;">
+    
+    <!-- Add New Override Form -->
+    <div class="cal-card">
+        <div class="cal-title">
+            <i class="ri-calendar-event-line" style="color: #5a7d7c;"></i>
+            Declare Holiday or Special Working Day Order
+        </div>
+        <form method="POST" action="{% url 'staffs:academic_calendar_console' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_override">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="override_date">Date</label>
+                    <input type="date" id="override_date" name="override_date" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="day_type">Day Type</label>
+                    <select id="day_type" name="day_type" class="form-control" onchange="toggleDayOrderSelect()" required>
+                        <option value="Holiday">🏖️ Holiday (Govt / Institute Leave)</option>
+                        <option value="WorkingDay">📅 Working Day (Custom Day Order)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="day_order_group" style="display: none;">
+                    <label for="day_order">Follows Day Order</label>
+                    <select id="day_order" name="day_order" class="form-control">
+                        <option value="Monday">Monday Order</option>
+                        <option value="Tuesday">Tuesday Order</option>
+                        <option value="Wednesday">Wednesday Order</option>
+                        <option value="Thursday">Thursday Order</option>
+                        <option value="Friday">Friday Order</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Title / Occasion</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Independence Day, Working Saturday" required>
+                </div>
+            </div>
+
+            <div style="margin-top: 14px;">
+                <div class="form-group">
+                    <label for="description">Description / Notes (Optional)</label>
+                    <input type="text" id="description" name="description" class="form-control" placeholder="e.g. Saturday working following Monday timetable order">
+                </div>
+            </div>
+
+            <div style="margin-top: 16px; text-align: right;">
+                <button type="submit" class="btn-submit">
+                    <i class="ri-add-line"></i> Save Calendar Override
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Calendar Overrides Table -->
+    <div class="cal-card">
+        <div class="cal-title">
+            <i class="ri-list-check" style="color: #5a7d7c;"></i>
+            Configured Academic Calendar Overrides
+        </div>
+
+        {% if overrides %}
+        <div style="overflow-x: auto;">
+            <table class="override-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Day Type</th>
+                        <th>Effective Order</th>
+                        <th>Title & Description</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in overrides %}
+                    <tr>
+                        <td style="font-weight: 600; color: #0f172a;">
+                            {{ item.date|date:"d-M-Y (D)" }}
+                        </td>
+                        <td>
+                            {% if item.day_type == 'Holiday' %}
+                            <span class="badge-holiday">🏖️ Holiday</span>
+                            {% else %}
+                            <span class="badge-working">📅 Working Day</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 600;">
+                            {% if item.day_order %}
+                            <span style="color: #1e40af;">{{ item.day_order }} Order</span>
+                            {% else %}
+                            <span style="color: #64748b;">Standard</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong style="color: #1e293b; display: block;">{{ item.title }}</strong>
+                            {% if item.description %}
+                            <span style="font-size: 0.78rem; color: #64748b;">{{ item.description }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <form method="POST" action="{% url 'staffs:academic_calendar_console' %}" onsubmit="return confirm('Are you sure you want to remove this override?');" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_override">
+                                <input type="hidden" name="override_id" value="{{ item.id }}">
+                                <button type="submit" style="background: none; border: none; color: #ef4444; font-weight: 600; font-size: 0.82rem; cursor: pointer;">
+                                    <i class="ri-delete-bin-line"></i> Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 32px 16px; color: #94a3b8;">
+            <i class="ri-calendar-line" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+            No academic calendar overrides configured yet. Use the form above to add holidays or working Saturdays.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+function toggleDayOrderSelect() {
+    var dayType = document.getElementById('day_type').value;
+    var dayOrderGroup = document.getElementById('day_order_group');
+    if (dayType === 'WorkingDay') {
+        dayOrderGroup.style.display = 'block';
+    } else {
+        dayOrderGroup.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

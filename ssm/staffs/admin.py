@@ -446,9 +446,9 @@ class AdminSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(Lab)
 class LabAdmin(admin.ModelAdmin):
-    list_display = ('short_name', 'name', 'staff', 'from_date', 'to_date')
+    list_display = ('short_name', 'name', 'staff', 'assistant_staff', 'from_date', 'to_date')
     search_fields = ('short_name', 'name')
-    list_filter = ('staff', 'from_date', 'to_date')
+    list_filter = ('staff', 'assistant_staff', 'from_date', 'to_date')
 
 
 @admin.register(ClassMapping)

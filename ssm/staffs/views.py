@@ -244,7 +244,7 @@ def staff_dashboard(request):
             PhDProgress.objects.get_or_create(scholar=s)
 
     rs_count = rs_scholars.count()
-    assigned_labs = staff.assigned_labs.all()
+    assigned_labs = (Lab.objects.filter(Q(staff=staff) | Q(assistant_staff=staff))).distinct().select_related('staff', 'assistant_staff')
     
     # Guided Students stats
     guided_students_qs = staff.student_guided_list.all()
@@ -266,7 +266,7 @@ def staff_dashboard(request):
     # ── Today's Class Schedule ─────────────────────────────────────────────
     import datetime
     from students.models import StudentAttendance
-    from .models import ClassSubstitutionRequest
+    from .models import ClassSubstitutionRequest, StaffHourSwapRequest
 
     today_date_obj = timezone.now().date()
     today_date = today_date_obj.strftime('%Y-%m-%d')
@@ -281,32 +281,95 @@ def staff_dashboard(request):
         status='Approved'
     ).select_related('subject', 'requester'))
 
-    # Periods where current staff handed off their class to an alternate for today (approved)
+    # Fetch approved hour swap requests for today
+    approved_swaps_requested = list(StaffHourSwapRequest.objects.filter(
+        requester=staff,
+        requester_date=today_date_obj,
+        status='Approved'
+    ).select_related('target_staff', 'requester_subject', 'target_subject'))
+
+    approved_swaps_received = list(StaffHourSwapRequest.objects.filter(
+        target_staff=staff,
+        target_date=today_date_obj,
+        status='Approved'
+    ).select_related('requester', 'requester_subject', 'target_subject'))
+
+    approved_swaps_taking_today = list(StaffHourSwapRequest.objects.filter(
+        requester=staff,
+        target_date=today_date_obj,
+        status='Approved'
+    ).select_related('target_staff', 'target_subject'))
+
+    approved_swaps_giving_today = list(StaffHourSwapRequest.objects.filter(
+        target_staff=staff,
+        requester_date=today_date_obj,
+        status='Approved'
+    ).select_related('requester', 'requester_subject'))
+
+    # Periods where current staff handed off their class to an alternate or swapped out for today (approved)
     handed_off_periods = set(ClassSubstitutionRequest.objects.filter(
         requester=staff,
         date=today_date_obj,
         status='Approved'
     ).values_list('period', flat=True))
 
+    for hs in approved_swaps_requested:
+        handed_off_periods.add(hs.requester_period)
+    for hs in approved_swaps_received:
+        handed_off_periods.add(hs.target_period)
+
     today_tt_entries = []
     if today_weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
-        today_tt_entries = list(Timetable.objects.filter(
-            staff=staff, day=today_weekday
-        ).select_related('subject'))
+        # Auto-sync subject.lab for subjects matching Lab names/short_names
+        for lab_obj in Lab.objects.all():
+            Subject.objects.filter(
+                Q(lab__isnull=True),
+                Q(location_name__iexact=lab_obj.name) | Q(location_name__iexact=lab_obj.short_name)
+            ).update(lab=lab_obj)
 
-    # Exclude periods current staff handed off to an alternate
+        asst_labs = Lab.objects.filter(Q(assistant_staff=staff) | Q(staff=staff))
+        asst_lab_ids = list(asst_labs.values_list('id', flat=True))
+        asst_lab_names = list(asst_labs.values_list('name', flat=True))
+        asst_lab_short_names = list(asst_labs.values_list('short_name', flat=True))
+        all_asst_names = [n for n in (asst_lab_names + asst_lab_short_names) if n]
+
+        ic_entries = list(Timetable.objects.filter(
+            Q(staff=staff) | Q(subject__staff=staff) | Q(subject__staff_batch_b=staff),
+            day=today_weekday
+        ).select_related('subject', 'subject__lab', 'subject__lab__assistant_staff'))
+        
+        asst_entries = list(Timetable.objects.filter(
+            Q(subject__subject_type='Lab', subject__assistant_staff=staff) |
+            Q(subject__subject_type='Lab', subject__assistant_staff_batch_b=staff) |
+            Q(subject__subject_type='Lab', subject__lab__assistant_staff=staff) |
+            Q(subject__subject_type='Lab', subject__lab_id__in=asst_lab_ids) |
+            Q(subject__subject_type='Lab', subject__location_name__in=all_asst_names),
+            day=today_weekday
+        ).select_related('subject', 'subject__staff', 'subject__staff_batch_b', 'subject__assistant_staff', 'subject__assistant_staff_batch_b', 'subject__lab', 'subject__lab__assistant_staff'))
+        
+        ic_ids = {e.id for e in ic_entries}
+        for e in asst_entries:
+            if e.id not in ic_ids:
+                e.is_assistant_only = True
+                ic_entries.append(e)
+                
+        today_tt_entries = ic_entries
+
+    # Exclude periods current staff handed off to an alternate / swapped out
     effective_tt_entries = [e for e in today_tt_entries if e.period not in handed_off_periods]
 
     class SyntheticTTEntry:
-        def __init__(self, subject, period, day, semester, attendance_option, requester_name):
+        def __init__(self, subject, period, day, semester, attendance_option, requester_name, is_hour_swap=False, partner_name=""):
             self.subject = subject
             self.period = period
             self.day = day
             self.semester = semester
             self.batch = 'All'
-            self.is_alternate = True
+            self.is_alternate = not is_hour_swap
+            self.is_hour_swap = is_hour_swap
             self.attendance_option = attendance_option
             self.requester_name = requester_name
+            self.partner_name = partner_name
 
     for sub in approved_substitutions:
         effective_tt_entries.append(SyntheticTTEntry(
@@ -318,7 +381,34 @@ def staff_dashboard(request):
             requester_name=sub.requester.name
         ))
 
+    # Add swapped periods gained from hour swaps for today
+    for hs in approved_swaps_taking_today:
+        effective_tt_entries.append(SyntheticTTEntry(
+            subject=hs.target_subject,
+            period=hs.target_period,
+            day=today_weekday,
+            semester=hs.target_subject.semester if hs.target_subject else 1,
+            attendance_option='WITH_ATTENDANCE',
+            requester_name=hs.target_staff.name,
+            is_hour_swap=True,
+            partner_name=hs.target_staff.name
+        ))
+
+    for hs in approved_swaps_giving_today:
+        effective_tt_entries.append(SyntheticTTEntry(
+            subject=hs.requester_subject,
+            period=hs.requester_period,
+            day=today_weekday,
+            semester=hs.requester_subject.semester if hs.requester_subject else 1,
+            attendance_option='WITH_ATTENDANCE',
+            requester_name=hs.requester.name,
+            is_hour_swap=True,
+            partner_name=hs.requester.name
+        ))
+
     effective_tt_entries.sort(key=lambda x: x.period if x.period else 0)
+
+
 
     if effective_tt_entries:
         # Pre-fetch attendance records for today to check status per subject & period
@@ -448,6 +538,7 @@ def staff_dashboard(request):
                 'is_marked': is_marked,
                 'is_lab': is_lab,
                 'is_alternate': getattr(first_entry, 'is_alternate', False),
+                'is_assistant_only': getattr(first_entry, 'is_assistant_only', False),
                 'attendance_option': getattr(first_entry, 'attendance_option', None),
                 'requester_name': getattr(first_entry, 'requester_name', None),
             })
@@ -1377,9 +1468,19 @@ def manage_subjects(request):
             if mode == 'same':
                 staff_id = request.POST.get('staff_id_single') or request.POST.get('staff_id')
                 staff_batch_b_id = staff_id
+                assistant_ids_a = request.POST.getlist('assistant_staff_ids_single')
+                if not assistant_ids_a and request.POST.get('assistant_staff_id_single'):
+                    assistant_ids_a = [request.POST.get('assistant_staff_id_single')]
+                assistant_ids_b = assistant_ids_a
             else:
                 staff_id = request.POST.get('staff_id_a') or request.POST.get('staff_id')
                 staff_batch_b_id = request.POST.get('staff_batch_b_id')
+                assistant_ids_a = request.POST.getlist('assistant_staff_ids_a')
+                if not assistant_ids_a and request.POST.get('assistant_staff_id_a'):
+                    assistant_ids_a = [request.POST.get('assistant_staff_id_a')]
+                assistant_ids_b = request.POST.getlist('assistant_staff_ids_b')
+                if not assistant_ids_b and request.POST.get('assistant_staff_batch_b_id'):
+                    assistant_ids_b = [request.POST.get('assistant_staff_batch_b_id')]
             
             if subject_id:
                 subject = get_object_or_404(Subject, id=subject_id)
@@ -1429,7 +1530,36 @@ def manage_subjects(request):
                     subject.assigned_batch = 'Both' # Standard default
                     if location_name:
                         subject.location_name = location_name
-                    subject.save()
+                        matched_lab = Lab.objects.filter(name=location_name).first()
+                        if not matched_lab:
+                            matched_lab = Lab.objects.filter(short_name=location_name).first()
+                        if matched_lab:
+                            subject.lab = matched_lab
+                        else:
+                            # If non-lab classroom chosen, reset lab link
+                            subject.lab = None
+                    
+                    if subject.subject_type == 'Lab':
+                        # Exclude assigned IC faculty from lab assistant lists
+                        ic_id_a = staff_member.staff_id if staff_member else None
+                        ic_id_b = staff_batch_b_member.staff_id if staff_batch_b_member else ic_id_a
+
+                        assistant_ids_a = [sid for sid in assistant_ids_a if sid and sid != ic_id_a]
+                        assistant_ids_b = [sid for sid in assistant_ids_b if sid and sid != ic_id_b and sid != ic_id_a]
+
+                        asst_members_a = list(Staff.objects.filter(staff_id__in=assistant_ids_a))
+                        asst_members_b = list(Staff.objects.filter(staff_id__in=assistant_ids_b))
+                        subject.assistant_staff = asst_members_a[0] if asst_members_a else None
+                        subject.assistant_staff_batch_b = asst_members_b[0] if asst_members_b else None
+                        subject.save()
+                        subject.assistant_staffs.set(asst_members_a)
+                        subject.assistant_staffs_batch_b.set(asst_members_b)
+                    else:
+                        subject.assistant_staff = None
+                        subject.assistant_staff_batch_b = None
+                        subject.save()
+                        subject.assistant_staffs.clear()
+                        subject.assistant_staffs_batch_b.clear()
                     
                     if staff_member and staff_batch_b_member:
                         messages.success(request, f"Assigned {staff_member.name} (Batch A) and {staff_batch_b_member.name} (Batch B) to {subject.name}.")
@@ -1451,7 +1581,7 @@ def manage_subjects(request):
         return redirect('staffs:manage_subjects')
 
     # Group subjects by semester
-    subjects = Subject.objects.all().order_by('semester', 'code')
+    subjects = Subject.objects.all().select_related('staff', 'staff_batch_b', 'assistant_staff', 'assistant_staff_batch_b', 'lab', 'lab__staff', 'lab__assistant_staff', 'classroom').order_by('semester', 'code')
     staff_members = Staff.objects.all().order_by('name')
     class_mappings = ClassMapping.objects.all().order_by('semester', 'class_name')
     labs = Lab.objects.all().order_by('name')
@@ -1809,7 +1939,8 @@ def manage_attendance(request, subject_id):
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     
-    from .models import Subject, Timetable, ClassSubstitutionRequest
+    from .models import Subject, Timetable, ClassSubstitutionRequest, StaffHourSwapRequest, AcademicCalendarOverride
+    from .utils import get_effective_day_order
     from students.models import Student, StudentAttendance
     from django.db.models import Q
     import datetime
@@ -1829,6 +1960,9 @@ def manage_attendance(request, subject_id):
     else:
         date_obj = datetime.date.today()
 
+    # Effective Day Order & Holiday Override Check
+    effective_day_name, is_calendar_holiday, is_working_saturday, calendar_override = get_effective_day_order(date_obj)
+
     # Check for Substitution
     sub_req = ClassSubstitutionRequest.objects.filter(
         substitute=current_staff,
@@ -1836,15 +1970,30 @@ def manage_attendance(request, subject_id):
         date=date_obj,
         status='Approved'
     ).first()
-    is_substitute = sub_req is not None
+
+    # Check for Hour Swap
+    hour_swap_req = StaffHourSwapRequest.objects.filter(
+        status='Approved'
+    ).filter(
+        Q(target_staff=current_staff, requester_date=date_obj, requester_period=period, requester_subject=subject) |
+        Q(requester=current_staff, target_date=date_obj, target_period=period, target_subject=subject)
+    ).first()
+
+    is_substitute = (sub_req is not None) or (hour_swap_req is not None)
+
 
     # Access Control
+    is_lab_assistant_only = (subject.subject_type == 'Lab' and (subject.assistant_staff == current_staff or subject.assistant_staff_batch_b == current_staff or (subject.lab and subject.lab.assistant_staff == current_staff)) and subject.staff != current_staff and subject.staff_batch_b != current_staff)
+    if is_lab_assistant_only and not is_substitute and not current_staff.is_staff_admin:
+        messages.error(request, "Access Denied: Lab Assistants are assigned for lab support and cannot mark attendance. Attendance marking is reserved for the course instructor or assigned substitute.")
+        return redirect('staffs:staff_dashboard')
+
     if not current_staff.is_staff_admin and subject.staff != current_staff and subject.staff_batch_b != current_staff and not is_substitute:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
     formatted_date = date_obj.strftime('%Y-%m-%d')
-    day_name = date_obj.strftime('%A')
+    day_name = effective_day_name
 
     prefill_time = request.GET.get('time', '')
     prefill_end_time = request.GET.get('end_time', '')
@@ -1906,7 +2055,7 @@ def manage_attendance(request, subject_id):
     if current_staff.is_staff_admin and subject.staff != current_staff and subject.staff_batch_b != current_staff and not is_substitute:
         is_readonly = True
 
-    # --- POST Handler (Saving Attendance) ---
+    # --- POST Handler (Saving Attendance / Holiday Marking) ---
     today_date = datetime.date.today()
     now_time = datetime.datetime.now().time()
 
@@ -1936,14 +2085,14 @@ def manage_attendance(request, subject_id):
             messages.error(request, f"Attendance cannot be marked for future date ({save_date.strftime('%d-%b-%Y')}).")
             return redirect(request.path + f"?date={save_date.strftime('%Y-%m-%d')}")
 
-        # VALIDATION: Check Timetable
-        day_name = save_date.strftime('%A')
-        has_timetable = Timetable.objects.filter(semester=subject.semester, subject=subject, day=day_name).exists()
+        # VALIDATION: Check Timetable (using effective day order)
+        save_eff_day, _, _, _ = get_effective_day_order(save_date)
+        has_timetable = Timetable.objects.filter(semester=subject.semester, subject=subject, day=save_eff_day).exists()
         
         is_extra_class = request.POST.get('is_extra_class')
         
         if not has_timetable and not is_extra_class:
-             messages.error(request, f"Attendance cannot be marked for {formatted_date} ({day_name}). {subject.code} is not scheduled in the timetable. Check 'Extra / Special Class' to proceed.")
+             messages.error(request, f"Attendance cannot be marked for {formatted_date} ({save_eff_day}). {subject.code} is not scheduled in the timetable. Check 'Extra / Special Class' to proceed.")
              return redirect(request.path + f"?date={save_date.strftime('%Y-%m-%d')}")
 
         # Save Logic
@@ -1964,11 +2113,44 @@ def manage_attendance(request, subject_id):
             except ValueError:
                 end_time = None
 
+        time_msg = ""
+        if class_time:
+            time_msg = f" at {class_time.strftime('%I:%M %p')}"
+            if end_time:
+                time_msg += f" - {end_time.strftime('%I:%M %p')}"
+
+        batch_msg = f" (Batch {selected_batch})" if selected_batch in ['A', 'B'] else ""
+
+        # ACTION: Mark Entire Class Session as Holiday
+        if request.POST.get('mark_as_holiday') or request.POST.get('action') == 'mark_holiday':
+            count_holiday = 0
+            for student in students:
+                StudentAttendance.objects.update_or_create(
+                    student=student,
+                    subject=subject,
+                    date=save_date,
+                    time=class_time,
+                    defaults={
+                        'status': 'Holiday',
+                        'end_time': end_time
+                    }
+                )
+                count_holiday += 1
+            messages.success(request, f"🏖️ Attendance marked as Holiday for {save_date.strftime('%d-%b-%Y')} ({save_eff_day}){time_msg}{batch_msg}. {count_holiday} student records marked. This session will NOT be counted towards conducted classes for attendance calculations.")
+            redirect_url = reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={save_date.strftime('%Y-%m-%d')}"
+            if class_time_str: redirect_url += f"&time={class_time_str}"
+            if end_time_str: redirect_url += f"&end_time={end_time_str}"
+            if selected_batch: redirect_url += f"&batch={selected_batch}"
+            return redirect(redirect_url)
+
+        # Standard Attendance Saving
         count_present = 0
         count_absent = 0
+        count_holiday = 0
+        count_od = 0
         for student in students:
             status = request.POST.get(f'status_{student.roll_number}')
-            if status in ['Present', 'Absent']:
+            if status in ['Present', 'Absent', 'Holiday', 'OD']:
                 StudentAttendance.objects.update_or_create(
                     student=student, 
                     subject=subject, 
@@ -1981,6 +2163,8 @@ def manage_attendance(request, subject_id):
                 )
                 if status == 'Present': count_present += 1
                 elif status == 'Absent': count_absent += 1
+                elif status == 'Holiday': count_holiday += 1
+                elif status == 'OD': count_od += 1
             else:
                 # If unmarked or cleared, delete existing attendance record for this student/date/time
                 StudentAttendance.objects.filter(
@@ -1990,17 +2174,15 @@ def manage_attendance(request, subject_id):
                     time=class_time
                 ).delete()
         
-        time_msg = ""
-        if class_time:
-            time_msg = f" at {class_time.strftime('%I:%M %p')}"
-            if end_time:
-                time_msg += f" - {end_time.strftime('%I:%M %p')}"
-
-        batch_msg = f" (Batch {selected_batch})" if selected_batch in ['A', 'B'] else ""
-        if count_present == 0 and count_absent == 0:
-            messages.success(request, f"Attendance cleared for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}{batch_msg}.")
+        if count_present == 0 and count_absent == 0 and count_holiday == 0 and count_od == 0:
+            messages.success(request, f"Attendance cleared for {save_date.strftime('%d-%b-%Y')} ({save_eff_day}){time_msg}{batch_msg}.")
+        elif count_holiday > 0 and count_present == 0 and count_absent == 0:
+            messages.success(request, f"🏖️ Attendance marked as Holiday for {save_date.strftime('%d-%b-%Y')} ({save_eff_day}){time_msg}{batch_msg}. Excluded from attendance calculations.")
         else:
-            messages.success(request, f"Attendance saved for {save_date.strftime('%d-%b-%Y')} ({day_name}){time_msg}{batch_msg}. {count_present} Present, {count_absent} Absent.")
+            msg_parts = [f"{count_present} Present", f"{count_absent} Absent"]
+            if count_od > 0: msg_parts.append(f"{count_od} On Duty")
+            if count_holiday > 0: msg_parts.append(f"{count_holiday} Holiday")
+            messages.success(request, f"Attendance saved for {save_date.strftime('%d-%b-%Y')} ({save_eff_day}){time_msg}{batch_msg}. " + ", ".join(msg_parts) + ".")
         
         redirect_url = reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={save_date.strftime('%Y-%m-%d')}"
         if class_time_str:
@@ -2140,10 +2322,10 @@ def manage_attendance(request, subject_id):
         attendance_qs = attendance_qs.filter(Q(time=class_time_obj) | Q(time__isnull=True))
 
     attendance_map = {entry.student.roll_number: entry.status for entry in attendance_qs}
-
     prev_day = (date_obj - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     next_day = (date_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     today_date_str = datetime.date.today().strftime('%Y-%m-%d')
+    is_holiday_session = bool(attendance_map) and all(v == 'Holiday' for v in attendance_map.values())
 
     return render(request, 'staff/manage_attendance.html', {
         'subject': subject,
@@ -2158,6 +2340,10 @@ def manage_attendance(request, subject_id):
         'current_period': current_period,
         'today_periods': today_periods,
         'day_name': day_name,
+        'is_calendar_holiday': is_calendar_holiday,
+        'is_working_saturday': is_working_saturday,
+        'calendar_override': calendar_override,
+        'is_holiday_session': is_holiday_session,
         'prev_day': prev_day,
         'next_day': next_day,
         'today_date': today_date_str,
@@ -2166,6 +2352,62 @@ def manage_attendance(request, subject_id):
         'count_batch_a': count_batch_a,
         'count_batch_b': count_batch_b,
         'sub_req': sub_req,
+    })
+
+
+def academic_calendar_console(request):
+    """
+    Console for HOD / Staff to manage Academic Calendar Overrides
+    (Govt Holidays, Institute Holidays, Working Saturdays with Day Orders).
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    from .models import AcademicCalendarOverride
+    import datetime
+
+    current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add_override':
+            date_str = request.POST.get('override_date')
+            day_type = request.POST.get('day_type')
+            day_order = request.POST.get('day_order', '')
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+
+            if not date_str or not title:
+                messages.error(request, "Date and Title are required.")
+            else:
+                try:
+                    override_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+                    AcademicCalendarOverride.objects.update_or_create(
+                        date=override_date,
+                        defaults={
+                            'day_type': day_type,
+                            'day_order': day_order if day_type == 'WorkingDay' else None,
+                            'title': title,
+                            'description': description
+                        }
+                    )
+                    messages.success(request, f"Academic Calendar Override saved for {override_date.strftime('%d-%b-%Y')} ({title}).")
+                except ValueError:
+                    messages.error(request, "Invalid date format.")
+
+        elif action == 'delete_override':
+            override_id = request.POST.get('override_id')
+            AcademicCalendarOverride.objects.filter(id=override_id).delete()
+            messages.success(request, "Academic calendar override deleted successfully.")
+
+        return redirect('staffs:academic_calendar_console')
+
+    overrides = AcademicCalendarOverride.objects.all().order_by('-date')
+
+    return render(request, 'staff/academic_calendar.html', {
+        'staff': current_staff,
+        'overrides': overrides,
     })
 
 
@@ -3972,10 +4214,30 @@ def my_timetable(request):
 
     staff = Staff.objects.get(staff_id=request.session['staff_id'])
 
-    # Fetch entries assigned to this staff member directly or via subject assignment
-    entries = Timetable.objects.filter(
-        Q(staff=staff) | Q(subject__staff=staff) | Q(subject__staff_batch_b=staff)
-    ).select_related('subject', 'subject__staff', 'subject__staff_batch_b').distinct()
+    # Auto-sync subject.lab for subjects matching Lab names/short_names
+    for lab_obj in Lab.objects.all():
+        Subject.objects.filter(
+            Q(lab__isnull=True),
+            Q(location_name__iexact=lab_obj.name) | Q(location_name__iexact=lab_obj.short_name)
+        ).update(lab=lab_obj)
+
+    asst_labs = Lab.objects.filter(Q(assistant_staff=staff) | Q(staff=staff))
+    asst_lab_ids = list(asst_labs.values_list('id', flat=True))
+    asst_lab_names = list(asst_labs.values_list('name', flat=True))
+    asst_lab_short_names = list(asst_labs.values_list('short_name', flat=True))
+    all_asst_names = [n for n in (asst_lab_names + asst_lab_short_names) if n]
+
+    # Fetch entries assigned to this staff member directly, via subject, or as Lab Assistant
+    entries = list(Timetable.objects.filter(
+        Q(staff=staff) | 
+        Q(subject__staff=staff) | 
+        Q(subject__staff_batch_b=staff) | 
+        Q(subject__subject_type='Lab', subject__assistant_staff=staff) |
+        Q(subject__subject_type='Lab', subject__assistant_staff_batch_b=staff) |
+        Q(subject__subject_type='Lab', subject__lab__assistant_staff=staff) |
+        Q(subject__subject_type='Lab', subject__lab_id__in=asst_lab_ids) |
+        Q(subject__subject_type='Lab', subject__location_name__in=all_asst_names)
+    ).select_related('subject', 'subject__staff', 'subject__staff_batch_b', 'subject__assistant_staff', 'subject__assistant_staff_batch_b', 'subject__lab', 'subject__lab__assistant_staff').distinct())
 
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
@@ -3987,8 +4249,35 @@ def my_timetable(request):
             # Annotate entry so template can colour it
             entry.is_mine = True
             
-            # Determine batch display label
-            if entry.batch and entry.batch != 'All':
+            is_asst = False
+            if entry.subject and entry.subject.subject_type == 'Lab':
+                entry_batch = getattr(entry, 'batch', 'All')
+                is_a_asst = (entry.subject.assistant_staff == staff)
+                is_b_asst = (entry.subject.assistant_staff_batch_b == staff)
+                is_lab_asst = (entry.subject.lab and entry.subject.lab.assistant_staff == staff)
+                is_ic = (entry.staff == staff or entry.subject.staff == staff or entry.subject.staff_batch_b == staff)
+
+                if not is_ic:
+                    if entry_batch == 'A' and is_a_asst:
+                        is_asst = True
+                    elif entry_batch == 'B' and is_b_asst:
+                        is_asst = True
+                    elif entry_batch in ['All', 'Both', None, ''] and (is_a_asst or is_b_asst or is_lab_asst):
+                        is_asst = True
+                    elif is_a_asst or is_b_asst or is_lab_asst:
+                        is_asst = True
+
+            entry.is_assistant_only = is_asst
+            
+            # Determine batch / role display label
+            if is_asst:
+                if entry.subject and entry.subject.assistant_staff == staff and entry.subject.assistant_staff_batch_b and entry.subject.assistant_staff_batch_b != staff:
+                    entry.batch_display = "Lab Asst (A)"
+                elif entry.subject and entry.subject.assistant_staff_batch_b == staff and entry.subject.assistant_staff and entry.subject.assistant_staff != staff:
+                    entry.batch_display = "Lab Asst (B)"
+                else:
+                    entry.batch_display = "Lab Assistant"
+            elif entry.batch and entry.batch != 'All':
                 entry.batch_display = f"{entry.batch} Batch"
             elif entry.subject and entry.subject.staff_batch_b == staff and entry.subject.staff != staff:
                 entry.batch_display = "B Batch"
@@ -4001,10 +4290,29 @@ def my_timetable(request):
                 
             timetable_data[entry.day][entry.period - 1] = entry
 
+    # Ensure 3-hour (multi-period) labs share the same color theme on each day
+    for day in days:
+        day_entries = [e for e in timetable_data[day] if e is not None]
+        lab_subject_min_period = {}
+        for e in day_entries:
+            if e.subject and e.subject.subject_type == 'Lab':
+                sub_id = e.subject.id
+                if sub_id not in lab_subject_min_period:
+                    lab_subject_min_period[sub_id] = e.period
+                else:
+                    lab_subject_min_period[sub_id] = min(lab_subject_min_period[sub_id], e.period)
+
+        for e in day_entries:
+            if e.subject and e.subject.subject_type == 'Lab' and e.subject.id in lab_subject_min_period:
+                min_p = lab_subject_min_period[e.subject.id]
+                e.slot_class = f"period-slot-{min_p}"
+            else:
+                e.slot_class = f"period-slot-{e.period}"
+
     timetable_rows = [(day, timetable_data[day]) for day in days]
 
     today_name = datetime.date.today().strftime('%A')  # e.g. "Monday"
-    has_entries = entries.exists()
+    has_entries = bool(entries)
 
     return render(request, 'staff/my_timetable.html', {
         'staff': staff,
@@ -4280,6 +4588,21 @@ def staff_apply_leave(request):
             leave_request.staff = staff
             leave_request.save()
             messages.success(request, 'Leave request submitted to HOD.')
+
+            # Notify HOD
+            hod_staff = Staff.objects.filter(Q(role__icontains='HOD') | Q(secondary_roles__icontains='HOD')).first()
+            if not hod_staff:
+                hod_staff = Staff.objects.filter(role='HOD').first()
+            if hod_staff and hod_staff != staff:
+                from .utils import send_staff_notification
+                send_staff_notification(
+                    hod_staff,
+                    "✈️ New Faculty Leave Request",
+                    f"{staff.name} applied for {leave_request.get_leave_type_display()} leave from {leave_request.start_date} to {leave_request.end_date}.",
+                    url="/staffs/hod/leave-dashboard/",
+                    notification_type='leave'
+                )
+
             return redirect('staffs:staff_leave_history')
     else:
         form = StaffLeaveRequestForm(staff=staff)
@@ -4861,6 +5184,247 @@ def assigned_substitutions(request):
         'assigned_classes': assigned_classes,
         'today': today
     })
+
+
+def manage_hour_swaps(request):
+    """View for staff to request mutual hour (period) swaps across dates with another staff member."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    from .models import Timetable, StaffHourSwapRequest, Subject
+    import datetime
+    import json
+    
+    # Requester's selected date (Date 1)
+    req_date_str = request.GET.get('date', datetime.date.today().strftime('%Y-%m-%d'))
+    try:
+        selected_date = datetime.datetime.strptime(req_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = datetime.date.today()
+        
+    day_name = selected_date.strftime('%A')
+    
+    # My scheduled classes on Date 1
+    my_timetable = Timetable.objects.filter(staff=staff, day=day_name).select_related('subject').order_by('period')
+    
+    # Sent and received hour swaps for selected_date
+    from django.db.models import Q
+    swaps_sent = StaffHourSwapRequest.objects.filter(requester=staff, requester_date=selected_date).select_related('target_staff', 'requester_subject', 'target_subject')
+    swaps_received = StaffHourSwapRequest.objects.filter(target_staff=staff, target_date=selected_date).select_related('requester', 'requester_subject', 'target_subject')
+    
+    # All active other staff members
+    other_staff = Staff.objects.filter(is_active=True).exclude(staff_id=staff.staff_id).order_by('name')
+    
+    # Build complete weekly schedule map for all other staff by day of week (Monday..Friday)
+    # Structure: { staff_id: { "Monday": [...], "Tuesday": [...], ... } }
+    staff_weekly_schedules = {}
+    all_other_tt = Timetable.objects.exclude(staff=staff).select_related('staff', 'subject')
+    for tt in all_other_tt:
+        if not tt.staff_id:
+            continue
+        sid = tt.staff_id
+        if sid not in staff_weekly_schedules:
+            staff_weekly_schedules[sid] = {}
+        d_name = tt.day
+        if d_name not in staff_weekly_schedules[sid]:
+            staff_weekly_schedules[sid][d_name] = []
+        
+        staff_weekly_schedules[sid][d_name].append({
+            'period': tt.period,
+            'subject_id': tt.subject.id if tt.subject else None,
+            'subject_name': tt.subject.name if tt.subject else 'Free Period',
+            'subject_code': tt.subject.code if tt.subject else '',
+            'semester': tt.semester,
+        })
+            
+    staff_weekly_schedules_json = json.dumps(staff_weekly_schedules)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'request_hour_swap':
+            try:
+                requester_date_str = request.POST.get('requester_date', req_date_str)
+                requester_date_obj = datetime.datetime.strptime(requester_date_str, '%Y-%m-%d').date()
+                req_period = int(request.POST.get('requester_period'))
+                
+                target_staff_id = request.POST.get('target_staff_id')
+                target_date_str = request.POST.get('target_date', requester_date_str)
+                target_date_obj = datetime.datetime.strptime(target_date_str, '%Y-%m-%d').date()
+                target_period = int(request.POST.get('target_period'))
+                
+                reason = request.POST.get('reason', '').strip()
+                attendance_credit = request.POST.get('attendance_credit', 'SWAPPED_TEACHER')
+            except (TypeError, ValueError):
+                messages.error(request, "Invalid period or date parameters specified.")
+                return redirect(f'/staffs/hour-swap/manage/?date={selected_date}')
+            
+            target_staff = get_object_or_404(Staff, staff_id=target_staff_id)
+            req_day_name = requester_date_obj.strftime('%A')
+            target_day_name = target_date_obj.strftime('%A')
+            
+            # Find requester's subject for requester_date (req_period)
+            req_tt = Timetable.objects.filter(staff=staff, day=req_day_name, period=req_period).first()
+            if not req_tt or not req_tt.subject:
+                messages.error(request, f"You do not have a scheduled class on Period {req_period} ({req_day_name}) to swap.")
+                return redirect(f'/staffs/hour-swap/manage/?date={selected_date}')
+            
+            # Find target staff's subject for target_date (target_period)
+            target_tt = Timetable.objects.filter(staff=target_staff, day=target_day_name, period=target_period).first()
+            if not target_tt or not target_tt.subject:
+                messages.error(request, f"{target_staff.name} does not have a scheduled class on Period {target_period} ({target_day_name}) to swap with.")
+                return redirect(f'/staffs/hour-swap/manage/?date={selected_date}')
+            
+            # Create or update swap request
+            swap_obj, created = StaffHourSwapRequest.objects.update_or_create(
+                requester=staff,
+                requester_date=requester_date_obj,
+                requester_period=req_period,
+                defaults={
+                    'target_staff': target_staff,
+                    'requester_subject': req_tt.subject,
+                    'target_date': target_date_obj,
+                    'target_period': target_period,
+                    'target_subject': target_tt.subject,
+                    'reason': reason,
+                    'attendance_credit': attendance_credit,
+                    'status': 'Pending'
+                }
+            )
+            
+            from .utils import send_staff_notification
+            from django.conf import settings
+            from django.core.mail import send_mail
+            
+            msg_txt = f"Hour Swap request sent to {target_staff.name}: Your P{req_period} on {requester_date_obj.strftime('%d-%b')} <-> {target_staff.name}'s P{target_period} on {target_date_obj.strftime('%d-%b')}."
+            messages.success(request, msg_txt)
+            
+            send_staff_notification(
+                target_staff, 
+                "🔄 Hour Swap Request", 
+                f"{staff.name} requested to swap Period {req_period} ({req_tt.subject.code}) on {requester_date_obj} with your Period {target_period} ({target_tt.subject.code}) on {target_date_obj}.",
+                url="/staffs/hour-swap/incoming/"
+            )
+            try:
+                send_mail(
+                    "Class Hour Swap Request",
+                    f"Hello {target_staff.name},\n\n{staff.name} has requested a mutual hour swap:\n"
+                    f"- {staff.name}'s Class: {requester_date_obj.strftime('%d-%b-%Y')} ({req_day_name}) Period {req_period} ({req_tt.subject.name})\n"
+                    f"- Your Class in Exchange: {target_date_obj.strftime('%d-%b-%Y')} ({target_day_name}) Period {target_period} ({target_tt.subject.name})\n\n"
+                    f"Please log in to accept or reject this swap request.\n\nLink: http://127.0.0.1:8000/staffs/hour-swap/incoming/",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [target_staff.email],
+                    fail_silently=True
+                )
+            except Exception:
+                pass
+                
+            return redirect(f'/staffs/hour-swap/manage/?date={selected_date}')
+            
+        elif action == 'cancel_swap':
+            swap_id = request.POST.get('swap_id')
+            swap_req = get_object_or_404(StaffHourSwapRequest, id=swap_id, requester=staff)
+            swap_req.delete()
+            messages.success(request, "Hour Swap request cancelled.")
+            return redirect(f'/staffs/hour-swap/manage/?date={selected_date}')
+            
+    # All historical swaps for this staff
+    swap_history = StaffHourSwapRequest.objects.filter(
+        Q(requester=staff) | Q(target_staff=staff)
+    ).select_related('requester', 'target_staff', 'requester_subject', 'target_subject').order_by('-requester_date', '-created_at')[:25]
+
+    return render(request, 'staff/manage_hour_swaps.html', {
+        'staff': staff,
+        'selected_date': selected_date,
+        'day_name': day_name,
+        'my_timetable': my_timetable,
+        'other_staff': other_staff,
+        'swaps_sent': swaps_sent,
+        'swaps_received': swaps_received,
+        'swap_history': swap_history,
+        'staff_weekly_schedules_json': staff_weekly_schedules_json,
+    })
+
+
+def incoming_hour_swaps(request):
+    """View for target staff to see incoming hour swap requests and accept/reject."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    from .models import StaffHourSwapRequest
+    from django.db.models import Q
+    
+    incoming_requests = StaffHourSwapRequest.objects.filter(target_staff=staff, status='Pending').select_related('requester', 'requester_subject', 'target_subject').order_by('requester_date', 'requester_period')
+    history = StaffHourSwapRequest.objects.filter(Q(target_staff=staff) | Q(requester=staff)).exclude(status='Pending').select_related('requester', 'target_staff', 'requester_subject', 'target_subject').order_by('-requester_date', '-updated_at')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        swap_id = request.POST.get('swap_id')
+        swap_req = get_object_or_404(StaffHourSwapRequest, id=swap_id, target_staff=staff)
+        
+        from .utils import send_staff_notification
+        from django.conf import settings
+        from django.core.mail import send_mail
+        
+        if action == 'accept':
+            swap_req.status = 'Approved'
+            swap_req.save()
+            messages.success(request, f"You accepted the hour swap request with {swap_req.requester.name} ({swap_req.requester_date.strftime('%d-%b')} P{swap_req.requester_period} <-> {swap_req.target_date.strftime('%d-%b')} P{swap_req.target_period}).")
+            
+            send_staff_notification(
+                swap_req.requester, 
+                "✅ Hour Swap Accepted", 
+                f"{staff.name} accepted your hour swap request ({swap_req.requester_date.strftime('%d-%b')} P{swap_req.requester_period} <-> {swap_req.target_date.strftime('%d-%b')} P{swap_req.target_period}).",
+                url="/staffs/hour-swap/manage/"
+            )
+            try:
+                send_mail(
+                    "Hour Swap Request Accepted",
+                    f"Hello {swap_req.requester.name},\n\n{staff.name} has accepted your hour swap request.\n\n"
+                    f"Schedule updates:\n"
+                    f"- {staff.name} will teach your Period {swap_req.requester_period} ({swap_req.requester_subject.name}) on {swap_req.requester_date}\n"
+                    f"- You will teach {staff.name}'s Period {swap_req.target_period} ({swap_req.target_subject.name}) on {swap_req.target_date}\n",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [swap_req.requester.email],
+                    fail_silently=True
+                )
+            except Exception:
+                pass
+
+        elif action == 'reject':
+            swap_req.status = 'Rejected'
+            swap_req.rejection_reason = request.POST.get('rejection_reason', '')
+            swap_req.save()
+            messages.success(request, f"You rejected the hour swap request from {swap_req.requester.name}.")
+            
+            send_staff_notification(
+                swap_req.requester, 
+                "❌ Hour Swap Rejected", 
+                f"{staff.name} rejected your hour swap request.",
+                url="/staffs/hour-swap/manage/"
+            )
+            try:
+                send_mail(
+                    "Hour Swap Request Rejected",
+                    f"Hello {swap_req.requester.name},\n\n{staff.name} has rejected your hour swap request.\nReason: {swap_req.rejection_reason}",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [swap_req.requester.email],
+                    fail_silently=True
+                )
+            except Exception:
+                pass
+            
+        return redirect('staffs:incoming_hour_swaps')
+        
+    return render(request, 'staff/incoming_hour_swaps.html', {
+        'staff': staff,
+        'incoming_requests': incoming_requests,
+        'history': history
+    })
+
+
 
 def _get_portfolio_summary_stats(staff):
     import datetime
@@ -7795,6 +8359,7 @@ def hod_manage_labs(request):
             name = request.POST.get('name', '').strip()
             short_name = request.POST.get('short_name', '').strip()
             staff_id = request.POST.get('staff_id', '').strip()
+            assistant_staff_id = request.POST.get('assistant_staff_id', '').strip()
             from_date = request.POST.get('from_date', '').strip() or None
             to_date = request.POST.get('to_date', '').strip() or None
             
@@ -7805,11 +8370,15 @@ def hod_manage_labs(request):
                     assigned_staff = None
                     if staff_id:
                         assigned_staff = Staff.objects.get(staff_id=staff_id)
+                    assigned_assistant = None
+                    if assistant_staff_id:
+                        assigned_assistant = Staff.objects.get(staff_id=assistant_staff_id)
                     
                     Lab.objects.create(
                         name=name, 
                         short_name=short_name, 
                         staff=assigned_staff,
+                        assistant_staff=assigned_assistant,
                         from_date=from_date,
                         to_date=to_date
                     )
@@ -7825,6 +8394,7 @@ def hod_manage_labs(request):
             name = request.POST.get('name', '').strip()
             short_name = request.POST.get('short_name', '').strip()
             staff_id = request.POST.get('staff_id', '').strip()
+            assistant_staff_id = request.POST.get('assistant_staff_id', '').strip()
             from_date = request.POST.get('from_date', '').strip() or None
             to_date = request.POST.get('to_date', '').strip() or None
             
@@ -7833,10 +8403,14 @@ def hod_manage_labs(request):
                 assigned_staff = None
                 if staff_id:
                     assigned_staff = Staff.objects.get(staff_id=staff_id)
+                assigned_assistant = None
+                if assistant_staff_id:
+                    assigned_assistant = Staff.objects.get(staff_id=assistant_staff_id)
                 
                 lab.name = name
                 lab.short_name = short_name
                 lab.staff = assigned_staff
+                lab.assistant_staff = assigned_assistant
                 lab.from_date = from_date
                 lab.to_date = to_date
                 lab.save()
@@ -7900,7 +8474,7 @@ def hod_manage_labs(request):
             except Exception as e:
                 messages.error(request, f"Error updating class mapping: {str(e)}")
                 
-    labs = Lab.objects.all().select_related('staff').order_by('name')
+    labs = Lab.objects.all().select_related('staff', 'assistant_staff').order_by('name')
     class_mappings = ClassMapping.objects.all().order_by('semester', 'class_name')
     all_staff = Staff.objects.filter(is_active=True).order_by('name')
     
@@ -8849,93 +9423,164 @@ def hod_sports_teams(request):
 
     TEAMS = ['Team A', 'Team B', 'Team C', 'Team D']
 
-    # Base Queryset: UG Current 1st to 4th Year Students Only (Sem 1 to 8), excluding PG and PhD Research Scholars
+    # Base Queryset: Registered UG Current 1st to 4th Year Students Only (Sem 1 to 8), excluding PG, PhD, and unregistered students (is_password_changed=False)
     def get_ug_students():
         return Student.objects.select_related('personalinfo').filter(
             current_semester__gte=1,
-            current_semester__lte=8
+            current_semester__lte=8,
+            is_password_changed=True
         ).exclude(
             program_level__in=['PG', 'PHD']
         ).filter(
             scholar_profile__isnull=True
         )
 
+    # Ensure unregistered (is_password_changed=False), PG, and PhD students have sports_team cleared
+    Student.objects.filter(
+        Q(is_password_changed=False) | Q(current_semester__gt=8) | Q(program_level__in=['PG', 'PHD']) | Q(scholar_profile__isnull=False)
+    ).exclude(sports_team__isnull=True).exclude(sports_team='').update(sports_team=None)
+
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        if action in ['auto_assign', 'shuffle']:
+        if action in ['assign_unassigned', 'auto_assign', 'shuffle']:
             import random
-            
-            all_students = list(get_ug_students())
 
-            # Separate students into Male, Female, and Other groups
-            male_by_year = {1: [], 2: [], 3: [], 4: []}
-            female_by_year = {1: [], 2: [], 3: [], 4: []}
-            other_by_year = {1: [], 2: [], 3: [], 4: []}
+            # Check if any students are already assigned
+            has_assigned = get_ug_students().exclude(sports_team__isnull=True).exclude(sports_team='').exists()
 
-            for std in all_students:
-                sem = std.current_semester or 1
-                yr = min(4, max(1, (sem + 1) // 2))
-                p_info = getattr(std, 'personalinfo', None)
-                gender = p_info.gender if (p_info and p_info.gender) else ''
+            # If action is 'assign_unassigned' OR ('auto_assign' when teams already exist)
+            if action == 'assign_unassigned' or (action == 'auto_assign' and has_assigned):
+                unassigned_students = list(get_ug_students().filter(Q(sports_team__isnull=True) | Q(sports_team='')))
+                if not unassigned_students:
+                    messages.info(request, "All eligible UG students are already assigned to sports teams.")
+                    return redirect('staffs:hod_sports_teams')
 
-                if gender == 'Male':
-                    male_by_year[yr].append(std)
-                elif gender == 'Female':
-                    female_by_year[yr].append(std)
-                else:
-                    other_by_year[yr].append(std)
+                # Pre-calculate current counts per team for Male, Female, Other
+                male_counts = {t: get_ug_students().filter(personalinfo__gender='Male', sports_team=t).count() for t in TEAMS}
+                female_counts = {t: get_ug_students().filter(personalinfo__gender='Female', sports_team=t).count() for t in TEAMS}
+                other_counts = {t: get_ug_students().filter(sports_team=t).exclude(personalinfo__gender__in=['Male', 'Female']).count() for t in TEAMS}
 
-            total_updated = 0
+                male_unassigned = []
+                female_unassigned = []
+                other_unassigned = []
 
-            # 1. Distribute Boys (Male) equally across 4 teams
-            male_index = random.randint(0, 3) if action == 'shuffle' else 0
-            for yr in [1, 2, 3, 4]:
-                group = male_by_year[yr]
-                if action == 'shuffle':
-                    random.shuffle(group)
-                else:
-                    group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+                for std in unassigned_students:
+                    p_info = getattr(std, 'personalinfo', None)
+                    gender = p_info.gender if (p_info and p_info.gender) else ''
+                    if gender == 'Male':
+                        male_unassigned.append(std)
+                    elif gender == 'Female':
+                        female_unassigned.append(std)
+                    else:
+                        other_unassigned.append(std)
 
-                for std in group:
-                    std.sports_team = TEAMS[male_index % 4]
+                # Sort unassigned by (current_semester, roll_number) to maintain consistent order
+                male_unassigned.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+                female_unassigned.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+                other_unassigned.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+
+                total_updated = 0
+
+                # Assign unassigned males to team with lowest current male count
+                for std in male_unassigned:
+                    best_team = min(TEAMS, key=lambda t: (male_counts[t], TEAMS.index(t)))
+                    std.sports_team = best_team
                     std.save(update_fields=['sports_team'])
-                    male_index += 1
+                    male_counts[best_team] += 1
                     total_updated += 1
 
-            # 2. Distribute Girls (Female) equally across 4 teams
-            female_index = random.randint(0, 3) if action == 'shuffle' else 0
-            for yr in [1, 2, 3, 4]:
-                group = female_by_year[yr]
-                if action == 'shuffle':
-                    random.shuffle(group)
-                else:
-                    group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
-
-                for std in group:
-                    std.sports_team = TEAMS[female_index % 4]
+                # Assign unassigned females to team with lowest current female count
+                for std in female_unassigned:
+                    best_team = min(TEAMS, key=lambda t: (female_counts[t], TEAMS.index(t)))
+                    std.sports_team = best_team
                     std.save(update_fields=['sports_team'])
-                    female_index += 1
+                    female_counts[best_team] += 1
                     total_updated += 1
 
-            # 3. Distribute Other/Unspecified gender students equally
-            other_index = random.randint(0, 3) if action == 'shuffle' else 0
-            for yr in [1, 2, 3, 4]:
-                group = other_by_year[yr]
-                if action == 'shuffle':
-                    random.shuffle(group)
-                else:
-                    group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
-
-                for std in group:
-                    std.sports_team = TEAMS[other_index % 4]
+                # Assign unassigned others to team with lowest current other count
+                for std in other_unassigned:
+                    best_team = min(TEAMS, key=lambda t: (other_counts[t], TEAMS.index(t)))
+                    std.sports_team = best_team
                     std.save(update_fields=['sports_team'])
-                    other_index += 1
+                    other_counts[best_team] += 1
                     total_updated += 1
 
-            verb = "shuffled and re-assigned" if action == 'shuffle' else "auto-assigned"
-            messages.success(request, f"Successfully {verb} {total_updated} UG students across the 4 sports teams with exact Boys & Girls gender equality.")
-            return redirect('staffs:hod_sports_teams')
+                messages.success(request, f"Successfully assigned {total_updated} unassigned student(s) to sports teams without disturbing existing team assignments.")
+                return redirect('staffs:hod_sports_teams')
+
+            else:
+                # Full auto-assign or full reshuffle across all students
+                all_students = list(get_ug_students())
+
+                # Separate students into Male, Female, and Other groups
+                male_by_year = {1: [], 2: [], 3: [], 4: []}
+                female_by_year = {1: [], 2: [], 3: [], 4: []}
+                other_by_year = {1: [], 2: [], 3: [], 4: []}
+
+                for std in all_students:
+                    sem = std.current_semester or 1
+                    yr = min(4, max(1, (sem + 1) // 2))
+                    p_info = getattr(std, 'personalinfo', None)
+                    gender = p_info.gender if (p_info and p_info.gender) else ''
+
+                    if gender == 'Male':
+                        male_by_year[yr].append(std)
+                    elif gender == 'Female':
+                        female_by_year[yr].append(std)
+                    else:
+                        other_by_year[yr].append(std)
+
+                total_updated = 0
+
+                # 1. Distribute Boys (Male) equally across 4 teams
+                male_index = random.randint(0, 3) if action == 'shuffle' else 0
+                for yr in [1, 2, 3, 4]:
+                    group = male_by_year[yr]
+                    if action == 'shuffle':
+                        random.shuffle(group)
+                    else:
+                        group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+
+                    for std in group:
+                        std.sports_team = TEAMS[male_index % 4]
+                        std.save(update_fields=['sports_team'])
+                        male_index += 1
+                        total_updated += 1
+
+                # 2. Distribute Girls (Female) equally across 4 teams
+                female_index = random.randint(0, 3) if action == 'shuffle' else 0
+                for yr in [1, 2, 3, 4]:
+                    group = female_by_year[yr]
+                    if action == 'shuffle':
+                        random.shuffle(group)
+                    else:
+                        group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+
+                    for std in group:
+                        std.sports_team = TEAMS[female_index % 4]
+                        std.save(update_fields=['sports_team'])
+                        female_index += 1
+                        total_updated += 1
+
+                # 3. Distribute Other/Unspecified gender students equally
+                other_index = random.randint(0, 3) if action == 'shuffle' else 0
+                for yr in [1, 2, 3, 4]:
+                    group = other_by_year[yr]
+                    if action == 'shuffle':
+                        random.shuffle(group)
+                    else:
+                        group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
+
+                    for std in group:
+                        std.sports_team = TEAMS[other_index % 4]
+                        std.save(update_fields=['sports_team'])
+                        other_index += 1
+                        total_updated += 1
+
+                verb = "shuffled and re-assigned" if action == 'shuffle' else "auto-assigned"
+                messages.success(request, f"Successfully {verb} {total_updated} UG students across the 4 sports teams with exact Boys & Girls gender equality.")
+                return redirect('staffs:hod_sports_teams')
 
         elif action == 'clear_teams':
             get_ug_students().update(sports_team=None)
@@ -9025,6 +9670,8 @@ def hod_sports_teams(request):
         {'name': 'Unassigned Students', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', **combined_stats['Unassigned']},
     ]
 
+    unassigned_count = all_students_all.filter(Q(sports_team__isnull=True) | Q(sports_team='')).count()
+
     return render(request, 'staff/hod_sports_teams.html', {
         'staff': staff,
         'team_choices': SPORTS_TEAM_CHOICES,
@@ -9033,6 +9680,7 @@ def hod_sports_teams(request):
         'combined_matrix_list': combined_matrix_list,
         'total_students_count': all_students_all.count(),
         'assigned_count': all_students_all.exclude(sports_team__isnull=True).exclude(sports_team='').count(),
+        'unassigned_count': unassigned_count,
         'total_boys_count': total_boys_count,
         'assigned_boys_count': assigned_boys_count,
         'total_girls_count': total_girls_count,
@@ -9418,6 +10066,35 @@ def staff_club_detail(request, club_id):
         'sc1_id': sc1_id,
         'sc2_id': sc2_id,
     })
+
+
+def mark_notification_read(request, notif_id):
+    """Marks a single staff notification as read and redirects to its target URL."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    from .models import StaffNotification
+    notif = get_object_or_404(StaffNotification, id=notif_id, staff=staff)
+    notif.is_read = True
+    notif.save()
+    target_url = notif.url or '/staffs/'
+    return redirect(target_url)
+
+
+def mark_all_notifications_read(request):
+    """Marks all pending notifications for the logged-in staff member as read."""
+    if 'staff_id' not in request.session:
+        from django.http import JsonResponse
+        return JsonResponse({'status': 'unauthorized'}, status=401)
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    from .models import StaffNotification
+    StaffNotification.objects.filter(staff=staff, is_read=False).update(is_read=True)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
+        from django.http import JsonResponse
+        return JsonResponse({'status': 'success'})
+    referer = request.META.get('HTTP_REFERER')
+    return redirect(referer or 'staffs:staff_dashboard')
+
 
 
 

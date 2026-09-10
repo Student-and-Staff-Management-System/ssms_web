@@ -48,10 +48,10 @@
     <!-- Horizontal Grid Matrix -->
     <div class="tsw-grid">
         {% for slot in today_schedule %}
-        <a href="{% if slot.subject and staff.role != 'Technical Officer' and staff.role != 'Office Staff' %}{% url 'staffs:manage_attendance' slot.subject.id %}?date={{ today_date }}&time={{ slot.start }}&end_time={{ slot.end }}{% if slot.batch and slot.batch != 'All' %}&batch={{ slot.batch }}{% endif %}{% else %}{% url 'staffs:my_timetable' %}{% endif %}" 
-           class="tsw-card tsw-{{ slot.status }}{% if slot.status == 'done' and not slot.is_marked %} tsw-unmarked{% elif slot.is_marked %} tsw-marked{% endif %}" 
+        <a href="{% if slot.subject and staff.role != 'Technical Officer' and staff.role != 'Office Staff' and not slot.is_assistant_only %}{% url 'staffs:manage_attendance' slot.subject.id %}?date={{ today_date }}&time={{ slot.start }}&end_time={{ slot.end }}{% if slot.batch and slot.batch != 'All' %}&batch={{ slot.batch }}{% endif %}{% else %}{% url 'staffs:my_timetable' %}{% endif %}" 
+           class="tsw-card tsw-{{ slot.status }}{% if slot.status == 'done' and not slot.is_marked and not slot.is_assistant_only %} tsw-unmarked{% elif slot.is_marked %} tsw-marked{% endif %}" 
            style="--i: {{ forloop.counter0 }}; text-decoration: none;"
-           {% if slot.subject and staff.role != 'Technical Officer' and staff.role != 'Office Staff' %}title="{% if slot.status == 'done' and not slot.is_marked %}Attendance not marked for {{ slot.subject.name }} (P{{ slot.period }}). Click to mark!{% else %}Click to manage attendance for {{ slot.subject.name }} (P{{ slot.period }}){% endif %}"{% else %}title="View Timetable Schedule"{% endif %}>
+           {% if slot.is_assistant_only %}title="Lab Assistant Duty (No Attendance Permission)"{% elif slot.subject and staff.role != 'Technical Officer' and staff.role != 'Office Staff' %}title="{% if slot.status == 'done' and not slot.is_marked %}Attendance not marked for {{ slot.subject.name }} (P{{ slot.period }}). Click to mark!{% else %}Click to manage attendance for {{ slot.subject.name }} (P{{ slot.period }}){% endif %}"{% else %}title="View Timetable Schedule"{% endif %}>
             
             <div class="tsw-card-top">
                 <div class="tsw-badges-left">
@@ -59,18 +59,27 @@
                     {% if slot.semester %}
                     <span class="tsw-sem-badge">Sem {{ slot.semester }}</span>
                     {% endif %}
+                    {% if slot.is_assistant_only %}
+                    <span class="tsw-asst-badge" style="background:#fef3c7; color:#b45309; border: 1px solid #fde68a; font-weight: 700; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 3px;" title="Lab Assistant"><i class="ri-user-star-line" style="font-size: 0.8rem;"></i> Assistant</span>
+                    {% endif %}
                     {% if slot.is_alternate %}
                     <span class="tsw-alt-badge" style="background:#e0f2fe; color:#0369a1; border: 1px solid #bae6fd; font-weight: 700; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 3px;" title="Alternate class for {{ slot.requester_name }}"><i class="ri-user-shared-line"></i> Alt ({{ slot.requester_name }})</span>
                     {% endif %}
+                    {% if slot.is_hour_swap %}
+                    <span class="tsw-swap-badge" style="background:#e0e7ff; color:#3730a3; border: 1px solid #c7d2fe; font-weight: 700; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 3px;" title="Hour Swapped with {{ slot.partner_name }}"><i class="ri-swap-box-line"></i> Swapped ({{ slot.partner_name }})</span>
+                    {% endif %}
+
                     {% if slot.is_lab or slot.subject.subject_type == 'Lab' %}
                     <span class="tsw-lab-badge" style="background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 3px;"><i class="ri-flask-line" style="font-size: 0.8rem;"></i> LAB</span>
                     {% endif %}
                 </div>
-                <span class="tsw-status-pill {% if slot.status == 'ongoing' %}tsw-pill-ongoing{% elif slot.status == 'done' %}{% if slot.is_marked %}tsw-pill-done{% else %}tsw-pill-unmarked{% endif %}{% else %}tsw-pill-upcoming{% endif %}">
+                <span class="tsw-status-pill {% if slot.status == 'ongoing' %}tsw-pill-ongoing{% elif slot.status == 'done' %}{% if slot.is_marked or slot.is_assistant_only %}tsw-pill-done{% else %}tsw-pill-unmarked{% endif %}{% else %}tsw-pill-upcoming{% endif %}">
                     {% if slot.status == 'ongoing' %}
                         <span class="tsw-pulse-dot"></span>Now
                     {% elif slot.status == 'done' %}
-                        {% if slot.is_marked %}
+                        {% if slot.is_assistant_only %}
+                            <i class="ri-shield-user-line"></i> Assistant
+                        {% elif slot.is_marked %}
                             <i class="ri-check-line"></i> Marked
                         {% else %}
                             <i class="ri-error-warning-fill"></i> Unmarked
@@ -94,6 +103,11 @@
             <div class="tsw-card-bottom">
                 <span class="tsw-time"><i class="ri-time-line"></i> {{ slot.start }}–{{ slot.end }}</span>
                 {% if slot.subject %}
+                {% if slot.is_assistant_only %}
+                <span class="tsw-mark-link" style="background:#fffbeb; color:#b45309; border: 1px solid #fde68a;">
+                    Assistant <i class="ri-shield-user-line"></i>
+                </span>
+                {% else %}
                 <span class="tsw-mark-link {% if slot.status == 'done' and not slot.is_marked %}tsw-mark-pending{% elif slot.is_marked %}tsw-mark-done{% endif %}">
                     {% if slot.is_marked %}
                         Marked <i class="ri-check-line"></i>
@@ -101,6 +115,7 @@
                         Mark <i class="ri-edit-box-line"></i>
                     {% endif %}
                 </span>
+                {% endif %}
                 {% endif %}
             </div>
         </a>

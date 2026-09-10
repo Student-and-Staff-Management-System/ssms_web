@@ -1,0 +1,448 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Incoming Hour Swaps | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Incoming Hour Swaps{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Full Page Width Override to Eliminate Blank Side Spaces */
+    .portal-main-body {
+        max-width: 100% !important;
+        padding: 16px 32px !important;
+    }
+
+    .swap-container {
+        width: 100%;
+        margin: 0 auto;
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+    }
+
+    .swap-header {
+        background: linear-gradient(135deg, var(--primary, #5a7d7c) 0%, var(--primary-dark, #4a6b69) 100%);
+        color: white;
+        padding: 16px 24px;
+        border-radius: var(--radius-lg, 14px);
+        box-shadow: 0 4px 18px rgba(90, 125, 124, 0.25);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .swap-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-header-action {
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(8px);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: var(--transition, all 0.2s);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-header-action:hover {
+        background: white;
+        color: var(--primary-dark, #4a6b69);
+    }
+
+    .req-card {
+        background: var(--surface, #ffffff);
+        border-radius: var(--radius-lg, 16px);
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 24px;
+        margin-bottom: 20px;
+        border-left: 5px solid var(--primary, #5a7d7c);
+    }
+
+    .req-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--border, #e2e8f0);
+    }
+
+    .requester-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .date-badge {
+        background: var(--primary-light, #eef2f2);
+        color: var(--primary-dark, #4a6b69);
+        font-weight: 700;
+        font-size: 0.82rem;
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+
+    .swap-proposal-grid {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 20px;
+        align-items: center;
+        background: var(--bg-body, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-md, 12px);
+        padding: 16px 24px;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    body.dark-theme .swap-proposal-grid {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    @media (max-width: 600px) {
+        .swap-proposal-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .proposal-box-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--text-muted, #64748b);
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .proposal-period {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-dark, #4a6b69);
+    }
+
+    body.dark-theme .proposal-period {
+        color: #8bb3b1;
+    }
+
+    .proposal-subject {
+        font-size: 0.88rem;
+        color: var(--text-main, #0f172a);
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    .proposal-date {
+        font-size: 0.82rem;
+        color: var(--primary, #5a7d7c);
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    .swap-exchange-icon {
+        font-size: 1.5rem;
+        color: var(--primary, #5a7d7c);
+    }
+
+    .action-row {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .btn-accept {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 9px 20px;
+        border-radius: var(--radius-sm, 8px);
+        font-family: inherit;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-accept:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-reject {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 9px 20px;
+        border-radius: var(--radius-sm, 8px);
+        font-family: inherit;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-reject:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    .reject-modal {
+        display: none;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border, #e2e8f0);
+    }
+
+    .history-card {
+        background: var(--surface, #ffffff);
+        border-radius: var(--radius-lg, 16px);
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 24px;
+        margin-top: 24px;
+    }
+
+    .badge-status {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .badge-pending { background: #fef3c7; color: #b45309; }
+    .badge-approved { background: #dcfce7; color: #15803d; }
+    .badge-rejected { background: #fee2e2; color: #b91c1c; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 0.88rem;
+    }
+
+    th, td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border, #e2e8f0);
+    }
+
+    th {
+        background: var(--bg-body, #f8fafc);
+        color: var(--text-muted, #64748b);
+        font-weight: 600;
+    }
+
+    body.dark-theme th {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .swap-notif-badge {
+        background: #ef4444;
+        color: #ffffff;
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        margin-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+        animation: pulseBadge 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseBadge {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="swap-container">
+
+    <!-- Header Banner -->
+    <div class="swap-header">
+        <div>
+            <h1 class="swap-title">
+                <i class="ri-inbox-archive-line"></i> Incoming Hour Swap Requests
+                {% if pending_hour_swaps_count %}
+                <span class="swap-notif-badge">{{ pending_hour_swaps_count }}</span>
+                {% endif %}
+            </h1>
+            <p style="font-size: 0.88rem; opacity: 0.92; margin-top: 4px;">Review and manage period swap proposals from department colleagues</p>
+        </div>
+        <div>
+            <a href="{% url 'staffs:manage_hour_swaps' %}" class="btn-header-action">
+                <i class="ri-swap-box-line"></i> Propose Hour Swap
+            </a>
+        </div>
+    </div>
+
+    <!-- Pending Requests List -->
+    {% if incoming_requests %}
+        {% for req in incoming_requests %}
+        <div class="req-card">
+            <div class="req-card-header">
+                <div class="requester-name">
+                    <i class="ri-user-shared-line" style="color: var(--primary, #5a7d7c);"></i>
+                    {{ req.requester.salutation }} {{ req.requester.name }}
+                </div>
+                <span class="date-badge">
+                    <i class="ri-swap-box-line"></i> Cross-Date Mutual Swap
+                </span>
+            </div>
+
+            <!-- Swap Proposal Cards -->
+            <div class="swap-proposal-grid">
+                <div>
+                    <div class="proposal-box-title">{{ req.requester.name }} Takes Your Class</div>
+                    <div class="proposal-period">Period {{ req.target_period }}</div>
+                    <div class="proposal-date"><i class="ri-calendar-line"></i> {{ req.target_date|date:"l, d-M-Y" }}</div>
+                    <div class="proposal-subject">{{ req.target_subject.code }} • {{ req.target_subject.name }}</div>
+                </div>
+
+                <div class="swap-exchange-icon">
+                    <i class="ri-arrow-left-right-line"></i>
+                </div>
+
+                <div>
+                    <div class="proposal-box-title">You Teach {{ req.requester.name }}'s Class</div>
+                    <div class="proposal-period">Period {{ req.requester_period }}</div>
+                    <div class="proposal-date"><i class="ri-calendar-line"></i> {{ req.requester_date|date:"l, d-M-Y" }}</div>
+                    <div class="proposal-subject">{{ req.requester_subject.code }} • {{ req.requester_subject.name }}</div>
+                </div>
+            </div>
+
+            {% if req.reason %}
+            <div style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 16px; font-style: italic; background: var(--bg-body); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);">
+                <i class="ri-chat-quote-line"></i> "{{ req.reason }}"
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="action-row">
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="accept">
+                    <input type="hidden" name="swap_id" value="{{ req.id }}">
+                    <button type="submit" class="btn-accept">
+                        <i class="ri-check-line"></i> Accept Swap
+                    </button>
+                </form>
+
+                <button type="button" class="btn-reject" onclick="toggleRejectModal('{{ req.id }}')">
+                    <i class="ri-close-line"></i> Reject Swap
+                </button>
+            </div>
+
+            <!-- Reject Reason Modal / Form -->
+            <div class="reject-modal" id="rejectForm_{{ req.id }}">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject">
+                    <input type="hidden" name="swap_id" value="{{ req.id }}">
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 0.84rem; font-weight: 600; color: var(--text-main);">Rejection Reason (Optional):</label>
+                        <input type="text" name="rejection_reason" class="form-control" placeholder="e.g. Prior commitment / lab session...">
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button type="button" onclick="toggleRejectModal('{{ req.id }}')" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-main); cursor: pointer; font-size: 0.82rem;">Cancel</button>
+                        <button type="submit" class="btn-reject" style="padding: 6px 14px; font-size: 0.82rem;">Confirm Rejection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="background: var(--surface); border-radius: var(--radius-lg, 16px); border: 1px solid var(--border); padding: 40px 20px; text-align: center; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 10px;"><i class="ri-inbox-archive-line"></i></div>
+            <h3 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 6px;">No Pending Hour Swap Requests</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">You do not have any pending hour swap proposals waiting for response.</p>
+        </div>
+    {% endif %}
+
+    <!-- Swap History Table -->
+    <div class="history-card">
+        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+            <i class="ri-history-line" style="color: var(--primary);"></i> Swapping History & Past Actions
+        </h3>
+
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Offered Class Date & Period</th>
+                        <th>Swap Partner</th>
+                        <th>Taken Class Date & Period</th>
+                        <th>Status</th>
+                        <th>Updated At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in history %}
+                    <tr>
+                        <td><strong>{{ h.requester_date|date:"d-M-Y" }}</strong> • P{{ h.requester_period }} ({{ h.requester_subject.code }})</td>
+                        <td>
+                            {% if h.requester == staff %}
+                                To: {{ h.target_staff.name }}
+                            {% else %}
+                                From: {{ h.requester.name }}
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ h.target_date|date:"d-M-Y" }}</strong> • P{{ h.target_period }} ({{ h.target_subject.code }})</td>
+                        <td>
+                            <span class="badge-status badge-{{ h.status|lower }}">{{ h.status }}</span>
+                            {% if h.status == 'Rejected' and h.rejection_reason %}
+                            <div style="font-size: 0.76rem; color: #b91c1c; margin-top: 2px;">Reason: {{ h.rejection_reason }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;">{{ h.updated_at|date:"d-M g:i A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No historical hour swap records.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function toggleRejectModal(reqId) {
+        const form = document.getElementById('rejectForm_' + reqId);
+        if (form.style.display === 'block') {
+            form.style.display = 'none';
+        } else {
+            form.style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

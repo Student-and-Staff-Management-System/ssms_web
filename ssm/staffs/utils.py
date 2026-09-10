@@ -204,10 +204,25 @@ def send_push_notification(student, title, body, url=None):
         print(f"Push Notification Failed for {student.roll_number}: {e}")
         return False
 
-def send_staff_notification(staff, title, body, url=None):
+def send_staff_notification(staff, title, body, url=None, notification_type='general'):
     """
-    Sends a web push notification to a specific staff member.
+    Saves an in-app notification in the database and sends a web push notification to the staff member.
     """
+    if not staff:
+        return False
+
+    try:
+        from .models import StaffNotification
+        StaffNotification.objects.create(
+            staff=staff,
+            title=title,
+            message=body,
+            url=url or '/staffs/',
+            notification_type=notification_type
+        )
+    except Exception as e:
+        print(f"Error saving StaffNotification for {staff.staff_id}: {e}")
+
     try:
         from webpush import send_group_notification
         
@@ -221,10 +236,10 @@ def send_staff_notification(staff, title, body, url=None):
             "url": url if url else "/staffs/"
         }
         send_group_notification(group_name=group_name, payload=payload, ttl=86400)
-        return True
     except Exception as e:
         print(f"Push Notification Failed for Staff {staff.staff_id}: {e}")
-        return False
+
+    return True
 
 def get_risk_metrics(subject):
     """
@@ -242,9 +257,9 @@ def get_risk_metrics(subject):
         
         # Calculate Attendance
         attendances = StudentAttendance.objects.filter(student=student, subject=subject)
-        total_classes = attendances.count()
+        total_classes = attendances.exclude(status='Holiday').count()
         if total_classes > 0:
-            presents = attendances.filter(status='Present').count()
+            presents = attendances.filter(status__in=['Present', 'OD']).count()
             attendance_percentage = round((presents / total_classes) * 100, 2)
         else:
             attendance_percentage = 100.0  # Safe default if no classes held
@@ -280,3 +295,24 @@ def get_risk_metrics(subject):
             })
 
     return risk_list
+
+
+def get_effective_day_order(date_obj):
+    """
+    Returns (day_name, is_holiday, is_working_saturday, override_obj) for a given date.
+    Checks AcademicCalendarOverride for custom holiday or Day Order settings.
+    """
+    from .models import AcademicCalendarOverride
+
+    override = AcademicCalendarOverride.objects.filter(date=date_obj).first()
+    standard_day_name = date_obj.strftime('%A')
+    is_saturday = (date_obj.weekday() == 5)
+
+    if override:
+        if override.day_type == 'Holiday':
+            return standard_day_name, True, False, override
+        elif override.day_type == 'WorkingDay' and override.day_order:
+            return override.day_order, False, True, override
+
+    return standard_day_name, False, False, None
+

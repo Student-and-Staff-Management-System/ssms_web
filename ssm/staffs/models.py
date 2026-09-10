@@ -379,6 +379,15 @@ class Lab(models.Model):
         verbose_name="Lab Incharge",
         help_text="The staff member in charge of this lab."
     )
+    assistant_staff = models.ForeignKey(
+        Staff,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_assistant_labs',
+        verbose_name="Lab Assistant",
+        help_text="The assistant staff member assigned to this lab."
+    )
     from_date = models.DateField(null=True, blank=True, verbose_name="From Date")
     to_date = models.DateField(null=True, blank=True, verbose_name="To Date")
 
@@ -719,6 +728,10 @@ class Subject(models.Model):
     
     staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True, related_name='subjects')
     staff_batch_b = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True, related_name='subjects_b')
+    assistant_staff = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True, related_name='assisted_subjects', verbose_name="Lab Assistant Staff (Batch A/Both)", help_text="The assistant staff member assigned to support this lab subject.")
+    assistant_staff_batch_b = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True, blank=True, related_name='assisted_subjects_b', verbose_name="Lab Assistant Staff (Batch B)", help_text="The assistant staff member assigned for Batch B of this lab subject.")
+    assistant_staffs = models.ManyToManyField(Staff, blank=True, related_name='assisted_subjects_multi', verbose_name="Lab Assistants (Batch A/Both)", help_text="Multiple assistant staff members assigned to support this lab subject.")
+    assistant_staffs_batch_b = models.ManyToManyField(Staff, blank=True, related_name='assisted_subjects_b_multi', verbose_name="Lab Assistants (Batch B)", help_text="Multiple assistant staff members assigned for Batch B of this lab subject.")
     
     ASSIGNED_BATCH_CHOICES = [
         ('A', 'Batch A'),
@@ -1248,6 +1261,53 @@ class ClassSubstitutionRequest(models.Model):
         return f"{self.requester.name} -> {self.substitute.name} on {self.date} (P{self.period})"
 
 
+class StaffHourSwapRequest(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Cancelled', 'Cancelled'),
+    ]
+    
+    ATTENDANCE_CREDIT_CHOICES = [
+        ('SWAPPED_TEACHER', 'Swapped Staff gets Attendance Credit'),
+        ('PRIMARY_TEACHER', 'Primary Subject Staff retains Credit'),
+    ]
+
+    requester = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='hour_swaps_requested')
+    target_staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='hour_swaps_received')
+    
+    requester_date = models.DateField(help_text="Date of requester's period to give up")
+    requester_period = models.IntegerField(help_text="Requester's period (1-7)")
+    requester_subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='swap_requester_subjects')
+    
+    target_date = models.DateField(help_text="Date of target staff's period to take in exchange")
+    target_period = models.IntegerField(help_text="Target staff's period (1-7)")
+    target_subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='swap_target_subjects')
+    
+    reason = models.TextField(blank=True, null=True, help_text="Reason for requesting swap")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    rejection_reason = models.TextField(blank=True, null=True)
+    
+    attendance_credit = models.CharField(
+        max_length=30,
+        choices=ATTENDANCE_CREDIT_CHOICES,
+        default='SWAPPED_TEACHER'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-requester_date', 'requester_period']
+        unique_together = ('requester', 'requester_date', 'requester_period')
+
+    def __str__(self):
+        return f"Swap ({self.requester.name} P{self.requester_period} [{self.requester_date}] <-> {self.target_staff.name} P{self.target_period} [{self.target_date}]) [{self.status}]"
+
+
+
+
 DEFAULT_DEPARTMENT_TASKS = [
     (1, "Department Administration", "Administration"),
     (2, "Board of Studies", "Academic & Governance"),
@@ -1361,5 +1421,70 @@ class DepartmentTask(models.Model):
                 task_number=num,
                 defaults={'name': name, 'category': cat}
             )
+
+
+class AcademicCalendarOverride(models.Model):
+    DAY_TYPE_CHOICES = [
+        ('Holiday', 'Holiday'),
+        ('WorkingDay', 'Working Day (Day Order)'),
+    ]
+    DAY_ORDER_CHOICES = [
+        ('Monday', 'Monday Order'),
+        ('Tuesday', 'Tuesday Order'),
+        ('Wednesday', 'Wednesday Order'),
+        ('Thursday', 'Thursday Order'),
+        ('Friday', 'Friday Order'),
+    ]
+    
+    date = models.DateField(unique=True)
+    day_type = models.CharField(max_length=20, choices=DAY_TYPE_CHOICES, default='Holiday')
+    day_order = models.CharField(
+        max_length=20, 
+        choices=DAY_ORDER_CHOICES, 
+        blank=True, 
+        null=True, 
+        help_text="Effective Day Order for timetable (e.g. Monday Order for a working Saturday)"
+    )
+    title = models.CharField(max_length=150, help_text="e.g. Govt Holiday, Working Saturday - Monday Order")
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name = "Academic Calendar Override"
+        verbose_name_plural = "Academic Calendar Overrides"
+
+    def __str__(self):
+        if self.day_type == 'Holiday':
+            return f"Holiday on {self.date}: {self.title}"
+        return f"Working Day on {self.date} ({self.day_order} Order): {self.title}"
+
+
+class StaffNotification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('hour_swap', 'Mutual Hour Swap'),
+        ('substitution', 'Class Substitution'),
+        ('leave', 'Leave Request'),
+        ('bonafide', 'Bonafide Certificate'),
+        ('document', 'Document Request'),
+        ('portfolio', 'Portfolio Approval'),
+        ('general', 'General Notification'),
+    ]
+
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES, default='general')
+    url = models.CharField(max_length=500, blank=True, null=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.staff.name} - {self.title}"
+
+
 
 

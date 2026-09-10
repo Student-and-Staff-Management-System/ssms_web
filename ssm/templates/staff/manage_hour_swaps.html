@@ -1,0 +1,775 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Mutual Hour Swapping | {{ staff.name }}{% endblock %}
+
+{% block page_title %}Staff Hour Swapping{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Full Page Width Override to Eliminate Blank Side Spaces */
+    .portal-main-body {
+        max-width: 100% !important;
+        padding: 16px 32px !important;
+    }
+
+    .swap-container {
+        width: 100%;
+        margin: 0 auto;
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+    }
+
+    /* Site Theme Header Banner (#5a7d7c Sage Green) */
+    .swap-header {
+        background: linear-gradient(135deg, var(--primary, #5a7d7c) 0%, var(--primary-dark, #4a6b69) 100%);
+        color: #ffffff;
+        padding: 16px 24px;
+        border-radius: var(--radius-lg, 14px);
+        box-shadow: 0 4px 18px rgba(90, 125, 124, 0.25);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .swap-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #ffffff;
+    }
+
+    .swap-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.95;
+        margin-top: 2px;
+        color: #eef2f2;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .btn-header-action {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        color: #ffffff;
+        padding: 7px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        transition: var(--transition, all 0.2s);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-header-action:hover {
+        background: #ffffff;
+        color: var(--primary-dark, #4a6b69);
+        transform: translateY(-1px);
+    }
+
+    .swap-notif-badge {
+        background: #ef4444;
+        color: #ffffff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 12px;
+        margin-left: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+        animation: pulseBadge 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseBadge {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+
+    /* Date Filter Ribbon */
+    .date-filter-bar {
+        background: var(--surface, #ffffff);
+        padding: 12px 20px;
+        border-radius: var(--radius-md, 12px);
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .date-form {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .date-input {
+        padding: 7px 12px;
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-sm, 8px);
+        font-family: inherit;
+        font-size: 0.88rem;
+        color: var(--text-main, #0f172a);
+        background: var(--surface, #ffffff);
+        outline: none;
+    }
+
+    .date-input:focus {
+        border-color: var(--primary, #5a7d7c);
+    }
+
+    /* Main 2-Column Desktop Grid Layout (Wide Usage) */
+    .main-swap-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 1200px) {
+        .main-swap-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .swap-card {
+        background: var(--surface, #ffffff);
+        border-radius: var(--radius-lg, 14px);
+        border: 1px solid var(--border, #e2e8f0);
+        box-shadow: var(--shadow-sm);
+        padding: 20px 22px;
+        margin-bottom: 20px;
+    }
+
+    .card-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed var(--border, #e2e8f0);
+    }
+
+    .card-title-icon {
+        width: 32px; height: 32px;
+        background: var(--primary-light, #eef2f2);
+        color: var(--primary-dark, #4a6b69);
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.05rem;
+    }
+
+    /* Form Steps Grid - 3 Columns inside Form Card */
+    .steps-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    @media (max-width: 900px) {
+        .steps-form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .step-box {
+        background: var(--bg-body, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-md, 10px);
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    body.dark-theme .step-box {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .step-box-title {
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--primary-dark, #4a6b69);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    body.dark-theme .step-box-title {
+        color: #8bb3b1;
+    }
+
+    .form-group {
+        margin-bottom: 10px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-muted, #64748b);
+        margin-bottom: 4px;
+    }
+
+    .form-select, .form-control {
+        width: 100%;
+        padding: 8px 11px;
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-sm, 8px);
+        font-family: inherit;
+        font-size: 0.85rem;
+        color: var(--text-main, #0f172a);
+        background-color: var(--surface, #ffffff);
+        box-sizing: border-box;
+        transition: border 0.2s;
+    }
+
+    body.dark-theme .form-select, body.dark-theme .form-control {
+        background-color: var(--surface, #111827);
+        color: var(--text-main, #f8fafc);
+        border-color: var(--border, #1f2937);
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: var(--primary, #5a7d7c);
+        outline: none;
+    }
+
+    .swap-preview-box {
+        background: var(--primary-light, #eef2f2);
+        border: 1px solid rgba(90, 125, 124, 0.25);
+        border-radius: var(--radius-md, 10px);
+        padding: 10px 18px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        gap: 12px;
+        text-align: center;
+    }
+
+    body.dark-theme .swap-preview-box {
+        background: rgba(90, 125, 124, 0.12);
+        border-color: rgba(90, 125, 124, 0.3);
+    }
+
+    .preview-col {
+        flex: 1;
+    }
+
+    .preview-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--primary-dark, #4a6b69);
+        letter-spacing: 0.5px;
+    }
+
+    body.dark-theme .preview-label {
+        color: #8bb3b1;
+    }
+
+    .preview-val {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+        margin-top: 1px;
+    }
+
+    .preview-date {
+        font-size: 0.76rem;
+        color: var(--primary, #5a7d7c);
+        font-weight: 600;
+    }
+
+    .swap-arrow-icon {
+        font-size: 1.3rem;
+        color: var(--primary, #5a7d7c);
+        animation: pulseSwap 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseSwap {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+
+    .form-footer-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-submit-swap {
+        background: linear-gradient(135deg, var(--primary, #5a7d7c) 0%, var(--primary-dark, #4a6b69) 100%);
+        color: #ffffff;
+        border: none;
+        padding: 10px 22px;
+        border-radius: var(--radius-md, 10px);
+        font-family: inherit;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(90, 125, 124, 0.3);
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .btn-submit-swap:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(90, 125, 124, 0.4);
+    }
+
+    /* Timetable and Swaps Sent Items */
+    .tt-item {
+        background: var(--bg-body, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-sm, 8px);
+        padding: 9px 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    body.dark-theme .tt-item {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .tt-period-badge {
+        background: var(--primary-light, #eef2f2);
+        color: var(--primary-dark, #4a6b69);
+        font-weight: 700;
+        font-size: 0.76rem;
+        padding: 3px 7px;
+        border-radius: 6px;
+    }
+
+    .badge-status {
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 600;
+    }
+
+    .badge-pending { background: #fef3c7; color: #b45309; }
+    .badge-approved { background: #dcfce7; color: #15803d; }
+    .badge-rejected { background: #fee2e2; color: #b91c1c; }
+
+    /* Wide History Table (100% full width) */
+    .swap-history-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .swap-history-table th, .swap-history-table td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border, #e2e8f0);
+    }
+
+    .swap-history-table th {
+        background: var(--bg-body, #f8fafc);
+        color: var(--text-muted, #64748b);
+        font-weight: 600;
+    }
+
+    body.dark-theme .swap-history-table th {
+        background: rgba(255, 255, 255, 0.04);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="swap-container">
+
+    <!-- Header Banner (#5a7d7c Site Theme) -->
+    <div class="swap-header">
+        <div>
+            <h1 class="swap-title"><i class="ri-swap-box-line"></i> Mutual Hour (HR) Swapping</h1>
+            <p class="swap-subtitle">Propose mutual class period swaps across days & dates with department faculty</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'staffs:incoming_hour_swaps' %}" class="btn-header-action">
+                <i class="ri-inbox-archive-line"></i> Incoming Swaps Request
+                {% if pending_hour_swaps_count %}
+                <span class="swap-notif-badge">{{ pending_hour_swaps_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'staffs:my_timetable' %}" class="btn-header-action">
+                <i class="ri-calendar-event-line"></i> My Timetable
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Selection Ribbon -->
+    <div class="date-filter-bar">
+        <form method="GET" class="date-form">
+            <label class="form-label" style="margin: 0; font-size: 0.88rem; color: var(--text-main);">View My Schedule Date:</label>
+            <input type="date" name="date" class="date-input" value="{{ selected_date|date:'Y-m-d' }}" onchange="this.form.submit()">
+            <button type="submit" class="btn-header-action" style="background: var(--primary, #5a7d7c); border: none;">View Schedule</button>
+        </form>
+        <span style="font-size: 0.88rem; color: var(--text-muted); font-weight: 500;">
+            <i class="ri-calendar-line"></i> Day Order: <strong style="color: var(--primary-dark, #4a6b69);">{{ day_name }}</strong>
+        </span>
+    </div>
+
+    <!-- Main Desktop 2-Column Grid (Wide Form Left + Timetable Right) -->
+    <div class="main-swap-grid">
+        
+        <!-- LEFT COLUMN: Propose Swap Card -->
+        <div class="swap-card" style="margin-bottom: 0;">
+            <div class="card-title-row">
+                <div class="card-title-icon"><i class="ri-swap-box-line"></i></div>
+                <div>Propose Mutual Hour Swap</div>
+            </div>
+
+            <form method="POST" id="swapRequestForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="request_hour_swap">
+
+                <div class="steps-form-grid">
+                    
+                    <!-- STEP 1: My Class to Give Up -->
+                    <div class="step-box">
+                        <div class="step-box-title">
+                            <i class="ri-user-user-line"></i> Step 1: My Class Period to Give Up
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">My Class Date:</label>
+                            <input type="date" name="requester_date" id="requester_date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}" onchange="updatePreview()">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Select My Period:</label>
+                            <select name="requester_period" id="requester_period" class="form-select" required onchange="updatePreview()">
+                                <option value="">-- Choose My Period --</option>
+                                {% for tt in my_timetable %}
+                                    {% if tt.subject %}
+                                    <option value="{{ tt.period }}" data-subject="{{ tt.subject.name }} ({{ tt.subject.code }})" data-period="Period {{ tt.period }}">
+                                        Period {{ tt.period }} • {{ tt.subject.code }} - {{ tt.subject.name }}
+                                    </option>
+                                    {% endif %}
+                                {% empty %}
+                                    <option value="" disabled>No scheduled classes found on {{ day_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Target Faculty -->
+                    <div class="step-box">
+                        <div class="step-box-title">
+                            <i class="ri-user-shared-line"></i> Step 2: Faculty Member to Swap With
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Choose Faculty Member:</label>
+                            <select name="target_staff_id" id="target_staff_id" class="form-select" required onchange="updateTargetPeriods()">
+                                <option value="">-- Select Faculty Member --</option>
+                                {% for st in other_staff %}
+                                    <option value="{{ st.staff_id }}">{{ st.salutation }} {{ st.name }} ({{ st.designation|default:"Faculty" }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Target Class to Teach -->
+                    <div class="step-box">
+                        <div class="step-box-title">
+                            <i class="ri-time-line"></i> Step 3: Target Class to Teach
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Exchange Date:</label>
+                            <input type="date" name="target_date" id="target_date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}" onchange="updateTargetPeriods()">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Select Target Period:</label>
+                            <select name="target_period" id="target_period" class="form-select" required onchange="updatePreview()">
+                                <option value="">-- Select Faculty First --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Live Exchange Preview Box -->
+                <div class="swap-preview-box" id="swapPreviewBox" style="display: none;">
+                    <div class="preview-col">
+                        <div class="preview-label">I Give Up</div>
+                        <div class="preview-val" id="prevGiveVal">Period --</div>
+                        <div class="preview-date" id="prevGiveDate">Date --</div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);" id="prevGiveSub">Subject</div>
+                    </div>
+                    <div class="swap-arrow-icon">
+                        <i class="ri-arrow-left-right-line"></i>
+                    </div>
+                    <div class="preview-col">
+                        <div class="preview-label">I Teach in Exchange</div>
+                        <div class="preview-val" id="prevTakeVal">Period --</div>
+                        <div class="preview-date" id="prevTakeDate">Date --</div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);" id="prevTakeSub">Subject</div>
+                    </div>
+                </div>
+
+                <!-- Reason & Action Button -->
+                <div class="form-footer-row">
+                    <div style="flex: 1; min-width: 220px;">
+                        <input type="text" name="reason" class="form-control" placeholder="Reason / Note for swap (Optional, e.g. Meeting at 1:30 PM...)">
+                    </div>
+                    <button type="submit" class="btn-submit-swap">
+                        <i class="ri-send-plane-fill"></i> Submit Mutual Hour Swap Request
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- RIGHT COLUMN: Side-by-side My Schedule & Swaps Sent -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- My Schedule Card -->
+            <div class="swap-card" style="margin-bottom: 0; flex: 1;">
+                <div class="card-title-row">
+                    <div class="card-title-icon"><i class="ri-calendar-check-line"></i></div>
+                    <div>My Schedule on {{ day_name }}</div>
+                </div>
+
+                {% if my_timetable %}
+                    {% for tt in my_timetable %}
+                    <div class="tt-item">
+                        <div>
+                            <span class="tt-period-badge">P{{ tt.period }}</span>
+                            <strong style="margin-left: 6px; font-size: 0.86rem; color: var(--text-main);">{% if tt.subject %}{{ tt.subject.name }}{% else %}Free Period{% endif %}</strong>
+                            {% if tt.subject %}<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1px;">{{ tt.subject.code }} • Sem {{ tt.semester }}</div>{% endif %}
+                        </div>
+                        <div>
+                            {% if tt.subject %}
+                            <span style="font-size: 0.75rem; font-weight: 600; color: var(--primary, #5a7d7c);">Scheduled</span>
+                            {% else %}
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Free</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 12px 0;">No classes scheduled for {{ day_name }}.</p>
+                {% endif %}
+            </div>
+
+            <!-- Swaps Sent Card -->
+            <div class="swap-card" style="margin-bottom: 0; flex: 1;">
+                <div class="card-title-row">
+                    <div class="card-title-icon"><i class="ri-send-plane-line"></i></div>
+                    <div>Swaps Sent for {{ selected_date|date:"d-M" }}</div>
+                </div>
+
+                {% if swaps_sent %}
+                    {% for sw in swaps_sent %}
+                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; background: var(--surface);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span style="font-weight: 700; font-size: 0.85rem; color: var(--primary-dark, #4a6b69);">
+                                Swap with {{ sw.target_staff.name }}
+                            </span>
+                            <span class="badge-status badge-{{ sw.status|lower }}">{{ sw.status }}</span>
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--text-main);">
+                            <div><strong>Giving:</strong> P{{ sw.requester_period }} ({{ sw.requester_subject.code }}) on {{ sw.requester_date|date:"d-M" }}</div>
+                            <div><strong>Taking:</strong> P{{ sw.target_period }} ({{ sw.target_subject.code }}) on {{ sw.target_date|date:"d-M" }}</div>
+                        </div>
+
+                        {% if sw.status == 'Pending' %}
+                        <form method="POST" style="margin-top: 6px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="cancel_swap">
+                            <input type="hidden" name="swap_id" value="{{ sw.id }}">
+                            <button type="submit" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 2px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; cursor: pointer;">
+                                <i class="ri-close-circle-line"></i> Cancel Request
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="font-size: 0.83rem; color: var(--text-muted); text-align: center; padding: 10px 0;">No hour swap requests sent for this date.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BOTTOM FULL WIDTH SECTION: Swap History Table Matrix -->
+    <div class="swap-card" style="margin-bottom: 0;">
+        <div class="card-title-row">
+            <div class="card-title-icon"><i class="ri-history-line"></i></div>
+            <div>Recent Swap History & Audit Records</div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="swap-history-table">
+                <thead>
+                    <tr>
+                        <th>Swap Partner</th>
+                        <th>Offered Period & Date</th>
+                        <th>Exchange Period & Date</th>
+                        <th>Reason / Note</th>
+                        <th>Status</th>
+                        <th>Requested Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in swap_history %}
+                    <tr>
+                        <td>
+                            <strong>
+                            {% if h.requester == staff %}
+                                To: {{ h.target_staff.name }}
+                            {% else %}
+                                From: {{ h.requester.name }}
+                            {% endif %}
+                            </strong>
+                        </td>
+                        <td style="font-size: 0.82rem;">
+                            <strong>P{{ h.requester_period }}</strong> • {{ h.requester_subject.code }} ({{ h.requester_date|date:"d-M-Y" }})
+                        </td>
+                        <td style="font-size: 0.82rem;">
+                            <strong>P{{ h.target_period }}</strong> • {{ h.target_subject.code }} ({{ h.target_date|date:"d-M-Y" }})
+                        </td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted);">
+                            {{ h.reason|default:"--" }}
+                        </td>
+                        <td>
+                            <span class="badge-status badge-{{ h.status|lower }}">{{ h.status }}</span>
+                            {% if h.status == 'Rejected' and h.rejection_reason %}
+                            <div style="font-size: 0.73rem; color: #b91c1c; margin-top: 2px;">Reason: {{ h.rejection_reason }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.78rem; color: var(--text-muted);">
+                            {{ h.created_at|date:"d-M-Y g:i A" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px;">No previous swap records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const staffWeeklySchedules = {{ staff_weekly_schedules_json|safe }};
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    function getDayNameFromDate(dateStr) {
+        if (!dateStr) return "";
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+            return dayNames[dt.getDay()];
+        }
+        return "";
+    }
+
+    function updateTargetPeriods() {
+        const staffSelect = document.getElementById('target_staff_id');
+        const targetDateInput = document.getElementById('target_date');
+        const targetPeriodSelect = document.getElementById('target_period');
+
+        const selectedStaffId = staffSelect.value;
+        const selectedTargetDate = targetDateInput.value;
+        const targetDayName = getDayNameFromDate(selectedTargetDate);
+
+        targetPeriodSelect.innerHTML = '<option value="">-- Choose Target Period --</option>';
+
+        if (!selectedStaffId) {
+            targetPeriodSelect.innerHTML = '<option value="">-- Select Faculty Member First --</option>';
+            updatePreview();
+            return;
+        }
+
+        if (targetDayName === "Saturday" || targetDayName === "Sunday") {
+            targetPeriodSelect.innerHTML = `<option value="">-- ${targetDayName} is a Weekend (No Timetable) --</option>`;
+            updatePreview();
+            return;
+        }
+
+        const staffSchedule = staffWeeklySchedules[selectedStaffId];
+        if (!staffSchedule || !staffSchedule[targetDayName] || staffSchedule[targetDayName].length === 0) {
+            targetPeriodSelect.innerHTML = `<option value="">-- No Classes for Staff on ${targetDayName} (${selectedTargetDate}) --</option>`;
+        } else {
+            const periods = staffSchedule[targetDayName];
+            periods.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.period;
+                opt.textContent = `Period ${p.period} • ${p.subject_code} - ${p.subject_name}`;
+                opt.setAttribute('data-subject', `${p.subject_name} (${p.subject_code})`);
+                opt.setAttribute('data-period', `Period ${p.period}`);
+                targetPeriodSelect.appendChild(opt);
+            });
+        }
+        updatePreview();
+    }
+
+    function updatePreview() {
+        const reqDateInput = document.getElementById('requester_date');
+        const reqSelect = document.getElementById('requester_period');
+
+        const targetDateInput = document.getElementById('target_date');
+        const targetSelect = document.getElementById('target_period');
+        
+        const previewBox = document.getElementById('swapPreviewBox');
+
+        const reqOpt = reqSelect.options[reqSelect.selectedIndex];
+        const targetOpt = targetSelect.options[targetSelect.selectedIndex];
+
+        if (reqSelect.value && targetSelect.value && reqOpt && targetOpt && reqOpt.value && targetOpt.value) {
+            document.getElementById('prevGiveVal').textContent = reqOpt.getAttribute('data-period') || `Period ${reqSelect.value}`;
+            document.getElementById('prevGiveDate').textContent = reqDateInput.value;
+            document.getElementById('prevGiveSub').textContent = reqOpt.getAttribute('data-subject') || '';
+
+            document.getElementById('prevTakeVal').textContent = targetOpt.getAttribute('data-period') || `Period ${targetSelect.value}`;
+            document.getElementById('prevTakeDate').textContent = targetDateInput.value;
+            document.getElementById('prevTakeSub').textContent = targetOpt.getAttribute('data-subject') || '';
+
+            previewBox.style.display = 'flex';
+        } else {
+            previewBox.style.display = 'none';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        updateTargetPeriods();
+    });
+</script>
+{% endblock %}
+

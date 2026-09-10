@@ -458,7 +458,16 @@ class StudentAttendance(models.Model):
     date = models.DateField()
     time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=[('Present', 'Present'), ('Absent', 'Absent')], default='Present')
+    status = models.CharField(
+        max_length=20, 
+        choices=[
+            ('Present', 'Present'), 
+            ('Absent', 'Absent'), 
+            ('Holiday', 'Holiday'), 
+            ('OD', 'On Duty')
+        ], 
+        default='Present'
+    )
 
     class Meta:
         unique_together = ('student', 'subject', 'date', 'time')

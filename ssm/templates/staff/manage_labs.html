@@ -340,9 +340,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="lab_staff">Assigned Lab Incharge</label>
+                    <label for="lab_staff">Assigned Lab Incharge (IC)</label>
                     <select id="lab_staff" name="staff_id" class="form-control">
-                        <option value="">-- Select Staff (Optional) --</option>
+                        <option value="">-- Select Lab Incharge (Optional) --</option>
+                        {% for s in all_staff %}
+                        <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="lab_assistant_staff">Assigned Lab Assistant</label>
+                    <select id="lab_assistant_staff" name="assistant_staff_id" class="form-control">
+                        <option value="">-- Select Lab Assistant (Optional) --</option>
                         {% for s in all_staff %}
                         <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
                         {% endfor %}
@@ -380,7 +390,8 @@
                         <tr>
                             <th>Lab Short Name</th>
                             <th>Lab Name</th>
-                            <th>Assigned Incharge</th>
+                            <th>Lab Incharge (IC)</th>
+                            <th>Lab Assistant</th>
                             <th>From Date</th>
                             <th>To Date</th>
                             <th>Actions</th>
@@ -409,6 +420,23 @@
                                 {% endif %}
                             </td>
                             <td>
+                                {% if lab.assistant_staff %}
+                                <div class="staff-info">
+                                    {% if lab.assistant_staff.photo %}
+                                    <img src="{{ lab.assistant_staff.photo.url }}" alt="Profile" class="staff-avatar">
+                                    {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ lab.assistant_staff.name }}" alt="Profile" class="staff-avatar">
+                                    {% endif %}
+                                    <div class="staff-details">
+                                        <span class="staff-name asst-name">{{ lab.assistant_staff.name }}</span>
+                                        <span class="staff-id">ID: {{ lab.assistant_staff.staff_id }}</span>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <span class="unassigned">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 {% if lab.from_date %}
                                 <span style="font-size: 0.85rem; color: var(--text-main, #0f172a); white-space: nowrap;">{{ lab.from_date|date:"d-M-Y" }}</span>
                                 {% else %}
@@ -424,7 +452,7 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-action btn-edit" onclick="openEditModal('{{ lab.id }}', '{{ lab.name|escapejs }}', '{{ lab.short_name|escapejs }}', '{{ lab.staff.staff_id|default_if_none:'' }}', '{{ lab.from_date|date:'Y-m-d' }}', '{{ lab.to_date|date:'Y-m-d' }}')">
+                                    <button class="btn-action btn-edit" onclick="openEditModal('{{ lab.id }}', '{{ lab.name|escapejs }}', '{{ lab.short_name|escapejs }}', '{{ lab.staff.staff_id|default_if_none:'' }}', '{{ lab.assistant_staff.staff_id|default_if_none:'' }}', '{{ lab.from_date|date:'Y-m-d' }}', '{{ lab.to_date|date:'Y-m-d' }}')">
                                         ✏️ Edit
                                     </button>
                                     <a href="{% url 'staffs:hod_delete_lab' lab.id %}" class="btn-action btn-delete" onclick="return confirm('Are you sure you want to delete lab: {{ lab.name|escapejs }}?')">
@@ -591,9 +619,19 @@
             </div>
 
             <div class="form-group">
-                <label for="edit_lab_staff">Assigned Lab Incharge</label>
+                <label for="edit_lab_staff">Assigned Lab Incharge (IC)</label>
                 <select id="edit_lab_staff" name="staff_id" class="form-control">
-                    <option value="">-- Select Staff (Optional) --</option>
+                    <option value="">-- Select Lab Incharge (Optional) --</option>
+                    {% for s in all_staff %}
+                    <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_lab_assistant_staff">Assigned Lab Assistant</label>
+                <select id="edit_lab_assistant_staff" name="assistant_staff_id" class="form-control">
+                    <option value="">-- Select Lab Assistant (Optional) --</option>
                     {% for s in all_staff %}
                     <option value="{{ s.staff_id }}">{{ s.name }} ({{ s.staff_id }})</option>
                     {% endfor %}
@@ -699,11 +737,13 @@
             const shortNameCell = rows[i].getElementsByClassName('code-badge')[0];
             const nameCell = rows[i].getElementsByClassName('lab-name-cell')[0];
             const staffCell = rows[i].getElementsByClassName('staff-name')[0];
+            const asstCell = rows[i].getElementsByClassName('asst-name')[0];
             
             let textValue = "";
             if (shortNameCell) textValue += shortNameCell.innerText + " ";
             if (nameCell) textValue += nameCell.innerText + " ";
-            if (staffCell) textValue += staffCell.innerText;
+            if (staffCell) textValue += staffCell.innerText + " ";
+            if (asstCell) textValue += asstCell.innerText;
 
             if (textValue.toLowerCase().indexOf(filter) > -1) {
                 rows[i].style.display = "";
@@ -735,11 +775,12 @@
         }
     }
 
-    function openEditModal(id, name, shortName, staffId, fromDate, toDate) {
+    function openEditModal(id, name, shortName, staffId, assistantStaffId, fromDate, toDate) {
         document.getElementById('edit_lab_id').value = id;
         document.getElementById('edit_lab_name').value = name;
         document.getElementById('edit_lab_short_name').value = shortName;
         document.getElementById('edit_lab_staff').value = staffId;
+        document.getElementById('edit_lab_assistant_staff').value = assistantStaffId;
         document.getElementById('edit_lab_from_date').value = fromDate || '';
         document.getElementById('edit_lab_to_date').value = toDate || '';
         

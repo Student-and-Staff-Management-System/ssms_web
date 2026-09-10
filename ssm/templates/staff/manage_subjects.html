@@ -517,10 +517,28 @@
                                     <td>
                                         <div>{{ subject.name }}</div>
                                         {% if subject.get_location_display %}
-                                        <div style="margin-top: 4px;">
-                                            <span style="display: inline-flex; align-items: center; gap: 3px; background: #f1f5f9; color: #475569; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: 500; border: 1px solid #cbd5e1;">📍 {{ subject.get_location_display }}</span>
-                                        </div>
-                                        {% endif %}
+                                         <div style="margin-top: 4px; display: flex; flex-direction: column; gap: 3px;">
+                                             <span style="display: inline-flex; align-items: center; gap: 3px; background: #f1f5f9; color: #475569; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: 500; border: 1px solid #cbd5e1; width: fit-content;">📍 {{ subject.get_location_display }}</span>
+                                             <div style="font-size: 0.7rem; color: #475569; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 2px;">
+                                                 {% if subject.subject_type == 'Lab' %}
+                                                     {% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id or subject.assistant_staff_batch_b and subject.assistant_staff_batch_b_id != subject.assistant_staff_id or subject.assistant_staffs_batch_b.all %}
+                                                         <div><strong>Batch A:</strong> IC: {{ subject.staff.name|default:"Unassigned" }} | Asst: {% for a in subject.assistant_staffs.all %}{{ a.name }}{% if not forloop.last %}, {% endif %}{% empty %}{{ subject.assistant_staff.name|default:"Unassigned" }}{% endfor %}</div>
+                                                         <div><strong>Batch B:</strong> IC: {{ subject.staff_batch_b.name|default:"Unassigned" }} | Asst: {% for a in subject.assistant_staffs_batch_b.all %}{{ a.name }}{% if not forloop.last %}, {% endif %}{% empty %}{{ subject.assistant_staff_batch_b.name|default:subject.assistant_staff.name|default:"Unassigned" }}{% endfor %}</div>
+                                                     {% else %}
+                                                         <div><strong>Faculty (IC):</strong> {{ subject.staff.name|default:"Unassigned" }}</div>
+                                                         <div><strong>Lab Asst:</strong> {% for a in subject.assistant_staffs.all %}{{ a.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% if subject.assistant_staff %}{{ subject.assistant_staff.name }}{% elif subject.lab and subject.lab.assistant_staff %}{{ subject.lab.assistant_staff.name }}{% else %}Unassigned{% endif %}{% endfor %}</div>
+                                                     {% endif %}
+                                                 {% else %}
+                                                     {% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}
+                                                         <div><strong>Batch A Faculty:</strong> {{ subject.staff.name|default:"Unassigned" }}</div>
+                                                         <div><strong>Batch B Faculty:</strong> {{ subject.staff_batch_b.name|default:"Unassigned" }}</div>
+                                                     {% else %}
+                                                         <div><strong>Faculty:</strong> {{ subject.staff.name|default:"Unassigned" }}</div>
+                                                     {% endif %}
+                                                 {% endif %}
+                                             </div>
+                                         </div>
+                                         {% endif %}
                                     </td>
                                     <td>
                                         <form method="POST" class="staff-select-form" style="display: flex; flex-direction: column; gap: 6px;">
@@ -548,42 +566,87 @@
                                             </div>
 
                                             <!-- Single Staff Dropdown Wrapper -->
-                                            <div id="wrap_single_staff_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: none;{% else %}display: block;{% endif %}">
-                                                <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-align: left; margin: 0 0 2px 0; display: block;">Assigned Faculty (Both Batches):</label>
-                                                <select name="staff_id_single" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color);">
-                                                    <option value="">-- Unassigned --</option>
-                                                    {% for staff in staff_members %}
-                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
-                                                        👤 {{ staff.name }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
+                                             <div id="wrap_single_staff_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: none;{% else %}display: block;{% endif %}">
+                                                 <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-align: left; margin: 0 0 2px 0; display: block;">Assigned Faculty (Both Batches):</label>
+                                                 <select name="staff_id_single" class="staff-select" onchange="filterICAssistants(this)" style="width: 100%; font-size: 0.8rem; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color);">
+                                                     <option value="">-- Unassigned --</option>
+                                                     {% for staff in staff_members %}
+                                                     <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                         👤 {{ staff.name }}
+                                                     </option>
+                                                     {% endfor %}
+                                                 </select>
 
-                                            <!-- Dual Staff Dropdown Wrapper -->
-                                            <div id="wrap_dual_staff_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 4px;">
-                                                <label style="font-size: 0.68rem; color: #166534; font-weight: 700; text-align: left; margin: 0; display: block;">🅰️ Batch A Staff:</label>
-                                                <select name="staff_id_a" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #86efac; background: #f0fdf4; border-radius: 4px;">
-                                                    <option value="">-- Batch A Staff --</option>
-                                                    {% for staff in staff_members %}
-                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
-                                                        👤 {{ staff.name }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
+                                                 {% if subject.subject_type == 'Lab' %}
+                                                  <label style="font-size: 0.68rem; color: #b45309; font-weight: 700; text-align: left; margin: 4px 0 2px 0; display: block;">🧑‍🏫 Lab Assistant(s) (Both Batches):</label>
+                                                  <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 4px 6px; max-height: 115px; overflow-y: auto; text-align: left;">
+                                                      {% for staff in staff_members %}
+                                                      {% if staff.staff_id != subject.staff_id %}
+                                                      <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #78350f; padding: 2px 0; cursor: pointer; border-bottom: 1px solid #fef3c7; margin: 0;">
+                                                          <input type="checkbox" name="assistant_staff_ids_single" value="{{ staff.staff_id }}" style="cursor: pointer; accent-color: #d97706;"
+                                                                 {% if staff in subject.assistant_staffs.all or staff.staff_id == subject.assistant_staff_id %}checked{% endif %}>
+                                                          👤 {{ staff.name }}
+                                                      </label>
+                                                      {% endif %}
+                                                      {% endfor %}
+                                                  </div>
+                                                  {% endif %}
+                                              </div>
 
-                                                <label style="font-size: 0.68rem; color: #92400e; font-weight: 700; text-align: left; margin: 2px 0 0 0; display: block;">🅱️ Batch B Staff:</label>
-                                                <select name="staff_batch_b_id" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #fde68a; background: #fffbeb; border-radius: 4px;">
-                                                    <option value="">-- Batch B Staff --</option>
-                                                    {% for staff in staff_members %}
-                                                    <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
-                                                        👤 {{ staff.name }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
+                                              <!-- Dual Staff Dropdown Wrapper -->
+                                              <div id="wrap_dual_staff_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 4px;">
+                                                  <label style="font-size: 0.68rem; color: #166534; font-weight: 700; text-align: left; margin: 0; display: block;">🅰️ Batch A Faculty (IC):</label>
+                                                  <select name="staff_id_a" class="staff-select" onchange="filterICAssistants(this)" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #86efac; background: #f0fdf4; border-radius: 4px;">
+                                                      <option value="">-- Batch A Faculty --</option>
+                                                      {% for staff in staff_members %}
+                                                      <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                          👤 {{ staff.name }}
+                                                      </option>
+                                                      {% endfor %}
+                                                  </select>
 
-                                            <!-- Location Dropdown -->
+                                                  {% if subject.subject_type == 'Lab' %}
+                                                  <label style="font-size: 0.68rem; color: #15803d; font-weight: 700; text-align: left; margin: 2px 0 0 0; display: block;">🧑‍🏫 Batch A Lab Assistant(s):</label>
+                                                  <div style="border: 1px solid #86efac; background: #f0fdf4; border-radius: 6px; padding: 4px 6px; max-height: 115px; overflow-y: auto; text-align: left;">
+                                                      {% for staff in staff_members %}
+                                                      {% if staff.staff_id != subject.staff_id %}
+                                                      <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #14532d; padding: 2px 0; cursor: pointer; border-bottom: 1px solid #dcfce7; margin: 0;">
+                                                          <input type="checkbox" name="assistant_staff_ids_a" value="{{ staff.staff_id }}" style="cursor: pointer; accent-color: #16a34a;"
+                                                                 {% if staff in subject.assistant_staffs.all or staff.staff_id == subject.assistant_staff_id %}checked{% endif %}>
+                                                          👤 {{ staff.name }}
+                                                      </label>
+                                                      {% endif %}
+                                                      {% endfor %}
+                                                  </div>
+                                                  {% endif %}
+
+                                                  <label style="font-size: 0.68rem; color: #92400e; font-weight: 700; text-align: left; margin: 4px 0 0 0; display: block;">🅱️ Batch B Faculty (IC):</label>
+                                                  <select name="staff_batch_b_id" class="staff-select" onchange="filterICAssistants(this)" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #fde68a; background: #fffbeb; border-radius: 4px;">
+                                                      <option value="">-- Batch B Faculty --</option>
+                                                      {% for staff in staff_members %}
+                                                      <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
+                                                          👤 {{ staff.name }}
+                                                      </option>
+                                                      {% endfor %}
+                                                  </select>
+
+                                                  {% if subject.subject_type == 'Lab' %}
+                                                  <label style="font-size: 0.68rem; color: #b45309; font-weight: 700; text-align: left; margin: 2px 0 0 0; display: block;">🧑‍🏫 Batch B Lab Assistant(s):</label>
+                                                  <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 4px 6px; max-height: 115px; overflow-y: auto; text-align: left;">
+                                                      {% for staff in staff_members %}
+                                                      {% if staff.staff_id != subject.staff_batch_b_id and staff.staff_id != subject.staff_id %}
+                                                      <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #78350f; padding: 2px 0; cursor: pointer; border-bottom: 1px solid #fef3c7; margin: 0;">
+                                                          <input type="checkbox" name="assistant_staff_ids_b" value="{{ staff.staff_id }}" style="cursor: pointer; accent-color: #d97706;"
+                                                                 {% if staff in subject.assistant_staffs_batch_b.all or staff.staff_id == subject.assistant_staff_batch_b_id %}checked{% endif %}>
+                                                          👤 {{ staff.name }}
+                                                      </label>
+                                                      {% endif %}
+                                                      {% endfor %}
+                                                  </div>
+                                                  {% endif %}
+                                             </div>
+
+                                             <!-- Location Dropdown -->
                                             <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 500; text-align: left; margin: 2px 0 0 0; display: block;">Room / Lab Location:</label>
                                             <select name="location_name" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
                                                 <option value="">-- Select Location --</option>
@@ -683,41 +746,86 @@
                                         </div>
                                     </div>
 
-                                    <!-- Single Staff Dropdown Wrapper Mobile -->
-                                    <div id="wrap_single_staff_mob_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: none;{% else %}display: block;{% endif %}">
-                                        <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">Assigned Faculty (Both Batches):</label>
-                                        <select name="staff_id_single" class="staff-select" style="width: 100%; font-size: 0.8rem; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color);">
-                                            <option value="">-- Unassigned --</option>
-                                            {% for staff in staff_members %}
-                                            <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
-                                                👤 {{ staff.name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
+                                      <!-- Single Staff Dropdown Wrapper Mobile -->
+                                      <div id="wrap_single_staff_mob_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: none;{% else %}display: block;{% endif %}">
+                                          <label style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">Assigned Faculty (Both Batches):</label>
+                                          <select name="staff_id_single" class="staff-select" onchange="filterICAssistants(this)" style="width: 100%; font-size: 0.8rem; padding: 4px; border-radius: 4px; border: 1px solid var(--border-color);">
+                                              <option value="">-- Unassigned --</option>
+                                              {% for staff in staff_members %}
+                                              <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                  👤 {{ staff.name }}
+                                              </option>
+                                              {% endfor %}
+                                          </select>
 
-                                    <!-- Dual Staff Dropdown Wrapper Mobile -->
-                                    <div id="wrap_dual_staff_mob_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 4px;">
-                                        <label style="font-size: 0.68rem; color: #166534; font-weight: 700; display: block; margin: 0;">🅰️ Batch A Staff:</label>
-                                        <select name="staff_id_a" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #86efac; background: #f0fdf4; border-radius: 4px;">
-                                            <option value="">-- Batch A Staff --</option>
-                                            {% for staff in staff_members %}
-                                            <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
-                                                👤 {{ staff.name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
+                                          {% if subject.subject_type == 'Lab' %}
+                                          <label style="font-size: 0.68rem; color: #b45309; font-weight: 700; display: block; margin: 4px 0 2px 0;">🧑‍🏫 Lab Assistant(s) (Both Batches):</label>
+                                          <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 4px 6px; max-height: 115px; overflow-y: auto; text-align: left;">
+                                              {% for staff in staff_members %}
+                                              {% if staff.staff_id != subject.staff_id %}
+                                              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #78350f; padding: 2px 0; cursor: pointer; border-bottom: 1px solid #fef3c7; margin: 0;">
+                                                  <input type="checkbox" name="assistant_staff_ids_single" value="{{ staff.staff_id }}" style="cursor: pointer; accent-color: #d97706;"
+                                                         {% if staff in subject.assistant_staffs.all or staff.staff_id == subject.assistant_staff_id %}checked{% endif %}>
+                                                  👤 {{ staff.name }}
+                                              </label>
+                                              {% endif %}
+                                              {% endfor %}
+                                          </div>
+                                          {% endif %}
+                                      </div>
 
-                                        <label style="font-size: 0.68rem; color: #92400e; font-weight: 700; display: block; margin: 2px 0 0 0;">🅱️ Batch B Staff:</label>
-                                        <select name="staff_batch_b_id" class="staff-select" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #fde68a; background: #fffbeb; border-radius: 4px;">
-                                            <option value="">-- Batch B Staff --</option>
-                                            {% for staff in staff_members %}
-                                            <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
-                                                👤 {{ staff.name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
+                                      <!-- Dual Staff Dropdown Wrapper Mobile -->
+                                      <div id="wrap_dual_staff_mob_{{ subject.id }}" style="{% if subject.staff_batch_b and subject.staff_batch_b_id != subject.staff_id %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 4px;">
+                                          <label style="font-size: 0.68rem; color: #166534; font-weight: 700; display: block; margin: 0;">🅰️ Batch A Faculty (IC):</label>
+                                          <select name="staff_id_a" class="staff-select" onchange="filterICAssistants(this)" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #86efac; background: #f0fdf4; border-radius: 4px;">
+                                              <option value="">-- Batch A Faculty --</option>
+                                              {% for staff in staff_members %}
+                                              <option value="{{ staff.staff_id }}" {% if subject.staff_id == staff.staff_id %}selected{% endif %}>
+                                                  👤 {{ staff.name }}
+                                              </option>
+                                              {% endfor %}
+                                          </select>
+
+                                          {% if subject.subject_type == 'Lab' %}
+                                          <label style="font-size: 0.68rem; color: #15803d; font-weight: 700; display: block; margin: 2px 0 0 0;">🧑‍🏫 Batch A Lab Assistant(s):</label>
+                                          <div style="border: 1px solid #86efac; background: #f0fdf4; border-radius: 6px; padding: 4px 6px; max-height: 115px; overflow-y: auto; text-align: left;">
+                                              {% for staff in staff_members %}
+                                              {% if staff.staff_id != subject.staff_id %}
+                                              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #14532d; padding: 2px 0; cursor: pointer; border-bottom: 1px solid #dcfce7; margin: 0;">
+                                                  <input type="checkbox" name="assistant_staff_ids_a" value="{{ staff.staff_id }}" style="cursor: pointer; accent-color: #16a34a;"
+                                                         {% if staff in subject.assistant_staffs.all or staff.staff_id == subject.assistant_staff_id %}checked{% endif %}>
+                                                  👤 {{ staff.name }}
+                                              </label>
+                                              {% endif %}
+                                              {% endfor %}
+                                          </div>
+                                          {% endif %}
+
+                                          <label style="font-size: 0.68rem; color: #92400e; font-weight: 700; display: block; margin: 4px 0 0 0;">🅱️ Batch B Faculty (IC):</label>
+                                          <select name="staff_batch_b_id" class="staff-select" onchange="filterICAssistants(this)" style="width: 100%; font-size: 0.78rem; padding: 4px; border: 1px solid #fde68a; background: #fffbeb; border-radius: 4px;">
+                                              <option value="">-- Batch B Faculty --</option>
+                                              {% for staff in staff_members %}
+                                              <option value="{{ staff.staff_id }}" {% if subject.staff_batch_b_id == staff.staff_id %}selected{% endif %}>
+                                                  👤 {{ staff.name }}
+                                              </option>
+                                              {% endfor %}
+                                          </select>
+
+                                          {% if subject.subject_type == 'Lab' %}
+                                          <label style="font-size: 0.68rem; color: #b45309; font-weight: 700; display: block; margin: 2px 0 0 0;">🧑‍🏫 Batch B Lab Assistant(s):</label>
+                                          <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 4px 6px; max-height: 115px; overflow-y: auto; text-align: left;">
+                                              {% for staff in staff_members %}
+                                              {% if staff.staff_id != subject.staff_batch_b_id and staff.staff_id != subject.staff_id %}
+                                              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #78350f; padding: 2px 0; cursor: pointer; border-bottom: 1px solid #fef3c7; margin: 0;">
+                                                  <input type="checkbox" name="assistant_staff_ids_b" value="{{ staff.staff_id }}" style="cursor: pointer; accent-color: #d97706;"
+                                                         {% if staff in subject.assistant_staffs_batch_b.all or staff.staff_id == subject.assistant_staff_batch_b_id %}checked{% endif %}>
+                                                  👤 {{ staff.name }}
+                                              </label>
+                                              {% endif %}
+                                              {% endfor %}
+                                          </div>
+                                          {% endif %}
+                                      </div>
 
                                     <button type="submit" class="btn-small" style="width: 100%; margin-top: 2px;">Update Assignment</button>
                                 </form>
@@ -768,6 +876,31 @@ function toggleAllocMode(subjId, mode) {
         if (singleWrap) singleWrap.style.display = 'none';
         if (dualWrap) dualWrap.style.display = 'flex';
     }
+}
+
+function filterICAssistants(selectElem) {
+    if (!selectElem) return;
+    const form = selectElem.closest('form');
+    if (!form) return;
+    const icId = selectElem.value;
+    const isSingle = selectElem.name === 'staff_id_single';
+    const isA = selectElem.name === 'staff_id_a';
+    const isB = selectElem.name === 'staff_batch_b_id';
+
+    let checkboxName = 'assistant_staff_ids_single';
+    if (isA) checkboxName = 'assistant_staff_ids_a';
+    if (isB) checkboxName = 'assistant_staff_ids_b';
+
+    const checkboxes = form.querySelectorAll(`input[name="${checkboxName}"]`);
+    checkboxes.forEach(cb => {
+        const label = cb.closest('label');
+        if (icId && cb.value === icId) {
+            cb.checked = false;
+            if (label) label.style.display = 'none';
+        } else {
+            if (label) label.style.display = 'flex';
+        }
+    });
 }
 </script>
 {% endblock %}
