@@ -1963,6 +1963,28 @@ def manage_attendance(request, subject_id):
     # Effective Day Order & Holiday Override Check
     effective_day_name, is_calendar_holiday, is_working_saturday, calendar_override = get_effective_day_order(date_obj)
 
+    prefill_time = request.GET.get('time', '')
+    prefill_end_time = request.GET.get('end_time', '')
+
+    PERIOD_TIMES = {
+        1: ('08:30', '09:30'),
+        2: ('09:30', '10:30'),
+        3: ('10:40', '11:40'),
+        4: ('11:40', '12:40'),
+        5: ('13:30', '14:30'),
+        6: ('14:30', '15:30'),
+        7: ('15:30', '16:30'),
+    }
+
+    # Determine period if provided in query string or derived from prefill_time
+    period_param = request.GET.get('period')
+    period = int(period_param) if period_param and period_param.isdigit() else None
+    if not period and prefill_time:
+        for p_num, (p_start, p_end) in PERIOD_TIMES.items():
+            if p_start == prefill_time:
+                period = p_num
+                break
+
     # Check for Substitution
     sub_req = ClassSubstitutionRequest.objects.filter(
         substitute=current_staff,
@@ -1972,12 +1994,20 @@ def manage_attendance(request, subject_id):
     ).first()
 
     # Check for Hour Swap
-    hour_swap_req = StaffHourSwapRequest.objects.filter(
-        status='Approved'
-    ).filter(
-        Q(target_staff=current_staff, requester_date=date_obj, requester_period=period, requester_subject=subject) |
-        Q(requester=current_staff, target_date=date_obj, target_period=period, target_subject=subject)
-    ).first()
+    if period:
+        hour_swap_req = StaffHourSwapRequest.objects.filter(
+            status='Approved'
+        ).filter(
+            Q(target_staff=current_staff, requester_date=date_obj, requester_period=period, requester_subject=subject) |
+            Q(requester=current_staff, target_date=date_obj, target_period=period, target_subject=subject)
+        ).first()
+    else:
+        hour_swap_req = StaffHourSwapRequest.objects.filter(
+            status='Approved'
+        ).filter(
+            Q(target_staff=current_staff, requester_date=date_obj, requester_subject=subject) |
+            Q(requester=current_staff, target_date=date_obj, target_subject=subject)
+        ).first()
 
     is_substitute = (sub_req is not None) or (hour_swap_req is not None)
 
@@ -1994,19 +2024,6 @@ def manage_attendance(request, subject_id):
 
     formatted_date = date_obj.strftime('%Y-%m-%d')
     day_name = effective_day_name
-
-    prefill_time = request.GET.get('time', '')
-    prefill_end_time = request.GET.get('end_time', '')
-
-    PERIOD_TIMES = {
-        1: ('08:30', '09:30'),
-        2: ('09:30', '10:30'),
-        3: ('10:40', '11:40'),
-        4: ('11:40', '12:40'),
-        5: ('13:30', '14:30'),
-        6: ('14:30', '15:30'),
-        7: ('15:30', '16:30'),
-    }
 
     tt_entries = Timetable.objects.filter(subject=subject, day=day_name).order_by('period')
 
