@@ -268,7 +268,7 @@ def staff_dashboard(request):
     from students.models import StudentAttendance
     from .models import ClassSubstitutionRequest, StaffHourSwapRequest
 
-    today_date_obj = timezone.now().date()
+    today_date_obj = timezone.localtime(timezone.now()).date()
     today_date = today_date_obj.strftime('%Y-%m-%d')
     today_weekday = today_date_obj.strftime('%A')  # 'Monday', 'Tuesday' etc.
     today_schedule = []
@@ -432,7 +432,7 @@ def staff_dashboard(request):
             6: ('14:30', '15:30'),
             7: ('15:30', '16:30'),
         }
-        now_time = timezone.now().time()
+        now_time = timezone.localtime(timezone.now()).time()
 
         # Determine effective batch & group contiguous period sequences per (subject, batch)
         entry_data = []
@@ -2486,19 +2486,41 @@ def attendance_calendar(request, subject_id):
         if entry.day not in timetable_map:
             timetable_map[entry.day] = []
         timetable_map[entry.day].append(entry.period)
-    
-    # Fetch all Attendance records for this month with date and time
+
+    # Precompute group start times for contiguous timetable periods
+    period_group_starts = {}
+    for d_name, p_list in timetable_map.items():
+        sorted_p = sorted(list(set(p_list)))
+        p_groups = []
+        for p in sorted_p:
+            if p_groups and p_groups[-1][-1] == p - 1:
+                p_groups[-1].append(p)
+            else:
+                p_groups.append([p])
+        for grp in p_groups:
+            first_p = grp[0]
+            times = PERIOD_TIMES.get(first_p, ('--', '--'))
+            try:
+                grp_start_t = datetime.time(int(times[0][:2]), int(times[0][3:]))
+            except Exception:
+                grp_start_t = None
+            for p in grp:
+                period_group_starts[(d_name, p)] = grp_start_t
+
+    # Fetch all Attendance records for this month with date, time, and end_time
     attendance_records = StudentAttendance.objects.filter(
         subject=subject, 
         date__year=cal_year, 
         date__month=cal_month
-    ).values('date', 'time').distinct()
+    ).values('date', 'time', 'end_time').distinct()
 
-    marked_slots = set()
+    marked_slots_map = {}
     marked_dates = set()
     for rec in attendance_records:
         marked_dates.add(rec['date'])
-        marked_slots.add((rec['date'], rec['time']))
+        if rec['date'] not in marked_slots_map:
+            marked_slots_map[rec['date']] = []
+        marked_slots_map[rec['date']].append((rec['time'], rec['end_time']))
 
     calendar_rows = []
     for week in month_days:
@@ -2511,10 +2533,23 @@ def attendance_calendar(request, subject_id):
             
             day_name = day.strftime('%A')
             if day_name in timetable_map:
-                for period_num in timetable_map[day_name]:
-                    times = PERIOD_TIMES.get(period_num, ('--', '--'))
-                    start_str, end_str = times
-                    
+                sorted_p = sorted(list(set(timetable_map[day_name])))
+                grouped_p = []
+                for p in sorted_p:
+                    if grouped_p and grouped_p[-1][-1] == p - 1:
+                        grouped_p[-1].append(p)
+                    else:
+                        grouped_p.append([p])
+
+                for grp in grouped_p:
+                    first_p = grp[0]
+                    last_p = grp[-1]
+                    period_display = f"P{first_p}" if len(grp) == 1 else f"P{first_p}–P{last_p}"
+                    times_first = PERIOD_TIMES.get(first_p, ('--', '--'))
+                    times_last = PERIOD_TIMES.get(last_p, ('--', '--'))
+                    start_str = times_first[0]
+                    end_str = times_last[1]
+
                     try:
                         start_t = datetime.time(int(start_str[:2]), int(start_str[3:]))
                         end_t   = datetime.time(int(end_str[:2]), int(end_str[3:]))
@@ -2522,24 +2557,39 @@ def attendance_calendar(request, subject_id):
                         start_t = None
                         end_t   = None
 
+                    grp_start_t = period_group_starts.get((day_name, first_p))
                     is_marked = False
-                    if (day, start_t) in marked_slots or (day, None) in marked_slots:
-                        is_marked = True
+                    slots = marked_slots_map.get(day, [])
+                    for rec_t, rec_end_t in slots:
+                        if rec_t is None:
+                            is_marked = True
+                            break
+                        if start_t and rec_t == start_t:
+                            is_marked = True
+                            break
+                        if grp_start_t and rec_t == grp_start_t:
+                            is_marked = True
+                            break
+                        if start_t and rec_t and rec_end_t:
+                            if rec_t <= start_t < rec_end_t:
+                                is_marked = True
+                                break
 
                     if is_marked:
                         p_status = 'marked'
-                        p_title = f'Period {period_num}: Attendance Recorded'
+                        p_title = f'Period {period_display}: Attendance Recorded'
                         day_has_marked = True
                     elif day < today_date or (day == today_date and end_t and now_time > end_t):
                         p_status = 'unmarked'
-                        p_title = f'Period {period_num}: Class Done • Attendance Not Marked'
+                        p_title = f'Period {period_display}: Class Done • Attendance Not Marked'
                         day_has_unmarked = True
                     else:
                         p_status = 'future'
-                        p_title = f'Period {period_num}: Scheduled Class'
+                        p_title = f'Period {period_display}: Scheduled Class'
 
                     day_classes.append({
-                        'period': period_num,
+                        'period': first_p,
+                        'period_display': period_display,
                         'start': start_str,
                         'end': end_str,
                         'status_class': p_status,
@@ -2655,15 +2705,46 @@ def overall_attendance_calendar(request):
                 'batch': entry.batch,
             })
 
+    # Precompute group start times for contiguous timetable periods per subject
+    period_group_starts = {}
+    for d_name, items in timetable_map.items():
+        by_subj = {}
+        for item in items:
+            s_id = item['subject'].id
+            if s_id not in by_subj:
+                by_subj[s_id] = []
+            by_subj[s_id].append(item['period'])
+
+        for s_id, p_list in by_subj.items():
+            sorted_p = sorted(list(set(p_list)))
+            p_groups = []
+            for p in sorted_p:
+                if p_groups and p_groups[-1][-1] == p - 1:
+                    p_groups[-1].append(p)
+                else:
+                    p_groups.append([p])
+            for grp in p_groups:
+                first_p = grp[0]
+                times = PERIOD_TIMES.get(first_p, ('--', '--'))
+                try:
+                    grp_start_t = datetime.time(int(times[0][:2]), int(times[0][3:]))
+                except Exception:
+                    grp_start_t = None
+                for p in grp:
+                    period_group_starts[(d_name, s_id, p)] = grp_start_t
+
     attendance_records = StudentAttendance.objects.filter(
         subject__in=subjects_to_include,
         date__year=cal_year,
         date__month=cal_month
-    ).values('subject_id', 'date', 'time').distinct()
+    ).values('subject_id', 'date', 'time', 'end_time').distinct()
 
-    marked_slots = set()
+    marked_slots_map = {}
     for rec in attendance_records:
-        marked_slots.add((rec['subject_id'], rec['date'], rec['time']))
+        key = (rec['subject_id'], rec['date'])
+        if key not in marked_slots_map:
+            marked_slots_map[key] = []
+        marked_slots_map[key].append((rec['time'], rec['end_time']))
 
     calendar_rows = []
     for week in month_days:
@@ -2677,11 +2758,32 @@ def overall_attendance_calendar(request):
             day_name = day.strftime('%A')
             if day_name in timetable_map:
                 sorted_entries = sorted(timetable_map[day_name], key=lambda x: x['period'])
+                grouped_entries = []
                 for item in sorted_entries:
-                    period_num = item['period']
-                    subj = item['subject']
-                    times = PERIOD_TIMES.get(period_num, ('--', '--'))
-                    start_str, end_str = times
+                    if not grouped_entries:
+                        grouped_entries.append([item])
+                    else:
+                        prev_group = grouped_entries[-1]
+                        prev_item = prev_group[-1]
+                        if (prev_item['subject'].id == item['subject'].id and 
+                            prev_item.get('batch') == item.get('batch') and 
+                            item['period'] == prev_item['period'] + 1):
+                            prev_group.append(item)
+                        else:
+                            grouped_entries.append([item])
+
+                for grp in grouped_entries:
+                    first_item = grp[0]
+                    last_item = grp[-1]
+                    first_p = first_item['period']
+                    last_p = last_item['period']
+                    subj = first_item['subject']
+
+                    period_display = f"P{first_p}" if len(grp) == 1 else f"P{first_p}–P{last_p}"
+                    times_first = PERIOD_TIMES.get(first_p, ('--', '--'))
+                    times_last = PERIOD_TIMES.get(last_p, ('--', '--'))
+                    start_str = times_first[0]
+                    end_str = times_last[1]
 
                     try:
                         start_t = datetime.time(int(start_str[:2]), int(start_str[3:]))
@@ -2690,26 +2792,41 @@ def overall_attendance_calendar(request):
                         start_t = None
                         end_t   = None
 
+                    grp_start_t = period_group_starts.get((day_name, subj.id, first_p))
                     is_marked = False
-                    if (subj.id, day, start_t) in marked_slots or (subj.id, day, None) in marked_slots:
-                        is_marked = True
+                    slots = marked_slots_map.get((subj.id, day), [])
+                    for rec_t, rec_end_t in slots:
+                        if rec_t is None:
+                            is_marked = True
+                            break
+                        if start_t and rec_t == start_t:
+                            is_marked = True
+                            break
+                        if grp_start_t and rec_t == grp_start_t:
+                            is_marked = True
+                            break
+                        if start_t and rec_t and rec_end_t:
+                            if rec_t <= start_t < rec_end_t:
+                                is_marked = True
+                                break
 
                     subj_badge = subj.code or subj.name[:6]
 
                     if is_marked:
                         p_status = 'marked'
-                        p_title = f'Period {period_num} ({subj.name}): Attendance Recorded'
+                        p_title = f'Period {period_display} ({subj.name}): Attendance Recorded'
                         day_has_marked = True
                     elif day < today_date or (day == today_date and end_t and now_time > end_t):
                         p_status = 'unmarked'
-                        p_title = f'Period {period_num} ({subj.name}): Class Done • Attendance Not Marked'
+                        p_title = f'Period {period_display} ({subj.name}): Class Done • Attendance Not Marked'
                         day_has_unmarked = True
                     else:
                         p_status = 'future'
-                        p_title = f'Period {period_num} ({subj.name}): Scheduled Class'
+                        p_title = f'Period {period_display} ({subj.name}): Scheduled Class'
 
                     day_classes.append({
-                        'period': period_num,
+                        'period': first_p,
+                        'period_display': period_display,
                         'subject_id': subj.id,
                         'subject_badge': subj_badge,
                         'subject_name': subj.name,

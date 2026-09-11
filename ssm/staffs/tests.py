@@ -444,6 +444,62 @@ class LabManagementTestCase(TestCase):
         self.assertEqual(presents, 1)
         self.assertEqual(percentage, 100.0)
 
+    def test_overall_attendance_calendar_grouped_periods(self):
+        from students.models import Student, StudentAttendance
+        from staffs.models import Subject, Timetable
+        import datetime
+
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        subject = Subject.objects.create(
+            name="Block Subject",
+            code="BS101",
+            semester=1,
+            subject_type="Theory",
+            staff=self.hod
+        )
+        student = Student.objects.create(
+            roll_number="2026BLOCK01",
+            student_name="Block Student",
+            student_email="blockstudent@example.com",
+            current_semester=1
+        )
+
+        # Create timetable entries for Tuesday: Period 2, 3, 4
+        Timetable.objects.create(subject=subject, day="Tuesday", period=2, semester=1)
+        Timetable.objects.create(subject=subject, day="Tuesday", period=3, semester=1)
+        Timetable.objects.create(subject=subject, day="Tuesday", period=4, semester=1)
+
+        test_date = datetime.date(2026, 9, 1)  # A Tuesday in Sept 2026
+        # Simulate marking block attendance starting at 09:30 ending at 12:40
+        StudentAttendance.objects.create(
+            student=student,
+            subject=subject,
+            date=test_date,
+            time=datetime.time(9, 30),
+            end_time=datetime.time(12, 40),
+            status='Present'
+        )
+
+        response = self.client.get(reverse('staffs:overall_attendance_calendar') + f"?date={test_date.strftime('%Y-%m-%d')}&subject_id={subject.id}")
+        self.assertEqual(response.status_code, 200)
+
+        calendar_rows = response.context['calendar_rows']
+        # Find test_date in calendar_rows
+        found_day = None
+        for week in calendar_rows:
+            for day in week:
+                if day['date'] == test_date:
+                    found_day = day
+                    break
+
+        self.assertIsNotNone(found_day)
+        self.assertEqual(len(found_day['classes']), 1)
+        self.assertEqual(found_day['classes'][0]['period_display'], 'P2–P4')
+        self.assertEqual(found_day['classes'][0]['status_class'], 'marked')
+
     def test_subject_location_assignment_and_live_visualisation(self):
         session = self.client.session
         session['staff_id'] = self.hod.staff_id
@@ -1255,3 +1311,4 @@ class ClassInchargeBatchTestCase(TestCase):
         )
         with self.assertRaises(ValidationError):
             ci_all.clean()
+

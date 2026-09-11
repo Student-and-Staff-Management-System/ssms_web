@@ -524,7 +524,7 @@
                     <div class="day-classes-list">
                         {% for cls in day.classes %}
                         <a href="{{ cls.url }}" class="period-chip {{ cls.status_class }}" title="{{ cls.status_title }} ({{ cls.start }}–{{ cls.end }})">
-                            {% if cls.status_class == 'marked' %}✓ P{{ cls.period }}{% elif cls.status_class == 'unmarked' %}⚠️ P{{ cls.period }}{% else %}P{{ cls.period }}{% endif %}&nbsp;({{ cls.subject_badge }})
+                            {% if cls.status_class == 'marked' %}✓ {{ cls.period_display|default:cls.period }}{% elif cls.status_class == 'unmarked' %}⚠️ {{ cls.period_display|default:cls.period }}{% else %}{{ cls.period_display|default:cls.period }}{% endif %}&nbsp;({{ cls.subject_badge }})
                         </a>
                         {% endfor %}
                     </div>
