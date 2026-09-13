@@ -4852,7 +4852,7 @@ def hod_update_leave_status(request, request_id):
     return redirect('staffs:hod_leave_dashboard')
 
 def admin_portal_login(request):
-    """Auto-login HOD to Django Admin Portal."""
+    """Auto-login HOD/Admin to Django Admin Portal."""
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
 
@@ -4868,30 +4868,28 @@ def admin_portal_login(request):
     from django.contrib.auth.models import User
     from django.contrib.auth import login
 
-    # Find or Create User for HOD
-    # We use staff.email or staff.staff_id as username
-    user_qs = User.objects.filter(email=staff.email)
-    
-    if user_qs.exists():
-        user = user_qs.first()
-        # Ensure permissions
-        if not user.is_staff or not user.is_superuser:
-            user.is_staff = True
-            user.is_superuser = True
-            user.save()
-    else:
-        # Create new superuser
-        username = staff.staff_id.replace(" ", "") # accurate username
-        user = User.objects.create_user(username=username, email=staff.email, password=staff.password)
+    username = staff.staff_id.replace(" ", "").upper()
+    user = User.objects.filter(username=username).first()
+    if not user and staff.email:
+        user = User.objects.filter(email=staff.email).first()
+
+    if not user:
+        user = User.objects.create_user(
+            username=username,
+            email=staff.email or f"{username.lower()}@ssms.edu",
+            password=staff.password
+        )
         user.first_name = staff.name
+
+    if not user.is_staff or not user.is_superuser:
         user.is_staff = True
         user.is_superuser = True
         user.save()
 
-    # Log in the user
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     
-    return redirect('/admin/')
+    next_url = request.GET.get('next', '/admin/')
+    return redirect(next_url)
 
 
 def create_superuser(request):
@@ -9162,32 +9160,38 @@ def update_staff_roles(request, staff_id):
     target_staff = get_object_or_404(Staff, staff_id=staff_id)
 
     if request.method == 'POST':
+        primary_role = request.POST.get('primary_role') or request.POST.get('core_role')
+        additional_roles = request.POST.getlist('additional_roles')
+
+        # Fallback for legacy form submission format
         roles_list = request.POST.getlist('staff_roles')
-        if not roles_list:
-            messages.error(request, "Please select at least one role for the staff member.")
+        if not primary_role and roles_list:
+            CORE_ROLES = {'HOD', 'Class Incharge', 'Course Incharge', 'Office Staff', 'Technical Officer'}
+            core_in_list = [r for r in roles_list if r in CORE_ROLES]
+            if core_in_list:
+                primary_role = core_in_list[0]
+            else:
+                primary_role = roles_list[0]
+            additional_roles = [r for r in roles_list if r != primary_role]
+
+        if not primary_role:
+            messages.error(request, "Please select a primary core role for the staff member.")
             return redirect(request.META.get('HTTP_REFERER', 'staffs:staff_list'))
 
-        OFFICE_DUTIES = {'Office Staff', 'Bonafide Issuing', 'Marksheet & Document Requests', 'Scholarship Management'}
-        has_office_duty = any(r in OFFICE_DUTIES for r in roles_list)
-
-        if has_office_duty:
-            primary_role = 'Office Staff'
-            sec_roles = [r for r in roles_list if r != 'Office Staff']
-            secondary_roles_str = ", ".join(sec_roles)
-        else:
-            primary_role = roles_list[0]
-            secondary_roles_str = ", ".join(roles_list[1:]) if len(roles_list) > 1 else ""
-
-        roles_set = set(roles_list)
-
         target_staff.role = primary_role
-        target_staff.secondary_roles = secondary_roles_str
-        target_staff.is_scholarship_officer = ('Scholarship Officer' in roles_set or 'Scholarship Management' in roles_set)
-        target_staff.is_timetable_incharge = ('Timetable Incharge' in roles_set)
-        if 'HOD' in roles_set:
-            target_staff.is_admin = True
+        target_staff.secondary_roles = ", ".join(additional_roles) if additional_roles else ""
 
-        if 'Class Incharge' in roles_set:
+        all_roles_set = set([primary_role] + additional_roles)
+
+        target_staff.is_scholarship_officer = ('Scholarship Officer' in all_roles_set or 'Scholarship Management' in all_roles_set)
+        target_staff.is_timetable_incharge = ('Timetable Incharge' in all_roles_set)
+        is_admin_param = request.POST.get('is_admin')
+        if primary_role == 'HOD' or 'HOD' in all_roles_set or 'Admin' in additional_roles or is_admin_param == 'true':
+            target_staff.is_admin = True
+        else:
+            target_staff.is_admin = False
+
+        if 'Class Incharge' in all_roles_set:
             assigned_sem = request.POST.get('assigned_semester')
             assigned_b = request.POST.get('assigned_batch', 'All')
             target_staff.assigned_semester = int(assigned_sem) if (assigned_sem and assigned_sem.isdigit()) else None

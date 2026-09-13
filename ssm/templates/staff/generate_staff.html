@@ -4,55 +4,396 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Staff | Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Generate Staff Credentials | Admin</title>
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary:#5a7d7c; --primary-dark:#4a6b69; --bg:#f9fafb; --surface:#fff; --text:#111827; --muted:#6b7280; --border:#e2e8f0; }
-        body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text); margin:0; }
-        .top { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.9); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
-        .top .in { max-width:900px; margin:0 auto; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; }
-        .brand { font-weight:700; color:var(--primary); }
-        .back { text-decoration:none; color:var(--muted); font-weight:500; }
-        .main { max-width:900px; margin:34px auto; padding:0 20px 40px; }
-        .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,.06); padding:26px; }
-        h1 { margin:0 0 8px 0; color:var(--primary); }
-        .muted { color:var(--muted); margin-bottom:16px; }
-        .alert { padding:12px 14px; border-radius:8px; margin:0 0 14px 0; }
-        .alert-error,.alert-danger { background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; }
-        .alert-success { background:#ecfdf5; border:1px solid #a7f3d0; color:#047857; }
-        .alert-info { background:#eff6ff; border:1px solid #dbeafe; color:#1e40af; }
-        .tabs { display:flex; gap:10px; margin:8px 0 18px; border-bottom:1px solid var(--border); }
-        .tab { background:none; border:none; border-bottom:3px solid transparent; padding:10px 18px; cursor:pointer; color:var(--muted); font-weight:600; }
-        .tab.active { border-bottom-color:var(--primary); color:var(--text); }
-        .group { margin-bottom:16px; }
-        label { display:block; margin-bottom:7px; font-size:.93rem; font-weight:600; }
-        .input, textarea { width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:8px; padding:11px 13px; background:#fff; font-family:inherit; }
-        textarea { min-height:150px; resize:vertical; }
-        .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        .btn { width:100%; border:none; border-radius:8px; background:var(--primary); color:#fff; padding:12px; font-weight:600; cursor:pointer; }
-        .btn:hover { background:var(--primary-dark); }
-        .btn-alt { background:#6b7280; text-decoration:none; display:inline-block; text-align:center; color:#fff; }
-        table { width:100%; border-collapse:collapse; }
-        th,td { border-bottom:1px solid var(--border); padding:10px; text-align:left; }
-        .scroll { max-height:360px; overflow:auto; border:1px solid var(--border); border-radius:8px; }
-        #loadingOverlay { display:none; position:fixed; inset:0; background:rgba(255,255,255,.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column; }
-        .spinner { width:48px; height:48px; border:5px solid #eee; border-top:5px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
-        @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
-        @media (max-width: 700px) { .row2 { grid-template-columns:1fr; } }
+        :root {
+            --primary: #5a7d7c;
+            --primary-hover: #4a6b69;
+            --primary-subtle: #f2f7f7;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --border-light: #e2e8f0;
+            --radius: 8px;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-light);
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+        .top-bar-inner {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .top-logo {
+            height: 32px;
+            width: auto;
+            object-fit: contain;
+        }
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .back-link:hover {
+            color: var(--text-main);
+            border-color: var(--border);
+            background: #f1f5f9;
+        }
+
+        /* Container */
+        .container {
+            max-width: 920px;
+            width: 100%;
+            margin: 28px auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            padding: 28px 32px;
+        }
+
+        .panel-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 18px;
+        }
+        .panel-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+        .panel-subtitle {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13.5px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+        }
+        .alert-error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+        .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+        .alert-info { background: var(--primary-subtle); border: 1px solid var(--primary-border); color: #2d4544; }
+
+        /* Category Selector Grid (3 Core Categories) */
+        .field-group {
+            margin-bottom: 20px;
+        }
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+        .category-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        .cat-box {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px 16px;
+            cursor: pointer;
+            background: #ffffff;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .cat-box:hover {
+            border-color: var(--primary);
+            background: #fafafa;
+        }
+        .cat-box.active {
+            border-color: var(--primary);
+            background: var(--primary-subtle);
+            box-shadow: inset 0 0 0 1px var(--primary);
+        }
+        .cat-title {
+            font-weight: 700;
+            font-size: 13.5px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cat-box.active .cat-title {
+            color: var(--primary-hover);
+        }
+        .cat-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .cat-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .cat-box.active .cat-tag {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 2px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 22px;
+        }
+        .tab-item {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 8px 16px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: inherit;
+            margin-bottom: -1px;
+        }
+        .tab-item.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Inputs */
+        .input-control {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 9px 12px;
+            font-family: inherit;
+            font-size: 13.5px;
+            color: var(--text-main);
+            background: #ffffff;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .input-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15);
+        }
+        textarea.input-control {
+            min-height: 140px;
+            resize: vertical;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+        }
+        .help-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+        }
+        .grid-3-name {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+        .btn-secondary {
+            background: #ffffff;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        /* Preview Table */
+        .table-container {
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            overflow: hidden;
+            max-height: 360px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-muted);
+            position: sticky;
+            top: 0;
+        }
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+
+        .badge-new {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #15803d;
+            background: #dcfce7;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .badge-exists {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Loading */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .category-options, .grid-3 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .panel { padding: 20px; }
+        }
     </style>
 </head>
 <body>
-    <nav class="top">
-        <div class="in">
-            <div class="brand">Generate Staff Credentials</div>
-            <a href="/admin/" class="back">&larr; Back to Admin</a>
+    <header class="top-bar">
+        <div class="top-bar-inner">
+            <div class="top-title">
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Annamalai University Logo" class="top-logo">
+                <span>Staff Password Generator</span>
+            </div>
+            <a href="/admin/" class="back-link">&larr; Back to Admin</a>
         </div>
-    </nav>
+    </header>
 
-    <div class="main">
-        <div class="card">
-            <h1>Staff Password Generator</h1>
-            <p class="muted">Same flow as student generator: preview, select, and export CSV credentials.</p>
+    <main class="container">
+        <div class="panel">
+            <div class="panel-header">
+                <h1 class="panel-title">Generate Staff Credentials</h1>
+                <p class="panel-subtitle">Create login passwords and export CSV credentials for teaching, non-teaching, and other department staff.</p>
+            </div>
 
             {% if messages %}
                 {% for message in messages %}
@@ -61,164 +402,221 @@
             {% endif %}
 
             {% if show_preview %}
-                <div class="alert alert-info"><strong>Confirm staff list</strong> and click generate to download CSV. (Role: <strong>{{ staff_role|default:'Course Incharge' }}</strong>)</div>
+                <div class="alert alert-info">
+                    Confirm staff list below. Clicking generate will create accounts and download the CSV credential sheet. (Category: <strong>{{ staff_category|default:'Teaching Staff' }}</strong>)
+                </div>
+
                 <form method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="generate_bulk">
                     <input type="hidden" name="staff_role" value="{{ staff_role|default:'Course Incharge' }}">
-                    <div class="scroll">
-                        <table>
+                    <input type="hidden" name="staff_category" value="{{ staff_category|default:'Teaching Staff' }}">
+
+                    <div class="table-container">
+                        <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th><input type="checkbox" id="selectAll" checked></th>
+                                    <th style="width: 36px;"><input type="checkbox" id="selectAll" checked></th>
                                     <th>Staff ID</th>
-                                    <th>Name</th>
+                                    <th>Full Name</th>
+                                    <th>Department</th>
+                                    <th>Contact Info</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in preview_list %}
                                     <tr>
-                                        <td><input type="checkbox" name="selected_entries" value="{{ item.staff_id }}||{{ item.name }}" class="entry-cb" {% if not item.exists %}checked{% endif %}></td>
-                                        <td>{{ item.staff_id }}</td>
+                                        <td>
+                                            <input type="checkbox" name="selected_entries" value="{{ item.staff_id }}||{{ item.name }}||{{ item.dept }}||{{ item.email }}||{{ item.mobile }}" class="entry-cb" {% if not item.exists %}checked{% endif %}>
+                                        </td>
+                                        <td><code>{{ item.staff_id }}</code></td>
                                         <td>{{ item.name }}</td>
-                                        <td>{% if item.exists %}<span style="color:#ef4444;">Already exists</span>{% else %}<span style="color:#10b981;">New</span>{% endif %}</td>
+                                        <td>{{ item.dept|default:"Information Technology" }}</td>
+                                        <td>
+                                            {% if item.email or item.mobile %}
+                                                {{ item.email|default:"" }}{% if item.email and item.mobile %} &bull; {% endif %}{{ item.mobile|default:"" }}
+                                            {% else %}
+                                                &mdash;
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.exists %}
+                                                <span class="badge-exists">Already Exists</span>
+                                            {% else %}
+                                                <span class="badge-new">New Account</span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    <div style="display:flex; gap:10px; margin-top:12px;">
-                        <a href="{% url 'staffs:generate_staff' %}" class="btn btn-alt">Cancel</a>
-                        <button type="submit" class="btn">Confirm & Generate (CSV)</button>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="{% url 'staffs:generate_staff' %}" class="btn-secondary">Cancel</a>
+                        <button type="submit" class="btn-primary">Confirm & Generate CSV</button>
                     </div>
                 </form>
             {% else %}
-                <div class="tabs">
-                    <button type="button" class="tab active" id="tab-bulk" onclick="switchTab('bulk')">Bulk List</button>
-                    <button type="button" class="tab" id="tab-single" onclick="switchTab('single')">Single Staff</button>
+                <div class="field-group">
+                    <label class="field-label">Staff Category *</label>
+                    <div class="category-options">
+                        <div class="cat-box {% if staff_category != 'Non-Teaching Staff' and staff_category != 'Other Dept Staff' and staff_role != 'Office Staff' and staff_role != 'Other Dept Staff' %}active{% endif %}" id="box-teaching" onclick="setCategory('Teaching Staff')">
+                            <div>
+                                <div class="cat-title">
+                                    <span>Teaching Staff</span>
+                                    <span class="cat-tag">Course Incharge</span>
+                                </div>
+                                <div class="cat-desc">Academic faculty. Default Course Incharge dashboard.</div>
+                            </div>
+                        </div>
+
+                        <div class="cat-box {% if staff_category == 'Non-Teaching Staff' or staff_role == 'Office Staff' %}active{% endif %}" id="box-nonteaching" onclick="setCategory('Non-Teaching Staff')">
+                            <div>
+                                <div class="cat-title">
+                                    <span>Non-Teaching Staff</span>
+                                    <span class="cat-tag">Office Staff</span>
+                                </div>
+                                <div class="cat-desc">Administrative & non-academic support staff.</div>
+                            </div>
+                        </div>
+
+                        <div class="cat-box {% if staff_category == 'Other Dept Staff' or staff_role == 'Other Dept Staff' %}active{% endif %}" id="box-otherdept" onclick="setCategory('Other Dept Staff')">
+                            <div>
+                                <div class="cat-title">
+                                    <span>Other Dept Staff</span>
+                                    <span class="cat-tag">Light Profile</span>
+                                </div>
+                                <div class="cat-desc">External faculty teaching subjects. Direct 5-field entry.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="help-text">Additional roles (Class Incharge, Scholarship Officer, Timetable Incharge) can be assigned later in Admin.</div>
                 </div>
 
+                <!-- Tab Switcher (Visible for Teaching & Non-Teaching) -->
+                <div class="tab-bar" id="tab-bar-container">
+                    <button type="button" class="tab-item active" id="tab-bulk" onclick="switchTab('bulk')">Bulk Import</button>
+                    <button type="button" class="tab-item" id="tab-single" onclick="switchTab('single')">Single Entry</button>
+                </div>
+
+                <!-- Bulk Form (For Teaching & Non-Teaching) -->
                 <form method="POST" id="form-bulk">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="preview_bulk">
-                    <div class="group">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                            <label style="margin-bottom: 0; font-weight: 600;">Assigned Staff Roles (Add as many roles as needed)</label>
-                            <button type="button" onclick="addRoleDropdown('bulkRolesContainer')" style="background: #0284c7; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                ➕ Add Role
-                            </button>
-                        </div>
-                        <div id="bulkRolesContainer" style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                            <div class="role-row" style="display: flex; align-items: center; gap: 8px;">
-                                <select name="staff_roles" class="input" style="flex: 1;">
-                                    <optgroup label="Teaching Staff">
-                                        <option value="Course Incharge">Course Incharge (Faculty)</option>
-                                        <option value="Class Incharge">Class Incharge</option>
-                                        <option value="Scholarship Officer">Scholarship Officer</option>
-                                        <option value="Placement Officer">Placement Officer</option>
-                                        <option value="HOD">HOD (Head of Dept)</option>
-                                    </optgroup>
-                                    <optgroup label="Non-Teaching Staff">
-                                        <option value="Office Staff">Office Staff (General Administration)</option>
-                                        <option value="Bonafide Issuing">Office Duty: Bonafide Issuing</option>
-                                        <option value="Marksheet & Document Requests">Office Duty: Marksheet & Document Requests</option>
-                                        <option value="Scholarship Management">Office Duty: Scholarship Management</option>
-                                        <option value="Technical Officer">Technical Officer</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
+                    <input type="hidden" name="staff_category" id="bulk_staff_category" value="{% if staff_category %}{{ staff_category }}{% elif staff_role == 'Office Staff' %}Non-Teaching Staff{% elif staff_role == 'Other Dept Staff' %}Other Dept Staff{% else %}Teaching Staff{% endif %}">
+
+                    <div class="field-group">
+                        <label for="bulk_input" class="field-label">
+                            Enter Staff Rows (Format: <code>STAFF_ID, Full Name</code>)
+                        </label>
+                        <textarea id="bulk_input" name="bulk_input" class="input-control" placeholder="STF001, John David&#10;STF002, Meena R" required>{{ bulk_input|default:'' }}</textarea>
                     </div>
-                    <div class="group">
-                        <label for="bulk_input">Paste one row per line: <code>STAFF_ID, Staff Name</code></label>
-                        <textarea id="bulk_input" name="bulk_input" class="input" placeholder="STF001, John David&#10;STF002, Meena R" required>{{ bulk_input|default:'' }}</textarea>
-                    </div>
-                    <button type="submit" class="btn">Preview List</button>
+
+                    <button type="submit" class="btn-primary" style="width: 100%;">Preview Import List</button>
                 </form>
 
-                <form method="POST" id="form-single" style="display:none;">
+                <!-- Single Form (For All Categories, 5 fields for Other Dept Staff) -->
+                <form method="POST" id="form-single" style="display: none;">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="generate_single">
-                    <div class="group">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                            <label style="margin-bottom: 0; font-weight: 600;">Assigned Staff Roles (Add as many roles as needed)</label>
-                            <button type="button" onclick="addRoleDropdown('singleRolesContainer')" style="background: #0284c7; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                ➕ Add Role
-                            </button>
+                    <input type="hidden" name="staff_category" id="single_staff_category" value="{% if staff_category %}{{ staff_category }}{% elif staff_role == 'Office Staff' %}Non-Teaching Staff{% elif staff_role == 'Other Dept Staff' %}Other Dept Staff{% else %}Teaching Staff{% endif %}">
+
+                    <div class="grid-3-name field-group">
+                        <div style="width: 120px;">
+                            <label for="single_salutation" class="field-label">Salutation *</label>
+                            <select id="single_salutation" name="single_salutation" class="input-control">
+                                <option value="Dr." {% if single_salutation == 'Dr.' or not single_salutation %}selected{% endif %}>Dr.</option>
+                                <option value="Prof." {% if single_salutation == 'Prof.' %}selected{% endif %}>Prof.</option>
+                                <option value="Mr." {% if single_salutation == 'Mr.' %}selected{% endif %}>Mr.</option>
+                                <option value="Ms." {% if single_salutation == 'Ms.' %}selected{% endif %}>Ms.</option>
+                            </select>
                         </div>
-                        <div id="singleRolesContainer" style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                            <div class="role-row" style="display: flex; align-items: center; gap: 8px;">
-                                <select name="staff_roles" class="input" style="flex: 1;">
-                                    <optgroup label="Teaching Staff">
-                                        <option value="Course Incharge">Course Incharge (Faculty)</option>
-                                        <option value="Class Incharge">Class Incharge</option>
-                                        <option value="Scholarship Officer">Scholarship Officer</option>
-                                        <option value="Placement Officer">Placement Officer</option>
-                                        <option value="HOD">HOD (Head of Dept)</option>
-                                    </optgroup>
-                                    <optgroup label="Non-Teaching Staff">
-                                        <option value="Office Staff">Office Staff (General Administration)</option>
-                                        <option value="Bonafide Issuing">Office Duty: Bonafide Issuing</option>
-                                        <option value="Marksheet & Document Requests">Office Duty: Marksheet & Document Requests</option>
-                                        <option value="Scholarship Management">Office Duty: Scholarship Management</option>
-                                        <option value="Technical Officer">Technical Officer</option>
-                                    </optgroup>
-                                </select>
-                            </div>
+                        <div style="flex: 1;">
+                            <label for="single_staff_id" class="field-label">Staff ID *</label>
+                            <input id="single_staff_id" name="single_staff_id" class="input-control" type="text" placeholder="e.g. STF089" value="{{ single_staff_id|default:'' }}">
+                        </div>
+                        <div style="flex: 2;">
+                            <label for="single_name" class="field-label">Full Name *</label>
+                            <input id="single_name" name="single_name" class="input-control" type="text" placeholder="e.g. S. Kumar" value="{{ single_name|default:'' }}">
                         </div>
                     </div>
-                    <div class="row2">
-                        <div class="group">
-                            <label for="single_staff_id">Staff ID</label>
-                            <input id="single_staff_id" name="single_staff_id" class="input" type="text">
+
+                    <!-- Other Dept Staff Extra Fields (Dept, Email, Mobile) -->
+                    <div id="other_dept_fields_container" class="grid-3 field-group" style="display: none;">
+                        <div>
+                            <label for="single_dept" class="field-label">Department *</label>
+                            <input id="single_dept" name="single_dept" class="input-control" type="text" placeholder="e.g. Mathematics" value="{{ single_dept|default:'' }}">
                         </div>
-                        <div class="group">
-                            <label for="single_name">Name</label>
-                            <input id="single_name" name="single_name" class="input" type="text">
+                        <div>
+                            <label for="single_email" class="field-label">Email ID *</label>
+                            <input id="single_email" name="single_email" class="input-control" type="email" placeholder="e.g. skumar@college.edu" value="{{ single_email|default:'' }}">
+                        </div>
+                        <div>
+                            <label for="single_mobile" class="field-label">Mobile Number *</label>
+                            <input id="single_mobile" name="single_mobile" class="input-control" type="text" placeholder="e.g. 9876543210" value="{{ single_mobile|default:'' }}">
                         </div>
                     </div>
-                    <button type="submit" class="btn">Generate Single Pass</button>
+
+                    <button type="submit" class="btn-primary" style="width: 100%;">Generate Credentials (CSV)</button>
                 </form>
             {% endif %}
         </div>
-    </div>
+    </main>
 
     <div id="loadingOverlay">
         <div class="spinner"></div>
-        <h3 style="color:#5a7d7c;margin:14px 0 6px;">Generating & Downloading...</h3>
-        <p style="color:#6b7280;">Please wait while credentials are prepared.</p>
+        <div style="font-weight: 600; margin-top: 12px; color: var(--text-main);">Generating Credentials...</div>
     </div>
 
     <script>
-        function addRoleDropdown(containerId, selectedVal = '') {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            const div = document.createElement('div');
-            div.className = 'role-row';
-            div.style.cssText = 'display: flex; align-items: center; gap: 8px;';
-            div.innerHTML = `
-                <select name="staff_roles" class="input" style="flex: 1;">
-                    <optgroup label="Teaching Staff">
-                        <option value="Course Incharge">Course Incharge (Faculty)</option>
-                        <option value="Class Incharge">Class Incharge</option>
-                        <option value="Scholarship Officer">Scholarship Officer</option>
-                        <option value="Placement Officer">Placement Officer</option>
-                        <option value="HOD">HOD (Head of Dept)</option>
-                    </optgroup>
-                    <optgroup label="Non-Teaching Staff">
-                        <option value="Office Staff">Office Staff (General Administration)</option>
-                        <option value="Bonafide Issuing">Office Duty: Bonafide Issuing</option>
-                        <option value="Marksheet & Document Requests">Office Duty: Marksheet & Document Requests</option>
-                        <option value="Scholarship Management">Office Duty: Scholarship Management</option>
-                        <option value="Technical Officer">Technical Officer</option>
-                    </optgroup>
-                </select>
-                <button type="button" onclick="this.parentElement.remove()" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold;" title="Remove Role">✕</button>
-            `;
-            container.appendChild(div);
-            if (selectedVal) {
-                div.querySelector('select').value = selectedVal;
+        function setCategory(cat) {
+            document.getElementById('bulk_staff_category').value = cat;
+            document.getElementById('single_staff_category').value = cat;
+
+            const t = document.getElementById('box-teaching');
+            const n = document.getElementById('box-nonteaching');
+            const o = document.getElementById('box-otherdept');
+
+            if (t) t.classList.toggle('active', cat === 'Teaching Staff');
+            if (n) n.classList.toggle('active', cat === 'Non-Teaching Staff');
+            if (o) o.classList.toggle('active', cat === 'Other Dept Staff');
+
+            updateCategoryFields(cat);
+        }
+
+        function updateCategoryFields(cat) {
+            const tabBar = document.getElementById('tab-bar-container');
+            const formBulk = document.getElementById('form-bulk');
+            const formSingle = document.getElementById('form-single');
+            const extraContainer = document.getElementById('other_dept_fields_container');
+            const singleDept = document.getElementById('single_dept');
+            const singleEmail = document.getElementById('single_email');
+            const singleMobile = document.getElementById('single_mobile');
+
+            if (cat === 'Other Dept Staff') {
+                if (tabBar) tabBar.style.display = 'none';
+                if (formBulk) formBulk.style.display = 'none';
+                if (formSingle) formSingle.style.display = 'block';
+                if (extraContainer) extraContainer.style.display = 'grid';
+                
+                if (singleDept) singleDept.required = true;
+                if (singleEmail) singleEmail.required = true;
+                if (singleMobile) singleMobile.required = true;
+                document.getElementById('single_staff_id').required = true;
+                document.getElementById('single_name').required = true;
+                if (document.getElementById('bulk_input')) document.getElementById('bulk_input').required = false;
+            } else {
+                if (tabBar) tabBar.style.display = 'flex';
+                if (extraContainer) extraContainer.style.display = 'none';
+
+                const isSingleTab = document.getElementById('tab-single') && document.getElementById('tab-single').classList.contains('active');
+                switchTab(isSingleTab ? 'single' : 'bulk');
+
+                if (singleDept) singleDept.required = false;
+                if (singleEmail) singleEmail.required = false;
+                if (singleMobile) singleMobile.required = false;
             }
         }
 
@@ -227,13 +625,19 @@
             const single = document.getElementById('form-single');
             const tb = document.getElementById('tab-bulk');
             const ts = document.getElementById('tab-single');
-            bulk.style.display = tab === 'bulk' ? 'block' : 'none';
-            single.style.display = tab === 'single' ? 'block' : 'none';
-            tb.classList.toggle('active', tab === 'bulk');
-            ts.classList.toggle('active', tab === 'single');
-            document.getElementById('bulk_input').required = tab === 'bulk';
-            document.getElementById('single_staff_id').required = tab === 'single';
-            document.getElementById('single_name').required = tab === 'single';
+
+            if (bulk && single) {
+                bulk.style.display = tab === 'bulk' ? 'block' : 'none';
+                single.style.display = tab === 'single' ? 'block' : 'none';
+            }
+            if (tb && ts) {
+                tb.classList.toggle('active', tab === 'bulk');
+                ts.classList.toggle('active', tab === 'single');
+            }
+
+            if (document.getElementById('bulk_input')) document.getElementById('bulk_input').required = tab === 'bulk';
+            if (document.getElementById('single_staff_id')) document.getElementById('single_staff_id').required = tab === 'single';
+            if (document.getElementById('single_name')) document.getElementById('single_name').required = tab === 'single';
         }
 
         const selectAll = document.getElementById('selectAll');
@@ -242,6 +646,11 @@
                 document.querySelectorAll('.entry-cb').forEach(cb => cb.checked = e.target.checked);
             });
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentCat = document.getElementById('bulk_staff_category') ? document.getElementById('bulk_staff_category').value : 'Teaching Staff';
+            updateCategoryFields(currentCat);
+        });
 
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function () {
@@ -261,3 +670,6 @@
     </script>
 </body>
 </html>
+
+
+

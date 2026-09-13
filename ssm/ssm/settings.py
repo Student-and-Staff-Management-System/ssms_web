@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ssm.middleware.StaffAdminAutoLoginMiddleware',  # Auto-login HOD/Admin into Django Admin
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'ssm.middleware.StaticFilesHeadersMiddleware',  # Custom middleware for static file headers
@@ -311,16 +312,7 @@ if not DEBUG:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = ["null"]
 
-# ==========================================
-# EMAIL CONFIGURATION - GMAIL SMTP
-# ==========================================
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 465
-# EMAIL_USE_SSL = True
-# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # --- GMAIL API CONFIGURATION ---
 EMAIL_BACKEND = 'gmailapi_backend.mail.GmailBackend'
@@ -340,7 +332,7 @@ else:
     GMAIL_API_CLIENT_SECRET = os.getenv('GMAIL_API_CLIENT_SECRET')
     GMAIL_API_REFRESH_TOKEN = os.getenv('GMAIL_API_REFRESH_TOKEN')
 
-DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = f"DEPT OF IT - AU<{os.getenv('EMAIL_HOST_USER')}>"
 
 
 

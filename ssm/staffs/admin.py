@@ -26,7 +26,7 @@ class StaffAdmin(admin.ModelAdmin):
         }),
         ('Role & Designation', {
             'fields': ('role', 'secondary_roles', 'is_admin', 'is_timetable_incharge', 'is_scholarship_officer', 'assigned_semester', 'assigned_batch', 'salutation', 'designation', 'department'),
-            'description': 'Specify Primary Role, Secondary Roles (comma-separated, e.g. "Class Incharge, Scholarship Officer"), and Role Flags below.'
+            'description': 'Select Core Primary Role (Teaching: HOD, Class Incharge, Course Incharge | Non-Teaching: Office Staff, Technical Officer), and specify Additional Roles (comma-separated e.g. "Scholarship Officer, Timetable Incharge") and semester for Class Incharge.'
         }),
         ('Professional Details', {
             'fields': ('qualification', 'specialization', 'experience')
@@ -279,67 +279,125 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
     def generate_staff_view(self, request):
         if request.method == 'POST':
             action = request.POST.get('action')
-            staff_role = request.POST.get('staff_role', 'Course Incharge')
+            staff_category = request.POST.get('staff_category') or request.POST.get('staff_type') or request.POST.get('staff_role', 'Teaching Staff')
+            
+            if 'Non-Teaching' in staff_category or staff_category == 'Office Staff':
+                staff_role = 'Office Staff'
+                category_display = 'Non-Teaching Staff (Office Staff)'
+            elif 'Other Dept' in staff_category or staff_category == 'Other Dept Staff':
+                staff_role = 'Other Dept Staff'
+                category_display = 'Other Dept Staff'
+            else:
+                staff_role = 'Course Incharge'
+                category_display = 'Teaching Staff (Course Incharge)'
             
             try:
                 if action == 'preview_bulk':
                     bulk_input = request.POST.get('bulk_input', '').strip()
                     if not bulk_input:
                         messages.error(request, "Please enter staff details.")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_role': staff_role})
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_category': staff_category, 'staff_role': staff_role})
                     
                     preview_list = []
                     lines = bulk_input.split('\n')
                     for line in lines:
                         if ',' in line:
-                            s_id, s_name = line.split(',', 1)
-                            s_id = s_id.strip()
-                            s_name = s_name.strip()
-                            if s_id:
+                            parts = [p.strip() for p in line.split(',')]
+                            if len(parts) >= 2 and parts[0]:
+                                s_id = parts[0]
+                                s_name = parts[1]
+                                s_dept = parts[2] if len(parts) > 2 else ''
+                                s_email = parts[3] if len(parts) > 3 else ''
+                                s_mobile = parts[4] if len(parts) > 4 else ''
                                 exists = Staff.objects.filter(staff_id=s_id).exists()
-                                preview_list.append({'staff_id': s_id, 'name': s_name, 'exists': exists})
+                                preview_list.append({
+                                    'staff_id': s_id,
+                                    'name': s_name,
+                                    'dept': s_dept,
+                                    'email': s_email,
+                                    'mobile': s_mobile,
+                                    'exists': exists
+                                })
                     
                     if not preview_list:
-                        messages.error(request, "No valid staff details found. Use format: ID, Name")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'bulk_input': bulk_input, 'staff_role': staff_role})
+                        messages.error(request, "No valid staff details found. Use format: ID, Name, Department, Email, Phone")
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'bulk_input': bulk_input, 'staff_category': staff_category, 'staff_role': staff_role})
 
                     return render(request, 'staff/generate_staff.html', {
                         'show_preview': True,
                         'preview_list': preview_list,
                         'bulk_input': bulk_input,
-                        'staff_role': staff_role
+                        'staff_category': staff_category,
+                        'staff_role': staff_role,
+                        'category_display': category_display
                     })
 
                 elif action == 'generate_bulk':
                     selected_entries = request.POST.getlist('selected_entries')
                     if not selected_entries:
                         messages.error(request, "No staff selected.")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_role': staff_role})
+                        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_category': staff_category, 'staff_role': staff_role})
 
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = 'attachment; filename="generated_staff.csv"'
                     writer = csv.writer(response)
-                    writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
+                    writer.writerow(['Staff ID', 'Name', 'Department', 'Email', 'Mobile', 'Role', 'Temp Password'])
 
                     with transaction.atomic():
                         for entry in selected_entries:
-                            s_id, s_name = entry.split('||', 1)
+                            parts = entry.split('||')
+                            s_id = parts[0]
+                            s_name = parts[1] if len(parts) > 1 else ''
+                            s_dept = parts[2] if len(parts) > 2 else ''
+                            s_email = parts[3] if len(parts) > 3 else ''
+                            s_mobile = parts[4] if len(parts) > 4 else ''
+
+                            # Clean salutation and name
+                            salutation_final = 'Mr.' if staff_role == 'Office Staff' else 'Dr.'
+                            clean_name = s_name
+                            prefixes = ['Dr.', 'Dr', 'Prof.', 'Prof', 'Mr.', 'Mr', 'Ms.', 'Ms', 'Mrs.', 'Mrs']
+                            for p in prefixes:
+                                if clean_name.lower().startswith(p.lower()):
+                                    p_cap = p.capitalize()
+                                    if not p_cap.endswith('.'):
+                                        p_cap += '.'
+                                    salutation_final = p_cap
+                                    clean_name = clean_name[len(p):].strip()
+                                    if clean_name.startswith('.'):
+                                        clean_name = clean_name[1:].strip()
+                                    break
+
+                            defaults_dict = {
+                                'salutation': salutation_final,
+                                'name': clean_name,
+                                'role': staff_role,
+                                'is_active': True,
+                                'is_profile_complete': True if staff_role == 'Other Dept Staff' else False
+                            }
+                            if s_dept:
+                                defaults_dict['department'] = s_dept
+                            if s_email:
+                                defaults_dict['email'] = s_email
+                            if s_mobile:
+                                defaults_dict['mobile_number'] = s_mobile
+
                             staff, created = Staff.objects.get_or_create(
                                 staff_id=s_id,
-                                defaults={
-                                    'name': s_name,
-                                    'role': staff_role,
-                                    'is_active': True,
-                                    'is_profile_complete': False
-                                }
+                                defaults=defaults_dict
                             )
                             pwd = "Staff" + str(random.randint(1000, 9999))
                             if created:
                                 staff.set_password(pwd)
                                 staff.save()
-                                writer.writerow([f'="{s_id}"', s_name, staff.role, pwd])
+                                writer.writerow([f'="{s_id}"', f"{staff.salutation} {staff.name}".strip(), staff.department, staff.email or '', staff.mobile_number or '', staff.role, pwd])
                             else:
-                                writer.writerow([f'="{s_id}"', s_name, staff.role, "Existing"])
+                                staff.salutation = salutation_final
+                                staff.name = clean_name
+                                if s_dept: staff.department = s_dept
+                                if s_email: staff.email = s_email
+                                if s_mobile: staff.mobile_number = s_mobile
+                                staff.save()
+                                writer.writerow([f'="{s_id}"', f"{staff.salutation} {staff.name}".strip(), staff.department, staff.email or '', staff.mobile_number or '', staff.role, "Existing"])
 
                     response.set_cookie('download_complete', 'true', max_age=20)
                     return response
@@ -347,30 +405,75 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                 elif action == 'generate_single':
                     s_id = request.POST.get('single_staff_id', '').strip()
                     s_name = request.POST.get('single_name', '').strip()
+                    s_salutation = request.POST.get('single_salutation', '').strip()
+                    s_dept = request.POST.get('single_dept', '').strip()
+                    s_email = request.POST.get('single_email', '').strip()
+                    s_mobile = request.POST.get('single_mobile', '').strip()
                     
                     if not s_id or not s_name:
                         messages.error(request, "Please enter both Staff ID and Name.")
-                        return render(request, 'staff/generate_staff.html', {'active_tab': 'single', 'single_staff_id': s_id, 'single_name': s_name, 'staff_role': staff_role})
+                        return render(request, 'staff/generate_staff.html', {
+                            'active_tab': 'single',
+                            'single_staff_id': s_id,
+                            'single_name': s_name,
+                            'single_salutation': s_salutation,
+                            'single_dept': s_dept,
+                            'single_email': s_email,
+                            'single_mobile': s_mobile,
+                            'staff_category': staff_category,
+                            'staff_role': staff_role
+                        })
+
+                    # Clean salutation and name
+                    salutation_final = s_salutation or 'Dr.'
+                    clean_name = s_name
+                    prefixes = ['Dr.', 'Dr', 'Prof.', 'Prof', 'Mr.', 'Mr', 'Ms.', 'Ms', 'Mrs.', 'Mrs']
+                    for p in prefixes:
+                        if clean_name.lower().startswith(p.lower()):
+                            p_cap = p.capitalize()
+                            if not p_cap.endswith('.'):
+                                p_cap += '.'
+                            salutation_final = p_cap
+                            clean_name = clean_name[len(p):].strip()
+                            if clean_name.startswith('.'):
+                                clean_name = clean_name[1:].strip()
+                            break
 
                     response = HttpResponse(content_type='text/csv')
                     response['Content-Disposition'] = f'attachment; filename="staff_{s_id}.csv"'
                     writer = csv.writer(response)
-                    writer.writerow(['Staff ID', 'Name', 'Role', 'Temp Password'])
+                    writer.writerow(['Staff ID', 'Salutation', 'Name', 'Department', 'Email', 'Mobile', 'Role', 'Temp Password'])
 
                     with transaction.atomic():
+                        defaults_dict = {
+                            'salutation': salutation_final,
+                            'name': clean_name,
+                            'role': staff_role,
+                            'is_active': True,
+                            'is_profile_complete': True if staff_role == 'Other Dept Staff' else False
+                        }
+                        if s_dept:
+                            defaults_dict['department'] = s_dept
+                        if s_email:
+                            defaults_dict['email'] = s_email
+                        if s_mobile:
+                            defaults_dict['mobile_number'] = s_mobile
+
                         staff, created = Staff.objects.get_or_create(
                             staff_id=s_id,
-                            defaults={
-                                'name': s_name,
-                                'role': staff_role,
-                                'is_active': True,
-                                'is_profile_complete': False
-                            }
+                            defaults=defaults_dict
                         )
                         pwd = "Staff" + str(random.randint(1000, 9999))
-                        staff.set_password(pwd)
+                        if created:
+                            staff.set_password(pwd)
+                        else:
+                            staff.salutation = salutation_final
+                            staff.name = clean_name
+                            if s_dept: staff.department = s_dept
+                            if s_email: staff.email = s_email
+                            if s_mobile: staff.mobile_number = s_mobile
                         staff.save()
-                        writer.writerow([f'="{s_id}"', s_name, staff.role, pwd])
+                        writer.writerow([f'="{s_id}"', staff.salutation, staff.name, staff.department, staff.email or '', staff.mobile_number or '', staff.role, pwd if created else "Existing"])
 
                     response.set_cookie('download_complete', 'true', max_age=20)
                     return response
@@ -379,7 +482,7 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                 messages.error(request, f"Error generating staff: {str(e)}")
                 return redirect('admin:staffs_staffgenerator_changelist')
 
-        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_role': 'Course Incharge'})
+        return render(request, 'staff/generate_staff.html', {'active_tab': 'bulk', 'staff_category': 'Teaching Staff', 'staff_role': 'Course Incharge'})
 
 
 @admin.register(DepartmentTask)

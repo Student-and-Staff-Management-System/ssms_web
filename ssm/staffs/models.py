@@ -41,20 +41,31 @@ class Staff(models.Model):
             ('HOD', 'HOD'),
             ('Class Incharge', 'Class Incharge'),
             ('Course Incharge', 'Course Incharge'),
-            ('Scholarship Officer', 'Scholarship Officer'),
-            ('Placement Officer', 'Placement Officer'),
         )),
         ('Non-Teaching Staff', (
             ('Office Staff', 'Office Staff'),
             ('Technical Officer', 'Technical Officer'),
         )),
+        ('Other Dept Staff', (
+            ('Other Dept Staff', 'Other Dept Staff'),
+        )),
     ]
+    
+    ADDITIONAL_ROLE_CHOICES = [
+        ('Scholarship Officer', 'Scholarship Officer'),
+        ('Timetable Incharge', 'Timetable Incharge'),
+        ('Placement Officer', 'Placement Officer'),
+        ('Bonafide Issuing', 'Bonafide Issuing'),
+        ('Marksheet & Document Requests', 'Marksheet & Document Requests'),
+        ('Scholarship Management', 'Scholarship Management'),
+    ]
+    
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='Course Incharge')
     secondary_roles = models.CharField(
         max_length=255,
         blank=True,
         null=True,
-        help_text="Comma-separated secondary roles (e.g. 'Class Incharge, Scholarship Officer')."
+        help_text="Comma-separated secondary/additional roles (e.g. 'Scholarship Officer, Timetable Incharge')."
     )
     assigned_semester = models.IntegerField(null=True, blank=True, help_text="For Class Incharge: Specify which semester they manage (1-8).")
     
@@ -138,6 +149,19 @@ class Staff(models.Model):
             roles.append('Admin')
         return roles
 
+    def get_additional_roles_list(self):
+        additional = []
+        if self.secondary_roles:
+            for r in self.secondary_roles.split(','):
+                r_clean = r.strip()
+                if r_clean and r_clean != self.role and r_clean not in additional:
+                    additional.append(r_clean)
+        if self.is_scholarship_officer and 'Scholarship Officer' not in additional and self.role != 'Scholarship Officer':
+            additional.append('Scholarship Officer')
+        if self.is_timetable_incharge and 'Timetable Incharge' not in additional and self.role != 'Timetable Incharge':
+            additional.append('Timetable Incharge')
+        return additional
+
     def has_role(self, role_name):
         return role_name in self.get_roles_list()
 
@@ -160,6 +184,10 @@ class Staff(models.Model):
     @property
     def is_technical_officer(self):
         return self.has_role('Technical Officer')
+
+    @property
+    def is_other_dept_staff(self):
+        return self.has_role('Other Dept Staff')
 
     @property
     def is_placement_officer(self):

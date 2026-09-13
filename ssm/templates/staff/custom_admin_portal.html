@@ -489,7 +489,7 @@
     </div>
 
     <a href="/admin/" target="_blank" class="admin-nav-item" style="color: #4f46e5; border: 1px dashed #c7d2fe; margin-top: 10px;">
-        <i>⚙️</i> Native Django Admin ↗
+        <i>⚙️</i> Superuser ↗
     </a>
 </div>
 
@@ -543,7 +543,7 @@
 
         <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--admin-border); display: flex; flex-direction: column; gap: 8px;">
             <a href="/admin/" target="_blank" class="admin-nav-item" style="color: #4f46e5; border: 1px dashed #c7d2fe;">
-                <i>⚙️</i> Native Django Admin ↗
+                <i>⚙️</i> Superuser ↗
             </a>
             <a href="{% url 'staffs:staff_dashboard' %}" class="admin-nav-item" style="color: var(--admin-text);">
                 <i>↩</i> Return to Staff Portal
@@ -567,7 +567,7 @@
                 {% if active_section == 'model_form' %}✏️ {% if target_pk %}Edit{% else %}Create{% endif %} {{ target_model_meta.verbose_name.title }}{% endif %}
             </h1>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <a href="/admin/" target="_blank" class="btn-admin-primary" style="background: #4f46e5;">⚙️ Native Django Admin ↗</a>
+                <a href="/admin/" target="_blank" class="btn-admin-primary" style="background: #4f46e5;">⚙️ Superuser ↗</a>
                 <a href="{% url 'staffs:generate_staff' %}" class="btn-admin-primary">+ Add Staff</a>
                 <a href="{% url 'staffs:generate_student' %}" class="btn-admin-primary" style="background: #0f172a;">+ Add Student</a>
             </div>

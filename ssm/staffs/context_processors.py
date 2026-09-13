@@ -3,12 +3,17 @@ from .models import Staff, StaffHourSwapRequest, StaffNotification
 def staff_context(request):
     """
     Context processor to provide the logged-in staff member globally across all templates,
-    along with global notification counts and recent notifications list.
+    along with global notification counts, active role, all assigned roles, and recent notifications.
     """
     staff_id = request.session.get('staff_id')
     if staff_id:
         try:
             logged_in_staff = Staff.objects.get(staff_id=staff_id)
+            all_assigned_roles = logged_in_staff.get_roles_list()
+            active_role = request.session.get('active_role')
+            if not active_role or active_role not in all_assigned_roles:
+                active_role = logged_in_staff.role
+
             pending_hour_swaps_count = StaffHourSwapRequest.objects.filter(
                 target_staff=logged_in_staff,
                 status='Pending'
@@ -25,6 +30,8 @@ def staff_context(request):
 
             return {
                 'logged_in_staff': logged_in_staff,
+                'active_role': active_role,
+                'all_assigned_roles': all_assigned_roles,
                 'pending_hour_swaps_count': pending_hour_swaps_count,
                 'unread_notifications_count': unread_notifications_count,
                 'staff_recent_notifications': staff_recent_notifications,
@@ -33,6 +40,8 @@ def staff_context(request):
             pass
     return {
         'logged_in_staff': None,
+        'active_role': None,
+        'all_assigned_roles': [],
         'pending_hour_swaps_count': 0,
         'unread_notifications_count': 0,
         'staff_recent_notifications': [],
