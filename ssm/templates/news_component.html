@@ -1,222 +1,398 @@
 {% load static %}
 <div class="modern-notices-board">
-    <!-- Header Row -->
+    <!-- Board Header -->
     <div class="board-header">
-        <div class="board-title">
-            <span class="board-icon"><i class="ri-megaphone-line"></i></span>
-            <h3>Notice Board</h3>
+        <div class="board-title-group">
+            <div class="board-icon-wrapper">
+                <i class="ri-megaphone-fill"></i>
+            </div>
+            <div>
+                <h3 class="board-heading">Latest News & Notice Board</h3>
+                <span class="board-subheading">Latest campus updates, news & departmental announcements</span>
+            </div>
         </div>
-        <div class="board-filters">
-            <button class="pill-filter active" onclick="filterNotices('all', this)">All</button>
-            {% if staff %}
-            <button class="pill-filter" onclick="filterNotices('staff', this)">Staff Only</button>
-            {% endif %}
-            <button class="pill-filter" onclick="filterNotices('student', this)">Students</button>
+
+        <div class="board-controls">
+            <!-- Mini Search Bar -->
+            <div class="notice-search-box">
+                <i class="ri-search-line notice-search-icon"></i>
+                <input type="text" id="noticeSearchInput" class="notice-search-input" placeholder="Search notices..." onkeyup="filterNoticesWithSearch()" aria-label="Search notices">
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="board-filters">
+                <button class="pill-filter active" data-filter="all" onclick="filterNotices('all', this)">
+                    All <span class="filter-count" id="count-all">0</span>
+                </button>
+                {% if staff %}
+                <button class="pill-filter" data-filter="staff" onclick="filterNotices('staff', this)">
+                    Staff <span class="filter-count" id="count-staff">0</span>
+                </button>
+                {% endif %}
+                <button class="pill-filter" data-filter="student" onclick="filterNotices('student', this)">
+                    Students <span class="filter-count" id="count-student">0</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Notices Layout -->
+    <!-- Board Main Container -->
     <div class="board-container">
         {% if news_list %}
-            <!-- Left Pane: Featured Spotlight -->
+            <!-- Left Pane: Featured Spotlight (Desktop Only) -->
             <div class="spotlight-pane" id="spotlightCard">
-                <!-- Will be populated dynamically by JavaScript to match active filters -->
+                <!-- Populated dynamically via JS -->
             </div>
 
-            <!-- Right Pane: List Feed -->
+            <!-- Right Pane: Scrollable List Feed -->
             <div class="feed-pane" id="noticesFeed">
                 {% for news in news_list %}
-                <div class="feed-item" data-target="{{ news.target|lower }}">
+                <div class="feed-item {% if forloop.first %}latest-notice-item active-feed-item{% endif %}" 
+                     data-target="{{ news.target|lower }}"
+                     data-date="{{ news.date|date:'M d, Y · h:i A' }}"
+                     data-raw-content="{{ news.content|escapejs }}"
+                     {% if news.link %}data-link="{{ news.link }}"{% endif %}
+                     {% if news.document %}data-doc="{{ news.document.url }}"{% endif %}
+                     onclick="selectNoticeItem(this)">
+                    
                     <div class="feed-item-indicator {{ news.target|lower }}"></div>
                     <div class="feed-item-body">
                         <div class="feed-item-meta">
-                            <span class="feed-item-date">{{ news.date|date:"M d, Y" }} · {{ news.date|time:"h:i A" }}</span>
-                            {% if news.should_show_new_indicator %}
-                            <span class="feed-new-badge">NEW</span>
-                            {% endif %}
+                            <span class="feed-item-date">
+                                <i class="ri-time-line"></i> {{ news.date|date:"M d, Y" }} · {{ news.date|time:"h:i A" }}
+                            </span>
+                            <div class="feed-meta-badges">
+                                {% if forloop.first %}
+                                <span class="feed-just-in-chip">
+                                    <span class="just-in-pulse"></span>
+                                    <i class="ri-flashlight-line"></i> LATEST
+                                </span>
+                                {% elif news.should_show_new_indicator %}
+                                <span class="feed-new-badge"><i class="ri-sparkling-line"></i> NEW</span>
+                                {% endif %}
+                                <span class="feed-target-badge {{ news.target|lower }}">{{ news.target }}</span>
+                            </div>
                         </div>
+
                         <p class="feed-item-text">
                             {% if news.link %}
-                            <a href="{{ news.link }}" target="_blank" class="feed-link">{{ news.content }} <i class="ri-external-link-line"></i></a>
+                            <a href="{{ news.link }}" target="_blank" class="feed-link" onclick="event.stopPropagation()">
+                                {{ news.content }} <i class="ri-external-link-line"></i>
+                            </a>
                             {% else %}
                             {{ news.content }}
                             {% endif %}
                         </p>
+
+                        {% if news.document %}
                         <div class="feed-item-footer">
-                            <span class="feed-target-badge {{ news.target|lower }}">{{ news.target }}</span>
-                            {% if news.document %}
-                            <a href="{{ news.document.url }}" target="_blank" class="feed-doc-link">
-                                <i class="ri-attachment-2"></i> Document
+                            <a href="{{ news.document.url }}" target="_blank" class="feed-doc-link" onclick="event.stopPropagation()">
+                                <i class="ri-file-download-line"></i> Download Attachment
                             </a>
-                            {% endif %}
                         </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
+
+                <div class="empty-filter-state" id="noResultsMsg" style="display: none;">
+                    <i class="ri-search-eye-line empty-icon"></i>
+                    <p>No notices found matching your search or filter.</p>
+                </div>
             </div>
         {% else %}
             <div class="empty-board">
-                <span class="empty-icon"><i class="ri-inbox-line"></i></span>
-                <p>No active notices or announcements.</p>
+                <div class="empty-icon-wrap">
+                    <i class="ri-inbox-archive-line"></i>
+                </div>
+                <h4>No Announcements Yet</h4>
+                <p>There are currently no active notices or announcements posted.</p>
             </div>
         {% endif %}
     </div>
 </div>
 
 <style>
-    /* Premium Modern Board Style */
+    /* =========================================================
+       STAFF DASHBOARD NOTICE BOARD SYSTEM (PURE INSTITUTIONAL)
+       ========================================================= */
+
     .modern-notices-board {
+        font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
         background: var(--surface, #ffffff);
         border: 1px solid var(--border, #e2e8f0);
-        border-radius: var(--radius-lg, 16px);
+        border-radius: var(--radius-lg, 14px);
         padding: 20px;
         display: flex;
         flex-direction: column;
         gap: 16px;
-        box-shadow: var(--shadow-sm);
-        transition: border-color 0.25s ease;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+        transition: all 0.2s ease;
     }
 
+    body.dark-theme .modern-notices-board {
+        background: var(--surface, #111827);
+        border-color: var(--border, #263244);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Board Header Layout */
     .board-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 16px;
         border-bottom: 1px solid var(--border, #e2e8f0);
-        padding-bottom: 12px;
+        padding-bottom: 14px;
+        flex-wrap: wrap;
     }
 
-    .board-title {
+    body.dark-theme .board-header {
+        border-bottom-color: var(--border, #263244);
+    }
+
+    .board-title-group {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
 
-    .board-icon {
-        font-size: 1.3rem;
+    .board-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--primary-light, rgba(90, 125, 124, 0.12));
+        color: var(--primary-dark, #4a6b69);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
     }
 
-    .board-title h3 {
+    body.dark-theme .board-icon-wrapper {
+        background: rgba(111, 146, 144, 0.18);
+        color: var(--primary, #6f9290);
+    }
+
+    .board-heading {
         margin: 0;
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         font-weight: 700;
         letter-spacing: -0.01em;
         color: var(--text-main, #0f172a);
     }
 
+    body.dark-theme .board-heading {
+        color: var(--text-main, #f8fafc);
+    }
+
+    .board-subheading {
+        font-size: 0.76rem;
+        color: var(--text-muted, #64748b);
+        font-weight: 500;
+    }
+
+    body.dark-theme .board-subheading {
+        color: var(--text-muted, #7f8ea3);
+    }
+
+    /* Board Controls: Search & Filters */
+    .board-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .notice-search-box {
+        position: relative;
+        min-width: 180px;
+    }
+
+    .notice-search-input {
+        width: 100%;
+        padding: 6px 12px 6px 32px;
+        border-radius: 8px;
+        border: 1px solid var(--border, #cbd5e1);
+        background: var(--bg-body, #f8fafc);
+        font-size: 0.8rem;
+        font-family: inherit;
+        color: var(--text-main, #0f172a);
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    body.dark-theme .notice-search-input {
+        background: var(--surface-2, #172033);
+        border-color: var(--border, #263244);
+        color: var(--text-main, #f8fafc);
+    }
+
+    .notice-search-input:focus {
+        outline: none;
+        border-color: var(--primary, #5a7d7c);
+        box-shadow: 0 0 0 3px var(--primary-light, rgba(90, 125, 124, 0.15));
+    }
+
+    .notice-search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.85rem;
+        color: var(--text-muted, #64748b);
+        pointer-events: none;
+    }
+
     /* Filter Pills */
     .board-filters {
         display: flex;
+        align-items: center;
         gap: 6px;
     }
 
     .pill-filter {
+        font-family: inherit;
         background: var(--bg-body, #f8fafc);
-        border: 1px solid var(--border, #e2e8f0);
+        border: 1px solid var(--border, #cbd5e1);
         padding: 5px 12px;
-        border-radius: 50px;
-        font-size: 0.75rem;
+        border-radius: 20px;
+        font-size: 0.78rem;
         font-weight: 600;
         color: var(--text-secondary, #475569);
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.18s ease;
+        user-select: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .filter-count {
+        background: var(--border, #cbd5e1);
+        color: var(--text-secondary, #475569);
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 10px;
     }
 
     .pill-filter:hover {
-        background: var(--primary-light, #eef2f2);
+        background: var(--primary-light, rgba(90, 125, 124, 0.12));
         color: var(--primary-dark, #4a6b69);
-        border-color: transparent;
+        border-color: var(--primary, #5a7d7c);
     }
 
     .pill-filter.active {
         background: var(--primary, #5a7d7c);
-        color: white;
+        color: #ffffff;
+        font-weight: 700;
         border-color: var(--primary, #5a7d7c);
-        box-shadow: 0 2px 4px rgba(90, 125, 124, 0.15);
     }
 
-    /* Split Container Layout */
+    .pill-filter.active .filter-count {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+
+    body.dark-theme .pill-filter {
+        background: var(--surface-2, #172033);
+        border-color: var(--border, #263244);
+        color: var(--text-secondary, #cbd5e1);
+    }
+
+    body.dark-theme .pill-filter .filter-count {
+        background: var(--surface-hover, #1f2937);
+        color: var(--text-muted, #7f8ea3);
+    }
+
+    body.dark-theme .pill-filter.active {
+        background: var(--primary, #6f9290);
+        color: #0b0f19;
+        border-color: var(--primary, #6f9290);
+    }
+
+    body.dark-theme .pill-filter.active .filter-count {
+        background: rgba(11, 15, 25, 0.3);
+        color: #0b0f19;
+    }
+
+    /* Container & Split Layout */
     .board-container {
         display: grid;
-        grid-template-columns: 1fr 1.5fr;
-        gap: 20px;
-        min-height: auto;
+        grid-template-columns: 1fr 1.35fr;
+        gap: 18px;
+        align-items: stretch;
     }
 
-    @media (max-width: 768px) {
-        .board-container {
-            grid-template-columns: 1fr;
-            min-height: auto;
-        }
-        .spotlight-pane {
-            height: auto !important;
-            min-height: 200px;
-        }
-        .feed-pane {
-            height: 250px !important;
-        }
-    }
-
-    /* Left Pane: Spotlight style */
+    /* Left Spotlight Pane (Desktop) */
     .spotlight-pane {
-        background: linear-gradient(135deg, var(--primary, #5a7d7c) 0%, var(--primary-dark, #4a6b69) 100%);
-        border-radius: var(--radius-md, 12px);
-        padding: 20px;
-        color: white;
+        background: linear-gradient(135deg, var(--primary-dark, #4a6b69) 0%, #36504e 100%);
+        border-radius: var(--radius-md, 10px);
+        padding: 22px;
+        color: #ffffff;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        box-shadow: 0 4px 15px rgba(90, 125, 124, 0.15);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
         position: relative;
         overflow: hidden;
-        animation: fadeIn 0.3s ease-out;
-        height: 335px;
+        min-height: 320px;
         box-sizing: border-box;
     }
 
-    .spotlight-pane::before {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 150px; height: 150px;
-        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-        pointer-events: none;
+    body.dark-theme .spotlight-pane {
+        background: linear-gradient(135deg, #172033 0%, #0f1520 100%);
+        border: 1px solid var(--border-strong, #334155);
     }
 
-    .spotlight-badge {
-        font-size: 0.62rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        background: rgba(255, 255, 255, 0.18);
-        padding: 4px 8px;
-        border-radius: 4px;
-        width: fit-content;
-        text-transform: uppercase;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .spotlight-content-wrap {
+    .spotlight-header-row {
         display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin: 15px 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .spotlight-tag {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.18);
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     .spotlight-date {
-        font-size: 0.72rem;
-        opacity: 0.85;
+        font-size: 0.74rem;
+        opacity: 0.88;
         font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .spotlight-body {
+        margin: 18px 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .spotlight-text {
-        font-size: 1.05rem;
+        font-size: 1.02rem;
         font-weight: 600;
-        line-height: 1.5;
+        line-height: 1.55;
         margin: 0;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        color: #ffffff;
+        word-break: break-word;
     }
 
     .spotlight-text a {
-        color: white;
+        color: #6ee7b7;
         text-decoration: underline;
         text-underline-offset: 3px;
     }
@@ -228,34 +404,50 @@
         border-top: 1px solid rgba(255, 255, 255, 0.15);
         padding-top: 12px;
         margin-top: auto;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
-    .spotlight-doc-btn {
-        background: white;
+    .spotlight-audience-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .spotlight-action-btn {
+        background: #ffffff;
         color: var(--primary-dark, #4a6b69);
         text-decoration: none;
-        font-size: 0.75rem;
+        font-size: 0.76rem;
         font-weight: 700;
-        padding: 5px 12px;
+        padding: 6px 14px;
         border-radius: 6px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s, box-shadow 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: all 0.18s ease;
     }
 
-    .spotlight-doc-btn:hover {
+    .spotlight-action-btn:hover {
+        background: #f8fafc;
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
-        color: var(--primary, #5a7d7c);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
-    /* Right Pane: Feed list style */
+    /* Right Feed Pane */
     .feed-pane {
-        height: 335px;
+        max-height: 340px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
         gap: 10px;
-        padding-right: 6px;
+        padding-right: 4px;
         scrollbar-width: thin;
         scrollbar-color: var(--border, #cbd5e1) transparent;
     }
@@ -269,25 +461,52 @@
         border-radius: 10px;
     }
 
+    body.dark-theme .feed-pane::-webkit-scrollbar-thumb {
+        background: var(--border-strong, #334155);
+    }
+
+    /* Feed Item Card */
     .feed-item {
         background: var(--bg-body, #f8fafc);
         border: 1px solid var(--border, #e2e8f0);
-        border-radius: 10px;
+        border-radius: 8px;
         padding: 12px 14px;
         display: flex;
         gap: 12px;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        animation: slideIn 0.3s ease-out;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        position: relative;
+    }
+
+    body.dark-theme .feed-item {
+        background: var(--surface-subtle, #151d2b);
+        border-color: var(--border, #263244);
     }
 
     .feed-item:hover {
-        transform: translateX(3px);
         border-color: var(--primary, #5a7d7c);
         background: var(--surface, #ffffff);
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
     }
 
-    .feed-item.hidden {
+    body.dark-theme .feed-item:hover {
+        background: var(--surface-hover, #1f2937);
+        border-color: var(--primary, #6f9290);
+    }
+
+    .feed-item.active-feed-item {
+        border-color: var(--primary, #5a7d7c);
+        background: var(--primary-light, rgba(90, 125, 124, 0.08));
+        box-shadow: 0 0 0 1px var(--primary, #5a7d7c);
+    }
+
+    body.dark-theme .feed-item.active-feed-item {
+        border-color: var(--primary, #6f9290);
+        background: rgba(111, 146, 144, 0.14);
+        box-shadow: 0 0 0 1px var(--primary, #6f9290);
+    }
+
+    .feed-item.hidden-item {
         display: none !important;
     }
 
@@ -297,17 +516,12 @@
         flex-shrink: 0;
     }
 
-    .feed-item-indicator.all {
-        background: #f59e0b; /* Amber */
-    }
+    .feed-item-indicator.all { background: #d97706; }
+    .feed-item-indicator.staff { background: var(--primary, #5a7d7c); }
+    .feed-item-indicator.student { background: #2563eb; }
 
-    .feed-item-indicator.staff {
-        background: var(--primary, #5a7d7c); /* Sage */
-    }
-
-    .feed-item-indicator.student {
-        background: #3b82f6; /* Blue */
-    }
+    body.dark-theme .feed-item-indicator.staff { background: #6f9290; }
+    body.dark-theme .feed-item-indicator.student { background: #60a5fa; }
 
     .feed-item-body {
         flex: 1;
@@ -321,194 +535,417 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 8px;
     }
 
     .feed-item-date {
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--text-muted, #94a3b8);
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--text-muted, #64748b);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    body.dark-theme .feed-item-date {
+        color: var(--text-muted, #7f8ea3);
+    }
+
+    .feed-meta-badges {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Unique Card Tinting for Latest Notice */
+    .feed-item.latest-notice-item {
+        background: linear-gradient(135deg, rgba(90, 125, 124, 0.08) 0%, var(--bg-body, #f8fafc) 100%);
+        border-color: var(--primary, #5a7d7c);
+    }
+
+    body.dark-theme .feed-item.latest-notice-item {
+        background: linear-gradient(135deg, rgba(111, 146, 144, 0.14) 0%, var(--surface-subtle, #151d2b) 100%);
+        border-color: var(--primary, #6f9290);
+    }
+
+    .feed-just-in-chip {
+        font-size: 0.62rem;
+        font-weight: 800;
+        background: var(--primary-light, rgba(90, 125, 124, 0.15));
+        color: var(--primary-dark, #4a6b69);
+        border: 1px solid rgba(90, 125, 124, 0.35);
+        padding: 2px 7px;
+        border-radius: 5px;
+        letter-spacing: 0.04em;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        text-transform: uppercase;
+    }
+
+    body.dark-theme .feed-just-in-chip {
+        background: rgba(111, 146, 144, 0.22);
+        color: #6f9290;
+        border-color: rgba(111, 146, 144, 0.45);
+    }
+
+    .just-in-pulse {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 6px #10b981;
+        display: inline-block;
+        animation: pulseGreenGlow 1.8s infinite;
+    }
+
+    @keyframes pulseGreenGlow {
+        0% { transform: scale(0.9); opacity: 0.8; }
+        50% { transform: scale(1.25); opacity: 1; }
+        100% { transform: scale(0.9); opacity: 0.8; }
     }
 
     .feed-new-badge {
         font-size: 0.6rem;
-        font-weight: 700;
+        font-weight: 800;
         background: #ef4444;
-        color: white;
-        padding: 1px 5px;
+        color: #ffffff;
+        padding: 1px 6px;
         border-radius: 4px;
-        letter-spacing: 0.5px;
-    }
-
-    .feed-item-text {
-        margin: 4px 0;
-        font-size: 0.85rem;
-        line-height: 1.45;
-        color: var(--text-main, #334155);
-        font-weight: 500;
-        word-wrap: break-word;
-    }
-
-    .feed-link {
-        color: var(--text-main, #0f172a);
-        text-decoration: none;
-        transition: color 0.2s;
-    }
-
-    .feed-link:hover {
-        color: var(--primary, #5a7d7c);
-        text-decoration: underline;
-    }
-
-    .feed-item-footer {
-        display: flex;
-        justify-content: space-between;
+        letter-spacing: 0.04em;
+        display: inline-flex;
         align-items: center;
-        margin-top: 4px;
+        gap: 2px;
     }
 
-    /* Target badge styling */
     .feed-target-badge {
-        font-size: 0.65rem;
+        font-size: 0.64rem;
         font-weight: 700;
-        padding: 2px 6px;
+        padding: 2px 7px;
         border-radius: 4px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.03em;
     }
 
     .feed-target-badge.all {
         background: #fef3c7;
-        color: #b56009;
+        color: #b45309;
+        border: 1px solid #fde68a;
     }
 
     .feed-target-badge.staff {
-        background: var(--primary-light, #eef2f2);
+        background: var(--primary-light, rgba(90, 125, 124, 0.12));
         color: var(--primary-dark, #4a6b69);
+        border: 1px solid rgba(90, 125, 124, 0.25);
     }
 
     .feed-target-badge.student {
-        background: #eff6ff;
+        background: #dbeafe;
         color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+
+    body.dark-theme .feed-target-badge.all {
+        background: rgba(251, 191, 36, 0.15);
+        color: #fcd34d;
+        border-color: rgba(251, 191, 36, 0.3);
+    }
+
+    body.dark-theme .feed-target-badge.staff {
+        background: rgba(111, 146, 144, 0.18);
+        color: #6f9290;
+        border-color: rgba(111, 146, 144, 0.35);
+    }
+
+    body.dark-theme .feed-target-badge.student {
+        background: rgba(96, 165, 250, 0.15);
+        color: #93c5fd;
+        border-color: rgba(96, 165, 250, 0.3);
+    }
+
+    .feed-item-text {
+        margin: 4px 0 0 0;
+        font-size: 0.85rem;
+        line-height: 1.45;
+        color: var(--text-main, #0f172a);
+        font-weight: 500;
+        word-wrap: break-word;
+    }
+
+    body.dark-theme .feed-item-text {
+        color: var(--text-main, #f8fafc);
+    }
+
+    .feed-link {
+        color: var(--primary-dark, #4a6b69);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    body.dark-theme .feed-link {
+        color: var(--primary, #6f9290);
+    }
+
+    .feed-link:hover {
+        text-decoration: underline;
+    }
+
+    .feed-item-footer {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
     }
 
     .feed-doc-link {
         color: var(--primary, #5a7d7c);
-        text-decoration: none;
+        background: var(--surface-hover, #f1f5f9);
+        border: 1px solid var(--border, #cbd5e1);
+        padding: 3px 9px;
+        border-radius: 6px;
         font-size: 0.72rem;
         font-weight: 600;
-        transition: opacity 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.18s ease;
+    }
+
+    body.dark-theme .feed-doc-link {
+        color: var(--primary, #6f9290);
+        background: var(--surface-2, #172033);
+        border-color: var(--border, #263244);
     }
 
     .feed-doc-link:hover {
-        opacity: 0.8;
-        text-decoration: underline;
+        background: var(--primary, #5a7d7c);
+        color: #ffffff;
+        border-color: var(--primary, #5a7d7c);
     }
 
-    .empty-board {
-        grid-column: span 2;
+    /* Empty States */
+    .empty-board, .empty-filter-state {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 40px;
-        color: var(--text-muted, #94a3b8);
-        gap: 10px;
+        padding: 36px 16px;
+        text-align: center;
+        color: var(--text-muted, #64748b);
+        gap: 8px;
     }
 
-    .empty-icon {
-        font-size: 2.5rem;
+    .empty-icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--bg-body, #f8fafc);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--text-muted, #64748b);
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(4px); }
-        to { opacity: 1; transform: translateY(0); }
+    body.dark-theme .empty-icon-wrap {
+        background: var(--surface-2, #172033);
+        color: var(--text-muted, #7f8ea3);
     }
 
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateX(-4px); }
-        to { opacity: 1; transform: translateX(0); }
+    .empty-board h4 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-main, #0f172a);
+    }
+
+    body.dark-theme .empty-board h4 {
+        color: var(--text-main, #f8fafc);
+    }
+
+    .empty-board p, .empty-filter-state p {
+        margin: 0;
+        font-size: 0.8rem;
+    }
+
+    /* MOBILE RESPONSIVE OPTIMIZATION */
+    @media (max-width: 768px) {
+        .modern-notices-board {
+            padding: 14px;
+            gap: 12px;
+        }
+
+        .board-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding-bottom: 10px;
+        }
+
+        .board-controls {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+
+        .notice-search-box {
+            width: 100%;
+        }
+
+        .board-filters {
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+
+        .board-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .board-container {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .spotlight-pane {
+            display: none !important; /* Hide duplicate spotlight on mobile screens to save screen space */
+        }
+
+        .feed-pane {
+            max-height: 280px !important;
+            overflow-y: auto !important;
+            padding-right: 2px;
+        }
     }
 </style>
 
 <script>
-    function updateFeaturedNotice(item) {
+    function updateNoticeCounts() {
+        const items = document.querySelectorAll('.feed-item');
+        let countAll = items.length;
+        let countStaff = 0;
+        let countStudent = 0;
+
+        items.forEach(item => {
+            const target = item.getAttribute('data-target');
+            if (target === 'staff') countStaff++;
+            if (target === 'student') countStudent++;
+        });
+
+        const elAll = document.getElementById('count-all');
+        const elStaff = document.getElementById('count-staff');
+        const elStudent = document.getElementById('count-student');
+
+        if (elAll) elAll.textContent = countAll;
+        if (elStaff) elStaff.textContent = countStaff;
+        if (elStudent) elStudent.textContent = countStudent;
+    }
+
+    function selectNoticeItem(item) {
+        document.querySelectorAll('.feed-item').forEach(el => el.classList.remove('active-feed-item'));
+        item.classList.add('active-feed-item');
+
         const spotlight = document.getElementById('spotlightCard');
         if (!spotlight) return;
 
-        if (!item) {
-            spotlight.innerHTML = `
-                <div class="spotlight-badge">NOTICES</div>
-                <div class="spotlight-content-wrap" style="text-align: center; justify-content: center;">
-                    <p class="spotlight-text" style="opacity: 0.7;">Select a filter to display announcements.</p>
-                </div>
-            `;
-            return;
+        const date = item.getAttribute('data-date');
+        const content = item.getAttribute('data-raw-content');
+        const link = item.getAttribute('data-link');
+        const doc = item.getAttribute('data-doc');
+        const targetBadge = item.querySelector('.feed-target-badge');
+        const targetText = targetBadge ? targetBadge.textContent : 'Notice';
+
+        let bodyHtml = `<p class="spotlight-text">${content}</p>`;
+        if (link) {
+            bodyHtml = `<p class="spotlight-text"><a href="${link}" target="_blank">${content} <i class="ri-external-link-line"></i></a></p>`;
         }
 
-        const date = item.querySelector('.feed-item-date').textContent;
-        const textElement = item.querySelector('.feed-item-text');
-        const textHtml = textElement.innerHTML;
-        const targetBadge = item.querySelector('.feed-target-badge');
-        const targetText = targetBadge.textContent;
-        const targetClass = targetBadge.className;
-
-        const docLink = item.querySelector('.feed-doc-link');
-        let docHtml = '';
-        if (docLink) {
-            docHtml = `<a href="${docLink.getAttribute('href')}" target="_blank" class="spotlight-doc-btn"><i class="ri-attachment-2"></i> View Document</a>`;
+        let actionBtnHtml = '';
+        if (doc) {
+            actionBtnHtml = `<a href="${doc}" target="_blank" class="spotlight-action-btn"><i class="ri-file-download-line"></i> Attachment</a>`;
         }
 
         spotlight.innerHTML = `
-            <div class="spotlight-badge">LATEST NOTICE</div>
-            <div class="spotlight-content-wrap">
-                <span class="spotlight-date">${date}</span>
-                <p class="spotlight-text">${textHtml}</p>
+            <div class="spotlight-header-row">
+                <span class="spotlight-tag"><i class="ri-newspaper-line"></i> LATEST NEWS</span>
+                <span class="spotlight-date"><i class="ri-time-line"></i> ${date}</span>
+            </div>
+            <div class="spotlight-body">
+                ${bodyHtml}
             </div>
             <div class="spotlight-footer">
-                <span class="${targetClass}" style="border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white;">${targetText}</span>
-                ${docHtml}
+                <span class="spotlight-audience-badge">${targetText}</span>
+                ${actionBtnHtml}
             </div>
         `;
     }
 
     function filterNotices(type, btn) {
-        // Update active filter pill
         document.querySelectorAll('.pill-filter').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        filterNoticesWithSearch();
+    }
 
-        // Filter feed items
+    function filterNoticesWithSearch() {
+        const activeFilter = document.querySelector('.pill-filter.active');
+        const filterType = activeFilter ? activeFilter.getAttribute('data-filter') : 'all';
+        const searchVal = (document.getElementById('noticeSearchInput')?.value || '').toLowerCase().trim();
+
         const items = document.querySelectorAll('.feed-item');
+        let visibleCount = 0;
         let firstVisible = null;
 
         items.forEach(item => {
             const target = item.getAttribute('data-target');
-            let show = false;
+            const content = (item.getAttribute('data-raw-content') || '').toLowerCase();
 
-            if (type === 'all') {
-                show = true;
-            } else if (type === 'student' && target === 'student') {
-                show = true;
-            } else if (type === 'staff' && target === 'staff') {
-                show = true;
+            let matchesFilter = false;
+            if (filterType === 'all') matchesFilter = true;
+            else if (filterType === 'staff' && target === 'staff') matchesFilter = true;
+            else if (filterType === 'student' && target === 'student') matchesFilter = true;
+
+            let matchesSearch = true;
+            if (searchVal && !content.includes(searchVal)) {
+                matchesSearch = false;
             }
 
-            if (show) {
-                item.classList.remove('hidden');
-                if (!firstVisible) {
-                    firstVisible = item;
-                }
+            if (matchesFilter && matchesSearch) {
+                item.classList.remove('hidden-item');
+                visibleCount++;
+                if (!firstVisible) firstVisible = item;
             } else {
-                item.classList.add('hidden');
+                item.classList.add('hidden-item');
             }
         });
 
-        // Set the spotlight pane content to match the first visible notice under the current filter
-        updateFeaturedNotice(firstVisible);
+        const noResults = document.getElementById('noResultsMsg');
+        if (noResults) {
+            noResults.style.display = (visibleCount === 0 && items.length > 0) ? 'flex' : 'none';
+        }
+
+        if (firstVisible) {
+            selectNoticeItem(firstVisible);
+        } else {
+            const spotlight = document.getElementById('spotlightCard');
+            if (spotlight) {
+                spotlight.innerHTML = `
+                    <div class="spotlight-header-row">
+                        <span class="spotlight-tag">NOTICE BOARD</span>
+                    </div>
+                    <div class="spotlight-body" style="text-align: center; opacity: 0.7;">
+                        <p class="spotlight-text">No announcements match the selected criteria.</p>
+                    </div>
+                `;
+            }
+        }
     }
 
-    // Initialize Spotlight on load
     document.addEventListener('DOMContentLoaded', function() {
-        const firstItem = document.querySelector('.feed-item:not(.hidden)');
-        updateFeaturedNotice(firstItem);
+        updateNoticeCounts();
+        const activeItem = document.querySelector('.feed-item:not(.hidden-item)');
+        if (activeItem) {
+            selectNoticeItem(activeItem);
+        }
     });
 </script>

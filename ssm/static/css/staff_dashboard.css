@@ -138,9 +138,7 @@ body {
    ========================================== */
 
 .portal-header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--surface, #ffffff);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -271,9 +269,7 @@ body.dark-theme .portal-header {
     top: 100%;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.97);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--surface, #ffffff);
     border-bottom: 1px solid var(--border);
     box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
     padding: 24px 32px;
@@ -798,14 +794,15 @@ body.dark-theme .stat-icon.amber {
     width: 100vw;
     height: 100vh;
     background: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(4px);
     z-index: 1040;
+    display: none !important;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s, visibility 0.25s;
 }
 
 .sidebar-overlay.active {
+    display: block !important;
     opacity: 1;
     visibility: visible;
 }
@@ -1068,6 +1065,18 @@ body.dark-theme .stat-icon.amber {
 
 .dash-tabs::-webkit-scrollbar {
     display: none;
+}
+
+@media (max-width: 992px) {
+    .dash-tabs {
+        margin-top: 2px !important;
+        margin-bottom: 16px !important;
+        gap: 16px !important;
+    }
+    .dash-tab-btn {
+        padding: 8px 2px !important;
+        font-size: 0.88rem !important;
+    }
 }
 
 .dash-tab-btn {

@@ -6,11 +6,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Staff Portal | Annamalai University{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
-    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}?v=2.0">
+    <link rel="stylesheet" href="{% static 'css/staff_dashboard.css' %}?v=3.0">
     <style>
         /* =========================================================
            TOP APP NAVIGATION SYSTEM - FIXED OVERFLOW & CLICK BUG
@@ -20,7 +20,7 @@
             margin: 0;
             padding: 0;
             background: var(--bg-body, #f8fafc);
-            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -28,18 +28,17 @@
         }
 
         .portal-header {
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: var(--surface, #ffffff);
             border-bottom: 1px solid var(--border, #e2e8f0);
             position: sticky;
             top: 0;
             z-index: 1050;
-            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
         }
 
         body.dark-theme .portal-header {
-            background: rgba(17, 24, 39, 0.96);
+            background: var(--surface, #111827);
+            border-bottom-color: var(--border, #263244);
         }
 
         /* =========================================================
@@ -172,67 +171,153 @@
         }
 
         .nav-tab-btn.active {
-            color: #0369a1;
-            background: #e0f2fe;
+            color: var(--primary-dark, #4a6b69);
+            background: var(--primary-light, rgba(90, 125, 124, 0.12));
             font-weight: 700;
-            border-color: #bae6fd;
-            box-shadow: 0 1px 3px rgba(3, 105, 161, 0.1);
+            border-color: rgba(90, 125, 124, 0.3);
+            box-shadow: 0 1px 3px rgba(90, 125, 124, 0.15);
+        }
+
+        body.dark-theme .nav-tab-btn.active {
+            color: #6f9290;
+            background: rgba(111, 146, 144, 0.18);
+            border-color: rgba(111, 146, 144, 0.4);
+        }
+
+        .mobile-sheet-header {
+            display: none !important;
         }
 
         /* Native Sheet & Popover Dark Backdrop */
         .sheet-backdrop {
             position: fixed;
-            top: 0;
+            top: 104px;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            display: none !important;
             opacity: 0;
             visibility: hidden;
-            pointer-events: none;
+            pointer-events: none !important;
             transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s ease;
-            z-index: 1070;
+            z-index: 1040;
         }
 
         .sheet-backdrop.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
         }
 
-        /* Mega Dropdown Box (Hardware Accelerated Spring Transitions) */
+        @media (max-width: 992px) {
+            .sheet-backdrop {
+                top: 0;
+            }
+        }
+
+        /* Mega Dropdown Box */
         .mega-dropdown {
             position: fixed;
             top: 104px;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: var(--surface, #ffffff);
             border-bottom: 2px solid var(--primary, #5a7d7c);
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
             padding: 24px 32px;
+            display: none !important;
             opacity: 0;
             visibility: hidden;
             transform: translateY(-8px) scale(0.99);
-            pointer-events: none;
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, visibility 0.25s ease;
+            pointer-events: none !important;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease;
             z-index: 1080;
-            will-change: transform, opacity;
+            max-height: calc(88vh - 104px);
+            overflow-y: auto;
         }
 
         body.dark-theme .mega-dropdown {
-            background: rgba(17, 24, 39, 0.98);
+            background: var(--surface, #111827);
+            border-bottom: 2px solid var(--primary, #6f9290);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
         }
 
-        .mega-dropdown.open-dropdown,
-        .mega-dropdown.active {
+        .mega-dropdown.open-dropdown {
+            display: block !important;
             opacity: 1 !important;
             visibility: visible !important;
             transform: translateY(0) scale(1) !important;
             pointer-events: auto !important;
+        }
+
+        /* Console Switcher Segmented Control Group */
+        .console-switcher-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: var(--bg-body, #f8fafc);
+            border: 1px solid var(--border, #e2e8f0);
+            padding: 3px;
+            border-radius: 9px;
+            flex-shrink: 0;
+        }
+
+        body.dark-theme .console-switcher-group {
+            background: var(--surface-2, #172033);
+            border-color: var(--border, #263244);
+        }
+
+        .console-nav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 13px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary, #475569);
+            text-decoration: none;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+
+        .console-nav-pill:hover {
+            color: var(--primary-hover, #4a6b69);
+            background: var(--surface-hover, #f1f5f9);
+        }
+
+        body.dark-theme .console-nav-pill:hover {
+            color: var(--primary-hover, #7da19f);
+            background: var(--surface-hover, #1f2937);
+        }
+
+        .console-nav-pill.active-pill {
+            background: var(--primary, #5a7d7c) !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            box-shadow: 0 1px 4px rgba(90, 125, 124, 0.3);
+        }
+
+        body.dark-theme .console-nav-pill.active-pill {
+            background: var(--primary, #6f9290) !important;
+            color: #0b0f19 !important;
+        }
+
+        .nav-vertical-divider {
+            width: 1px;
+            height: 22px;
+            background: var(--border, #cbd5e1);
+            margin: 0 6px;
+            flex-shrink: 0;
+        }
+
+        body.dark-theme .nav-vertical-divider {
+            background: var(--border, #263244);
         }
 
         .mega-grid {
@@ -318,6 +403,34 @@
             margin-left: auto;
         }
 
+        .mega-section-block {
+            padding: 16px 24px;
+        }
+
+        .mega-section-block.border-top {
+            border-top: 1px solid var(--border, #e2e8f0);
+        }
+
+        body.dark-theme .mega-section-block.border-top {
+            border-top-color: var(--border, #263244);
+        }
+
+        .mega-section-title {
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--primary-dark, #4a6b69);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        body.dark-theme .mega-section-title {
+            color: var(--primary, #6f9290);
+        }
+
         .portal-main-body {
             flex: 1;
             max-width: 1400px;
@@ -342,6 +455,24 @@
         }
 
         .profile-dropdown-menu.open-dropdown {
+            display: block !important;
+        }
+
+        .role-dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            width: 220px;
+            background: var(--surface, #ffffff);
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            padding: 12px;
+            display: none;
+            z-index: 1095;
+        }
+
+        .role-dropdown-menu.open-dropdown {
             display: block !important;
         }
 
@@ -386,27 +517,52 @@
             50% { transform: scale(1.18); }
         }
 
+        .notif-backdrop-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            z-index: 99999 !important;
+            display: none !important;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .notif-backdrop-overlay.active {
+            display: block !important;
+            opacity: 1 !important;
+        }
+
+        body.notif-active #portalHeader {
+            z-index: 1000005 !important;
+        }
+
         .notif-dropdown-menu {
             position: absolute;
             right: 0;
-            top: 50px;
-            width: 350px;
-            max-width: 90vw;
+            top: 52px;
+            width: 410px;
+            max-width: 92vw;
             background: var(--surface, #ffffff);
-            border: 1px solid var(--border, #e2e8f0);
+            border: 1px solid var(--border, #cbd5e1);
             border-radius: 16px;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+            box-shadow: 0 20px 48px -6px rgba(15, 23, 42, 0.25);
             display: none;
-            z-index: 1090;
+            z-index: 999999 !important;
             overflow: hidden;
+            flex-direction: column;
         }
 
         .notif-dropdown-menu.open-dropdown {
-            display: block !important;
+            display: flex !important;
         }
 
         .notif-dropdown-header {
-            padding: 12px 16px;
+            padding: 14px 18px;
             border-bottom: 1px solid var(--border, #e2e8f0);
             display: flex;
             align-items: center;
@@ -416,6 +572,38 @@
 
         body.dark-theme .notif-dropdown-header {
             background: rgba(255, 255, 255, 0.04);
+        }
+
+        .notif-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--surface-hover, #f8fafc);
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .notif-filter-bar::-webkit-scrollbar { display: none; }
+
+        .notif-filter-btn {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid var(--border, #cbd5e1);
+            background: var(--surface, #ffffff);
+            color: var(--text-main, #0f172a);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.18s ease;
+        }
+
+        .notif-filter-btn:hover,
+        .notif-filter-btn.active {
+            background: var(--primary, #5a7d7c) !important;
+            color: #ffffff !important;
+            border-color: var(--primary, #5a7d7c) !important;
         }
 
         .btn-mark-all-read {
@@ -428,14 +616,17 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.15s ease;
         }
 
         .btn-mark-all-read:hover {
-            text-decoration: underline;
+            background: var(--primary-light, rgba(90,125,124,0.12));
         }
 
         .notif-list-container {
-            max-height: 380px;
+            max-height: 420px;
             overflow-y: auto;
         }
 
@@ -448,6 +639,7 @@
             text-decoration: none;
             color: var(--text-main, #0f172a);
             transition: background 0.18s ease;
+            position: relative;
         }
 
         .notif-item-link:hover {
@@ -463,20 +655,45 @@
         }
 
         .notif-icon-col {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 1.1rem;
             flex-shrink: 0;
             background: var(--primary-light, #eef2f2);
             color: var(--primary-dark, #4a6b69);
         }
 
+        .notif-icon-col.type-hour_swap { background: #f3e8ff; color: #7e22ce; }
+        .notif-icon-col.type-substitution { background: #e0f2fe; color: #0369a1; }
+        .notif-icon-col.type-leave { background: #fef3c7; color: #b45309; }
+        .notif-icon-col.type-bonafide { background: #dcfce7; color: #15803d; }
+        .notif-icon-col.type-document { background: #fce7f3; color: #be185d; }
+        .notif-icon-col.type-portfolio { background: #e0e7ff; color: #4338ca; }
+
+        .notif-type-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            background: var(--border, #e2e8f0);
+            color: var(--text-secondary, #475569);
+        }
+
+        .notif-type-tag.tag-hour_swap { background: #f3e8ff; color: #7e22ce; }
+        .notif-type-tag.tag-substitution { background: #e0f2fe; color: #0369a1; }
+        .notif-type-tag.tag-leave { background: #fef3c7; color: #b45309; }
+        .notif-type-tag.tag-bonafide { background: #dcfce7; color: #15803d; }
+        .notif-type-tag.tag-document { background: #fce7f3; color: #be185d; }
+        .notif-type-tag.tag-portfolio { background: #e0e7ff; color: #4338ca; }
+
         .notif-title-text {
-            font-size: 0.85rem;
+            font-size: 0.86rem;
             font-weight: 700;
             line-height: 1.25;
             color: var(--text-main, #0f172a);
@@ -486,7 +703,7 @@
             font-size: 0.78rem;
             color: var(--text-secondary, #475569);
             margin-top: 3px;
-            line-height: 1.3;
+            line-height: 1.35;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -496,7 +713,7 @@
         .notif-time-text {
             font-size: 0.7rem;
             color: var(--text-muted, #64748b);
-            margin-top: 4px;
+            white-space: nowrap;
         }
 
         .unread-dot {
@@ -506,11 +723,68 @@
             background: #ef4444;
             flex-shrink: 0;
             margin-top: 4px;
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
         }
 
         .notif-empty-box {
-            padding: 30px 16px;
+            padding: 36px 16px;
             text-align: center;
+        }
+
+        /* Mobile Drawer for Notification Panel (<768px) */
+        @media (max-width: 768px) {
+            .notif-dropdown-menu {
+                position: fixed !important;
+                top: auto !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                height: 84vh !important;
+                max-height: 84vh !important;
+                border-radius: 24px 24px 0 0 !important;
+                border-bottom: none !important;
+                z-index: 1000000 !important;
+                box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35) !important;
+                transform: translateY(100%);
+                transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1) !important;
+                will-change: transform;
+            }
+            .notif-dropdown-menu.open-dropdown {
+                display: flex !important;
+                transform: translateY(0) !important;
+            }
+            .notif-dropdown-menu.closing-sheet {
+                transform: translateY(100%) !important;
+            }
+            .notif-drawer-drag-handle {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 0 6px 0;
+                cursor: grab;
+                touch-action: none;
+                user-select: none;
+                background: var(--bg-body, #f8fafc);
+                border-radius: 24px 24px 0 0;
+            }
+            body.dark-theme .notif-drawer-drag-handle {
+                background: rgba(255, 255, 255, 0.04);
+            }
+            .notif-drawer-drag-handle .drag-bar {
+                width: 44px;
+                height: 5px;
+                background: var(--border-strong, #cbd5e1);
+                border-radius: 10px;
+                transition: background 0.2s ease;
+            }
+            .notif-drawer-drag-handle:active .drag-bar {
+                background: var(--primary, #5a7d7c);
+            }
+            .notif-list-container {
+                max-height: calc(84vh - 120px) !important;
+            }
         }
 
         .brand-title {
@@ -525,157 +799,425 @@
                 font-size: 0.92rem;
             }
             .portal-main-body {
-                padding: 16px 16px 84px 16px;
+                padding: 8px 16px 84px 16px;
+            }
+            .sheet-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(11, 15, 25, 0.65);
+                -webkit-backdrop-filter: blur(4px);
+                backdrop-filter: blur(4px);
+                z-index: 1070 !important;
+                display: none !important;
+                opacity: 0;
+                transition: opacity 0.25s ease;
+            }
+            .sheet-backdrop.active {
+                display: block !important;
+                opacity: 1 !important;
             }
             .mega-dropdown {
                 position: fixed !important;
-                bottom: 86px !important;
+                bottom: 84px !important;
                 top: auto !important;
-                left: 14px !important;
-                right: 14px !important;
-                border-radius: 24px !important;
-                max-height: 70vh !important;
+                left: 10px !important;
+                right: 10px !important;
+                width: auto !important;
+                max-width: calc(100vw - 20px) !important;
+                height: auto !important;
+                max-height: 72vh !important;
+                border-radius: 20px !important;
+                padding: 0 0 10px 0 !important;
+                background: var(--surface, #ffffff) !important;
+                border: 1px solid var(--border, #cbd5e1) !important;
+                box-shadow: 0 20px 48px rgba(15, 23, 42, 0.3) !important;
+                z-index: 1079 !important;
+                display: none !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                transform: translateY(100%) scale(0.98) !important;
+                pointer-events: none !important;
+                transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease !important;
+                will-change: transform, opacity !important;
                 overflow-y: auto !important;
                 overscroll-behavior: contain !important;
                 -webkit-overflow-scrolling: touch !important;
-                padding: 14px 18px 20px 18px !important;
-                background: rgba(255, 255, 255, 0.94) !important;
-                backdrop-filter: blur(24px) saturate(180%) !important;
-                -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.6) !important;
-                box-shadow: 0 20px 48px -8px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-                z-index: 1079 !important;
-                opacity: 0 !important;
-                visibility: hidden !important;
-                transform: translateY(24px) scale(0.96) !important;
-                pointer-events: none !important;
-                transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease, visibility 0.28s ease !important;
-                will-change: transform, opacity !important;
             }
-            .mega-dropdown.active {
+            .mega-dropdown.active,
+            .mega-dropdown.open-dropdown {
+                display: flex !important;
+                flex-direction: column !important;
                 opacity: 1 !important;
                 visibility: visible !important;
                 transform: translateY(0) scale(1) !important;
                 pointer-events: auto !important;
             }
-            .mega-dropdown::before {
-                content: '';
-                display: block;
-                width: 40px;
-                height: 4px;
-                background: rgba(148, 163, 184, 0.4);
-                border-radius: 10px;
-                margin: 0 auto 14px auto;
-                cursor: pointer;
+            .mega-dropdown.closing-sheet {
+                transform: translateY(100%) scale(0.98) !important;
+                opacity: 0 !important;
+                transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease !important;
+            }
+            .mobile-sheet-header {
+                display: block !important;
+                position: sticky;
+                top: 0;
+                background: var(--surface, #ffffff);
+                z-index: 10;
+                border-bottom: 1px solid var(--border, #e2e8f0);
+                border-radius: 20px 20px 0 0;
+            }
+            body.dark-theme .mobile-sheet-header {
+                background: var(--surface, #111827);
+                border-bottom: 1px solid var(--border, #263244);
             }
             body.dark-theme .mega-dropdown {
-                background: rgba(15, 23, 42, 0.92) !important;
-                border: 1px solid rgba(255, 255, 255, 0.12) !important;
-                box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
-            }
-            body.dark-theme .mega-dropdown::before {
-                background: rgba(148, 163, 184, 0.3);
+                background: var(--surface, #111827) !important;
+                border: 1px solid var(--border, #263244) !important;
+                box-shadow: 0 20px 52px rgba(0, 0, 0, 0.8) !important;
             }
             .mega-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0 !important;
+                padding: 6px 10px 14px 10px !important;
             }
+            .mega-item {
+                display: flex !important;
+                align-items: center !important;
+                gap: 12px !important;
+                padding: 11px 12px !important;
+                border-radius: 10px !important;
+                min-height: 44px !important;
+                background: transparent !important;
+                border: none !important;
+                border-bottom: 1px solid var(--border-subtle, rgba(226, 232, 240, 0.7)) !important;
+                box-shadow: none !important;
+                transition: background 0.15s ease, transform 0.12s ease !important;
+                position: relative !important;
+                overflow: hidden !important;
+            }
+            .mega-item::before {
+                content: "" !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 6px !important;
+                bottom: 6px !important;
+                width: 3px !important;
+                background: var(--primary, #5a7d7c) !important;
+                border-radius: 0 3px 3px 0 !important;
+                opacity: 0 !important;
+                transition: opacity 0.15s ease, transform 0.15s ease !important;
+                transform: scaleY(0.5) !important;
+            }
+            body.dark-theme .mega-item::before {
+                background: #38bdf8 !important;
+            }
+            .mega-item:active::before {
+                opacity: 1 !important;
+                transform: scaleY(1) !important;
+            }
+            .mega-dropdown.open-dropdown .mega-item {
+                animation: sheetItemSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards !important;
+            }
+            @keyframes sheetItemSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(6px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .mega-item:last-child {
+                border-bottom: none !important;
+            }
+            body.dark-theme .mega-item {
+                background: transparent !important;
+                border-bottom: 1px solid var(--border-subtle, rgba(38, 50, 68, 0.5)) !important;
+            }
+            .mega-item:hover,
+            .mega-item:active {
+                background: var(--surface-hover, #f1f5f9) !important;
+                transform: scale(0.99) !important;
+            }
+            body.dark-theme .mega-item:hover,
+            body.dark-theme .mega-item:active {
+                background: var(--surface-hover, #1f2937) !important;
+            }
+            .mega-item .icon-badge {
+                width: 34px !important;
+                height: 34px !important;
+                border-radius: 9px !important;
+                font-size: 1.05rem !important;
+                flex-shrink: 0 !important;
+                background: rgba(90, 125, 124, 0.12) !important;
+                color: var(--primary, #5a7d7c) !important;
+                border: 1px solid rgba(90, 125, 124, 0.18) !important;
+            }
+            body.dark-theme .mega-item .icon-badge {
+                background: rgba(56, 189, 248, 0.12) !important;
+                color: #38bdf8 !important;
+                border-color: rgba(56, 189, 248, 0.2) !important;
+            }
+            .mega-item .title {
+                font-size: 0.88rem !important;
+                font-weight: 500 !important;
+                line-height: 1.3 !important;
+                color: var(--text-main, #0f172a) !important;
+                letter-spacing: -0.01em !important;
+                display: block !important;
+                -webkit-line-clamp: initial !important;
+            }
+            body.dark-theme .mega-item .title {
+                color: var(--text-main, #f8fafc) !important;
+            }
+            .mega-item .badge {
+                font-size: 0.7rem !important;
+                padding: 2px 7px !important;
+                border-radius: 10px !important;
+                margin-left: auto !important;
+                flex-shrink: 0 !important;
+            }
+            .mega-item::after {
+                content: "\ea6e";
+                font-family: "remixicon" !important;
+                font-size: 1.15rem;
+                color: var(--text-muted, #94a3b8);
+                margin-left: auto;
+                opacity: 0.45;
+                transition: transform 0.15s ease, opacity 0.15s ease;
+            }
+            .mega-item:has(.badge)::after {
+                margin-left: 6px;
+            }
+            .mega-item:active::after {
+                opacity: 1;
+                color: var(--primary, #5a7d7c);
+                transform: translateX(2px);
+            }
+            .mega-section-block {
+                padding: 6px 10px !important;
+            }
+            .mega-section-block .mega-grid {
+                padding: 0 !important;
+            }
+            .mega-section-title {
+                font-size: 0.76rem !important;
+                font-weight: 700 !important;
+                color: var(--primary-dark, #4a6b69) !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.05em !important;
+                padding: 10px 12px 4px 12px !important;
+                margin-bottom: 2px !important;
+            }
+            body.dark-theme .mega-section-title {
+                color: var(--primary, #6f9290) !important;
+            }
+
+        /* Sheet Header & Realtime Search Controls */
+        .sheet-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px 6px 16px;
+        }
+        .sheet-title-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .sheet-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main, #0f172a);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        body.dark-theme .sheet-title {
+            color: var(--text-main, #f8fafc);
+        }
+        .sheet-title .sheet-icon {
+            color: var(--primary, #5a7d7c);
+            font-size: 1.1rem;
+        }
+        body.dark-theme .sheet-title .sheet-icon {
+            color: #38bdf8;
+        }
+        .sheet-subtitle {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted, #64748b);
+        }
+        body.dark-theme .sheet-subtitle {
+            color: var(--text-muted, #7f8ea3);
+        }
+        .sheet-close-btn {
+            background: var(--surface-subtle, #f8fafc);
+            border: 1px solid var(--border, #e2e8f0);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-muted, #64748b);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        body.dark-theme .sheet-close-btn {
+            background: var(--surface-2, #172033);
+            border-color: var(--border, #263244);
+            color: var(--text-muted, #7f8ea3);
+        }
+        .sheet-close-btn:hover {
+            color: var(--danger, #ef4444);
+            border-color: var(--danger, #ef4444);
+            background: rgba(239, 68, 68, 0.08);
+        }
+        .sheet-search-container {
+            position: relative;
+            margin: 4px 14px 10px 14px;
+        }
+        .sheet-search-input {
+            width: 100%;
+            height: 34px;
+            padding: 0 30px 0 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border, #cbd5e1);
+            background: var(--surface-subtle, #f8fafc);
+            font-size: 0.82rem;
+            color: var(--text-main, #0f172a);
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+            box-sizing: border-box;
+        }
+        body.dark-theme .sheet-search-input {
+            background: var(--surface-2, #172033);
+            border-color: var(--border, #263244);
+            color: var(--text-main, #f8fafc);
+        }
+        .sheet-search-input:focus {
+            border-color: var(--primary, #5a7d7c);
+            box-shadow: 0 0 0 2px rgba(90, 125, 124, 0.15);
+        }
+        body.dark-theme .sheet-search-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+        }
+        .sheet-search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            color: var(--text-muted, #64748b);
+            pointer-events: none;
+        }
+        body.dark-theme .sheet-search-icon {
+            color: var(--text-muted, #7f8ea3);
+        }
+        .sheet-search-clear {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--border, #cbd5e1);
+            border: none;
+            color: var(--text-main, #0f172a);
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        body.dark-theme .sheet-search-clear {
+            background: var(--border, #263244);
+            color: var(--text-main, #f8fafc);
+        }
             .mobile-bottom-bar {
                 position: fixed;
                 bottom: 12px;
-                left: 14px;
-                right: 14px;
+                left: 12px;
+                right: 12px;
                 height: 64px;
-                background: rgba(255, 255, 255, 0.88);
-                backdrop-filter: blur(20px) saturate(180%);
-                -webkit-backdrop-filter: blur(20px) saturate(180%);
-                border: 1px solid rgba(255, 255, 255, 0.6);
-                border-radius: 24px;
+                background: var(--surface, #ffffff);
+                border: 1px solid var(--border, #cbd5e1);
+                border-radius: 18px;
                 display: flex;
                 align-items: center;
                 justify-content: space-around;
                 z-index: 1080;
-                box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
-                padding: 0 6px;
-                transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+                padding: 0 4px;
+                transition: all 0.25s ease;
             }
             body.dark-theme .mobile-bottom-bar {
-                background: rgba(15, 23, 42, 0.86);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+                background: var(--surface-1, #111827);
+                border: 1px solid var(--border, #263244);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
             }
             .mobile-btn {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 3px;
-                color: var(--text-muted, #64748b);
+                gap: 2px;
+                color: var(--text-secondary, #475569);
                 text-decoration: none;
-                font-size: 0.65rem;
+                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+                font-size: 0.72rem;
                 font-weight: 600;
-                letter-spacing: 0.02em;
+                line-height: 1.15;
+                letter-spacing: -0.01em;
                 flex: 1;
                 height: 100%;
                 background: none;
                 border: none;
                 cursor: pointer;
                 position: relative;
-                transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+                transition: color 0.18s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            body.dark-theme .mobile-btn {
+                color: var(--text-tertiary, #cbd5e1);
             }
             .mobile-btn .icon-wrap {
-                width: 36px;
-                height: 30px;
+                width: 44px;
+                height: 26px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 14px;
-                font-size: 1.15rem;
-                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-                color: #64748b;
+                border-radius: 13px;
+                font-size: 1.25rem;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                color: var(--text-secondary, #475569);
             }
             body.dark-theme .mobile-btn .icon-wrap {
-                color: #94a3b8;
+                color: var(--text-tertiary, #cbd5e1);
             }
-            .mobile-btn:active {
-                transform: scale(0.9);
+            .mobile-btn:active .icon-wrap {
+                transform: scale(0.92);
             }
             .mobile-btn.active {
-                color: var(--primary, #0d9488);
+                color: var(--primary, #5a7d7c);
                 font-weight: 700;
             }
             .mobile-btn.active .icon-wrap {
-                background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(20, 184, 166, 0.22));
-                color: var(--primary, #0d9488);
-                transform: translateY(-2px) scale(1.08);
-                box-shadow: 0 4px 12px rgba(13, 148, 136, 0.18);
+                background: rgba(90, 125, 124, 0.14);
+                color: var(--primary, #5a7d7c);
             }
             body.dark-theme .mobile-btn.active {
                 color: #38bdf8;
             }
             body.dark-theme .mobile-btn.active .icon-wrap {
-                background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(14, 165, 233, 0.28));
+                background: rgba(56, 189, 248, 0.16);
                 color: #38bdf8;
-                box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
-            }
-            .mobile-btn::after {
-                content: '';
-                position: absolute;
-                bottom: 4px;
-                width: 4px;
-                height: 4px;
-                border-radius: 50%;
-                background: var(--primary, #0d9488);
-                opacity: 0;
-                transform: scale(0);
-                transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-            }
-            body.dark-theme .mobile-btn::after {
-                background: #38bdf8;
-            }
-            .mobile-btn.active::after {
-                opacity: 1;
-                transform: scale(1);
             }
         }
 
@@ -687,16 +1229,21 @@
 
         @media (max-width: 768px) {
             .header-top-row {
+                height: 54px !important;
                 padding: 0 12px !important;
                 gap: 8px !important;
                 justify-content: space-between;
-                overflow-x: hidden;
+                overflow: visible !important;
             }
             .clock-badge {
                 display: none !important;
             }
             .theme-text {
                 display: none !important;
+            }
+            .theme-toggle-btn {
+                padding: 6px 10px !important;
+                border-radius: 10px !important;
             }
             .user-name-text {
                 display: none !important;
@@ -707,6 +1254,9 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+            }
+            .portal-main-body {
+                padding: 6px 12px 84px 12px !important;
             }
         }
 
@@ -766,7 +1316,7 @@
                 <input type="text" id="globalToolSearch" class="header-search-input" placeholder="Search any tool (e.g. Leave, Timetable, Marks)..." onkeyup="searchPortalTools()" aria-label="Search tools">
             </div>
 
-            <!-- Header Controls: Theme, Clock, Profile Button -->
+            <!-- Header Controls: Theme, Clock, Persona Switcher, Profile Button -->
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                 <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Dark Mode">
                     <span class="theme-icon">🌙</span>
@@ -778,6 +1328,11 @@
                 </div>
 
                 {% with me=logged_in_staff %}
+                <span style="background: var(--primary-light, rgba(90,125,124,0.12)); color: var(--primary-dark, #4a6b69); border: 1px solid rgba(90, 125, 124, 0.25); padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;" title="Active Operating Console">
+                    <i class="ri-user-star-line" style="color: var(--primary, #5a7d7c);"></i>
+                    <span>{% if active_role == 'Other Dept Staff' %}External Staff Desk{% else %}{{ active_role|default:me.role }}{% endif %}</span>
+                </span>
+
                 {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
                 <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" class="header-admin-btn" style="background: var(--primary-light); color: var(--primary-dark); border: 1px solid rgba(90, 125, 124, 0.3); text-decoration: none; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; flex-shrink: 0;" title="Open Admin Page">
                     <i class="ri-shield-keyhole-line" style="font-size: 0.95rem; color: var(--primary);"></i>
@@ -787,31 +1342,47 @@
 
                 <!-- Universal Staff Notifications Dropdown -->
                 <div style="position: relative; flex-shrink: 0;">
-                    <button onclick="toggleNotificationMenu()" class="notif-bell-btn" title="Notifications" aria-label="Notifications">
+                    <button onclick="toggleNotificationMenu(event)" class="notif-bell-btn" title="Notifications" aria-label="Notifications">
                         <i class="ri-notification-3-line" style="font-size: 1.15rem; color: var(--text-main);"></i>
                         {% if unread_notifications_count %}
                         <span class="notif-badge-count" id="notifBadgeCount">{{ unread_notifications_count }}</span>
                         {% endif %}
                     </button>
 
-                    <!-- Notifications Dropdown Panel -->
+                    <!-- Notifications Dropdown Panel / Mobile Drawer -->
                     <div class="notif-dropdown-menu" id="notificationDropdown">
+                        <div class="notif-drawer-drag-handle" id="notifDragHandle"><div class="drag-bar"></div></div>
                         <div class="notif-dropdown-header">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <i class="ri-notification-3-fill" style="color: var(--primary, #5a7d7c);"></i>
-                                <span style="font-weight: 700; font-size: 0.92rem; color: var(--text-main);">Notifications</span>
+                                <i class="ri-notification-3-fill" style="color: var(--primary, #5a7d7c); font-size: 1.1rem;"></i>
+                                <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Notifications</span>
+                                {% if unread_notifications_count %}
+                                <span style="background: #ef4444; color: #fff; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 10px;" id="headerUnreadBadge">{{ unread_notifications_count }} unread</span>
+                                {% endif %}
                             </div>
-                            {% if unread_notifications_count %}
-                            <button onclick="markAllNotificationsAsRead()" class="btn-mark-all-read" title="Mark all as read">
-                                <i class="ri-check-double-line"></i> Mark read
-                            </button>
-                            {% endif %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                {% if unread_notifications_count %}
+                                <button onclick="markAllNotificationsAsRead(event)" class="btn-mark-all-read" title="Mark all as read">
+                                    <i class="ri-check-double-line"></i> Mark all read
+                                </button>
+                                {% endif %}
+                                <button onclick="closeNotificationMenu(event)" style="background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer; padding: 2px 6px;" title="Close Notifications">✕</button>
+                            </div>
                         </div>
-                        <div class="notif-list-container">
+
+                        <!-- Notification Category Filter Bar -->
+                        <div class="notif-filter-bar">
+                            <button onclick="filterNotifList('all', this)" class="notif-filter-btn active">All</button>
+                            <button onclick="filterNotifList('unread', this)" class="notif-filter-btn">Unread</button>
+                            <button onclick="filterNotifList('academic', this)" class="notif-filter-btn">Academics</button>
+                            <button onclick="filterNotifList('admin', this)" class="notif-filter-btn">Admin</button>
+                        </div>
+
+                        <div class="notif-list-container" id="notifListContainer">
                             {% if staff_recent_notifications %}
                                 {% for n in staff_recent_notifications %}
-                                <a href="{% url 'staffs:mark_notification_read' n.id %}" class="notif-item-link {% if not n.is_read %}unread-notif{% endif %}">
-                                    <div class="notif-icon-col">
+                                <a href="{% url 'staffs:mark_notification_read' n.id %}" class="notif-item-link {% if not n.is_read %}unread-notif{% endif %}" data-type="{{ n.notification_type }}">
+                                    <div class="notif-icon-col type-{{ n.notification_type }}">
                                         {% if n.notification_type == 'hour_swap' %}<i class="ri-swap-box-line"></i>
                                         {% elif n.notification_type == 'substitution' %}<i class="ri-user-shared-line"></i>
                                         {% elif n.notification_type == 'leave' %}<i class="ri-send-plane-line"></i>
@@ -821,19 +1392,34 @@
                                         {% else %}<i class="ri-notification-line"></i>{% endif %}
                                     </div>
                                     <div style="flex: 1; min-width: 0;">
-                                        <div class="notif-title-text">{{ n.title }}</div>
+                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                            <div class="notif-title-text">{{ n.title }}</div>
+                                            <div class="notif-time-text">{{ n.created_at|timesince }} ago</div>
+                                        </div>
                                         <div class="notif-message-text">{{ n.message }}</div>
-                                        <div class="notif-time-text">{{ n.created_at|timesince }} ago</div>
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+                                            <span class="notif-type-tag tag-{{ n.notification_type }}">
+                                                {% if n.notification_type == 'hour_swap' %}Mutual Hour Swap
+                                                {% elif n.notification_type == 'substitution' %}Class Substitution
+                                                {% elif n.notification_type == 'leave' %}Leave Request
+                                                {% elif n.notification_type == 'bonafide' %}Bonafide Certificate
+                                                {% elif n.notification_type == 'document' %}Document Request
+                                                {% elif n.notification_type == 'portfolio' %}Portfolio Approval
+                                                {% else %}General Notification{% endif %}
+                                            </span>
+                                            <span style="font-size: 0.72rem; color: var(--primary, #5a7d7c); font-weight: 600;">View →</span>
+                                        </div>
                                     </div>
                                     {% if not n.is_read %}
-                                    <span class="unread-dot"></span>
+                                    <span class="unread-dot" title="Unread notification"></span>
                                     {% endif %}
                                 </a>
                                 {% endfor %}
                             {% else %}
                                 <div class="notif-empty-box">
-                                    <i class="ri-notification-off-line" style="font-size: 1.8rem; color: var(--text-muted);"></i>
-                                    <p style="margin-top: 6px; font-size: 0.84rem; color: var(--text-muted);">No new notifications.</p>
+                                    <i class="ri-notification-off-line" style="font-size: 2.2rem; color: var(--text-muted);"></i>
+                                    <p style="margin-top: 8px; font-size: 0.88rem; font-weight: 600; color: var(--text-main);">All caught up!</p>
+                                    <p style="margin-top: 2px; font-size: 0.8rem; color: var(--text-muted);">No new notifications at this time.</p>
                                 </div>
                             {% endif %}
                         </div>
@@ -855,15 +1441,17 @@
                     <div class="profile-dropdown-menu" id="profileDropdown">
                         <div style="text-align: center; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
                             <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary-dark);">{{ me.name }}</div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ me.role }}</div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{% if me.role == 'Other Dept Staff' %}External Faculty{% else %}{{ me.role }}{% endif %}</div>
                         </div>
                         <div style="padding-top: 10px; display: flex; flex-direction: column; gap: 6px;">
                             {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
                             <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" style="padding: 8px 12px; border-radius: 8px; color: var(--primary-dark); background: var(--primary-light); text-decoration: none; font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(90, 125, 124, 0.2);"><i class="ri-shield-keyhole-line" style="font-size: 1rem; color: var(--primary);"></i> Admin Page</a>
                             {% endif %}
+                            {% if active_role != 'Other Dept Staff' %}
                             <a href="{% url 'staffs:staff_profile' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">👤 My Profile</a>
                             <a href="{% url 'staffs:staff_portfolio' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">📄 My Portfolio</a>
                             <a href="{% url 'staffs:staff_apply_leave' %}" style="padding: 8px 12px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 0.88rem; font-weight: 500;">✈️ Apply for Leave</a>
+                            {% endif %}
                             <a href="{% url 'staffs:staff_logout' %}" style="padding: 8px 12px; border-radius: 8px; color: #ef4444; text-decoration: none; font-size: 0.88rem; font-weight: 600; margin-top: 6px; border-top: 1px solid var(--border);">🚪 Logout</a>
                         </div>
                     </div>
@@ -872,36 +1460,61 @@
             </div>
         </div>
 
-        <!-- Horizontal Tab Category Navigation Bar -->
+        <!-- Dynamic Horizontal Tab Category Navigation Bar -->
         <nav class="nav-tabs-bar" id="navTabsBar">
+            {% if active_role != 'Other Dept Staff' %}
             <button class="nav-tab-btn" data-tab="tab-workspace" onclick="switchNavTab('tab-workspace', this)">
-                <i class="ri-dashboard-3-line"></i> <span>My Desk</span>
+                <i class="ri-macbook-line"></i> <span>My Desk</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
-            <button class="nav-tab-btn" data-tab="tab-academics" onclick="switchNavTab('tab-academics', this)">
-                <i class="ri-book-open-line"></i> <span>Teaching & Students</span>
+
+            <button class="nav-tab-btn" data-tab="tab-students" onclick="switchNavTab('tab-students', this)">
+                <i class="ri-graduation-cap-line"></i> <span>Students</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
-            <button class="nav-tab-btn" data-tab="tab-research" onclick="switchNavTab('tab-research', this)">
-                <i class="ri-microscope-line"></i> <span>Research & PhD</span>
+
+            <button class="nav-tab-btn" data-tab="tab-staff" onclick="switchNavTab('tab-staff', this)">
+                <i class="ri-team-line"></i> <span>Staff</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
+
             {% with me=logged_in_staff %}
-            {% if me.is_hod or me.is_office_staff %}
+            {% if me.is_hod or me.is_office_staff or me.is_staff_admin or me.is_admin or request.user.is_superuser %}
             <button class="nav-tab-btn" data-tab="tab-admin" onclick="switchNavTab('tab-admin', this)">
-                <i class="ri-building-4-line"></i> <span>Department Admin</span>
+                <i class="ri-building-4-line"></i> <span>Department Administration</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
             {% endif %}
             {% endwith %}
-            <button class="nav-tab-btn" data-tab="tab-all" onclick="switchNavTab('tab-all', this)" style="margin-left: auto; background: var(--primary-light); color: var(--primary-dark); border-radius: 8px;">
-                <i class="ri-apps-2-line"></i> <span>All Services Directory</span>
-            </button>
+
+            {% if assigned_consoles %}
+            <div class="nav-vertical-divider"></div>
+            <div class="console-switcher-group">
+                {% for console in assigned_consoles %}
+                    <a href="{% url 'staffs:staff_dashboard' %}{{ console.url }}" class="console-nav-pill {% if console.role_key == active_role %}active-pill{% endif %}">
+                        <i class="{{ console.icon }}"></i> <span>{{ console.label }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endif %}
         </nav>
     </header>
 
-        <!-- MEGA DROPDOWNS (Outside .nav-tabs-bar to avoid overflow clipping) -->
-        <!-- Mega Menu Dropdown 1: My Desk -->
+        <!-- MEGA DROPDOWNS -->
+        <!-- Mega Menu 1: My Desk (Strictly Personal Services) -->
         <div class="mega-dropdown" id="tab-workspace">
+            <div class="mobile-sheet-header">
+                <div class="notif-drawer-drag-handle"><div class="drag-bar"></div></div>
+                <div class="sheet-title-row">
+                    <div class="sheet-title-wrapper">
+                        <span class="sheet-title">
+                            <i class="ri-macbook-line sheet-icon"></i> My Desk
+                        </span>
+                        <span class="sheet-subtitle">Personal Workspace & Staff Tools</span>
+                    </div>
+                    <button onclick="closeAllDropdowns()" class="sheet-close-btn" aria-label="Close menu">✕</button>
+                </div>
+            </div>
             <div class="mega-grid">
                 <a href="{% url 'staffs:staff_dashboard' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-line-chart-line"></i></span> <span class="title">Dashboard Overview</span>
+                    <span class="icon-badge"><i class="ri-dashboard-3-line"></i></span> <span class="title">Dashboard Overview</span>
                 </a>
                 <a href="{% url 'staffs:staff_profile' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-user-3-line"></i></span> <span class="title">My Profile</span>
@@ -913,7 +1526,7 @@
                     <span class="icon-badge"><i class="ri-calendar-schedule-line"></i></span> <span class="title">My Timetable</span>
                 </a>
                 <a href="{% url 'staffs:academic_calendar_console' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-calendar-event-line"></i></span> <span class="title">Academic Calendar</span>
+                    <span class="icon-badge"><i class="ri-umbrella-line"></i></span> <span class="title">Holiday & Day Order Manager</span>
                 </a>
                 <a href="{% url 'staffs:overall_attendance_calendar' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Attendance Calendar</span>
@@ -922,19 +1535,10 @@
                     <span class="icon-badge"><i class="ri-send-plane-line"></i></span> <span class="title">Apply for Leave</span>
                 </a>
                 <a href="{% url 'staffs:staff_leave_history' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-history-line"></i></span> <span class="title">Leave History</span>
+                    <span class="icon-badge"><i class="ri-history-line"></i></span> <span class="title">My Leave History</span>
                 </a>
                 <a href="{% url 'staffs:exam_schedule' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-file-list-3-line"></i></span> <span class="title">Exam Duties</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Mega Menu Dropdown 2: Teaching & Students -->
-        <div class="mega-dropdown" id="tab-academics">
-            <div class="mega-grid">
-                <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-user-shared-line"></i></span> <span class="title">Request Alternate</span>
                 </a>
                 <a href="{% url 'staffs:manage_hour_swaps' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-swap-box-line"></i></span> <span class="title">Mutual Hour Swap</span>
@@ -942,76 +1546,113 @@
                     <span class="badge">{{ pending_hour_swaps_count }}</span>
                     {% endif %}
                 </a>
-                <a href="{% url 'staffs:incoming_substitutions' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-inbox-archive-line"></i></span> <span class="title">Incoming Requests</span>
+                <a href="{% url 'staffs:incoming_hour_swaps' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-inbox-archive-line"></i></span> <span class="title">Incoming Swap Requests</span>
                 </a>
-
                 <a href="{% url 'staffs:assigned_substitutions' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-presentation-line"></i></span> <span class="title">Assigned Classes</span>
                 </a>
-                <a href="{% url 'staffs:student_list' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-group-line"></i></span> <span class="title">Student Directory</span>
-                </a>
-                <a href="{% url 'staffs:risk_students' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-alert-line"></i></span> <span class="title">Risk Insights</span>
-                </a>
-                <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-user-received-2-line"></i></span> <span class="title">Student Leaves</span>
-                    {% if pending_leaves_count %}
-                    <span class="badge">{{ pending_leaves_count }}</span>
-                    {% endif %}
-                </a>
-                <a href="{% url 'staffs:remark_student_list' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-chat-smile-2-line"></i></span> <span class="title">Student Remarks</span>
-                </a>
-                <a href="{% url 'staffs:attendance_deficit_list' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-mail-send-line"></i></span> <span class="title">Deficit Mailer</span>
-                </a>
-                <a href="{% url 'staffs:assign_lab_batches' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-team-line"></i></span> <span class="title">Assign Lab Batches</span>
-                </a>
             </div>
         </div>
 
-        <!-- Mega Menu Dropdown 3: Research Scholars -->
-        <div class="mega-dropdown" id="tab-research">
-            <div class="mega-grid">
-                <a href="{% url 'staffs:manage_scholar_attendance' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Scholar Attendance</span>
-                    {% if rs_pending_attendance %}
-                    <span class="badge">{{ rs_pending_attendance }}</span>
-                    {% endif %}
-                </a>
-                <a href="{% url 'staffs:manage_scholar_leave' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-send-plane-line"></i></span> <span class="title">Scholar Leaves</span>
-                    {% if rs_pending_leaves %}
-                    <span class="badge">{{ rs_pending_leaves }}</span>
-                    {% endif %}
-                </a>
-                <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-git-merge-line"></i></span> <span class="title">PhD Stages Tracker</span>
-                </a>
+        <!-- Mega Menu 2: Students (UG/PG + Research Scholars in same tab) -->
+        <div class="mega-dropdown" id="tab-students">
+            <div class="mobile-sheet-header">
+                <div class="notif-drawer-drag-handle"><div class="drag-bar"></div></div>
+                <div class="sheet-title-row">
+                    <div class="sheet-title-wrapper">
+                        <span class="sheet-title">
+                            <i class="ri-graduation-cap-line sheet-icon"></i> Students
+                        </span>
+                        <span class="sheet-subtitle">Student Records & Research Scholars</span>
+                    </div>
+                    <button onclick="closeAllDropdowns()" class="sheet-close-btn" aria-label="Close menu">✕</button>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <div class="mega-section-block">
+                    <div class="mega-section-title">
+                        <i class="ri-graduation-cap-line" style="color: var(--primary);"></i> Students (UG / PG)
+                    </div>
+                    <div class="mega-grid">
+                        <a href="{% url 'staffs:student_list' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-group-line"></i></span> <span class="title">Student Directory</span>
+                        </a>
+                        <a href="{% url 'staffs:remark_student_list' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-chat-smile-2-line"></i></span> <span class="title">Student Remarks</span>
+                        </a>
+                        <a href="{% url 'staffs:risk_students' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-alert-line"></i></span> <span class="title">Risk Insights</span>
+                        </a>
+                        <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-user-received-2-line"></i></span> <span class="title">Student Leaves</span>
+                            {% if pending_leaves_count %}
+                            <span class="badge">{{ pending_leaves_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'staffs:attendance_deficit_list' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-mail-send-line"></i></span> <span class="title">Deficit Mailer</span>
+                        </a>
+                        <a href="{% url 'staffs:assign_lab_batches' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-team-line"></i></span> <span class="title">Assign Lab Batches</span>
+                        </a>
+                        <a href="{% url 'staffs:passed_out_batches' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-archive-line"></i></span> <span class="title">Passed Out Archives</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mega-section-block border-top">
+                    <div class="mega-section-title">
+                        <i class="ri-microscope-line" style="color: var(--primary);"></i> Research Scholars (PhD)
+                    </div>
+                    <div class="mega-grid">
+                        <a href="{% url 'staffs:manage_scholar_attendance' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Scholar Attendance</span>
+                            {% if rs_pending_attendance %}
+                            <span class="badge">{{ rs_pending_attendance }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'staffs:manage_scholar_leave' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-send-plane-line"></i></span> <span class="title">Scholar Leaves</span>
+                            {% if rs_pending_leaves %}
+                            <span class="badge">{{ rs_pending_leaves }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-git-merge-line"></i></span> <span class="title">PhD Progress Tracker</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Mega Menu Dropdown 4: Department Admin -->
-        {% with me=logged_in_staff %}
-        {% if me.is_hod or me.is_office_staff %}
-        <div class="mega-dropdown" id="tab-admin">
+        <!-- Mega Menu 3: Staff (Faculty Directory & Approvals) -->
+        <div class="mega-dropdown" id="tab-staff">
+            <div class="mobile-sheet-header">
+                <div class="notif-drawer-drag-handle"><div class="drag-bar"></div></div>
+                <div class="sheet-title-row">
+                    <div class="sheet-title-wrapper">
+                        <span class="sheet-title">
+                            <i class="ri-team-line sheet-icon"></i> Staff
+                        </span>
+                        <span class="sheet-subtitle">Faculty Directory & Approvals</span>
+                    </div>
+                    <button onclick="closeAllDropdowns()" class="sheet-close-btn" aria-label="Close menu">✕</button>
+                </div>
+            </div>
             <div class="mega-grid">
-                {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
-                <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" class="mega-item" style="background: rgba(79, 70, 229, 0.08); border: 1px solid rgba(79, 70, 229, 0.3);">
-                    <span class="icon-badge" style="background: #4f46e5; color: white;"><i class="ri-shield-keyhole-line"></i></span> <span class="title" style="color: #4f46e5; font-weight: 700;">Admin Page</span>
-                </a>
-                {% endif %}
                 <a href="{% url 'staffs:staff_list' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-contacts-book-line"></i></span> <span class="title">Faculty Directory</span>
+                    <span class="icon-badge"><i class="ri-contacts-book-2-line"></i></span> <span class="title">Faculty & Staff Directory</span>
                 </a>
-                <a href="{% url 'staffs:hod_leave_dashboard' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-file-user-line"></i></span> <span class="title">Faculty Leaves</span>
-                    {% if pending_staff_leaves_count %}
-                    <span class="badge">{{ pending_staff_leaves_count }}</span>
-                    {% endif %}
+                <a href="{% url 'staffs:staff_leave_history' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-time-line"></i></span> <span class="title">Staff Leave Log</span>
+                </a>
+                <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-user-shared-line"></i></span> <span class="title">Class Substitution Requests</span>
+                </a>
+                <a href="{% url 'staffs:incoming_substitutions' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-inbox-archive-line"></i></span> <span class="title">Incoming Substitutions</span>
                 </a>
                 <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-checkbox-circle-line"></i></span> <span class="title">Portfolio Approvals</span>
@@ -1019,17 +1660,66 @@
                     <span class="badge">{{ pending_portfolio_count }}</span>
                     {% endif %}
                 </a>
+                <a href="{% url 'staffs:hod_leave_dashboard' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-user-follow-line"></i></span> <span class="title">Faculty Leave Approvals</span>
+                    {% if pending_staff_leaves_count %}
+                    <span class="badge">{{ pending_staff_leaves_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+
+        <!-- Mega Menu 4: Department Administration -->
+        {% with me=logged_in_staff %}
+        {% if me.is_hod or me.is_office_staff or me.is_staff_admin or me.is_admin or request.user.is_superuser %}
+        <div class="mega-dropdown" id="tab-admin">
+            <div class="mobile-sheet-header">
+                <div class="notif-drawer-drag-handle"><div class="drag-bar"></div></div>
+                <div class="sheet-title-row">
+                    <div class="sheet-title-wrapper">
+                        <span class="sheet-title">
+                            <i class="ri-building-4-line sheet-icon"></i> Department Administration
+                        </span>
+                        <span class="sheet-subtitle">Administrative Hub & Controls</span>
+                    </div>
+                    <button onclick="closeAllDropdowns()" class="sheet-close-btn" aria-label="Close menu">✕</button>
+                </div>
+            </div>
+            <div class="mega-grid">
+                {% if me.is_staff_admin or me.is_hod or me.is_admin or request.user.is_superuser %}
+                <a href="{% url 'staffs:admin_portal_login' %}" target="_blank" class="mega-item" style="background: rgba(79, 70, 229, 0.08); border: 1px solid rgba(79, 70, 229, 0.3);">
+                    <span class="icon-badge" style="background: #4f46e5; color: white;"><i class="ri-shield-keyhole-line"></i></span> <span class="title" style="color: #4f46e5; font-weight: 700;">Custom Admin Portal</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'staffs:manage_subjects' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-book-3-line"></i></span> <span class="title">Manage Subjects</span>
+                </a>
+                <a href="{% url 'staffs:manage_semesters' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-stack-line"></i></span> <span class="title">Manage Semesters</span>
+                </a>
                 <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-computer-line"></i></span> <span class="title">Lab & Class Mapping</span>
+                    <span class="icon-badge"><i class="ri-flask-line"></i></span> <span class="title">Lab & Class Mapping</span>
                 </a>
                 <a href="{% url 'staffs:hod_live_class_visualisation' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-live-line"></i></span> <span class="title">Live Class Visualiser</span>
+                    <span class="icon-badge"><i class="ri-tv-line"></i></span> <span class="title">Live Class Visualizer</span>
+                </a>
+                <a href="{% url 'staffs:timetable' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-calendar-todo-line"></i></span> <span class="title">Master Timetable Hub</span>
+                </a>
+                <a href="{% url 'staffs:generate_staff' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-user-settings-line"></i></span> <span class="title">Department Roles & Credentials</span>
+                </a>
+                <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-task-line"></i></span> <span class="title">Department Tasks & Matrix</span>
                 </a>
                 <a href="{% url 'staffs:send_custom_notification' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-notification-line"></i></span> <span class="title">Broadcast Notice</span>
+                    <span class="icon-badge"><i class="ri-broadcast-line"></i></span> <span class="title">Broadcast Notice</span>
+                </a>
+                <a href="{% url 'staffs:scholarship_manager' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-money-dollar-circle-line"></i></span> <span class="title">Scholarship Manager</span>
                 </a>
                 <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-award-line"></i></span> <span class="title">Bonafide Requests</span>
+                    <span class="icon-badge"><i class="ri-award-line"></i></span> <span class="title">Bonafide Approvals</span>
                     {% if pending_bonafide_count %}
                     <span class="badge">{{ pending_bonafide_count }}</span>
                     {% endif %}
@@ -1039,73 +1729,56 @@
                     <span class="icon-badge"><i class="ri-folder-user-line"></i></span> <span class="title">Original Document Requests</span>
                 </a>
                 {% endif %}
-                <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-task-line"></i></span> <span class="title">Department Tasks & Roles</span>
-                </a>
-                <a href="{% url 'staffs:manage_semesters' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-stack-line"></i></span> <span class="title">Manage Semesters</span>
-                </a>
-                <a href="{% url 'staffs:manage_subjects' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-bookmark-line"></i></span> <span class="title">Manage Subjects</span>
-                </a>
-                <a href="{% url 'staffs:timetable' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-calendar-2-line"></i></span> <span class="title">Master Timetable Hub</span>
-                </a>
-                <a href="{% url 'staffs:passed_out_batches' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-archive-line"></i></span> <span class="title">Passed Out Archives</span>
-                </a>
-                <a href="{% url 'staffs:scholarship_manager' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-funds-line"></i></span> <span class="title">Scholarship Manager</span>
-                </a>
             </div>
         </div>
         {% endif %}
         {% endwith %}
-
-        <!-- Mega Menu Dropdown 5: All Services Directory -->
-        <div class="mega-dropdown" id="tab-all">
-            <div class="mega-grid">
-                <a href="{% url 'staffs:staff_dashboard' %}" class="mega-item"><span class="icon-badge"><i class="ri-line-chart-line"></i></span> <span class="title">Dashboard</span></a>
-                <a href="{% url 'staffs:staff_profile' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-3-line"></i></span> <span class="title">My Profile</span></a>
-                <a href="{% url 'staffs:my_timetable' %}" class="mega-item"><span class="icon-badge"><i class="ri-calendar-schedule-line"></i></span> <span class="title">My Timetable</span></a>
-                <a href="{% url 'staffs:student_list' %}" class="mega-item"><span class="icon-badge"><i class="ri-group-line"></i></span> <span class="title">Student Directory</span></a>
-                <a href="{% url 'staffs:staff_apply_leave' %}" class="mega-item"><span class="icon-badge"><i class="ri-send-plane-line"></i></span> <span class="title">Apply for Leave</span></a>
-                <a href="{% url 'staffs:manage_substitutions' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-shared-line"></i></span> <span class="title">Request Alternate</span></a>
-                <a href="{% url 'staffs:view_leave_requests' %}" class="mega-item"><span class="icon-badge"><i class="ri-user-received-line"></i></span> <span class="title">Student Leaves</span></a>
-                <a href="{% url 'staffs:manage_phd_stages' %}" class="mega-item"><span class="icon-badge"><i class="ri-git-merge-line"></i></span> <span class="title">PhD Tracker</span></a>
-                {% if logged_in_staff.is_staff_admin or logged_in_staff.is_office_staff %}
-                <a href="{% url 'staffs:hod_manage_labs' %}" class="mega-item"><span class="icon-badge"><i class="ri-computer-line"></i></span> <span class="title">Lab Mapping</span></a>
-                <a href="{% url 'staffs:manage_department_tasks' %}" class="mega-item"><span class="icon-badge"><i class="ri-task-line"></i></span> <span class="title">Department Tasks</span></a>
-                <a href="{% url 'staffs:hod_manage_bonafide' %}" class="mega-item"><span class="icon-badge"><i class="ri-award-line"></i></span> <span class="title">Bonafide Requests</span></a>
-                {% endif %}
-                <a href="{% url 'staffs:timetable' %}" class="mega-item"><span class="icon-badge"><i class="ri-calendar-2-line"></i></span> <span class="title">Master Timetable</span></a>
-            </div>
-        </div>
 
     <!-- Main Page Content -->
     <div class="portal-main-body">
         {% block content %}{% endblock %}
     </div>
 
+    <!-- Notification Sheet Backdrop for Mobile -->
+    <div class="notif-backdrop-overlay" id="notifBackdropOverlay" onclick="closeNotificationMenu(event)"></div>
+
     <!-- Native Mobile Bottom Bar -->
     <nav class="mobile-bottom-bar">
-        <button onclick="switchNavTab('tab-workspace', this)" class="mobile-btn" data-tab="tab-workspace">
-            <div class="icon-wrap"><i class="ri-dashboard-3-line"></i></div>
+        {% if active_role == 'Other Dept Staff' %}
+        <a href="{% url 'staffs:staff_dashboard' %}" class="mobile-btn active">
+            <div class="icon-wrap"><i class="ri-macbook-line"></i></div>
             <span>Desk</span>
+        </a>
+        <a href="{% url 'staffs:student_list' %}?filter_cr=true" class="mobile-btn">
+            <div class="icon-wrap"><i class="ri-contacts-book-2-line"></i></div>
+            <span>Class Reps</span>
+        </a>
+        <a href="{% url 'staffs:staff_logout' %}" class="mobile-btn" style="color: #ef4444;">
+            <div class="icon-wrap"><i class="ri-logout-box-r-line"></i></div>
+            <span>Logout</span>
+        </a>
+        {% else %}
+        <button onclick="switchNavTab('tab-workspace', this)" class="mobile-btn" data-tab="tab-workspace">
+            <div class="icon-wrap"><i class="ri-macbook-line"></i></div>
+            <span>My Desk</span>
         </button>
-        <button onclick="switchNavTab('tab-academics', this)" class="mobile-btn" data-tab="tab-academics">
-            <div class="icon-wrap"><i class="ri-book-open-line"></i></div>
-            <span>Teaching</span>
+        <button onclick="switchNavTab('tab-students', this)" class="mobile-btn" data-tab="tab-students">
+            <div class="icon-wrap"><i class="ri-graduation-cap-line"></i></div>
+            <span>Students</span>
         </button>
-        <button onclick="switchNavTab('tab-research', this)" class="mobile-btn" data-tab="tab-research">
-            <div class="icon-wrap"><i class="ri-microscope-line"></i></div>
-            <span>Research</span>
+        <button onclick="switchNavTab('tab-staff', this)" class="mobile-btn" data-tab="tab-staff">
+            <div class="icon-wrap"><i class="ri-team-line"></i></div>
+            <span>Staff</span>
         </button>
-
-        <button onclick="switchNavTab('tab-all', this)" class="mobile-btn" data-tab="tab-all">
-            <div class="icon-wrap"><i class="ri-apps-2-line"></i></div>
-            <span>All Apps</span>
+        {% with me=logged_in_staff %}
+        {% if me.is_hod or me.is_office_staff or me.is_staff_admin or me.is_admin or request.user.is_superuser %}
+        <button onclick="switchNavTab('tab-admin', this)" class="mobile-btn" data-tab="tab-admin">
+            <div class="icon-wrap"><i class="ri-building-4-line"></i></div>
+            <span>Dept Admin</span>
         </button>
+        {% endif %}
+        {% endwith %}
+        {% endif %}
     </nav>
 
     <!-- Native Sheet & Popover Dark Backdrop -->
@@ -1116,14 +1789,31 @@
         let hoverTimer = null;
 
         function closeAllDropdowns() {
-            document.querySelectorAll('.mega-dropdown').forEach(el => {
-                el.classList.remove('open-dropdown');
-                el.classList.remove('active');
-            });
-            document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.mobile-btn').forEach(btn => btn.classList.remove('active'));
             const backdrop = document.getElementById('sheetBackdrop');
             if (backdrop) backdrop.classList.remove('active');
+
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.mobile-btn').forEach(btn => btn.classList.remove('active'));
+
+            const openSheets = document.querySelectorAll('.mega-dropdown.open-dropdown, .mega-dropdown.active');
+            if (window.innerWidth <= 992 && openSheets.length > 0) {
+                openSheets.forEach(el => {
+                    el.classList.add('closing-sheet');
+                    el.style.transform = 'translateY(100%)';
+                });
+                setTimeout(() => {
+                    openSheets.forEach(el => {
+                        el.classList.remove('open-dropdown', 'active', 'closing-sheet');
+                        el.style.transform = '';
+                    });
+                }, 260);
+            } else {
+                document.querySelectorAll('.mega-dropdown').forEach(el => {
+                    el.classList.remove('open-dropdown', 'active', 'closing-sheet');
+                    el.style.transform = '';
+                });
+            }
+            closeNotificationMenu();
         }
 
         function switchNavTab(tabId, btnElement) {
@@ -1150,8 +1840,6 @@
                 if (backdrop) backdrop.classList.add('active');
             }
         }
-
-
 
         function switchDashboardTab(tabId, btnElement) {
             document.querySelectorAll('.dash-tab-content').forEach(content => {
@@ -1198,39 +1886,19 @@
             clearTimeout(hoverTimer);
         }
 
-        // Attach Mouseenter & Mouseleave Handlers for Smooth Hover-Out Closing (Desktop)
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-                const tabId = btn.getAttribute('data-tab');
-                if (tabId) {
-                    btn.addEventListener('mouseenter', () => {
-                        if (window.innerWidth > 992) openTabHover(tabId, btn);
-                    });
-                    btn.addEventListener('mouseleave', () => {
-                        if (window.innerWidth > 992) closeTabGraceful();
-                    });
-                }
-            });
-
-            document.querySelectorAll('.mega-dropdown').forEach(dropdown => {
-                dropdown.addEventListener('mouseenter', () => {
-                    if (window.innerWidth > 992) keepOpen();
-                });
-                dropdown.addEventListener('mouseleave', () => {
-                    if (window.innerWidth > 992) closeTabGraceful();
-                });
-            });
-        });
-
         // Close Dropdown when clicking outside header, bottom bar, or mega dropdowns
         document.addEventListener('click', function(e) {
+            const notifDropdown = document.getElementById('notificationDropdown');
+            const notifBtn = document.querySelector('.notif-bell-btn');
+            if ((notifDropdown && notifDropdown.contains(e.target)) || (notifBtn && notifBtn.contains(e.target))) {
+                return;
+            }
+
             const megaItem = e.target.closest('.mega-item');
             if (megaItem) {
                 closeAllDropdowns();
                 const profileDropdown = document.getElementById('profileDropdown');
                 if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
-                const notifDropdown = document.getElementById('notificationDropdown');
-                if (notifDropdown) notifDropdown.classList.remove('open-dropdown');
                 return;
             }
 
@@ -1244,32 +1912,121 @@
                 closeAllDropdowns();
                 const profileDropdown = document.getElementById('profileDropdown');
                 if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
-                const notifDropdown = document.getElementById('notificationDropdown');
-                if (notifDropdown) notifDropdown.classList.remove('open-dropdown');
+                const roleDropdown = document.getElementById('rolePersonaDropdown');
+                if (roleDropdown) roleDropdown.classList.remove('open-dropdown');
             }
         });
 
+        // Toggle Active Role Persona Dropdown
+        function toggleRolePersonaMenu() {
+            closeNotificationMenu();
+            const profileMenu = document.getElementById('profileDropdown');
+            if (profileMenu) profileMenu.classList.remove('open-dropdown');
+            const roleMenu = document.getElementById('rolePersonaDropdown');
+            if (roleMenu) {
+                roleMenu.classList.toggle('open-dropdown');
+            }
+        }
+
         // Toggle User Profile Dropdown
         function toggleProfileMenu() {
-            const notifMenu = document.getElementById('notificationDropdown');
-            if (notifMenu) notifMenu.classList.remove('open-dropdown');
+            closeNotificationMenu();
+            const roleMenu = document.getElementById('rolePersonaDropdown');
+            if (roleMenu) roleMenu.classList.remove('open-dropdown');
             const menu = document.getElementById('profileDropdown');
             if (menu) {
                 menu.classList.toggle('open-dropdown');
             }
         }
 
-        // Toggle Notifications Dropdown
-        function toggleNotificationMenu() {
+        // Toggle Notifications Dropdown / Mobile Sheet
+        function toggleNotificationMenu(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             const profileDropdown = document.getElementById('profileDropdown');
             if (profileDropdown) profileDropdown.classList.remove('open-dropdown');
+            const roleMenu = document.getElementById('rolePersonaDropdown');
+            if (roleMenu) roleMenu.classList.remove('open-dropdown');
+
             const notifMenu = document.getElementById('notificationDropdown');
-            if (notifMenu) {
-                notifMenu.classList.toggle('open-dropdown');
+            const backdrop = document.getElementById('notifBackdropOverlay');
+            if (!notifMenu) return;
+
+            const isOpen = notifMenu.classList.contains('open-dropdown');
+            if (!isOpen) {
+                notifMenu.classList.add('open-dropdown');
+                document.body.classList.add('notif-active');
+                if (backdrop && window.innerWidth <= 768) {
+                    backdrop.classList.add('active');
+                }
+            } else {
+                notifMenu.classList.remove('open-dropdown');
+                document.body.classList.remove('notif-active');
+                if (backdrop) backdrop.classList.remove('active');
             }
         }
 
-        function markAllNotificationsAsRead() {
+        function closeNotificationMenu(e) {
+            if (e) e.stopPropagation();
+            const notifMenu = document.getElementById('notificationDropdown');
+            const backdrop = document.getElementById('notifBackdropOverlay');
+            if (!notifMenu) return;
+
+            if (window.innerWidth <= 768 && notifMenu.classList.contains('open-dropdown')) {
+                notifMenu.classList.add('closing-sheet');
+                if (backdrop) backdrop.classList.remove('active');
+                document.body.classList.remove('notif-active');
+                setTimeout(() => {
+                    notifMenu.classList.remove('open-dropdown');
+                    notifMenu.classList.remove('closing-sheet');
+                    notifMenu.style.transform = '';
+                }, 280);
+            } else {
+                notifMenu.classList.remove('open-dropdown');
+                document.body.classList.remove('notif-active');
+                if (backdrop) backdrop.classList.remove('active');
+            }
+        }
+
+        function filterNotifList(filterType, btnEl) {
+            if (window.event) window.event.stopPropagation();
+            document.querySelectorAll('.notif-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'var(--surface)';
+                btn.style.color = 'var(--text-main)';
+                btn.style.borderColor = 'var(--border)';
+            });
+            if (btnEl) {
+                btnEl.classList.add('active');
+                btnEl.style.background = 'var(--primary, #5a7d7c)';
+                btnEl.style.color = '#ffffff';
+                btnEl.style.borderColor = 'var(--primary)';
+            }
+
+            const items = document.querySelectorAll('#notifListContainer .notif-item-link');
+            items.forEach(item => {
+                const type = item.getAttribute('data-type') || '';
+                const isUnread = item.classList.contains('unread-notif');
+
+                if (filterType === 'all') {
+                    item.style.display = 'flex';
+                } else if (filterType === 'unread') {
+                    item.style.display = isUnread ? 'flex' : 'none';
+                } else if (filterType === 'academic') {
+                    item.style.display = (type === 'hour_swap' || type === 'substitution') ? 'flex' : 'none';
+                } else if (filterType === 'admin') {
+                    item.style.display = (type === 'leave' || type === 'bonafide' || type === 'document' || type === 'portfolio') ? 'flex' : 'none';
+                }
+            });
+        }
+
+        function markAllNotificationsAsRead(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             fetch("{% url 'staffs:mark_all_notifications_read' %}", {
                 method: 'POST',
                 headers: {
@@ -1280,6 +2037,9 @@
                 if (data.status === 'success') {
                     const badge = document.getElementById('notifBadgeCount');
                     if (badge) badge.style.display = 'none';
+                    const hBadge = document.getElementById('headerUnreadBadge');
+                    if (hBadge) hBadge.style.display = 'none';
+
                     document.querySelectorAll('.unread-notif').forEach(el => el.classList.remove('unread-notif'));
                     document.querySelectorAll('.unread-dot').forEach(el => el.remove());
                 }
@@ -1323,9 +2083,97 @@
             }
         }
 
+        // Real-time Touch Drag Swipe-Down Gesture for Mobile Sheets
+        function initMobileSheetSwipe() {
+            const notifMenu = document.getElementById('notificationDropdown');
+            const dragHandle = document.getElementById('notifDragHandle') || document.querySelector('.notif-dropdown-header');
+            if (notifMenu && dragHandle) {
+                let touchStartY = 0;
+                let touchDeltaY = 0;
+                let isDragging = false;
+
+                const handleTouchStart = function(e) {
+                    if (window.innerWidth > 768) return;
+                    touchStartY = e.touches[0].clientY;
+                    touchDeltaY = 0;
+                    isDragging = true;
+                    notifMenu.style.transition = 'none';
+                };
+
+                const handleTouchMove = function(e) {
+                    if (!isDragging || window.innerWidth > 768) return;
+                    const currentY = e.touches[0].clientY;
+                    touchDeltaY = currentY - touchStartY;
+                    if (touchDeltaY > 0) {
+                        notifMenu.style.transform = `translateY(${touchDeltaY}px)`;
+                    }
+                };
+
+                const handleTouchEnd = function() {
+                    if (!isDragging || window.innerWidth > 768) return;
+                    isDragging = false;
+                    notifMenu.style.transition = '';
+                    if (touchDeltaY > 60) {
+                        closeNotificationMenu();
+                    } else {
+                        notifMenu.style.transform = 'translateY(0)';
+                    }
+                };
+
+                dragHandle.addEventListener('touchstart', handleTouchStart, { passive: true });
+                dragHandle.addEventListener('touchmove', handleTouchMove, { passive: true });
+                dragHandle.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+                const notifHeader = document.querySelector('.notif-dropdown-header');
+                if (notifHeader && notifHeader !== dragHandle) {
+                    notifHeader.addEventListener('touchstart', handleTouchStart, { passive: true });
+                    notifHeader.addEventListener('touchmove', handleTouchMove, { passive: true });
+                    notifHeader.addEventListener('touchend', handleTouchEnd, { passive: true });
+                }
+            }
+
+            // Mega Dropdown Bottom Sheets Touch Swipe
+            document.querySelectorAll('.mega-dropdown').forEach(sheet => {
+                const handle = sheet.querySelector('.notif-drawer-drag-handle') || sheet.querySelector('.mobile-sheet-header');
+                if (!handle) return;
+                let touchStartY = 0, touchDeltaY = 0, isDragging = false;
+
+                handle.addEventListener('touchstart', (e) => {
+                    if (window.innerWidth > 992) return;
+                    touchStartY = e.touches[0].clientY;
+                    touchDeltaY = 0;
+                    isDragging = true;
+                    sheet.style.transition = 'none';
+                }, { passive: true });
+
+                handle.addEventListener('touchmove', (e) => {
+                    if (!isDragging || window.innerWidth > 992) return;
+                    const currentY = e.touches[0].clientY;
+                    touchDeltaY = currentY - touchStartY;
+                    if (touchDeltaY > 0) {
+                        const dampenedDelta = Math.pow(touchDeltaY, 0.96);
+                        sheet.style.transform = `translateY(${dampenedDelta}px)`;
+                    }
+                }, { passive: true });
+
+                handle.addEventListener('touchend', () => {
+                    if (!isDragging || window.innerWidth > 992) return;
+                    isDragging = false;
+                    sheet.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)';
+                    if (touchDeltaY > 65) {
+                        closeAllDropdowns();
+                    } else {
+                        sheet.style.transform = 'translateY(0)';
+                    }
+                }, { passive: true });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const isDark = document.body.classList.contains('dark-theme');
             updateThemeButton(isDark);
+            closeAllDropdowns();
+            initMobileSheetSwipe();
 
             if (window.location.hash && window.location.hash.startsWith('#tab-')) {
                 closeAllDropdowns();
