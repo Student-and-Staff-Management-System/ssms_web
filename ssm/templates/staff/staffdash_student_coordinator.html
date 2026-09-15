@@ -1,0 +1,150 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Student Coordinator Console | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block page_title %}
+    Department Student Coordinator Desk
+    <span style="font-size: 0.75rem; background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; padding: 4px 12px; border-radius: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px;"><i class="ri-user-heart-line"></i> Student Coordinator</span>
+{% endblock %}
+
+{% block page_subtitle %}Supervisory Class Incharge for all semesters (Sem 1 to 8) — department student directory, at-risk insights, deficit mailer, and CR management.{% endblock %}
+
+{% block content %}
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 14px 18px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Key Metrics Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fce7f3; color: #be185d; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-user-heart-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Total Department Scope</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">Semesters 1–8 Active</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-shield-user-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Class Representatives</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">CR Directory</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-alert-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Deficit & At-Risk</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">Dept Warnings Desk</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOMAIN HUB 1: SUPER CLASS INCHARGE STUDENT DIRECTORY -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-team-line" style="color: var(--primary, #5a7d7c);"></i> All-Semester Student Directory & Class Reps
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Student Directory Card -->
+            <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid var(--primary, #5a7d7c); padding: 18px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary, #5a7d7c); background: var(--primary-light, rgba(90,125,124,0.12)); padding: 3px 8px; border-radius: 4px;">Full Department</span>
+                        <i class="ri-contacts-book-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                    </div>
+                    <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">
+                        <a href="{% url 'staffs:student_list' %}" style="text-decoration: none; color: inherit;">Master Student Directory (Sem 1–8)</a>
+                    </h4>
+                    <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0 0 12px 0;">Search and inspect individual profiles across all department semesters.</p>
+                </div>
+                <div>
+                    <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; text-transform: uppercase;">Direct Semester View:</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                        {% for sem_num in "12345678"|make_list %}
+                        <a href="{% url 'staffs:student_list' %}?semester={{ sem_num }}" style="font-size: 0.74rem; font-weight: 700; padding: 4px 0; background: var(--bg-body, #f8fafc); border: 1px solid var(--border, #cbd5e1); border-radius: 4px; text-decoration: none; color: var(--text-main); text-align: center;" class="hover-card">Sem {{ sem_num }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Representatives -->
+            <a href="{% url 'staffs:student_list' %}?filter_cr=true" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #be185d; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #be185d; background: #fce7f3; padding: 3px 8px; border-radius: 4px;">Class Reps</span>
+                    <i class="ri-user-star-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Class Representatives Roster</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Access contact details and lists of assigned Class Representatives (CRs) for Sem 1–8.</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- DOMAIN HUB 2: AT-RISK INSIGHTS & ATTENDANCE DEFICIT MAILER -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-mail-send-line" style="color: var(--primary, #5a7d7c);"></i> At-Risk Insights & Attendance Deficit Mailer
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Risk Insights -->
+            <a href="{% url 'staffs:risk_students' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #d97706; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 4px;">Academic Risk</span>
+                    <i class="ri-error-warning-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Department At-Risk Insights</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Identify students needing academic or attendance intervention across all semesters.</p>
+            </a>
+
+            <!-- Deficit Mailer -->
+            <a href="{% url 'staffs:attendance_deficit_list' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #dc2626; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 3px 8px; border-radius: 4px;">Deficit Dispatch</span>
+                    <i class="ri-send-plane-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Attendance Deficit Mailer</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Send warning emails to students below 75% attendance threshold for all semesters.</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- DOMAIN HUB 3: CONDUCT LOGS & DISCIPLINE -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-file-shield-line" style="color: var(--primary, #5a7d7c);"></i> Conduct Remarks & Student Discipline
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <a href="{% url 'staffs:remark_student_list' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #2563eb; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #2563eb; background: #dbeafe; padding: 3px 8px; border-radius: 4px;">Conduct Logs</span>
+                    <i class="ri-draft-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Student Remarks History</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Log and review faculty remarks regarding student discipline or achievements for Sem 1–8.</p>
+            </a>
+        </div>
+    </section>
+{% endblock %}

@@ -357,9 +357,26 @@
     <button onclick="topFunction()" id="scrollToTopBtn" title="Go to top">↑</button>
 
     <div class="container">
-        
+        {% if is_cr_filter %}
+        <div style="background: var(--secondary-bg, #ffffff); border: 1px solid var(--border-color, #dee2e6); border-left: 4px solid #be185d; border-radius: var(--card-radius, 8px); padding: 18px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: var(--shadow);">
+            <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                    <span style="background: #fce7f3; color: #be185d; padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Class Representatives Roster</span>
+                    <span style="font-size: 0.84rem; color: var(--text-secondary); font-weight: 600;">{{ students_with_completion|length }} CR{% if students_with_completion|length != 1 %}s{% endif %} Filtered</span>
+                </div>
+                <h2 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Assigned Class Representatives (CRs)</h2>
+                <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-secondary);">Direct access to contact details and academic records of designated class representatives.</p>
+            </div>
+            <a href="{% url 'staffs:student_list' %}" class="action-btn" style="background: var(--primary-bg, #f8f9fa); color: var(--text-primary, #212529); border: 1px solid var(--border-color, #dee2e6); font-weight: 600; text-decoration: none; font-size: 0.85rem; padding: 8px 16px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ri-close-circle-line" style="font-size: 1rem;"></i> View All Students
+            </a>
+        </div>
+        {% endif %}
 
         <form method="GET" class="search-container">
+            {% if is_cr_filter %}
+            <input type="hidden" name="filter_cr" value="true">
+            {% endif %}
             <input type="text" name="q" class="search-input" placeholder="Search by Name, Roll, or Email..."
                 value="{{ query|default:'' }}">
             <select name="program_level" class="filter-select">
@@ -368,6 +385,12 @@
                 <option value="PG" {% if selected_program_level == 'PG' %}selected{% endif %}>PG</option>
                 <option value="PHD" {% if selected_program_level == 'PHD' %}selected{% endif %}>🎓 PhD Scholars</option>
             </select>
+            {% if is_class_ic_restricted %}
+            <input type="hidden" name="semester" value="{{ selected_semester }}">
+            <select class="filter-select" disabled style="background: var(--surface-hover, #f1f5f9); opacity: 0.85; cursor: not-allowed; font-weight: 600;">
+                <option selected>Semester {{ selected_semester }} (Assigned Class)</option>
+            </select>
+            {% else %}
             <select name="semester" class="filter-select">
                 <option value="">All Semesters</option>
                 {% for i in "12345678"|make_list %}
@@ -375,6 +398,7 @@
                 {% endfor %}
                 <option value="9" {% if selected_semester == '9' %}selected{% endif %}> Completed</option>
             </select>
+            {% endif %}
             <select name="batch" class="filter-select">
                 <option value="">All Batches</option>
                 <option value="A" {% if selected_batch == 'A' %}selected{% endif %}>Batch A</option>
@@ -414,11 +438,16 @@
                     <div class="student-info" style="flex: 1; min-width: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                             <h3 style="margin: 0; font-size: 1.05em; font-weight: 600; line-height: 1.3; word-break: break-word; overflow-wrap: break-word; color: #0f172a;">{{ student.student_name }}</h3>
-                            {% if student.is_password_changed %}
-                                <span style="background: #e2fbe8; color: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Registered</span>
-                            {% else %}
-                                <span style="background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">Not Registered</span>
-                            {% endif %}
+                            <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                                {% if student.is_class_representative %}
+                                    <span style="background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">CR</span>
+                                {% endif %}
+                                {% if student.is_password_changed %}
+                                    <span style="background: #e2fbe8; color: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Registered</span>
+                                {% else %}
+                                    <span style="background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;">Not Registered</span>
+                                {% endif %}
+                            </div>
                         </div>
                         <div style="margin-top: 5px; font-size: 0.82rem; color: #64748b; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
                             <span style="font-weight: 600; color: #334155;">{{ student.roll_number }}</span>

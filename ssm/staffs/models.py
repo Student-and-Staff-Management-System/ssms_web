@@ -29,12 +29,31 @@ class Staff(models.Model):
     )
 
     # Professional Details
-    salutation = models.CharField(max_length=10, choices=[('Dr.', 'Dr.'), ('Prof.', 'Prof.'), ('Mr.', 'Mr.'), ('Ms.', 'Ms.')], blank=True)
-    designation = models.CharField(max_length=100, blank=True)
-    additional_designation = models.CharField(max_length=100, blank=True, null=True)
+    salutation = models.CharField(max_length=10, choices=[('Dr.', 'Dr.'), ('Prof.', 'Prof.'), ('Mr.', 'Mr.'), ('Ms.', 'Ms.')], blank=True, default='')
+    designation = models.CharField(max_length=100, blank=True, default='')
+    additional_designation = models.CharField(max_length=100, blank=True, null=True, default='')
     department = models.CharField(max_length=100, default="Information Technology")
-    qualification = models.CharField(max_length=255, blank=True)
-    specialization = models.CharField(max_length=255, blank=True)
+    qualification = models.CharField(max_length=255, blank=True, default='')
+    specialization = models.CharField(max_length=255, blank=True, default='', null=True, help_text="Specialization area e.g. Computer Science")
+    mobile_number = models.CharField(max_length=20, blank=True, null=True, default='')
+    date_of_birth = models.DateField(blank=True, null=True)
+    date_of_joining = models.DateField(blank=True, null=True)
+    experience = models.CharField(max_length=100, blank=True, null=True, default='')
+    address = models.TextField(blank=True, null=True, default='')
+    academic_details = models.TextField(blank=True, null=True, default='')
+    publications = models.TextField(blank=True, null=True, default='')
+    awards_and_memberships = models.TextField(blank=True, null=True, default='')
+    blood_group = models.CharField(max_length=10, blank=True, null=True, default='')
+    gender = models.CharField(max_length=20, blank=True, null=True, default='')
+    google_scholar_link = models.URLField(blank=True, null=True, default='')
+    linkedin_link = models.URLField(blank=True, null=True, default='')
+    orcid_link = models.URLField(blank=True, null=True, default='')
+    research_gate_link = models.URLField(blank=True, null=True, default='')
+    pg_students_guided = models.PositiveIntegerField(blank=True, default=0, null=True)
+    phd_students_guided = models.PositiveIntegerField(blank=True, default=0, null=True)
+    seminars = models.TextField(blank=True, null=True, default='')
+    research_interests = models.TextField(blank=True, null=True, default='')
+    is_active = models.BooleanField(default=True)
     
     ROLE_CHOICES = [
         ('Teaching Staff', (
@@ -55,112 +74,174 @@ class Staff(models.Model):
         ('Scholarship Officer', 'Scholarship Officer'),
         ('Timetable Incharge', 'Timetable Incharge'),
         ('Placement Officer', 'Placement Officer'),
+        ('Student Coordinator', 'Student Coordinator'),
+        ('Attendance Incharge', 'Attendance Incharge'),
         ('Bonafide Issuing', 'Bonafide Issuing'),
-        ('Marksheet & Document Requests', 'Marksheet & Document Requests'),
+        ('Marksheet Requests', 'Marksheet Requests'),
         ('Scholarship Management', 'Scholarship Management'),
     ]
-    
+
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='Course Incharge')
-    secondary_roles = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Comma-separated secondary/additional roles (e.g. 'Scholarship Officer, Timetable Incharge')."
-    )
-    assigned_semester = models.IntegerField(null=True, blank=True, help_text="For Class Incharge: Specify which semester they manage (1-8).")
-    
-    ASSIGNED_BATCH_CHOICES = [
-        ('All', 'Whole Semester'),
-        ('A', 'Batch A'),
-        ('B', 'Batch B'),
-    ]
-    assigned_batch = models.CharField(
-        max_length=10,
-        choices=ASSIGNED_BATCH_CHOICES,
-        default='All',
-        blank=True,
-        null=True,
-        help_text="For Class Incharge: Specify batch assignment (Whole Semester, Batch A, or Batch B)."
-    )
-    
-    # Personal & Employment Dates
-    date_of_birth = models.DateField(null=True, blank=True)
-    date_of_joining = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')], null=True, blank=True)
-    blood_group = models.CharField(max_length=5, null=True, blank=True)
-    mobile_number = models.CharField(max_length=15, null=True, blank=True)
-    address = models.TextField(blank=True)
-    joining_order = models.FileField(upload_to=staff_joining_order_path, blank=True, null=True, validators=[validate_file_size])
-    appointment_order = models.FileField(upload_to=staff_appointment_order_path, blank=True, null=True, validators=[validate_file_size])
-    board_order = models.FileField(upload_to=staff_board_order_path, blank=True, null=True, validators=[validate_file_size])
-    joining_letter = models.FileField(upload_to=staff_joining_letter_path, blank=True, null=True, validators=[validate_file_size])
-    sslc_marksheet = models.FileField(upload_to=staff_sslc_marksheet_path, blank=True, null=True, validators=[validate_file_size])
-    hsc_marksheet = models.FileField(upload_to=staff_hsc_marksheet_path, blank=True, null=True, validators=[validate_file_size])
+    secondary_roles = models.CharField(max_length=255, blank=True, null=True, help_text="Comma-separated additional roles")
+    is_admin = models.BooleanField(default=False)
+    is_timetable_incharge = models.BooleanField(default=False)
+    is_scholarship_officer = models.BooleanField(default=False)
+    assigned_semester = models.IntegerField(blank=True, null=True)
+    assigned_batch = models.CharField(max_length=10, blank=True, null=True, default='All')
+    is_profile_complete = models.BooleanField(default=True)
 
-    # Professional Accomplishments (using TextField for flexibility)
-    academic_details = models.TextField(blank=True, help_text="List your degrees and qualifications.")
-    experience = models.TextField(blank=True, help_text="Describe your previous work experience.")
-    publications = models.TextField(blank=True, help_text="List your key publications, one per line.")
-    seminars = models.TextField(blank=True, help_text="List seminars, workshops, and conferences.")
-    awards_and_memberships = models.TextField(blank=True, help_text="List any awards, honors, or professional memberships.")
-    pg_students_guided = models.PositiveIntegerField(default=0, blank=True, help_text="Number of PG (Postgraduate) students guided.")
-    pg_students_guided = models.PositiveIntegerField(default=0, blank=True, help_text="Number of PG (Postgraduate) students guided.")
-    phd_students_guided = models.PositiveIntegerField(default=0, blank=True, help_text="Number of PhD students guided.")
+    @property
+    def is_non_teaching_staff(self):
+        return self.role in ['Office Staff', 'Technical Officer']
 
-    # Research & Social
-    research_interests = models.TextField(blank=True, help_text="Comma-separated list of research interests.")
-    google_scholar_link = models.URLField(blank=True, null=True)
-    linkedin_link = models.URLField(blank=True, null=True)
-    orcid_link = models.URLField(blank=True, null=True)
-    research_gate_link = models.URLField(blank=True, null=True)
-
-    is_active = models.BooleanField(default=True)
-    is_profile_complete = models.BooleanField(default=False)
-    is_admin = models.BooleanField(
-        default=False,
-        verbose_name="Is Admin",
-        help_text="Designates whether this staff member has administrative access."
-    )
-    is_timetable_incharge = models.BooleanField(
-        default=False,
-        verbose_name="Timetable Incharge",
-        help_text="Designates whether this staff member is a timetable incharge."
-    )
-    is_scholarship_officer = models.BooleanField(
-        default=False,
-        verbose_name="Scholarship Officer",
-        help_text="Designates whether this staff member is a scholarship officer."
-    )
+    @property
+    def is_teaching_staff(self):
+        return not self.is_non_teaching_staff
 
     def get_roles_list(self):
         roles = []
         if self.role:
             roles.append(self.role)
-        if self.secondary_roles:
-            for r in self.secondary_roles.split(','):
-                r_clean = r.strip()
-                if r_clean and r_clean not in roles:
-                    roles.append(r_clean)
-        if self.is_scholarship_officer and 'Scholarship Officer' not in roles:
-            roles.append('Scholarship Officer')
-        if self.is_timetable_incharge and 'Timetable Incharge' not in roles:
-            roles.append('Timetable Incharge')
-        if self.is_admin and 'Admin' not in roles:
-            roles.append('Admin')
-        return roles
 
-    def get_additional_roles_list(self):
-        additional = []
+        TEACHING_ROLES = {
+            'HOD', 'Class Incharge', 'Course Incharge',
+            'Scholarship Officer', 'Timetable Incharge',
+            'Placement Officer', 'Student Coordinator', 'Attendance Incharge'
+        }
+        NON_TEACHING_ROLES = {
+            'Office Staff', 'Technical Officer',
+            'Bonafide Issuing', 'Marksheet Requests',
+            'Marksheet & Document Requests', 'Scholarship Management'
+        }
+
+        allowed_set = NON_TEACHING_ROLES if self.is_non_teaching_staff else TEACHING_ROLES
+
         if self.secondary_roles:
-            for r in self.secondary_roles.split(','):
-                r_clean = r.strip()
-                if r_clean and r_clean != self.role and r_clean not in additional:
-                    additional.append(r_clean)
-        if self.is_scholarship_officer and 'Scholarship Officer' not in additional and self.role != 'Scholarship Officer':
-            additional.append('Scholarship Officer')
-        if self.is_timetable_incharge and 'Timetable Incharge' not in additional and self.role != 'Timetable Incharge':
-            additional.append('Timetable Incharge')
-        return additional
+            sec_roles = [r.strip() for r in self.secondary_roles.split(',') if r.strip()]
+            for r in sec_roles:
+                if r in allowed_set and r not in roles:
+                    roles.append(r)
+
+        if self.is_admin and 'HOD' in allowed_set and 'HOD' not in roles:
+            roles.append('HOD')
+        if self.is_timetable_incharge and 'Timetable Incharge' in allowed_set and 'Timetable Incharge' not in roles:
+            roles.append('Timetable Incharge')
+        if self.is_scholarship_officer:
+            target_sch_role = 'Scholarship Management' if self.is_non_teaching_staff else 'Scholarship Officer'
+            if target_sch_role in allowed_set and target_sch_role not in roles:
+                roles.append(target_sch_role)
+
+        return [r for r in roles if r in allowed_set]
+
+    def get_assigned_consoles(self):
+        roles = self.get_roles_list()
+        consoles = []
+        
+        # Primary Desk (Core)
+        core_role_key = self.role or 'Course Incharge'
+        if core_role_key == 'HOD':
+            core_label = "HOD Console"
+            core_icon = "ri-vip-crown-line"
+        elif core_role_key == 'Class Incharge':
+            sem_info = f" (Sem {self.assigned_semester})" if self.assigned_semester else ""
+            core_label = f"Class Incharge{sem_info}"
+            core_icon = "ri-group-line"
+        elif core_role_key == 'Office Staff':
+            core_label = "Office Staff Desk"
+            core_icon = "ri-building-line"
+        elif core_role_key == 'Technical Officer':
+            core_label = "Technical Desk"
+            core_icon = "ri-computer-line"
+        elif core_role_key == 'Other Dept Staff':
+            core_label = "External Staff Desk"
+            core_icon = "ri-user-shared-line"
+        else:
+            core_label = "Course Incharge Desk"
+            core_icon = "ri-dashboard-3-line"
+
+        consoles.append({
+            'role_key': core_role_key,
+            'label': core_label,
+            'icon': core_icon,
+            'badge': 'Core',
+            'url': f"?active_role={core_role_key}"
+        })
+
+        # Additional Consoles (Teaching & Non-Teaching)
+        if 'Class Incharge' in roles and self.role != 'Class Incharge':
+            sem_info = f" (Sem {self.assigned_semester})" if self.assigned_semester else ""
+            consoles.append({
+                'role_key': 'Class Incharge',
+                'label': f"Class Incharge{sem_info}",
+                'icon': 'ri-group-line',
+                'badge': 'Class',
+                'url': "?active_role=Class+Incharge"
+            })
+        if 'Timetable Incharge' in roles and self.role != 'Timetable Incharge':
+            consoles.append({
+                'role_key': 'Timetable Incharge',
+                'label': "Timetable Console",
+                'icon': 'ri-calendar-event-line',
+                'badge': 'Schedule',
+                'url': "?active_role=Timetable+Incharge"
+            })
+        if ('Scholarship Officer' in roles or 'Scholarship Management' in roles) and self.role not in ['Scholarship Officer', 'Scholarship Management']:
+            consoles.append({
+                'role_key': 'Scholarship Officer',
+                'label': "Scholarship Console",
+                'icon': 'ri-award-line',
+                'badge': 'Welfare',
+                'url': "?active_role=Scholarship+Officer"
+            })
+        if ('Student Coordinator' in roles or 'Student Affairs' in roles) and self.role != 'Student Coordinator':
+            consoles.append({
+                'role_key': 'Student Coordinator',
+                'label': "Student Affairs",
+                'icon': 'ri-user-heart-line',
+                'badge': 'Affairs',
+                'url': "?active_role=Student+Coordinator"
+            })
+        if 'Placement Officer' in roles and self.role != 'Placement Officer':
+            consoles.append({
+                'role_key': 'Placement Officer',
+                'label': "Placement Console",
+                'icon': 'ri-briefcase-line',
+                'badge': 'Careers',
+                'url': "?active_role=Placement+Officer"
+            })
+        if 'Attendance Incharge' in roles and self.role != 'Attendance Incharge':
+            consoles.append({
+                'role_key': 'Attendance Incharge',
+                'label': "Attendance Console",
+                'icon': 'ri-file-chart-line',
+                'badge': 'Attendance',
+                'url': "?active_role=Attendance+Incharge"
+            })
+        if 'Bonafide Issuing' in roles and self.role != 'Bonafide Issuing':
+            consoles.append({
+                'role_key': 'Bonafide Issuing',
+                'label': "Bonafide Desk",
+                'icon': 'ri-shield-star-line',
+                'badge': 'Certificates',
+                'url': "?active_role=Bonafide+Issuing"
+            })
+        if ('Marksheet Requests' in roles or 'Marksheet & Document Requests' in roles) and self.role != 'Marksheet Requests':
+            consoles.append({
+                'role_key': 'Marksheet Requests',
+                'label': "Marksheet Desk",
+                'icon': 'ri-file-text-line',
+                'badge': 'Documents',
+                'url': "?active_role=Marksheet+Requests"
+            })
+        if ('HOD' in roles or self.is_admin) and self.role != 'HOD':
+            consoles.append({
+                'role_key': 'HOD',
+                'label': "HOD Console",
+                'icon': 'ri-vip-crown-line',
+                'badge': 'Admin',
+                'url': "?active_role=HOD"
+            })
+        return consoles
 
     def has_role(self, role_name):
         return role_name in self.get_roles_list()

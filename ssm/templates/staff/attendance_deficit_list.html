@@ -141,141 +141,213 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface, #fff); padding: 20px 24px; border-radius: 14px; border: 1px solid var(--border, #e2e8f0);">
+<div class="page-header" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface, #fff); padding: 20px 24px; border-radius: 14px; border: 1px solid var(--border, #e2e8f0);">
     <div>
-        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main, #0f172a);">Low Attendance Alert</h2>
-        <p style="margin: 4px 0 0 0; font-size: 0.92rem; color: var(--text-muted, #64748b);">Manage students with &lt; 70% attendance</p>
+        <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main, #0f172a);">
+            {% if view_type == 'subject_wise' %}Subject-Wise Attendance Reports{% else %}Low Attendance Deficit Mailer{% endif %}
+        </h2>
+        <p style="margin: 4px 0 0 0; font-size: 0.92rem; color: var(--text-muted, #64748b);">
+            {% if view_type == 'subject_wise' %}Inspect subject analytics, conducted sessions, and generate detailed attendance reports{% else %}Monitor and alert students with &lt; 70% cumulative attendance{% endif %}
+        </p>
     </div>
-    <div>
+    <div style="display: flex; gap: 10px; align-items: center;">
         <a href="{% url 'staffs:staff_dashboard' %}" style="text-decoration: none; color: var(--primary, #5a7d7c); font-weight: 600; font-size: 0.92rem;">← Back to Dashboard</a>
     </div>
 </div>
 
-            <!-- Toast Notifications -->
-            {% if messages %}
-            <div id="toast-container" style="position: fixed; top: 80px; right: 20px; z-index: 9999;">
-                {% for message in messages %}
-                <div class="toast-message {% if message.tags %}toast-{{ message.tags }}{% endif %}"
-                    style="background: {% if message.tags == 'success' %}#10b981{% elif message.tags == 'error' %}#ef4444{% else %}#3b82f6{% endif %}; color: white; padding: 16px 24px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; min-width: 300px; animation: slideIn 0.3s ease-out;">
-                    <span style="font-size: 1.2rem;">{% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %}</span>
-                    <span style="flex: 1; font-weight: 500;">{{ message }}</span>
-                    <button onclick="this.parentElement.remove()"
-                        style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0; opacity: 0.8;">×</button>
-                </div>
-                {% endfor %}
-            </div>
-            <style>
-                @keyframes slideIn {
-                    from {
-                        transform: translateX(400px);
-                        opacity: 0;
-                    }
+<!-- View Switcher & Semester Filter Bar -->
+<div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <!-- Segmented Mode Control -->
+        <div style="display: inline-flex; background: var(--bg-body, #f8fafc); padding: 4px; border-radius: 8px; border: 1px solid var(--border, #cbd5e1);">
+            <a href="?view=deficit{% if month_offset %}&month_offset={{ month_offset }}{% endif %}{% if selected_sem %}&semester={{ selected_sem }}{% endif %}"
+               style="padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.15s ease; {% if view_type != 'subject_wise' %}background: var(--primary, #5a7d7c); color: #fff;{% else %}color: var(--text-secondary, #475569);{% endif %}">
+               <i class="ri-mail-warning-line"></i> Deficit Warning Mailer
+            </a>
+            <a href="?view=subject_wise{% if month_offset %}&month_offset={{ month_offset }}{% endif %}{% if selected_sem %}&semester={{ selected_sem }}{% endif %}"
+               style="padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.15s ease; {% if view_type == 'subject_wise' %}background: #0284c7; color: #fff;{% else %}color: var(--text-secondary, #475569);{% endif %}">
+               <i class="ri-bar-chart-2-line"></i> Subject-Wise Reports
+            </a>
+        </div>
 
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-            </style>
-            
-            {% endif %}
+        <!-- Month Filter -->
+        <div style="display: flex; gap: 8px;">
+            <a href="?view={{ view_type }}&month_offset=0{% if selected_sem %}&semester={{ selected_sem }}{% endif %}" class="filter-btn"
+               style="{% if month_offset == 0 %}background-color: var(--primary); color: white; border-color: var(--primary);{% endif %}">
+               Current Month
+            </a>
+            <a href="?view={{ view_type }}&month_offset=1{% if selected_sem %}&semester={{ selected_sem }}{% endif %}" class="filter-btn"
+               style="{% if month_offset == 1 %}background-color: var(--primary); color: white; border-color: var(--primary);{% endif %}">
+               Last Month
+            </a>
+        </div>
+    </div>
 
-            <!-- Summary & Filter -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div class="summary-box" style="margin-bottom: 0;">
-                    <div class="summary-item">
-                        <span class="summary-value">{{ month_name }}</span>
-                        <span class="summary-label">Selected Month</span>
-                    </div>
-                    <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
-                    <div class="summary-item">
-                        <span class="summary-value">{{ working_days }}</span>
-                        <span class="summary-label">Working Days</span>
-                    </div>
-                </div>
+    <!-- Semester Selector Pills -->
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--border, #e2e8f0); padding-top: 10px;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; margin-right: 4px;">Semester:</span>
+        {% if is_class_ic_restricted %}
+        <span style="font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 6px; background: var(--primary, #5a7d7c); color: #fff; border: 1px solid var(--primary);">
+           Semester {{ selected_sem }} (Assigned Class)
+        </span>
+        {% else %}
+        <a href="?view={{ view_type }}&month_offset={{ month_offset }}" 
+           style="font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border, #cbd5e1); {% if not selected_sem %}background: var(--primary, #5a7d7c); color: #fff; border-color: var(--primary);{% else %}background: var(--surface, #fff); color: var(--text-main);{% endif %}">
+           All Semesters
+        </a>
+        {% for sem_num in "12345678"|make_list %}
+        <a href="?view={{ view_type }}&month_offset={{ month_offset }}&semester={{ sem_num }}" 
+           style="font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border, #cbd5e1); {% if selected_sem|add:'0' == sem_num|add:'0' %}background: var(--primary, #5a7d7c); color: #fff; border-color: var(--primary);{% else %}background: var(--surface, #fff); color: var(--text-main);{% endif %}">
+           Sem {{ sem_num }}
+        </a>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
 
-                <div style="display: flex; gap: 10px;">
-                    <a href="?month_offset=0" class="filter-btn {% if month_offset == 0 %}active{% endif %}"
-                        style="{% if month_offset == 0 %}background-color: var(--primary); color: white; border-color: var(--primary);{% endif %}">Current
-                        Month</a>
-                    <a href="?month_offset=1" class="filter-btn {% if month_offset == 1 %}active{% endif %}"
-                        style="{% if month_offset == 1 %}background-color: var(--primary); color: white; border-color: var(--primary);{% endif %}">Last
-                        Month</a>
-                </div>
-            </div>
+{% if view_type == 'subject_wise' %}
+<!-- SUBJECT-WISE REPORTS TABLE -->
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Subject Code</th>
+                <th>Subject Name</th>
+                <th>Sem</th>
+                <th>Type</th>
+                <th>Assigned Instructor</th>
+                <th>Recorded Sessions</th>
+                <th>Avg Attendance %</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subj in subject_reports %}
+            <tr>
+                <td style="font-family: monospace; font-weight: 700; color: #334155;">{{ subj.code }}</td>
+                <td style="font-weight: 600; color: var(--text-main);">{{ subj.name }}</td>
+                <td><span class="count-badge">Sem {{ subj.semester }}</span></td>
+                <td>
+                    <span style="font-size: 0.78rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; {% if subj.type == 'Lab' %}background: #fce7f3; color: #be185d;{% else %}background: #e0f2fe; color: #0369a1;{% endif %}">
+                        {{ subj.type }}
+                    </span>
+                </td>
+                <td style="color: var(--text-secondary);">{{ subj.instructor }}</td>
+                <td><span style="font-weight: 600;">{{ subj.total_records }}</span> records</td>
+                <td>
+                    <span style="font-weight: 700; color: {% if subj.avg_pct >= 75 %}#16a34a{% elif subj.avg_pct >= 60 %}#d97706{% else %}#dc2626{% endif %};">
+                        {{ subj.avg_pct }}%
+                    </span>
+                </td>
+                <td style="text-align: right;">
+                    <a href="{% url 'staffs:attendance_report' subj.id %}" class="filter-btn" style="background: #0284c7; color: #fff; border-color: #0284c7; font-weight: 600; font-size: 0.8rem; padding: 4px 10px;">
+                        <i class="ri-bar-chart-fill"></i> View Report
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+                    No subjects found for the selected semester.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<!-- DEFICIT WARNING MAILER CONTENT -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div class="summary-box" style="margin-bottom: 0;">
+        <div class="summary-item">
+            <span class="summary-value">{{ month_name }}</span>
+            <span class="summary-label">Selected Month</span>
+        </div>
+        <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
+        <div class="summary-item">
+            <span class="summary-value">{{ working_days }}</span>
+            <span class="summary-label">Working Days</span>
+        </div>
+        {% if selected_sem %}
+        <div style="width: 1px; height: 30px; background: #e2e8f0;"></div>
+        <div class="summary-item">
+            <span class="summary-value">Semester {{ selected_sem }}</span>
+            <span class="summary-label">Active Scope</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Roll Number</th>
-                            <th>Student Name</th>
-                            <th>Parent Email</th>
-                            <th>Attendance (Hours)</th>
-                            <th>Percentage</th>
-                            <th style="text-align: right;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in deficit_students %}
-                        <tr>
-                            <td style="font-family: monospace; color: #334155;">{{ student.roll }}</td>
-                            <td style="font-weight: 500;">
-                                <a href="{% url 'staffs:student_detail' student.roll %}"
-                                    style="color: inherit; text-decoration: none;">{{ student.name }}</a>
-                            </td>
-                            <td>
-                                {% if student.parent_email %}
-                                <span style="color: #64748b; font-size: 0.9rem;">{{ student.parent_email }}</span>
-                                {% else %}
-                                <span
-                                    style="color: #ef4444; font-size: 0.8rem; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">Missing</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span style="font-weight: 600;">{{ student.present }}</span> <span
-                                    style="color: #94a3b8;">/ {{ student.total }} hrs</span>
-                            </td>
-                            <td>
-                                <span class="status-badge-danger">{{ student.percentage }}%</span>
-                            </td>
-                            <td style="text-align: right;">
-                                {% if student.mail_sent %}
-                                <span
-                                    style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
-                                    ✅ Sent
-                                </span>
-                                {% elif student.parent_email %}
-                                <form action="{% url 'staffs:send_deficit_email' %}" method="POST"
-                                    style="display:inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="student_roll" value="{{ student.roll }}">
-                                    <input type="hidden" name="month_offset" value="{{ month_offset }}">
-                                    <button type="button" class="action-btn"
-                                        onclick="openConfirmModal(this.form, '{{ student.name }}')">
-                                        📩 Send Alert
-                                    </button>
-                                </form>
-                                {% else %}
-                                <button class="action-btn" disabled>
-                                    🚫 No Email
-                                </button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 50px 20px;">
-                                <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
-                                <h3 style="color: #334155; font-size: 1.2rem; margin-bottom: 5px;">All Clear!</h3>
-                                <p style="color: #94a3b8;">No students found with less than 70% attendance for {{
-                                    month_name }}.</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Roll Number</th>
+                <th>Student Name</th>
+                <th>Sem</th>
+                <th>Parent Email</th>
+                <th>Attendance (Hours)</th>
+                <th>Percentage</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in deficit_students %}
+            <tr>
+                <td style="font-family: monospace; color: #334155;">{{ student.roll }}</td>
+                <td style="font-weight: 500;">
+                    <a href="{% url 'staffs:student_detail' student.roll %}"
+                        style="color: inherit; text-decoration: none;">{{ student.name }}</a>
+                </td>
+                <td><span class="count-badge">Sem {{ student.semester }}</span></td>
+                <td>
+                    {% if student.parent_email %}
+                    <span style="color: #64748b; font-size: 0.9rem;">{{ student.parent_email }}</span>
+                    {% else %}
+                    <span style="color: #ef4444; font-size: 0.8rem; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">Missing</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span style="font-weight: 600;">{{ student.present }}</span> <span style="color: #94a3b8;">/ {{ student.total }} hrs</span>
+                </td>
+                <td>
+                    <span class="status-badge-danger">{{ student.percentage }}%</span>
+                </td>
+                <td style="text-align: right;">
+                    {% if student.mail_sent %}
+                    <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                        ✅ Sent
+                    </span>
+                    {% elif student.parent_email %}
+                    <form action="{% url 'staffs:send_deficit_email' %}" method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="student_roll" value="{{ student.roll }}">
+                        <input type="hidden" name="month_offset" value="{{ month_offset }}">
+                        <input type="hidden" name="semester" value="{{ selected_sem|default:'' }}">
+                        <button type="button" class="action-btn" onclick="openConfirmModal(this.form, '{{ student.name }}')">
+                            📩 Send Alert
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="action-btn" disabled>
+                        🚫 No Email
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 50px 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+                    <h3 style="color: #334155; font-size: 1.2rem; margin-bottom: 5px;">All Clear!</h3>
+                    <p style="color: #94a3b8;">No students found with less than 70% attendance for {{ month_name }}.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
 
             <div style="margin-top: 20px; font-size: 0.85rem; color: #94a3b8; text-align: center;">
                 Note: Percentage is calculated based on total <strong>Hours</strong> (Theory=1hr, Lab=3hrs) conducted

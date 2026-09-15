@@ -1,0 +1,177 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Research Scholar Directory | {{ staff.name }}{% endblock %}
+
+{% block page_title %}
+    Research Scholar Directory
+    <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary-dark); border: 1px solid var(--border); padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">Department Overview</span>
+{% endblock %}
+
+{% block page_subtitle %}Comprehensive department directory of all Ph.D. research scholars, guides, and progress stages.{% endblock %}
+
+{% block content %}
+<div class="main-container" style="display: flex; flex-direction: column; gap: 20px;">
+
+    <!-- Summary Stats Grid -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+        <div class="stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; background: var(--primary-light); color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <i class="ri-graduation-cap-line"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Total PhD Scholars</span>
+                <h3 style="margin: 2px 0 0 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ total_phd_count }}</h3>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; background: #eff6ff; color: #2563eb; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <i class="ri-user-star-line"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Matching Scholars</span>
+                <h3 style="margin: 2px 0 0 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ scholars|length }}</h3>
+            </div>
+        </div>
+
+        <div class="stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="width: 48px; height: 48px; background: {% if unassigned_count > 0 %}#fef2f2; color: #ef4444;{% else %}#f0fdf4; color: #166534;{% endif %} border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <i class="ri-alert-line"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Unassigned Guide</span>
+                <h3 style="margin: 2px 0 0 0; font-size: 1.6rem; font-weight: 700; color: var(--text-main);">{{ unassigned_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Control Form -->
+    <div class="filter-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <form method="GET" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <!-- Search -->
+            <div style="flex: 1; min-width: 220px;">
+                <input type="text" name="q" value="{{ filters.q }}" placeholder="Search scholar name, roll, reg no..." class="form-control" style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem;">
+            </div>
+
+            <!-- Guide Filter -->
+            <div style="min-width: 180px;">
+                <select name="supervisor_id" class="form-control" style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem;">
+                    <option value="">All Guides / Supervisors</option>
+                    <option value="unassigned" {% if filters.supervisor_id == 'unassigned' %}selected{% endif %}>⚠️ Unassigned Only</option>
+                    {% for g in all_guides %}
+                        <option value="{{ g.staff_id }}" {% if filters.supervisor_id == g.staff_id %}selected{% endif %}>
+                            {{ g.name }} {{ g.initial|default:"" }} ({{ g.designation|default:"Staff" }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Stage Filter -->
+            <div style="min-width: 180px;">
+                <select name="stage" class="form-control" style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem;">
+                    <option value="">All PhD Stages</option>
+                    {% for code, label in stage_choices %}
+                        <option value="{{ code }}" {% if filters.stage == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Filter Submit & Reset -->
+            <button type="submit" class="btn-primary" style="height: 40px; padding: 0 18px; border-radius: 6px; font-weight: 600; font-size: 0.875rem; background: var(--primary); color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ri-filter-3-line"></i> Filter
+            </button>
+
+            {% if filters.q or filters.supervisor_id or filters.stage %}
+            <a href="?" class="btn-outline" style="height: 40px; padding: 0 14px; border-radius: 6px; font-weight: 600; font-size: 0.875rem; background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ri-refresh-line"></i> Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Scholar Directory Cards Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+        {% for student in scholars %}
+        <div class="scholar-directory-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between; gap: 16px; transition: transform 0.2s, border-color 0.2s;">
+            
+            <!-- Top Row: Avatar & Primary Info -->
+            <div style="display: flex; gap: 14px; align-items: flex-start;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                    {% if student.studentdocuments.student_photo %}
+                        <img src="{{ student.studentdocuments.student_photo.url }}" alt="{{ student.student_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <span style="color: white; font-weight: 700; font-size: 1.1rem;">{{ student.student_name|slice:":1" }}</span>
+                    {% endif %}
+                </div>
+
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main); line-height: 1.2;">{{ student.student_name }}</h4>
+                        {% if student.scholar_profile.is_visvesvaraya_scheme %}
+                            <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Visvesvaraya</span>
+                        {% endif %}
+                    </div>
+
+                    <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--text-muted); font-family: monospace; font-weight: 600;">
+                        Roll: {{ student.roll_number }}
+                        {% if student.register_number %} | Reg: {{ student.register_number }}{% endif %}
+                    </p>
+
+                    <!-- Designated Supervisor / Guide -->
+                    <div style="margin-top: 6px;">
+                        {% if student.scholar_profile.supervisor %}
+                            <span style="display: inline-flex; align-items: center; gap: 4px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.78rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;">
+                                <i class="ri-user-star-line"></i> Guide: {{ student.scholar_profile.supervisor.name }} {{ student.scholar_profile.supervisor.initial|default:"" }}
+                            </span>
+                        {% else %}
+                            <span style="display: inline-flex; align-items: center; gap: 4px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.78rem; font-weight: 600; padding: 3px 8px; border-radius: 6px;">
+                                <i class="ri-alert-line"></i> Guide: Unassigned
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">
+                        <i class="ri-target-line"></i> {{ student.phd_stage_label }}
+                    </span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary-dark);">
+                        {{ student.phd_overall_percent }}%
+                    </span>
+                </div>
+                <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                    <div style="height: 100%; width: {{ student.phd_overall_percent }}%; background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 3px;"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px;">
+                <a href="{% url 'staffs:staff_view_scholar_profile' student.roll_number %}" style="flex: 1; height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--primary); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; transition: background 0.15s;">
+                    View Details & Stages <i class="ri-arrow-right-line"></i>
+                </a>
+            </div>
+
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;">
+            <i class="ri-inbox-archive-line" style="font-size: 2.5rem; color: var(--text-muted); display: block; margin-bottom: 10px;"></i>
+            <h3 style="margin: 0; color: var(--text-main); font-size: 1.1rem; font-weight: 700;">No Research Scholars Found</h3>
+            <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.875rem;">No PhD scholars matched your selected filters or search query.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<style>
+    .scholar-directory-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary-dark) !important;
+        box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08) !important;
+    }
+</style>
+{% endblock %}

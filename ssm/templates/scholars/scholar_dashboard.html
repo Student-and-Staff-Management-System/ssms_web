@@ -4,356 +4,297 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Research Scholar Hub | {{ student.student_name }}</title>
+  <title>Research Scholar Portal | {{ student.student_name }}</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
   <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
 
   <style>
     :root {
-      --primary: var(--accent-color, #5a7d7c);
-      --primary-light: var(--accent-color-light, #7FB4B2);
-      --primary-dark: var(--accent-color-hover, #4a6b69);
-      --secondary: var(--accent-gold, #c5a059);
-      --secondary-dark: #b39150;
-      --dark: var(--text-primary, #212529);
-      --light: var(--primary-bg, #f8f9fa);
-      --surface: var(--secondary-bg, #ffffff);
-      --text: var(--text-primary, #212529);
-      --text-light: var(--text-secondary, #6c757d);
-      --border: var(--border-color, #dee2e6);
-      --radius: 16px;
-      --radius-sm: 8px;
-      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-      --shadow-hover: 0 20px 25px -5px rgba(90, 125, 124, 0.1), 0 10px 10px -5px rgba(90, 125, 124, 0.04);
-      --glass-bg: rgba(255, 255, 255, 0.8);
-      --glass-border: rgba(255, 255, 255, 0.4);
+      --primary: #5a7d7c;
+      --primary-hover: #4a6b69;
+      --primary-active: #405e5c;
+      --primary-dark: #4a6b69;
+      --primary-light: rgba(90, 125, 124, 0.12);
+      --primary-surface: rgba(90, 125, 124, 0.12);
+      --gold: #c5a059;
+      --gold-dark: #a98b52;
+      --gold-surface: rgba(197, 160, 89, 0.12);
+      --bg-body: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-main: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-main: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body { 
-      background-color: #f1f5f9; 
-      color: var(--text); 
+      background-color: var(--bg-body); 
+      color: var(--text-primary); 
       line-height: 1.6; 
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-main);
+      padding-bottom: 40px;
     }
     
-    /* Sleek Navbar */
+    /* Sleek Institutional Navbar */
     .navbar {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-      border-top: 4px solid var(--secondary);
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      border-top: 4px solid var(--primary);
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 14px 28px;
+      padding: 12px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
     .nav-brand { display: flex; align-items: center; gap: 14px; }
-    .nav-brand img { height: 44px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
-    .nav-brand div h1 { font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: 700; color: var(--dark); line-height: 1.2; letter-spacing: -0.3px; }
-    .nav-brand div p { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
+    .nav-brand img { height: 42px; }
+    .nav-brand div h1 { font-size: 18px; font-weight: 700; color: var(--text-main); line-height: 1.2; letter-spacing: -0.3px; }
+    .nav-brand div p { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;}
 
-    .nav-user { display: flex; align-items: center; gap: 16px; }
+    .nav-user { display: flex; align-items: center; gap: 14px; }
     .user-info { text-align: right; }
-    .user-name { font-weight: 600; color: var(--dark); font-size: 14px; }
-    .user-role { font-size: 11px; color: var(--text-light); font-weight: 500; }
-    .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; text-transform: uppercase; border: 2px solid white; box-shadow: var(--shadow-md); }
-    .logout-btn { color: #EF4444; background: rgba(239, 68, 68, 0.08); width: 36px; height: 36px; border-radius: 50%; text-decoration: none; font-size: 20px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;}
-    .logout-btn:hover { background: #EF4444; color: white; transform: scale(1.05); }
+    .user-name { font-weight: 700; color: var(--text-main); font-size: 14px; }
+    .user-role { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; text-transform: uppercase; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+    .logout-btn { color: #ef4444; background: #fef2f2; width: 36px; height: 36px; border-radius: 8px; border: 1px solid #fee2e2; text-decoration: none; font-size: 18px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;}
+    .logout-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
 
-    /* Main Layout */
-    .container { max-width: 1440px; margin: 0 auto; padding: 32px 24px; }
+    /* Main Container */
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
 
-    /* Welcome Banner */
+    /* Welcome Hero Banner */
     .welcome-banner {
-      background: linear-gradient(135deg, #1f2e2d 0%, #3a5351 60%, #5a7d7c 100%);
-      border-radius: var(--radius);
-      padding: 44px 40px;
-      color: white;
-      margin-bottom: 32px;
+      background-color: #0f172a !important;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #4a6b69 100%) !important;
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      color: #ffffff !important;
+      margin-bottom: 24px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 10px 25px -5px rgba(90, 125, 124, 0.2);
-      animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-      border-left: 6px solid var(--secondary);
-    }
-    .welcome-banner::before {
-      content: '';
-      position: absolute;
-      top: -30%; right: -5%;
-      width: 280px; height: 280px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(197, 160, 89, 0.18) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .welcome-banner::after {
-      content: '';
-      position: absolute;
-      bottom: -40%; right: 12%;
-      width: 340px; height: 340px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
-      pointer-events: none;
+      border-left: 6px solid #c5a059 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     .welcome-content { position: relative; z-index: 2; }
-    .welcome-title { font-family: 'Poppins', sans-serif; font-size: 34px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
-    .research-title { font-size: 17px; font-weight: 400; opacity: 0.95; display: flex; align-items: center; gap: 10px; line-height: 1.4; max-width: 85%; }
-    .research-title i { font-size: 22px; color: var(--secondary); }
+    .welcome-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.3px; color: #ffffff !important; }
+    .research-title { font-size: 15px; font-weight: 400; opacity: 0.95; display: flex; align-items: center; gap: 10px; line-height: 1.4; max-width: 85%; color: #cbd5e1 !important; }
+    .research-title i { font-size: 20px; color: #c5a059 !important; }
 
-    /* Quick Action Links */
+    /* Quick Action Pills */
     .quick-link {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      background: rgba(255, 255, 255, 0.18) !important;
+      color: #ffffff !important;
       text-decoration: none;
-      padding: 10px 18px;
+      padding: 8px 16px;
       border-radius: var(--radius-sm);
       font-size: 13px;
       font-weight: 600;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      transition: all 0.2s ease;
     }
     .quick-link:hover {
-      background: rgba(255, 255, 255, 0.22);
-      border-color: rgba(255, 255, 255, 0.35);
-      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.28) !important;
+      border-color: rgba(255, 255, 255, 0.45) !important;
+      color: #ffffff !important;
+      transform: translateY(-1px);
     }
     .quick-link-highlight {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
-      color: white;
+      background: #c5a059 !important;
+      color: #0f172a !important;
       text-decoration: none;
-      padding: 10px 18px;
+      padding: 8px 16px;
       border-radius: var(--radius-sm);
       font-size: 13px;
       font-weight: 700;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
     }
     .quick-link-highlight:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(197, 160, 89, 0.45);
-      filter: brightness(1.08);
+      background: #a98b52 !important;
+      color: #ffffff !important;
+      transform: translateY(-1px);
     }
 
-    /* Dashboard Grid */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr 1.9fr;
-      gap: 28px;
+    /* Pinned PhD Progress Banner */
+    .phd-progress-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      margin-bottom: 24px;
     }
 
-    /* Cards */
+    /* Tab Navigation Bar */
+    .dash-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .dash-tab-btn {
+      background: transparent;
+      border: none;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -6px;
+    }
+    .dash-tab-btn:hover {
+      color: var(--primary);
+      background: var(--primary-surface);
+    }
+    .dash-tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: var(--surface);
+      font-weight: 700;
+    }
+
+    .dash-tab-content {
+      display: none;
+    }
+    .dash-tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards System */
     .card {
       background: var(--surface);
-      border-radius: var(--radius);
-      padding: 26px;
-      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius-lg);
+      padding: 24px;
       border: 1px solid var(--border);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      margin-bottom: 26px;
-      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-      position: relative;
-      overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-    .card:hover {
-      box-shadow: var(--shadow-hover);
-      transform: translateY(-4px);
-      border-color: var(--primary-light);
+    .card-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
+    .card-title { 
+      font-size: 16px; 
+      font-weight: 700; 
+      color: var(--text-main); 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      letter-spacing: -0.2px; 
     }
-    .card:hover::before {
-      opacity: 1;
-    }
+    .card-title i { color: var(--primary); font-size: 20px; }
 
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
-    .card-title { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 600; color: var(--dark); display: flex; align-items: center; gap: 10px; letter-spacing: -0.2px; }
-    .card-title i { color: var(--primary); font-size: 22px; }
-
-    /* Button Utilities */
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: none; text-decoration: none; }
-    .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; box-shadow: 0 4px 10px rgba(90, 125, 124, 0.2); }
-    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(90, 125, 124, 0.3); }
-    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
-    .btn-outline:hover { background: var(--light); border-color: var(--primary-light); color: var(--primary-dark); }
-    .btn-add { background: var(--secondary); color: white; border-radius: 50%; width: 34px; height: 34px; padding: 0; justify-content: center; font-size: 20px; box-shadow: 0 4px 10px rgba(197, 160, 89, 0.25); }
-    .btn-add:hover { background: var(--secondary-dark); transform: scale(1.08); }
+    /* Grid Layouts */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.8fr;
+      gap: 24px;
+    }
 
     /* Info List */
-    .info-list { display: flex; flex-direction: column; gap: 14px; }
-    .info-item { display: flex; align-items: center; gap: 16px; padding: 8px; border-radius: var(--radius-sm); transition: background 0.2s ease; }
-    .info-item:hover { background: var(--light); }
-    .info-icon { width: 40px; height: 40px; border-radius: 10px; background: #eff6f6; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; transition: all 0.2s ease; }
-    .info-item:hover .info-icon { background: var(--primary); color: white; transform: scale(1.05); }
-    .info-content .label { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 2px; }
-    .info-content .value { font-size: 14px; font-weight: 600; color: var(--dark); }
+    .info-list { display: flex; flex-direction: column; gap: 12px; }
+    .info-item { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-body); }
+    .info-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-surface); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .info-content .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; margin-bottom: 2px; }
+    .info-content .value { font-size: 14px; font-weight: 600; color: var(--text-main); }
 
-    /* Badges */
-    .badge { display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-    .badge-internal { background: #d1fae5; color: #065f46; }
-    .badge-external { background: #dbeafe; color: #1e40af; }
-
-    /* Timeline for RCW */
-    .timeline { position: relative; padding-left: 32px; }
-    .timeline::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 4px, transparent 4px, transparent 8px); }
-    .timeline-item { position: relative; margin-bottom: 28px; }
-    .timeline-item:last-child { margin-bottom: 0; }
-    .timeline-dot { position: absolute; left: -32px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid var(--primary); box-shadow: 0 0 0 4px rgba(90, 125, 124, 0.15); transition: all 0.3s ease; }
-    .timeline-item:hover .timeline-dot { background: var(--primary); transform: scale(1.1); }
-    .timeline-date { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; display: inline-block; }
-    .timeline-content { background: var(--light); border: 1px solid var(--border); padding: 18px; border-radius: 12px; transition: all 0.2s ease; }
-    .timeline-item:hover .timeline-content { border-color: var(--primary-light); background: white; box-shadow: var(--shadow-sm); }
-    .timeline-content p { font-size: 14px; color: var(--text); margin-bottom: 12px; font-weight: 500; }
-
-    /* RCWs Grid */
-    .course-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-    .course-box { border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--light); transition: all 0.3s ease; }
-    .course-box:hover { border-color: var(--primary-light); background: white; box-shadow: var(--shadow-md); }
-    .course-header { font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px;}
-    .course-name { font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 14px; min-height: 40px; display: flex; align-items: center; gap: 8px; }
-
-    /* Table */
-    .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: white; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    th { text-align: left; padding: 14px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-light); font-weight: 700; border-bottom: 2px solid var(--border); background: var(--light); }
-    td { padding: 16px; font-size: 14px; color: var(--dark); border-bottom: 1px solid var(--border); vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--light); }
-    .member-info { display: flex; align-items: center; gap: 14px; }
-    .member-icon { width: 36px; height: 36px; border-radius: 50%; background: #eff6f6; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; }
-
-    /* Metrics Grid & Custom Cards */
-    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; padding: 12px 0; }
-    .pub-metric-card { border-radius: 12px; padding: 20px 16px; text-align: center; border: 1px solid; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
-    .pub-metric-card:hover { transform: translateY(-4px); }
-    .pub-metric-card i { font-size: 26px; margin-bottom: 8px; display: block; }
-    .pub-metric-value { font-size: 28px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; }
-    .pub-metric-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
-    
-    .pub-metric-journals { background: #f0fdf4; border-color: #dcfce7; color: #166534; }
-    .pub-metric-journals:hover { box-shadow: 0 10px 20px -5px rgba(22, 101, 52, 0.18); }
-    .pub-metric-conferences { background: #eff6ff; border-color: #dbeafe; color: #1e40af; }
-    .pub-metric-conferences:hover { box-shadow: 0 10px 20px -5px rgba(30, 64, 175, 0.18); }
-    .pub-metric-books { background: #fffbeb; border-color: #fef3c7; color: #92400e; }
-    .pub-metric-books:hover { box-shadow: 0 10px 20px -5px rgba(146, 64, 14, 0.18); }
-    .pub-metric-awards { background: #f5f3ff; border-color: #ede9fe; color: #5b21b6; }
-    .pub-metric-awards:hover { box-shadow: 0 10px 20px -5px rgba(91, 33, 182, 0.18); }
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--radius-sm); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent; text-decoration: none; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: transparent; border-color: var(--border); color: var(--text-primary); }
+    .btn-outline:hover { background: var(--bg-body); border-color: var(--primary); color: var(--primary); }
 
     /* Attendance stat pills */
-    .att-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px 16px 0; }
-    .att-stat-pill { color: white; border-radius: 10px; padding: 14px 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: all 0.2s ease; }
-    .att-stat-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
-    .att-stat-total { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); }
-    .att-stat-approved { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
-    .att-stat-rejected { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
-    .att-stat-pending { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+    .att-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .att-stat-pill { color: white; border-radius: var(--radius-md); padding: 14px 10px; text-align: center; }
+    .att-stat-total { background: var(--primary); }
+    .att-stat-approved { background: #059669; }
+    .att-stat-rejected { background: #dc2626; }
+    .att-stat-pending { background: #d97706; }
+
+    /* Course Work Grid */
+    .course-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .course-box { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; background: var(--bg-body); }
+    .course-header { font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px;}
+    .course-name { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+    /* Metric Grid */
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; }
+    .pub-metric-card { border-radius: var(--radius-md); padding: 18px 14px; text-align: center; border: 1px solid var(--border); background: var(--bg-body); }
+    .pub-metric-card i { font-size: 24px; margin-bottom: 6px; display: block; color: var(--primary); }
+    .pub-metric-value { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; color: var(--text-main); }
+    .pub-metric-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+
+    /* Tables */
+    .table-wrapper { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); background: white; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    th { text-align: left; padding: 12px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); font-weight: 700; border-bottom: 2px solid var(--border); background: var(--bg-body); }
+    td { padding: 14px 16px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-body); }
 
     /* Modals */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.25s ease; }
     .modal-overlay.active { display: flex; opacity: 1; }
-    .modal { background: white; border-radius: 18px; width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); transform: scale(0.96); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); overflow: hidden;}
-    .modal-overlay.active .modal { transform: scale(1); }
-    .modal-header { padding: 22px 26px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .modal-header h3 { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); letter-spacing: -0.3px; }
-    .close-btn { background: rgba(100, 116, 139, 0.1); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 20px; color: var(--text-light); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;}
-    .close-btn:hover { background: rgba(100, 116, 139, 0.2); color: var(--dark); }
-    .modal-body { padding: 26px; }
-    
-    .form-group { margin-bottom: 18px; }
-    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-    .form-control { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; transition: all 0.2s; outline: none; font-family: 'Inter', sans-serif;}
-    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(90, 125, 124, 0.15); }
-    textarea.form-control { resize: vertical; min-height: 85px; }
-    
-    .messages-container { margin-bottom: 24px; }
-    .alert { padding: 14px 18px; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; border-left: 5px solid; }
-    .alert-success { background: #d1fae5; color: #065f46; border-left-color: #059669;}
-    .alert-error { background: #fee2e2; color: #991b1b; border-left-color: #ef4444;}
+    .modal { background: white; border-radius: var(--radius-lg); width: 100%; max-width: 520px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--border); overflow: hidden;}
+    .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
+    .close-btn { background: var(--bg-body); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;}
+    .modal-body { padding: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; outline: none; font-family: var(--font-main);}
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-surface); }
 
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .delay-1 { animation-delay: 0.08s; }
-    .delay-2 { animation-delay: 0.16s; }
-
-    @media (max-width: 1024px) {
-      .dashboard-grid { grid-template-columns: 1fr; gap: 24px; }
-      .welcome-banner { padding: 36px 28px; }
-    }
-    @media (max-width: 768px) {
-      .course-grid { grid-template-columns: 1fr; }
-      .nav-brand div h1 { font-size: 17px; }
-      .container { padding: 20px 16px; }
-    }
-    @media (max-width: 600px) {
-      .nav-brand div p { display: none; }
-      .user-info { display: none; }
-      .nav-brand div h1 { font-size: 15px; }
-      .navbar { padding: 10px 16px; }
+    @media (max-width: 992px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
       .welcome-banner { padding: 24px 20px; }
-      .welcome-title { font-size: 24px; }
-      .research-title { font-size: 14px; max-width: 100%; }
-      .quick-link, .quick-link-highlight { width: 100%; justify-content: center; }
-      .att-stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-      .att-stat-pill { padding: 10px 4px; }
-      .modal { width: calc(100% - 32px); margin: 16px; }
-      .modal-body { padding: 16px; }
-      .modal-header { padding: 16px; }
-      
-      /* Table Card View on Mobile */
-      .table-wrapper table, .table-wrapper thead, .table-wrapper tbody, .table-wrapper th, .table-wrapper td, .table-wrapper tr {
-        display: block;
-      }
-      .table-wrapper thead { display: none; }
-      .table-wrapper tr { border-bottom: 1px solid var(--border); padding: 16px 12px; }
-      .table-wrapper tr:last-child { border-bottom: none; }
-      .table-wrapper td { border: none; padding: 6px 0; display: flex; justify-content: space-between; align-items: center; text-align: right; }
-      .table-wrapper td::before {
-        content: attr(data-label);
-        font-weight: 700;
-        font-size: 11px;
-        text-transform: uppercase;
-        color: var(--text-light);
-        letter-spacing: 0.5px;
-        float: left;
-        margin-right: 15px;
-      }
-      .table-wrapper td:first-child { display: block; text-align: left; margin-bottom: 8px; }
-      .table-wrapper td:first-child::before { display: none; }
-    }
-    @media (max-width: 480px) {
-      .metric-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      .pub-metric-card { padding: 16px 10px; }
-      .pub-metric-value { font-size: 22px; }
+      .welcome-title { font-size: 22px; }
+      .course-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -375,9 +316,9 @@
       </div>
       <div class="avatar">{{ student.student_name|make_list|first }}</div>
       {% if request.user.is_superuser or request.user.is_staff %}
-      <a href="/admin/" target="_blank" class="logout-btn" title="Admin Page" style="background: var(--primary, #5a7d7c); color: white; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="ri-shield-keyhole-line"></i> Admin Page</a>
+      <a href="/admin/" target="_blank" class="logout-btn" title="Admin Page" style="background: var(--primary); color: white; width: auto; padding: 6px 12px; font-size: 12px; font-weight: 600; text-decoration: none; gap: 6px;"><i class="ri-shield-keyhole-line"></i> Admin</a>
       {% endif %}
-      <a href="{% url 'student_logout' %}" class="logout-btn" title="Logout"><i class='bx bx-log-out-circle'></i></a>
+      <a href="{% url 'student_logout' %}" class="logout-btn" title="Logout"><i class="ri-logout-box-r-line"></i></a>
     </div>
   </nav>
 
@@ -385,47 +326,47 @@
     
     <!-- Profile Completion Alert -->
     {% if profile_completion_percentage < 100 %}
-    <div class="card" style="border-left: 4px solid #ef4444; background: #fff; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; animation: fadeInDown 0.5s ease-out; margin-bottom: 24px;">
-      <div style="display: flex; align-items: center; gap: 15px;">
-          <div style="background: #fee2e2; color: #ef4444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-              <i class='bx bx-error-circle'></i>
+    <div class="card" style="border-left: 4px solid #ef4444; background: #fff; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="background: #fee2e2; color: #ef4444; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+              <i class="ri-alert-line"></i>
           </div>
           <div>
-              <h4 style="color: #991b1b; font-size: 15px; margin-bottom: 2px;">Profile Incomplete ({{ profile_completion_percentage }}%)</h4>
-              <p style="color: #b91c1c; font-size: 13px; opacity: 0.9;">Missing: {{ profile_missing_fields|join:", " }}</p>
+              <h4 style="color: #991b1b; font-size: 14px; margin-bottom: 2px; font-weight: 700;">Profile Incomplete ({{ profile_completion_percentage }}%)</h4>
+              <p style="color: #b91c1c; font-size: 12px;">Missing: {{ profile_missing_fields|join:", " }}</p>
           </div>
       </div>
-      <a href="{% url 'scholar_edit_profile' %}" class="btn btn-primary" style="background: #ef4444; white-space: nowrap;">
+      <a href="{% url 'scholar_edit_profile' %}" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444; white-space: nowrap;">
           Complete Now
       </a>
     </div>
     {% endif %}
 
-    <!-- Messages -->
+    <!-- Django Messages -->
     {% if messages %}
-    <div class="messages-container">
+    <div style="margin-bottom: 24px;">
         {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
-            <i class='bx {% if message.tags == 'error' %}bx-error-circle{% else %}bx-check-circle{% endif %}'></i>
+        <div style="padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border-left: 4px solid {% if message.tags == 'error' %}#ef4444; background: #fee2e2; color: #991b1b;{% else %}#059669; background: #d1fae5; color: #065f46;{% endif %}">
+            <i class="ri-{% if message.tags == 'error' %}error-warning-line{% else %}checkbox-circle-line{% endif %}"></i>
             {{ message }}
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Welcome Banner -->
-    <div class="welcome-banner">
+    <!-- Welcome Hero Banner -->
+    <div class="welcome-banner" style="background-color: #0f172a !important; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #4a6b69 100%) !important; color: #ffffff !important; border-left: 6px solid #c5a059 !important;">
       <div class="welcome-content">
-        <h2 class="welcome-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h2 class="welcome-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; color: #ffffff !important;">
             Welcome back, {{ student.student_name.split|first }}!
             {% if profile.is_visvesvaraya_scheme %}
-                <span class="badge-visvesvaraya" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1.5px solid rgba(255, 255, 255, 0.4); font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; font-family: 'Poppins', sans-serif;">
-                    🎓 Visvesvaraya Scheme
+                <span style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.4); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="ri-graduation-cap-line"></i> Visvesvaraya Scheme
                 </span>
             {% endif %}
         </h2>
-        <div class="research-title">
-          <i class='bx bx-bulb'></i> 
+        <div class="research-title" style="color: #cbd5e1 !important;">
+          <i class="ri-lightbulb-line" style="color: #c5a059 !important;"></i> 
           {% if zeroth.tentative_title %}
             {{ zeroth.tentative_title }}
           {% else %}
@@ -433,599 +374,621 @@
           {% endif %}
         </div>
         <!-- Quick action links -->
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;">
           <a href="{% url 'scholar_apply_leave' %}" class="quick-link">
-            <i class='bx bx-paper-plane'></i> Apply Leave
+            <i class="ri-send-plane-line"></i> Apply Leave
           </a>
           <a href="{% url 'scholar_leave_history' %}" class="quick-link">
-            <i class='bx bx-history'></i> Leave History
+            <i class="ri-history-line"></i> Leave History
           </a>
           <a href="{% url 'scholar_profile' %}" class="quick-link">
-            <i class='bx bx-user'></i> My Profile
+            <i class="ri-user-line"></i> My Profile
           </a>
           <a href="{% url 'scholar_portfolio' %}" class="quick-link-highlight">
-            <i class='bx bx-news'></i> My Publications
+            <i class="ri-article-line"></i> My Publications
           </a>
         </div>
       </div>
     </div>
 
-    <div class="dashboard-grid">
-      <!-- Left Column (Profile & Supervisor) -->
-      <div class="left-col">
-        
-        <!-- Compact PhD Completion Stage Tracker Banner -->
-        <div class="card delay-1" style="background: white; border-top: 4px solid var(--primary); font-family: 'Poppins', sans-serif; padding: 18px; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="background: var(--primary-light); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
-                        <i class='bx bx-award' style="font-size: 20px;"></i>
+    <!-- Pinned PhD Progress Tracker Banner -->
+    <div class="phd-progress-banner">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="background: var(--primary-surface); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 20px; flex-shrink: 0;">
+                    <i class="ri-git-merge-line"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                        PhD Completion Tracker
+                        <span style="background: #fef3c7; color: #d97706; border: 1px solid #fde68a; font-weight: 700; font-size: 10px; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
+                            Active: {{ phd_progress.get_current_stage_display }}
+                        </span>
+                    </h4>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
+                        <div style="width: 140px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                            <div style="width: {{ phd_stats.overall_percent }}%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 700; color: var(--primary);">{{ phd_stats.overall_percent }}% Complete</span>
                     </div>
-                    <div>
-                        <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 8px;">
-                            PhD Completion Tracker
-                            <span class="badge" style="background: #fef3c7; color: #d97706; font-weight: 600; font-size: 10px; padding: 2px 6px; border-radius: 4px;">
-                                Active: {{ phd_progress.get_current_stage_display }}
-                            </span>
-                        </h4>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
-                            <div style="width: 120px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                                <div style="width: {{ phd_stats.overall_percent }}%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 3px;"></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 12px;">
+                {% if phd_deadline_info.has_deadline %}
+                <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px; 
+                    background: {% if phd_deadline_info.status_class == 'danger' %}#fef2f2{% elif phd_deadline_info.status_class == 'warning' %}#fffbeb{% else %}#ecfdf5{% endif %};
+                    color: {% if phd_deadline_info.status_class == 'danger' %}#991b1b{% elif phd_deadline_info.status_class == 'warning' %}#92400e{% else %}#065f46{% endif %};">
+                    <i class="ri-alarm-warning-line"></i>
+                    {% if phd_deadline_info.is_expired %}
+                        Expired by {{ phd_deadline_info.days_remaining }} days!
+                    {% else %}
+                        {{ phd_deadline_info.days_remaining }} days remaining
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <a href="{% url 'scholar_phd_tracker' %}" class="btn btn-primary" style="font-size: 12px; gap: 6px;">
+                    <i class="ri-external-link-line"></i> View Full Tracker
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation Bar -->
+    <div class="dash-tabs">
+        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)"><i class="ri-dashboard-3-line"></i> Overview</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)"><i class="ri-book-open-line"></i> Academic & Course Work</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-attendance', this)"><i class="ri-calendar-check-line"></i> Attendance & Logs</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-portfolio', this)"><i class="ri-article-line"></i> Publications & Portfolio</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-rac', this)"><i class="ri-team-line"></i> RAC Committee</button>
+        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-fees', this)"><i class="ri-bank-card-line"></i> Fee Records</button>
+    </div>
+
+    <!-- ================= TAB 1: OVERVIEW ================= -->
+    <div id="dash-tab-overview" class="dash-tab-content active">
+        <div class="dashboard-grid">
+            <!-- Left Column: Identity & Supervisor -->
+            <div>
+                <!-- Scholar Profile Summary -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ri-user-3-line"></i> Scholar Profile</h3>
+                        <a href="{% url 'scholar_edit_profile' %}" class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;">Edit</a>
+                    </div>
+                    <div class="info-list">
+                        {% if profile.is_visvesvaraya_scheme %}
+                        <div class="info-item" style="background: #eff6ff; border-color: #bfdbfe;">
+                            <div class="info-icon" style="background: #2563eb; color: white;"><i class="ri-award-line"></i></div>
+                            <div class="info-content">
+                                <div class="label" style="color: #1d4ed8;">Scheme</div>
+                                <div class="value" style="color: #1e40af;">Visvesvaraya Scheme</div>
                             </div>
-                            <span style="font-size: 11px; font-weight: 600; color: var(--text-light);">{{ phd_stats.overall_percent }}% Complete</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ri-id-card-line"></i></div>
+                            <div class="info-content">
+                                <div class="label">Roll / Admission No</div>
+                                <div class="value">{{ student.roll_number }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ri-calendar-line"></i></div>
+                            <div class="info-content">
+                                <div class="label">Admission Date</div>
+                                <div class="value">{{ profile.admission_date }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ri-bookmark-3-line"></i></div>
+                            <div class="info-content">
+                                <div class="label">Scholar Type</div>
+                                <div class="value">
+                                    <span style="background: var(--primary-surface); color: var(--primary); padding: 3px 10px; border-radius: 4px; font-weight: 700; font-size: 12px;">{{ profile.scholar_type }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="ri-file-download-line"></i></div>
+                            <div class="info-content">
+                                <div class="label">Admission Order</div>
+                                <div class="value">
+                                    {% if profile.admission_order_doc %}
+                                    <a href="{{ profile.admission_order_doc.url }}" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 600;"><i class="ri-external-link-line"></i> View Document</a>
+                                    {% else %}
+                                    <span style="color: var(--text-muted); font-size: 13px;">Not uploaded</span>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    {% if phd_deadline_info.has_deadline %}
-                    <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 4px; 
-                        background: {% if phd_deadline_info.status_class == 'danger' %}#fef2f2{% elif phd_deadline_info.status_class == 'warning' %}#fffbeb{% else %}#ecfdf5{% endif %};
-                        color: {% if phd_deadline_info.status_class == 'danger' %}#991b1b{% elif phd_deadline_info.status_class == 'warning' %}#92400e{% else %}#065f46{% endif %};">
-                        <i class='bx bx-alarm'></i>
-                        {% if phd_deadline_info.is_expired %}
-                            Expired by {{ phd_deadline_info.days_remaining }} days!
-                        {% else %}
-                            {{ phd_deadline_info.days_remaining }} days left
-                        {% endif %}
+
+                <!-- Research Supervisor -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ri-user-star-line"></i> Research Supervisor</h3>
+                    </div>
+                    <div style="text-align: center; padding: 10px 0;">
+                        <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--primary-surface); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--primary); border: 2px solid var(--border);">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <h4 style="font-size: 16px; color: var(--text-main); margin-bottom: 4px; font-weight: 700;">{{ profile.supervisor.name }} {{ profile.supervisor.initial|default:"" }}</h4>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">{{ profile.supervisor.designation }}</p>
+                        <p style="font-size: 12px; color: var(--text-muted); font-weight: 600;"><i class="ri-building-line"></i> {{ profile.supervisor.department }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Quick Stats & High Level View -->
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ri-bar-chart-2-line"></i> Key Performance Indicators</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
+                        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius-md); padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #065f46;">{{ att_rate }}%</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #047857; text-transform: uppercase;">Attendance Rate</div>
+                        </div>
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #1e40af;">{{ portfolio_total }}</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #1d4ed8; text-transform: uppercase;">Publications</div>
+                        </div>
+                        <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #92400e;">{{ non_final_reviews_count }} / 5</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #b45309; text-transform: uppercase;">RAC Reviews</div>
+                        </div>
+                        <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: var(--radius-md); padding: 16px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #5b21b6;">{{ phd_stats.overall_percent }}%</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #6d28d9; text-transform: uppercase;">PhD Stage</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent RCW Review Logs Preview -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ri-history-line"></i> Recent RAC Progress Reviews</h3>
+                        <button class="btn btn-outline" onclick="openModal('rcwModal')" style="font-size: 12px; padding: 4px 10px;">+ Log Review</button>
+                    </div>
+                    {% if rcw_reviews %}
+                    <div class="timeline" style="position: relative; padding-left: 20px;">
+                        {% for r in rcw_reviews|slice:":3" %}
+                        <div style="margin-bottom: 16px; padding-left: 14px; border-left: 2px solid var(--primary); position: relative;">
+                            <div style="font-size: 12px; font-weight: 700; color: var(--primary);">{{ r.date|date:"F d, Y" }}</div>
+                            <p style="font-size: 13px; color: var(--text-primary); margin: 4px 0 6px 0;">{{ r.progress }}</p>
+                            {% if r.document %}
+                            <a href="{{ r.document.url }}" target="_blank" style="font-size: 12px; color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-file-download-line"></i> View Attachment</a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px;">
+                        No RAC reviews logged yet. Click "+ Log Review" to record your progress.
                     </div>
                     {% endif %}
-                    
-                    <a href="{% url 'scholar_phd_tracker' %}" class="btn btn-primary" style="padding: 6px 12px; font-size: 11px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: var(--primary); border-color: var(--primary); color: white; border-radius: 6px;">
-                        <i class='bx bx-right-top-arrow-circle'></i> View Full Stages
-                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 2: ACADEMICS & ZEROTH REVIEW ================= -->
+    <div id="dash-tab-academics" class="dash-tab-content">
+        <!-- Zeroth Review Course Work -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ri-book-bookmark-line"></i> Course Work (Zeroth Review)</h3>
+                <button class="btn btn-primary" onclick="openModal('zerothModal')"><i class="ri-edit-line"></i> Update Details</button>
+            </div>
+            
+            <div class="course-grid">
+                <div class="course-box">
+                    <div class="course-header">Exam 1 (RCW001 & RCW002)</div>
+                    <div class="course-name"><span style="color:var(--text-muted);font-size:12px;">001:</span> {{ zeroth.rcw001_subject|default:"Subject pending" }}</div>
+                    <div class="course-name"><span style="color:var(--text-muted);font-size:12px;">002:</span> {{ zeroth.rcw002_subject|default:"Subject pending" }}</div>
+                    <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px;">
+                        {% if zeroth.exam1_marksheet %}
+                        <a href="{{ zeroth.exam1_marksheet.url }}" target="_blank" class="btn btn-outline" style="width: 100%; justify-content: center;"><i class="ri-shield-check-line"></i> View Marksheet</a>
+                        {% else %}
+                        <button class="btn btn-outline" style="width: 100%; justify-content: center; opacity: 0.5; cursor: not-allowed;"><i class="ri-time-line"></i> Pending Upload</button>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="course-box">
+                    <div class="course-header">Exam 2 (RCW003 & RCW004)</div>
+                    <div class="course-name"><span style="color:var(--text-muted);font-size:12px;">003:</span> {{ zeroth.rcw003_subject|default:"Subject pending" }}</div>
+                    <div class="course-name"><span style="color:var(--text-muted);font-size:12px;">004:</span> {{ zeroth.rcw004_subject|default:"Subject pending" }}</div>
+                    <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px;">
+                        {% if zeroth.exam2_marksheet %}
+                        <a href="{{ zeroth.exam2_marksheet.url }}" target="_blank" class="btn btn-outline" style="width: 100%; justify-content: center;"><i class="ri-shield-check-line"></i> View Marksheet</a>
+                        {% else %}
+                        <button class="btn btn-outline" style="width: 100%; justify-content: center; opacity: 0.5; cursor: not-allowed;"><i class="ri-time-line"></i> Pending Upload</button>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card delay-1">
-          <div class="card-header">
-            <h3 class="card-title"><a href="{% url 'scholar_profile' %}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;"><i class='bx bx-user-circle'></i> Scholar Profile</a></h3>
-            <a href="{% url 'scholar_edit_profile' %}" class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; text-decoration: none;">Edit</a>
-          </div>
-          <div class="info-list">
-            {% if profile.is_visvesvaraya_scheme %}
-            <div class="info-item" style="background: #eff6ff; border: 1.5px solid #bfdbfe;">
-              <div class="info-icon" style="background: #3b82f6; color: white;"><i class='bx bx-award'></i></div>
-              <div class="info-content">
-                <div class="label" style="color: #2563eb; font-weight: 700;">Scheme</div>
-                <div class="value" style="color: #1d4ed8;">Visvesvaraya Scheme</div>
-              </div>
+        <!-- RCW Reviews Timeline & Final Stage -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ri-time-line"></i> RAC Progress Reviews Log</h3>
+                <button class="btn btn-primary" onclick="openModal('rcwModal')"><i class="ri-add-line"></i> Log New RAC Review</button>
+            </div>
+            
+            {% if rcw_reviews %}
+            <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+                {% for r in rcw_reviews %}
+                <div style="padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-body);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 13px; font-weight: 700; color: var(--primary);">{{ r.date|date:"F d, Y" }} at {{ r.time|time:"H:i" }}</span>
+                        {% if r.is_final %}
+                        <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; text-transform: uppercase;">Final RAC Review</span>
+                        {% endif %}
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-primary); margin-bottom: 8px;">{{ r.progress }}</p>
+                    {% if r.document %}
+                    <a href="{{ r.document.url }}" target="_blank" class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;"><i class="ri-file-text-line"></i> View Attachment</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 32px 16px; background: var(--bg-body); border-radius: var(--radius-md); border: 1px dashed var(--border); margin-bottom: 24px;">
+                <i class="ri-clipboard-line" style="font-size: 36px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
+                <h4 style="color: var(--text-main); font-weight: 600; font-size: 14px;">No RAC reviews logged yet</h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Record your progress reviews to track your PhD RAC milestones.</p>
             </div>
             {% endif %}
-            <div class="info-item">
-              <div class="info-icon"><i class='bx bx-id-card'></i></div>
-              <div class="info-content">
-                <div class="label">Admission No</div>
-                <div class="value">{{ student.roll_number }}</div>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="info-icon"><i class='bx bx-calendar'></i></div>
-              <div class="info-content">
-                <div class="label">Admission Date</div>
-                <div class="value">{{ profile.admission_date }}</div>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="info-icon"><i class='bx bx-bookmark'></i></div>
-              <div class="info-content">
-                <div class="label">Scholar Type</div>
-                <div class="value">
-                  <span class="badge badge-internal">{{ profile.scholar_type }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="info-icon"><i class='bx bx-file'></i></div>
-              <div class="info-content">
-                <div class="label">Admission Order</div>
-                <div class="value">
-                  {% if profile.admission_order_doc %}
-                  <a href="{{ profile.admission_order_doc.url }}" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 13px; font-weight: 600;"><i class='bx bx-link-external'></i> View Document</a>
-                  {% else %}
-                  <span style="color: var(--text-light); font-size: 13px;">Not uploaded</span>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div class="card delay-1" style="background: linear-gradient(180deg, #FFFFFF 0%, #F5F3FF 100%);">
-          <div class="card-header">
-            <h3 class="card-title"><i class='bx bx-user-voice'></i> Research Supervisor</h3>
-          </div>
-          <div style="text-align: center; padding: 10px 0;">
-            <div style="width: 80px; height: 80px; border-radius: 50%; background: white; box-shadow: var(--shadow-md); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--primary);">
-              <i class='bx bx-user'></i>
-            </div>
-            <h4 style="font-size: 18px; color: var(--dark); margin-bottom: 4px;">{{ profile.supervisor.name }} {{ profile.supervisor.initial|default:"" }}</h4>
-            <p style="font-size: 14px; color: var(--text-light); margin-bottom: 12px;">{{ profile.supervisor.designation }}</p>
-            <p style="font-size: 13px; color: var(--text-light);"><i class='bx bx-buildings'></i> {{ profile.supervisor.department }}</p>
-          </div>
-        </div>
-
-        <!-- Attendance Statistics Widget -->
-        <div class="card delay-1" style="background: #FFFFFF; border-left: 4px solid var(--primary); overflow: hidden;">
-            <div class="card-header" style="margin-bottom: 0; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                <h3 class="card-title"><i class='bx bx-bar-chart-alt-2'></i> Attendance Overview</h3>
-                {% if not today_attendance %}
-                <form action="{% url 'scholar_attendance_submit' %}" method="post" style="margin: 0;">
+            <!-- Final RAC Stage Submission -->
+            {% if not phd_progress.rac_completed_at %}
+            <div style="border-top: 1px dashed var(--border); padding-top: 20px;">
+                {% if final_rac_enabled %}
+                <h4 style="font-size: 14px; font-weight: 700; color: #ef4444; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <i class="ri-shield-check-line"></i> Finalize RAC Review Stage
+                </h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+                    Once finalized, your RAC progress stage will be completed and Pre-Submission stage will be unlocked.
+                </p>
+                <form action="{% url 'scholar_add_rcw' %}" method="post" enctype="multipart/form-data" style="background: #fff5f5; border: 1px solid #fee2e2; padding: 20px; border-radius: var(--radius-md);">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-primary" style="padding: 7px 14px; font-size: 12px; gap: 5px;">
-                        <i class='bx bx-check-double'></i> Mark Today
+                    <input type="hidden" name="is_final" value="on">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+                        <div class="form-group">
+                            <label class="form-label">Final Review Date</label>
+                            <input type="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Final Review Time</label>
+                            <input type="time" name="time" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Final Progress Remarks & Feedback</label>
+                        <textarea name="progress" class="form-control" style="height: 70px;" placeholder="Summarize HOD/Guide panel feedback..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label">Final Review Document (Optional)</label>
+                        <input type="file" name="document" class="form-control">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; background: #ef4444; border-color: #ef4444; padding: 12px; font-weight: 700;">
+                        <i class="ri-checkbox-circle-line"></i> Submit Final RAC Review & Unlock Pre-Submission
                     </button>
                 </form>
                 {% else %}
-                <span class="badge" style="
-                    background: {% if today_attendance.status == 'Approved' %}#D1FAE5{% elif today_attendance.status == 'Rejected' %}#FEE2E2{% else %}#FEF3C7{% endif %};
-                    color: {% if today_attendance.status == 'Approved' %}#065F46{% elif today_attendance.status == 'Rejected' %}#991B1B{% else %}#92400E{% endif %};
-                    padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                <div style="background: var(--bg-body); border: 1px solid var(--border); padding: 20px; border-radius: var(--radius-md); text-align: center;">
+                    <i class="ri-lock-line" style="font-size: 24px; color: var(--text-muted); margin-bottom: 8px; display: block;"></i>
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Final RAC Review Stage Locked</h4>
+                    <p style="font-size: 12px; color: var(--text-muted); max-width: 440px; margin: 0 auto 12px auto;">
+                        To submit the Final RAC Review and advance to Pre-Submission, log at least <strong>5 RAC Progress Reviews</strong> first.
+                    </p>
+                    <div style="font-weight: 700; font-size: 13px; color: var(--primary);">
+                        Progress: {{ non_final_reviews_count }} / 5 reviews logged
+                    </div>
+                    <div style="width: 100%; max-width: 280px; height: 6px; background: #e2e8f0; border-radius: 3px; margin: 8px auto 0 auto; overflow: hidden;">
+                        <div style="width: {{ progress_percentage }}%; height: 100%; background: var(--primary); border-radius: 3px;"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ================= TAB 3: ATTENDANCE & LOGS ================= -->
+    <div id="dash-tab-attendance" class="dash-tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ri-calendar-check-line"></i> Attendance Overview</h3>
+                {% if not today_attendance %}
+                <form action="{% url 'scholar_attendance_submit' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary" style="padding: 7px 14px; font-size: 12px;">
+                        <i class="ri-check-double-line"></i> Mark Today's Attendance
+                    </button>
+                </form>
+                {% else %}
+                <span style="background: {% if today_attendance.status == 'Approved' %}#d1fae5; color: #065f46;{% elif today_attendance.status == 'Rejected' %}#fee2e2; color: #991b1b;{% else %}#fef3c7; color: #92400e;{% endif %} padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">
                     Today: {{ today_attendance.status }}
                 </span>
                 {% endif %}
             </div>
 
             {% if att_total > 0 %}
-            <!-- Stat Pills Row -->
             <div class="att-stat-grid">
                 <div class="att-stat-pill att-stat-total">
-                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_total }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Total</div>
+                    <div style="font-size: 22px; font-weight: 800;">{{ att_total }}</div>
+                    <div style="font-size: 11px; opacity: 0.9; font-weight: 600;">Total</div>
                 </div>
                 <div class="att-stat-pill att-stat-approved">
-                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_approved }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Approved</div>
+                    <div style="font-size: 22px; font-weight: 800;">{{ att_approved }}</div>
+                    <div style="font-size: 11px; opacity: 0.9; font-weight: 600;">Approved</div>
                 </div>
                 <div class="att-stat-pill att-stat-rejected">
-                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_rejected }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Rejected</div>
+                    <div style="font-size: 22px; font-weight: 800;">{{ att_rejected }}</div>
+                    <div style="font-size: 11px; opacity: 0.9; font-weight: 600;">Rejected</div>
                 </div>
                 <div class="att-stat-pill att-stat-pending">
-                    <div style="font-size: 20px; font-weight: 750; line-height: 1;">{{ att_pending }}</div>
-                    <div style="font-size: 10px; opacity: .85; margin-top: 4px; font-weight: 600;">Pending</div>
+                    <div style="font-size: 22px; font-weight: 800;">{{ att_pending }}</div>
+                    <div style="font-size: 11px; opacity: 0.9; font-weight: 600;">Pending</div>
                 </div>
             </div>
 
-            <!-- Donut + Approval Rate -->
-            <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 0;">
-                <div style="position: relative; width: 96px; height: 96px; flex-shrink: 0;">
-                    <canvas id="attDonutChart" width="96" height="96"></canvas>
-                    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
-                        <span style="font-size: 18px; font-weight: 700; color: var(--dark); line-height: 1;">{{ att_rate }}<span style="font-size: 11px;">%</span></span>
-                        <span style="font-size: 9px; color: var(--text-light);">Approval</span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Donut Chart -->
+                <div style="display: flex; align-items: center; gap: 16px; border: 1px solid var(--border); padding: 18px; border-radius: var(--radius-md); background: var(--bg-body);">
+                    <div style="position: relative; width: 96px; height: 96px; flex-shrink: 0;">
+                        <canvas id="attDonutChart" width="96" height="96"></canvas>
+                        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
+                            <span style="font-size: 18px; font-weight: 800; color: var(--text-main);">{{ att_rate }}%</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">Rate</span>
+                        </div>
                     </div>
-                </div>
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #059669; flex-shrink: 0;"></span>
-                        <span style="color: var(--text-light); flex: 1;">Approved</span>
-                        <strong style="color: var(--dark);">{{ att_approved }}</strong>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #DC2626; flex-shrink: 0;"></span>
-                        <span style="color: var(--text-light); flex: 1;">Rejected</span>
-                        <strong style="color: var(--dark);">{{ att_rejected }}</strong>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #D97706; flex-shrink: 0;"></span>
-                        <span style="color: var(--text-light); flex: 1;">Pending</span>
-                        <strong style="color: var(--dark);">{{ att_pending }}</strong>
-                    </div>
-                    <!-- Approval progress bar -->
-                    <div style="margin-top: 4px;">
-                        <div style="font-size: 10px; color: var(--text-light); margin-bottom: 3px;">Approval Rate</div>
-                        <div style="background: #E5E7EB; border-radius: 999px; height: 6px; overflow: hidden;">
-                            <div style="background: linear-gradient(90deg,#059669,#34D399); height: 100%; width: {{ att_rate }}%; border-radius: 999px; transition: width .8s ease;"></div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Approval Ratio</div>
+                        <div style="background: #e2e8f0; border-radius: 4px; height: 8px; overflow: hidden; margin-top: 4px;">
+                            <div style="background: #059669; height: 100%; width: {{ att_rate }}%;"></div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Bar chart: 30-day timeline -->
-            <div style="padding: 14px 16px 0;">
-                <div style="font-size: 12px; font-weight: 600; color: var(--dark); margin-bottom: 8px;">30-Day Timeline</div>
-                <div style="position: relative; height: 80px;">
-                    <canvas id="attBarChart"></canvas>
+                <!-- 30-Day Timeline Bar Chart -->
+                <div style="border: 1px solid var(--border); padding: 18px; border-radius: var(--radius-md); background: var(--bg-body);">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">30-Day Attendance Timeline</div>
+                    <div style="position: relative; height: 80px;">
+                        <canvas id="attBarChart"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent history list -->
-            <div style="padding: 12px 16px 16px; border-top: 1px dashed var(--border); margin-top: 14px;">
-                <div style="font-size: 12px; font-weight: 600; color: var(--dark); margin-bottom: 8px;">Recent History</div>
-                {% if attendance_history %}
-                <ul style="list-style: none; padding: 0; margin: 0; max-height: 140px; overflow-y: auto;">
-                {% for att in attendance_history %}
-                    <li style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #F3F4F6; font-size: 12px;">
-                        <span style="color: #4B5563;">{{ att.date|date:"D, d M" }}</span>
-                        <span style="font-weight: 600; color: {% if att.status == 'Approved' %}#059669{% elif att.status == 'Rejected' %}#DC2626{% else %}#D97706{% endif %};">
-                            {% if att.status == 'Approved' %}✓{% elif att.status == 'Rejected' %}✗{% else %}⏳{% endif %} {{ att.status }}
-                        </span>
-                    </li>
-                {% endfor %}
-                </ul>
-                {% else %}
-                <p style="font-size: 12px; color: var(--text-light); text-align: center; margin: 0;">No records yet.</p>
-                {% endif %}
+            <!-- Attendance History Table -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Status</th>
+                            <th>Remarks / Rejection Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendance_history %}
+                        <tr>
+                            <td style="font-weight: 700;">{{ att.date|date:"M d, Y" }}</td>
+                            <td>{{ att.date|date:"l" }}</td>
+                            <td>
+                                <span style="padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: {% if att.status == 'Approved' %}#d1fae5; color: #065f46;{% elif att.status == 'Rejected' %}#fee2e2; color: #991b1b;{% else %}#fef3c7; color: #92400e;{% endif %}">
+                                    {{ att.status }}
+                                </span>
+                            </td>
+                            <td style="color: var(--text-muted);">{{ att.rejection_reason|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
             {% else %}
             <!-- Empty state -->
-            <div style="padding: 32px 16px; text-align: center;">
-                <div style="font-size: 36px; margin-bottom: 8px;">📅</div>
-                <p style="font-size: 13px; color: var(--text-light); margin: 0 0 14px;">No attendance records yet.</p>
+            <div style="padding: 40px 16px; text-align: center;">
+                <div style="font-size: 32px; color: var(--primary); margin-bottom: 8px;"><i class="ri-calendar-event-line"></i></div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">No attendance records found.</p>
                 {% if not today_attendance %}
                 <form action="{% url 'scholar_attendance_submit' %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;">
-                        <i class='bx bx-check-double'></i> Mark Today's Attendance
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-check-double-line"></i> Mark Today's Attendance
                     </button>
                 </form>
-                <p style="font-size: 11px; color: var(--text-light); margin-top: 8px;">Subject to supervisor approval.</p>
                 {% endif %}
             </div>
             {% endif %}
-
-            {% if today_attendance and today_attendance.status == 'Rejected' and today_attendance.rejection_reason %}
-            <div style="margin: 0 16px 12px; background: #FEE2E2; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #991B1B;">
-                <strong>Today Rejected:</strong> {{ today_attendance.rejection_reason }}
-            </div>
-            {% endif %}
         </div>
+    </div>
 
-
-        <!-- Fee Challan Upload Widget (RS) -->
-        <div class="card delay-2">
+    <!-- ================= TAB 4: PUBLICATIONS & PORTFOLIO ================= -->
+    <div id="dash-tab-portfolio" class="dash-tab-content">
+        <div class="card">
             <div class="card-header">
-                <h3 class="card-title"><i class='bx bx-credit-card'></i> Fee Challans</h3>
+                <h3 class="card-title"><i class="ri-article-line"></i> Research Output & Portfolio</h3>
+                <a href="{% url 'scholar_portfolio' %}" class="btn btn-primary"><i class="ri-external-link-line"></i> Manage Portfolio</a>
             </div>
             
-            <!-- Fee Challans View (RS) -->
-            <div style="padding: 16px;">
+            <div class="metric-grid" style="margin-bottom: 24px;">
+                <div class="pub-metric-card">
+                    <i class="ri-journal-line"></i>
+                    <div class="pub-metric-value">{{ journ_count }}</div>
+                    <div class="pub-metric-label">Journals</div>
+                </div>
+                <div class="pub-metric-card">
+                    <i class="ri-slideshow-line"></i>
+                    <div class="pub-metric-value">{{ conf_count }}</div>
+                    <div class="pub-metric-label">Conferences</div>
+                </div>
+                <div class="pub-metric-card">
+                    <i class="ri-book-line"></i>
+                    <div class="pub-metric-value">{{ book_count }}</div>
+                    <div class="pub-metric-label">Books</div>
+                </div>
+                <div class="pub-metric-card">
+                    <i class="ri-award-line"></i>
+                    <div class="pub-metric-value">{{ award_count }}</div>
+                    <div class="pub-metric-label">Awards</div>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 16px;">
+                <div style="font-size: 14px; font-weight: 700; color: var(--text-main);">
+                    Total Research Items: <span style="color: var(--primary);">{{ portfolio_total }}</span>
+                </div>
+                <a href="{% url 'scholar_portfolio_add' 'journal' %}" class="btn btn-outline" style="font-size: 12px;"><i class="ri-add-line"></i> Add New Journal</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 5: RAC COMMITTEE ================= -->
+    <div id="dash-tab-rac" class="dash-tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ri-team-line"></i> RAC Committee Members</h3>
+                <button class="btn btn-primary" onclick="openModal('racModal')"><i class="ri-add-line"></i> Add RAC Member</button>
+            </div>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Member Info</th>
+                            <th>Designation</th>
+                            <th>Department / Inst</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in rac_members %}
+                        <tr>
+                            <td style="font-weight: 700;">{{ m.get_display_name }}</td>
+                            <td>{{ m.get_display_designation }}</td>
+                            <td>{{ m.get_display_department }}</td>
+                            <td>
+                                <span style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: {% if m.member_type == 'Internal' %}#d1fae5; color: #065f46;{% else %}#dbeafe; color: #1e40af;{% endif %}">
+                                    {{ m.member_type }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">No RAC members added yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 6: FEE RECORDS ================= -->
+    <div id="dash-tab-fees" class="dash-tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ri-bank-card-line"></i> Fee Challans & Records</h3>
+                <button onclick="toggleRSFeeAddForm()" class="btn btn-primary"><i class="ri-add-line"></i> Add New Year Record</button>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
                 {% if student.fee_challans.all %}
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
                     {% for record in student.fee_challans.all %}
-                    <div style="background: #F9FAFB; border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div style="background: var(--bg-body); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                             <div>
-                                <strong style="color: var(--dark); font-size: 14px;">Year {{ record.academic_year }}</strong>
-                                <span class="badge" style="background: #E5E7EB; color: #374151; margin-left: 8px; font-size: 10px;">{% if record.is_hosteler %}Hosteler{% else %}Day Scholar{% endif %}</span>
+                                <strong style="color: var(--text-main); font-size: 14px;">Year {{ record.academic_year }}</strong>
+                                <span style="background: #e2e8f0; color: #334155; margin-left: 8px; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">{% if record.is_hosteler %}Hosteler{% else %}Day Scholar{% endif %}</span>
                             </div>
-                            <div style="font-size: 11px; color: var(--text-light);">{{ record.uploaded_at|date:"M d, Y" }}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">{{ record.uploaded_at|date:"M d, Y" }}</div>
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; margin-top: 10px;">
                             {% if record.tuition_fee_challan %}
-                            <a href="{{ record.tuition_fee_challan.url }}" target="_blank" class="btn btn-outline" style="font-size: 12px; padding: 4px 8px;"><i class='bx bx-file'></i> Tuition</a>
+                            <a href="{{ record.tuition_fee_challan.url }}" target="_blank" class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;"><i class="ri-file-text-line"></i> Tuition</a>
                             {% endif %}
                             {% if record.hostel_fee_challan %}
-                            <a href="{{ record.hostel_fee_challan.url }}" target="_blank" class="btn btn-outline" style="font-size: 12px; padding: 4px 8px;"><i class='bx bx-building-house'></i> Hostel</a>
+                            <a href="{{ record.hostel_fee_challan.url }}" target="_blank" class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;"><i class="ri-building-line"></i> Hostel</a>
                             {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p style="color: var(--text-light); font-size: 13px; text-align: center; margin-bottom: 20px;">No fee challans uploaded yet.</p>
+                <p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px;">No fee challans uploaded yet.</p>
                 {% endif %}
+            </div>
 
-                <button onclick="toggleRSFeeAddForm()" class="btn btn-outline" style="width: 100%; justify-content: center; border-style: dashed;"><i class='bx bx-plus'></i> Add New Year Record</button>
-
-                <div id="rsFeeAddFormContainer" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
-                    <form action="{% url 'upload_fee_challan' %}" method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
+            <!-- Inline Fee Form Container -->
+            <div id="rsFeeAddFormContainer" style="display: none; padding-top: 20px; border-top: 1px solid var(--border);">
+                <form action="{% url 'upload_fee_challan' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label class="form-label">Admitted under 7.5% Govt Quota?</label>
+                        <div style="display: flex; gap: 20px; align-items: center; font-size: 14px;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="is_7_5_reservation" value="yes" {% if student.scholarshipinfo.is_7_5_reservation %}checked{% endif %} onchange="toggleRSFeeDocs(true)"> Yes
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="is_7_5_reservation" value="no" {% if not student.scholarshipinfo.is_7_5_reservation %}checked{% endif %} onchange="toggleRSFeeDocs(false)"> No
+                            </label>
+                        </div>
+                    </div>
+    
+                    <div id="rs_fee_docs_container" style="display: {% if student.scholarshipinfo.is_7_5_reservation %}none{% else %}block{% endif %}; border-top: 1px dashed var(--border); padding-top: 16px;">
+                        <div class="form-group">
+                            <label for="academic_year" class="form-label">Academic Year</label>
+                            <select name="academic_year" class="form-control">
+                                <option value="1">Year 1</option>
+                                <option value="2">Year 2</option>
+                                <option value="3">Year 3</option>
+                                <option value="4">Year 4</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hosteler Status</label>
+                            <div style="display: flex; gap: 20px; align-items: center; font-size: 14px;">
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="radio" name="is_hosteler" value="yes" onchange="toggleRSHostelFeeUpload(true)"> Yes</label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="radio" name="is_hosteler" value="no" checked onchange="toggleRSHostelFeeUpload(false)"> No</label>
+                            </div>
+                        </div>
                         
                         <div class="form-group">
-                            <label class="form-label" style="display: block; margin-bottom: 8px;">Admitted under 7.5% Govt Quota?</label>
-                            <div style="display: flex; gap: 20px; align-items: center; font-size: 14px;">
-                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <input type="radio" name="is_7_5_reservation" value="yes" {% if student.scholarshipinfo.is_7_5_reservation %}checked{% endif %} onchange="toggleRSFeeDocs(true)"> Yes
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <input type="radio" name="is_7_5_reservation" value="no" {% if not student.scholarshipinfo.is_7_5_reservation %}checked{% endif %} onchange="toggleRSFeeDocs(false)"> No
-                                </label>
-                            </div>
-                            <small style="color: var(--text-light); font-size: 12px; display: block; margin-top: 4px;">(If yes, fee challans are not required, just click submit)</small>
+                            <label for="tuition_fee_challan" class="form-label">Tuition Fee Challan</label>
+                            <input type="file" name="tuition_fee_challan" class="form-control" accept="image/*,application/pdf">
                         </div>
-        
-                        <div id="rs_fee_docs_container" style="display: {% if student.scholarshipinfo.is_7_5_reservation %}none{% else %}block{% endif %}; border-top: 1px dashed var(--border); padding-top: 16px;">
-                            <div class="form-group">
-                                <label for="academic_year" class="form-label">Academic Year</label>
-                                <select name="academic_year" class="form-control" style="padding: 8px;">
-                                    <option value="1">Year 1</option>
-                                    <option value="2">Year 2</option>
-                                    <option value="3">Year 3</option>
-                                    <option value="4">Year 4</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Are you a Hosteler?</label>
-                                <div style="display: flex; gap: 20px; align-items: center; font-size: 14px;">
-                                    <label><input type="radio" name="is_hosteler" value="yes" onchange="toggleRSHostelFeeUpload(true)"> Yes</label>
-                                    <label><input type="radio" name="is_hosteler" value="no" checked onchange="toggleRSHostelFeeUpload(false)"> No</label>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="tuition_fee_challan" class="form-label">Tuition Fee Challan <span style="font-size: 11px; color: var(--text-light); font-weight: 400;">(Max: 100KB)</span></label>
-                                <input type="file" name="tuition_fee_challan" class="form-control" accept="image/*,application/pdf" style="padding: 8px;">
-                            </div>
-        
-                            <div class="form-group" id="rs_hostel_fee_upload_div" style="display: none;">
-                                <label for="hostel_fee_challan" class="form-label">Hostel Fee Challan <span style="font-size: 11px; color: var(--text-light); font-weight: 400;">(Max: 100KB)</span></label>
-                                <input type="file" name="hostel_fee_challan" class="form-control" accept="image/*,application/pdf" style="padding: 8px;">
-                            </div>
+    
+                        <div class="form-group" id="rs_hostel_fee_upload_div" style="display: none;">
+                            <label for="hostel_fee_challan" class="form-label">Hostel Fee Challan</label>
+                            <input type="file" name="hostel_fee_challan" class="form-control" accept="image/*,application/pdf">
                         </div>
-                        
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" onclick="toggleRSFeeAddForm()" class="btn btn-outline" style="justify-content: center;">Cancel</button>
-                            <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;"><i class='bx bx-save'></i> Save Record</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            function toggleRSFeeDocs(is75Reserved) {
-                const container = document.getElementById('rs_fee_docs_container');
-                if(container) {
-                    if (is75Reserved) {
-                        container.style.display = 'none';
-                    } else {
-                        container.style.display = 'block';
-                    }
-                }
-            }
-        </script>
-
-      </div> <!-- End Left Col -->
-
-      <!-- Right Column (Reviews & RAC) -->
-      <div class="right-col">
-
-        <!-- Zeroth Review -->
-        <div class="card delay-2">
-          <div class="card-header">
-            <h3 class="card-title"><i class='bx bx-book-bookmark'></i> Course Work (Zeroth Review)</h3>
-            <button class="btn btn-primary" onclick="openModal('zerothModal')"><i class='bx bx-edit-alt'></i> Update Details</button>
-          </div>
-          
-          <div class="course-grid">
-            <div class="course-box">
-              <div class="course-header">Exam 1 (RCW001 & RCW002)</div>
-              <div class="course-name"><span style="color:var(--text-light);font-size:12px;">001:</span> {{ zeroth.rcw001_subject|default:"Subject pending" }}</div>
-              <div class="course-name"><span style="color:var(--text-light);font-size:12px;">002:</span> {{ zeroth.rcw002_subject|default:"Subject pending" }}</div>
-              <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
-                 {% if zeroth.exam1_marksheet %}
-                 <a href="{{ zeroth.exam1_marksheet.url }}" target="_blank" class="btn btn-outline" style="width: 100%; justify-content: center;"><i class='bx bx-check-shield'></i> View Marksheet</a>
-                 {% else %}
-                 <button class="btn btn-outline" style="width: 100%; justify-content: center; opacity: 0.5; cursor: not-allowed;"><i class='bx bx-time'></i> Pending Upload</button>
-                 {% endif %}
-              </div>
-            </div>
-            
-            <div class="course-box">
-              <div class="course-header">Exam 2 (RCW003 & RCW004)</div>
-              <div class="course-name"><span style="color:var(--text-light);font-size:12px;">003:</span> {{ zeroth.rcw003_subject|default:"Subject pending" }}</div>
-              <div class="course-name"><span style="color:var(--text-light);font-size:12px;">004:</span> {{ zeroth.rcw004_subject|default:"Subject pending" }}</div>
-              <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
-                 {% if zeroth.exam2_marksheet %}
-                 <a href="{{ zeroth.exam2_marksheet.url }}" target="_blank" class="btn btn-outline" style="width: 100%; justify-content: center;"><i class='bx bx-check-shield'></i> View Marksheet</a>
-                 {% else %}
-                 <button class="btn btn-outline" style="width: 100%; justify-content: center; opacity: 0.5; cursor: not-allowed;"><i class='bx bx-time'></i> Pending Upload</button>
-                 {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Publications & Portfolio Summary Card -->
-        <div class="card delay-2">
-            <div class="card-header">
-                <h3 class="card-title"><i class='bx bx-news'></i> Publications & Accomplishments</h3>
-                <a href="{% url 'scholar_portfolio' %}" class="btn btn-primary"><i class='bx bx-right-arrow-alt'></i> View All Portfolio</a>
-            </div>
-            
-            <div class="metric-grid">
-                <div class="pub-metric-card pub-metric-journals">
-                    <i class='bx bx-journal'></i>
-                    <div class="pub-metric-value">{{ journ_count }}</div>
-                    <div class="pub-metric-label">Journals</div>
-                </div>
-                <div class="pub-metric-card pub-metric-conferences">
-                    <i class='bx bx-slideshow'></i>
-                    <div class="pub-metric-value">{{ conf_count }}</div>
-                    <div class="pub-metric-label">Conferences</div>
-                </div>
-                <div class="pub-metric-card pub-metric-books">
-                    <i class='bx bx-book'></i>
-                    <div class="pub-metric-value">{{ book_count }}</div>
-                    <div class="pub-metric-label">Books</div>
-                </div>
-                <div class="pub-metric-card pub-metric-awards">
-                    <i class='bx bx-trophy'></i>
-                    <div class="pub-metric-value">{{ award_count }}</div>
-                    <div class="pub-metric-label">Awards</div>
-                </div>
-            </div>
-
-            <div style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 10px; height: 10px; border-radius: 2px; background: #f59e0b;"></div>
-                    <span style="font-size: 13px; color: var(--text-light);">Total Records:</span>
-                    <strong style="color: var(--dark);">{{ portfolio_total }}</strong>
-                </div>
-                <a href="{% url 'scholar_portfolio_add' 'journal' %}" class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;"><i class='bx bx-plus-circle'></i> Add New</a>
-            </div>
-        </div>
-
-        <!-- RAC Members -->
-        <div class="card delay-2">
-          <div class="card-header">
-            <h3 class="card-title"><i class='bx bx-group'></i> RAC Committee Members</h3>
-            <button class="btn btn-add" onclick="openModal('racModal')"><i class='bx bx-plus'></i></button>
-          </div>
-          
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Member Info</th>
-                  <th>Designation</th>
-                  <th>Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for m in rac_members %}
-                <tr>
-                  <td>
-                    <div class="member-info">
-                      <div class="member-icon"><i class='bx bx-user'></i></div>
-                      <div>
-                        <div style="font-weight: 600; color: var(--dark); font-size: 14px;">
-                            {% if m.member_type == 'Internal' %}{{ m.staff.name }}{% else %}{{ m.external_name }}{% endif %}
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-light);">
-                            {% if m.member_type == 'Internal' %}{{ m.staff.department }}{% else %}{{ m.external_department }}{% endif %}
-                        </div>
-                      </div>
                     </div>
-                  </td>
-                  <td data-label="Designation">
-                      {% if m.member_type == 'Internal' %}{{ m.staff.designation }}{% else %}{{ m.external_designation }}{% endif %}
-                  </td>
-                  <td data-label="Type">
-                      {% if m.member_type == 'Internal' %}
-                      <span class="badge badge-internal">Internal</span>
-                      {% else %}
-                      <span class="badge badge-external">External</span>
-                      {% endif %}
-                  </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3" style="text-align:center; padding: 30px; color: var(--text-light);">No RAC members assigned yet. Click + to add.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- RAC Reviews Timeline -->
-        <div class="card delay-2">
-          <div class="card-header">
-            <h3 class="card-title"><i class='bx bx-search-alt'></i> RAC Review Progress</h3>
-            {% if not phd_progress.rac_completed_at %}
-            <button class="btn btn-primary" onclick="openModal('rcwModal')"><i class='bx bx-plus'></i> Log Review</button>
-            {% else %}
-            <span class="badge badge-success" style="font-size: 0.8rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;"><i class='bx bx-check-circle'></i> Final Review Logged</span>
-            {% endif %}
-          </div>
-          
-          {% if rcw_reviews %}
-          <div class="timeline">
-            {% for r in rcw_reviews %}
-            <div class="timeline-item">
-              <div class="timeline-dot"></div>
-              <div class="timeline-date">{{ r.date|date:"F d, Y" }} at {{ r.time|time:"H:i" }}</div>
-              <div class="timeline-content">
-                <p>{{ r.progress }}</p>
-                {% if r.document %}
-                <a href="{{ r.document.url }}" target="_blank" class="btn btn-outline btn-sm" style="font-size:12px; padding: 4px 10px;"><i class='bx bx-file-blank' ></i> View Attachment</a>
-                {% endif %}
-              </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button type="button" onclick="toggleRSFeeAddForm()" class="btn btn-outline">Cancel</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;"><i class="ri-save-line"></i> Save Fee Record</button>
+                    </div>
+                </form>
             </div>
-            {% endfor %}
-          </div>
-          {% else %}
-          <div style="text-align: center; padding: 40px 20px; background: #F9FAFB; border-radius: 8px; border: 1px dashed var(--border);">
-            <i class='bx bx-clipboard' style="font-size: 40px; color: #D1D5DB; margin-bottom: 12px;"></i>
-            <h4 style="color: var(--text); font-weight: 500;">No reviews logged yet</h4>
-            <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Record your first review progress to start tracking.</p>
-          </div>
-          {% endif %}
-
-          {% if not phd_progress.rac_completed_at %}
-          <div style="border-top: 1px dashed var(--border); margin-top: 20px; padding-top: 20px;">
-              {% if final_rac_enabled %}
-              <h4 style="font-size: 13px; font-weight: 700; color: #ef4444; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                  <i class='bx bxs-check-shield'></i> Finalize RAC Review Stage
-              </h4>
-              <p style="font-size: 12px; color: var(--text-light); margin-bottom: 15px;">
-                  Are you ready to submit your Final RAC Review? Once finalized, you cannot log any new reviews, and the Pre-Submission stage will be unlocked.
-              </p>
-              <form action="{% url 'scholar_add_rcw' %}" method="post" enctype="multipart/form-data" style="margin: 0; background: #fff5f5; border: 1px solid #fee2e2; padding: 20px; border-radius: 8px;">
-                  {% csrf_token %}
-                  <input type="hidden" name="is_final" value="on">
-                  
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
-                      <div class="form-group">
-                          <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Review Date</label>
-                          <input type="date" name="date" class="form-control" style="padding: 8px; font-size: 13px;" required>
-                      </div>
-                      <div class="form-group">
-                          <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Review Time</label>
-                          <input type="time" name="time" class="form-control" style="padding: 8px; font-size: 13px;" required>
-                      </div>
-                  </div>
-                  
-                  <div class="form-group" style="margin-bottom: 12px;">
-                      <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Progress Remarks & HOD/Guide Feedback</label>
-                      <textarea name="progress" class="form-control" style="padding: 8px; font-size: 13px; height: 70px;" placeholder="Summarize HOD/Guide panel feedback for the final review..." required></textarea>
-                  </div>
-                  
-                  <div class="form-group" style="margin-bottom: 20px;">
-                      <label class="form-label" style="font-size: 12px; font-weight: 600;">Final Review Document (Optional)</label>
-                      <input type="file" name="document" class="form-control" style="padding: 6px; font-size: 12px;">
-                  </div>
-                  
-                  <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; background: #ef4444; border-color: #ef4444; padding: 12px 20px; font-weight: 700; font-size: 14px; gap: 8px; color: white;">
-                      <i class='bx bx-check-shield' style="font-size: 18px;"></i> Submit Final RAC Review & Unlock Pre-Submission
-                  </button>
-              </form>
-              {% else %}
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                  <div style="background: #e2e8f0; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                      <i class='bx bx-lock-alt' style="font-size: 22px; color: #64748b;"></i>
-                  </div>
-                  <h4 style="font-size: 14px; font-weight: 700; color: #334155; margin: 0 0 6px 0;">Finalize RAC Review Stage Locked</h4>
-                  <p style="font-size: 12px; color: #64748b; margin: 0; max-width: 400px; line-height: 1.5;">
-                      To submit the Final RAC Review and advance to the Pre-Submission stage, you must log at least <strong>5 RAC Progress Reviews</strong> first.
-                  </p>
-                  <div style="margin-top: 15px; font-weight: 700; font-size: 14px; color: var(--primary-color);">
-                      Progress: {{ non_final_reviews_count }} / 5 reviews logged
-                  </div>
-                  <div style="width: 100%; max-width: 320px; height: 8px; background: #e2e8f0; border-radius: 4px; margin-top: 10px; overflow: hidden; position: relative;">
-                      <div style="width: {{ progress_percentage }}%; height: 100%; background: var(--primary-color); border-radius: 4px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
-                  </div>
-              </div>
-              {% endif %}
-          </div>
-          {% endif %}
         </div>
-
     </div>
-  </div>
+
+  </div> <!-- End Container -->
 
   <!-- MODALS -->
 
@@ -1034,7 +997,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Add RAC Member</h3>
-        <button class="close-btn" onclick="closeModal('racModal')"><i class='bx bx-x'></i></button>
+        <button class="close-btn" onclick="closeModal('racModal')"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <form action="{% url 'scholar_add_rac' %}" method="post">
@@ -1080,12 +1043,12 @@
 
   <!-- Update Zeroth Modal -->
   <div id="zerothModal" class="modal-overlay">
-    <div class="modal" style="max-width: 600px;">
+    <div class="modal" style="max-width: 580px;">
       <div class="modal-header">
         <h3>Update Zeroth Review Details</h3>
-        <button class="close-btn" onclick="closeModal('zerothModal')"><i class='bx bx-x'></i></button>
+        <button class="close-btn" onclick="closeModal('zerothModal')"><i class="ri-close-line"></i></button>
       </div>
-      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
         <form action="{% url 'scholar_update_zeroth' %}" method="post" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="form-group">
@@ -1093,27 +1056,27 @@
               <input type="text" name="tentative_title" value="{{ zeroth.tentative_title }}" class="form-control" placeholder="Enter full research title">
           </div>
           
-          <div style="background: #F9FAFB; padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
-              <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--dark);">Exam 1 Subjects (RCW001 & RCW002)</h4>
+          <div style="background: var(--bg-body); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 16px;">
+              <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--text-main);">Exam 1 Subjects (RCW001 & RCW002)</h4>
               <div class="form-group"><input type="text" name="rcw001_subject" value="{{ zeroth.rcw001_subject }}" class="form-control" placeholder="RCW001 Subject Name"></div>
               <div class="form-group"><input type="text" name="rcw002_subject" value="{{ zeroth.rcw002_subject }}" class="form-control" placeholder="RCW002 Subject Name"></div>
-              <div class="form-group">
-                  <label class="form-label" style="font-size:12px;">Upload Marksheet (PDF/Image)</label>
-                  <input type="file" name="exam1_marksheet" class="form-control" style="padding: 6px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Upload Marksheet</label>
+                  <input type="file" name="exam1_marksheet" class="form-control">
               </div>
           </div>
 
-          <div style="background: #F9FAFB; padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px;">
-              <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--dark);">Exam 2 Subjects (RCW003 & RCW004)</h4>
+          <div style="background: var(--bg-body); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 16px;">
+              <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--text-main);">Exam 2 Subjects (RCW003 & RCW004)</h4>
               <div class="form-group"><input type="text" name="rcw003_subject" value="{{ zeroth.rcw003_subject }}" class="form-control" placeholder="RCW003 Subject Name"></div>
               <div class="form-group"><input type="text" name="rcw004_subject" value="{{ zeroth.rcw004_subject }}" class="form-control" placeholder="RCW004 Subject Name"></div>
-              <div class="form-group">
-                  <label class="form-label" style="font-size:12px;">Upload Marksheet (PDF/Image)</label>
-                  <input type="file" name="exam2_marksheet" class="form-control" style="padding: 6px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Upload Marksheet</label>
+                  <input type="file" name="exam2_marksheet" class="form-control">
               </div>
           </div>
           
-          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top: 10px;">Save Updates</button>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;"><i class="ri-save-line"></i> Save Updates</button>
         </form>
       </div>
     </div>
@@ -1124,7 +1087,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Log New RAC Review</h3>
-        <button class="close-btn" onclick="closeModal('rcwModal')"><i class='bx bx-x'></i></button>
+        <button class="close-btn" onclick="closeModal('rcwModal')"><i class="ri-close-line"></i></button>
       </div>
       <div class="modal-body">
         <form action="{% url 'scholar_add_rcw' %}" method="post" enctype="multipart/form-data">
@@ -1135,19 +1098,39 @@
           </div>
           <div class="form-group">
               <label class="form-label">Progress & Remarks</label>
-              <textarea name="progress" class="form-control" placeholder="Describe the review feedback and next steps..." required></textarea>
+              <textarea name="progress" class="form-control" placeholder="Describe progress and RAC panel feedback..." required></textarea>
           </div>
           <div class="form-group">
               <label class="form-label">Supporting Document (Optional)</label>
-              <input type="file" name="document" class="form-control" style="padding: 8px;">
+              <input type="file" name="document" class="form-control">
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top: 10px;"><i class='bx bx-save'></i> Save Review Record</button>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top: 10px;"><i class="ri-save-line"></i> Save Review Record</button>
         </form>
       </div>
     </div>
   </div>
 
   <script>
+    function switchDashboardTab(tabId, btnElement) {
+        document.querySelectorAll('.dash-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.querySelectorAll('.dash-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        const targetContent = document.getElementById(tabId);
+        if (targetContent) {
+            targetContent.classList.add('active');
+        }
+
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function toggleRacFields() {
         var type = document.getElementById('racTypeSelect').value;
         if(type === 'Internal') {
@@ -1167,7 +1150,6 @@
         document.getElementById(modalId).classList.remove('active');
     }
     
-    // Close modals on clicking outside
     window.onclick = function(event) {
         if (event.target.classList.contains('modal-overlay')) {
             event.target.classList.remove('active');
@@ -1182,11 +1164,7 @@
     function toggleRSFeeDocs(is75Reserved) {
         const container = document.getElementById('rs_fee_docs_container');
         if(container) {
-            if (is75Reserved) {
-                container.style.display = 'none';
-            } else {
-                container.style.display = 'block';
-            }
+            container.style.display = is75Reserved ? 'none' : 'block';
         }
     }
 
@@ -1201,7 +1179,6 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script>
-    // ---- Donut Chart ----
     const donutCanvas = document.getElementById('attDonutChart');
     if (donutCanvas) {
         const approved = {{ att_approved|default:0 }};
@@ -1228,7 +1205,6 @@
         });
     }
 
-    // ---- Bar Chart (30-day timeline) ----
     const barCanvas = document.getElementById('attBarChart');
     if (barCanvas) {
         const labels   = {{ timeline_labels|safe }};

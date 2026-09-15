@@ -1,222 +1,283 @@
 {% extends 'staff/staff_base.html' %}
 {% load static %}
 
-{% block title %}Scholarship Officer Dashboard | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+{% block title %}Scholarship Console | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
 
 {% block page_title %}
-    Hello, {{ staff.name }} {{ staff.initial|default:"" }} 👋
-    <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 8px;">Scholarship Officer</span>
-    {% if staff.is_timetable_incharge %}
-    <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📅 Timetable Incharge</span>
-    {% endif %}
-    {% if staff.is_scholarship_officer %}
-    <span style="font-size: 0.75rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">🎓 Scholarship Officer</span>
-    {% endif %}
-    {% for task in staff.assigned_department_tasks.all %}
-    <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 12px; font-weight: 600; vertical-align: middle; margin-left: 4px;">📌 {{ task.name }}</span>
-    {% endfor %}
+    Scholarship & Financial Aid Administration
+    <span style="font-size: 0.75rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 4px 12px; border-radius: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px;"><i class="ri-award-line"></i> Scholarship Officer Console</span>
 {% endblock %}
 
-{% block page_subtitle %}Managing Student Scholarships.{% endblock %}
+{% block page_subtitle %}Central operations portal for student scholarship verification, stage tracking, scheme distribution, and government portal recommendations.{% endblock %}
 
 {% block content %}
-    <!-- Profile Completion Alert -->
-    {% if profile_missing_fields %}
-    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-family: 'Poppins', sans-serif;">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="background: #fef3c7; color: #d97706; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">⚠️</div>
-            <div>
-                <h4 style="margin: 0; color: #b45309; font-size: 15px; font-weight: 600;">Please complete your professional profile</h4>
-                <p style="margin: 3px 0 0 0; color: #92400e; font-size: 13px; font-weight: 500;">
-                    Missing: {% for item in profile_missing_fields %}{{ item }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                    (Qualifications and Designations require HOD/Admin approval with appropriate documents).
-                </p>
-            </div>
-        </div>
-        <a href="{% url 'staffs:staff_portfolio' %}#tab-qualifications" style="background: #f59e0b; color: white; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; white-space: nowrap; transition: background 0.2s;">
-            Complete Profile Now
-        </a>
-    </div>
-    {% endif %}
-
     <!-- Messages Block -->
     {% if messages %}
     {% for message in messages %}
     <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
-        style="padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+        style="padding: 14px 18px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;">
         {{ message }}
     </div>
     {% endfor %}
     {% endif %}
 
-    <!-- Tabbed Dashboard Navigation -->
-    <div class="dash-tabs">
-        <button class="dash-tab-btn active" onclick="switchDashboardTab('dash-tab-overview', this)"><i class="ri-dashboard-3-line"></i> Overview</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-profile-stats', this)"><i class="ri-line-chart-line"></i> My Profile Stats</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-academics', this)"><i class="ri-book-open-line"></i> Academics</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-dept-tasks', this)"><i class="ri-task-line"></i> Tasks & Roles</button>
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-scholarships', this)"><i class="ri-money-dollar-circle-line"></i> Scholarships</button>
-        {% if my_ic_clubs %}
-        <button class="dash-tab-btn" onclick="switchDashboardTab('dash-tab-clubs', this)"><i class="ri-team-line"></i> Club Activities</button>
-        {% endif %}
-    </div>
-
-    <!-- ================= TAB: MY PROFILE STATS ================= -->
-    <div id="dash-tab-profile-stats" class="dash-tab-content">
-        {% include 'staff/includes/my_profile_stats.html' %}
-    </div>
-
-    <!-- ================= TAB 1: OVERVIEW ================= -->
-    <div id="dash-tab-overview" class="dash-tab-content active">
-
-        <div class="dashboard-grid">
-            <!-- News Widget -->
-            <div class="news-section">
-                {% include 'news_component.html' %}
+    <!-- 1. EXECUTIVE METRICS GRID -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <!-- Total Applications -->
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 46px; height: 46px; border-radius: 8px; background: #f1f5f9; color: #334155; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <i class="ri-file-list-3-line"></i>
             </div>
+            <div>
+                <div style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Applications Tracked</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ sch_total_apps_count|default:0 }}</div>
+            </div>
+        </div>
 
-            <!-- Stats Column -->
-            <div class="stats-column">
-                <!-- Scholarship Count -->
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #dbeafe; color: #2563eb;"><i class="ri-graduation-cap-line"></i></div>
-                    <div class="stat-info">
-                        <h3>{{ scholarship_students.count }}</h3>
-                        <span>Students Found</span>
-                    </div>
-                </div>
+        <!-- Pending Office Verification -->
+        <a href="?active_role=Scholarship+Officer&status=Pending+Office+Verification" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #d97706; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="width: 46px; height: 46px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <i class="ri-time-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.76rem; color: #d97706; font-weight: 700; text-transform: uppercase;">Pending Verification</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ sch_pending_count|default:0 }} <span style="font-size: 0.75rem; font-weight: 500; color: #d97706;">Action Needed</span></div>
+            </div>
+        </a>
 
-                <!-- Leave Info -->
-                <a href="{% url 'staffs:staff_apply_leave' %}" class="stat-card" style="text-decoration: none; color: inherit;">
-                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="ri-plane-line"></i></div>
-                    <div class="stat-info">
-                        <h3>Leave</h3>
-                        <span>Apply for Leave</span>
-                    </div>
+        <!-- Verified & Recommended -->
+        <a href="?active_role=Scholarship+Officer&status=Verified+%26+Recommended" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #0284c7; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="width: 46px; height: 46px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <i class="ri-checkbox-circle-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.76rem; color: #0284c7; font-weight: 700; text-transform: uppercase;">Recommended to Govt</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ sch_verified_count|default:0 }}</div>
+            </div>
+        </a>
+
+        <!-- Govt Sanctioned & Disbursed -->
+        <a href="?active_role=Scholarship+Officer&status=Govt+Sanctioned+/+Amount+Received" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #16a34a; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="width: 46px; height: 46px; border-radius: 8px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <i class="ri-coins-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.76rem; color: #166534; font-weight: 700; text-transform: uppercase;">Sanctioned & Disbursed</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ sch_sanctioned_count|default:0 }}</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- 2. STAGE PIPELINE VISUALIZER -->
+    <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-route-line" style="color: var(--primary, #5a7d7c);"></i> Scholarship Verification Stage Pipeline
+            </h3>
+            <div style="display: flex; gap: 10px;">
+                <a href="{% url 'staffs:scholarship_manager' %}?export=csv" style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--border, #cbd5e1); color: var(--text-main); text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="ri-file-excel-line" style="color: #16a34a;"></i> Export Audit CSV
+                </a>
+                <a href="{% url 'staffs:scholarship_manager' %}" style="background: var(--primary, #5a7d7c); color: white; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="ri-external-link-line"></i> Full Manager Desk
                 </a>
             </div>
         </div>
+
+        <!-- Pipeline Steps Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; position: relative;">
+            <!-- Step 1 -->
+            <div style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border, #cbd5e1); padding: 14px; border-radius: 6px; text-align: center;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Stage 1</span>
+                <h4 style="font-size: 0.92rem; font-weight: 700; margin: 4px 0; color: var(--text-main);">Student Submission</h4>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">{{ sch_total_apps_count|default:0 }} Records</div>
+            </div>
+
+            <!-- Step 2 -->
+            <a href="?active_role=Scholarship+Officer&status=Pending+Office+Verification" style="text-decoration: none; background: #fffbeb; border: 1px solid #fde68a; padding: 14px; border-radius: 6px; text-align: center; color: inherit; display: block;" class="hover-card">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #d97706; text-transform: uppercase;">Stage 2</span>
+                <h4 style="font-size: 0.92rem; font-weight: 700; margin: 4px 0; color: #b45309;">Office Verification</h4>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #d97706;">{{ sch_pending_count|default:0 }} Pending</div>
+            </a>
+
+            <!-- Step 3 -->
+            <a href="?active_role=Scholarship+Officer&status=Verified+%26+Recommended" style="text-decoration: none; background: #eff6ff; border: 1px solid #bfdbfe; padding: 14px; border-radius: 6px; text-align: center; color: inherit; display: block;" class="hover-card">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">Stage 3</span>
+                <h4 style="font-size: 0.92rem; font-weight: 700; margin: 4px 0; color: #1e40af;">Govt Recommended</h4>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #0284c7;">{{ sch_verified_count|default:0 }} Verified</div>
+            </a>
+
+            <!-- Step 4 -->
+            <a href="?active_role=Scholarship+Officer&status=Govt+Sanctioned+/+Amount+Received" style="text-decoration: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 6px; text-align: center; color: inherit; display: block;" class="hover-card">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #166534; text-transform: uppercase;">Stage 4</span>
+                <h4 style="font-size: 0.92rem; font-weight: 700; margin: 4px 0; color: #166534;">Sanctioned & Disbursed</h4>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #16a34a;">{{ sch_sanctioned_count|default:0 }} Availed</div>
+            </a>
+        </div>
     </div>
 
-    <!-- ================= TAB 2: ACADEMICS ================= -->
-    <div id="dash-tab-academics" class="dash-tab-content">
-        <!-- My Teaching Courses Quick Actions -->
-        <section class="actions-section" style="margin-top: 0;">
-            <div class="section-header">
-                <h3>My Teaching Courses</h3>
-            </div>
-            <div class="actions-grid">
-                {% for subject in subjects %}
-                <div class="action-tile" style="border-left: 4px solid var(--primary);">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
-                            <span style="font-size: 0.7rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 4px;">{{subject.code}}</span>
-                            {% if subject.subject_type == 'Lab' %}
-                            <span style="font-size: 0.7rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 500;">Lab</span>
+    <!-- 3. SCHEME DISTRIBUTION ANALYTICS -->
+    <section style="margin-bottom: 24px;">
+        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+            <i class="ri-pie-chart-line" style="color: var(--primary, #5a7d7c);"></i> Scholarship Scheme Distribution
+        </h3>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+            <a href="?active_role=Scholarship+Officer&scholarship_type=POSTMATRIC" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">Post-Matric (SC/ST)</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Government Scheme</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.POSTMATRIC|default:0 }}</span>
+            </a>
+
+            <a href="?active_role=Scholarship+Officer&scholarship_type=BCMBC" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">BC / MBC Welfare</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">State Welfare</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.BCMBC|default:0 }}</span>
+            </a>
+
+            <a href="?active_role=Scholarship+Officer&scholarship_type=FG" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">First Graduate</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Tuition Waiver</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.FG|default:0 }}</span>
+            </a>
+
+            <a href="?active_role=Scholarship+Officer&scholarship_type=PUDHUMAI" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">Pudhumai Penn</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Girl Student Aid</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.PUDHUMAI|default:0 }}</span>
+            </a>
+
+            <a href="?active_role=Scholarship+Officer&scholarship_type=TAMIZH" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">Tamizh Puthalvan</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Boy Student Aid</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.TAMIZH|default:0 }}</span>
+            </a>
+
+            <a href="?active_role=Scholarship+Officer&scholarship_type=GOVT_7_5" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">7.5% Govt School</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Quota Waiver</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.GOVT_7_5|default:0 }}</span>
+            </a>
+
+            <a href="?active_role=Scholarship+Officer&scholarship_type=PM" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">PMSSS / Central</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">National Portal</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.PM|default:0 }}</span>
+            </a>
+
+            <a href="?active_role=Scholarship+Officer&scholarship_type=PRIVATE" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">Private & Trust</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Endowments</div>
+                </div>
+                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.PRIVATE|default:0 }}</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- 4. MASTER SCHOLARSHIP APPLICATIONS ROSTER -->
+    <section style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-user-search-line" style="color: var(--primary, #5a7d7c);"></i> Scholarship Applications Roster
+            </h3>
+
+            <!-- Filter Controls Form -->
+            <form method="GET" action="{% url 'staffs:staff_dashboard' %}" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <input type="hidden" name="active_role" value="Scholarship Officer">
+                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search Student / Roll No / App Ref..." style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; width: 220px;">
+                <select name="status" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem;">
+                    <option value="">All Statuses</option>
+                    <option value="Pending Office Verification" {% if request.GET.status == 'Pending Office Verification' %}selected{% endif %}>Pending Verification</option>
+                    <option value="Verified & Recommended" {% if request.GET.status == 'Verified & Recommended' %}selected{% endif %}>Verified & Recommended</option>
+                    <option value="Govt Sanctioned / Amount Received" {% if request.GET.status == 'Govt Sanctioned / Amount Received' %}selected{% endif %}>Sanctioned & Disbursed</option>
+                    <option value="Rejected / Ineligible" {% if request.GET.status == 'Rejected / Ineligible' %}selected{% endif %}>Rejected / Ineligible</option>
+                </select>
+                <select name="semester" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem;">
+                    <option value="">All Semesters</option>
+                    {% for s in "12345678"|make_list %}
+                    <option value="{{ s }}" {% if request.GET.semester == s %}selected{% endif %}>Semester {{ s }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" style="background: var(--primary, #5a7d7c); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">Filter</button>
+                {% if request.GET.q or request.GET.status or request.GET.semester or request.GET.scholarship_type %}
+                <a href="?active_role=Scholarship+Officer" style="color: var(--text-muted); font-size: 0.82rem; text-decoration: none; margin-left: 4px;">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Table View -->
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                    <tr style="background: var(--surface-subtle, #f8fafc); border-bottom: 1px solid var(--border, #cbd5e1); text-align: left;">
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Student</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Sem & Dept</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Scholarship Scheme</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Family Income</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Stage Status</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted); text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in recent_sch_apps %}
+                    <tr style="border-bottom: 1px solid var(--border-light, #f1f5f9);">
+                        <td style="padding: 12px;">
+                            <div style="font-weight: 700; color: var(--text-main);">{{ app.student.student_name }}</div>
+                            <div style="font-size: 0.76rem; color: var(--text-muted);">Roll: {{ app.student.roll_number }} | Ref: {{ app.application_no|default:"N/A" }}</div>
+                        </td>
+                        <td style="padding: 12px;">
+                            <span style="font-weight: 600;">Sem {{ app.student.current_semester }}</span>
+                            <div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.student.department|default:"Dept" }}</div>
+                        </td>
+                        <td style="padding: 12px;">
+                            <span style="font-weight: 600; color: var(--primary);">{{ app.get_scholarship_type_display }}</span>
+                            {% if app.private_scholarship_name %}<div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.private_scholarship_name }}</div>{% endif %}
+                        </td>
+                        <td style="padding: 12px;">
+                            {% if app.annual_income %}₹{{ app.annual_income }}{% else %}<span style="color: var(--text-muted);">Not Specified</span>{% endif %}
+                        </td>
+                        <td style="padding: 12px;">
+                            {% if app.status == 'Pending Office Verification' %}
+                            <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">⏳ Pending Verification</span>
+                            {% elif app.status == 'Verified & Recommended' %}
+                            <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">✅ Recommended to Govt</span>
+                            {% elif app.status == 'Govt Sanctioned / Amount Received' %}
+                            <span style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">💰 Sanctioned & Disbursed</span>
+                            {% else %}
+                            <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">❌ {{ app.status }}</span>
                             {% endif %}
-                            {% if subject.staff and subject.staff_batch_b and subject.staff != subject.staff_batch_b %}
-                            <span style="font-size: 0.7rem; background: #fef3c7; color: #d97706; padding: 2px 8px; border-radius: 4px; font-weight: 500;">{{ subject.staff.name }} (A) / {{ subject.staff_batch_b.name }} (B)</span>
-                            {% elif subject.staff %}
-                            <span style="font-size: 0.7rem; background: #f3f4f6; color: #4b5563; padding: 2px 8px; border-radius: 4px; font-weight: 500;">{{ subject.staff.name }} (Both)</span>
-                            {% endif %}
-                        </div>
-                        <span style="font-size: 0.7rem; color: var(--text-muted);">Sem {{ subject.semester }}</span>
-                    </div>
-                    <h4 style="font-size: 0.95rem;">{{ subject.name }}</h4>
-                    <div style="display: flex; gap: 8px; margin-top: auto;">
-                        <a href="{% url 'staffs:manage_marks' subject.id %}" style="flex: 1; text-align: center; background: var(--bg-body); padding: 8px; border-radius: 6px; font-size: 0.8rem; text-decoration: none; color: var(--text-main); border: 1px solid var(--border);">Marks</a>
-                        <a href="{% url 'staffs:manage_attendance' subject.id %}" style="flex: 1; text-align: center; background: var(--primary); padding: 8px; border-radius: 6px; font-size: 0.8rem; text-decoration: none; color: white;">Attendance</a>
-                    </div>
-                </div>
-                {% empty %}
-                <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);">
-                    No courses assigned to you this semester.
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <!-- My Assigned Labs -->
-        {% if assigned_labs %}
-        <section class="actions-section" style="margin-top: 24px;">
-            <div class="section-header">
-                <h3>🔬 My Assigned Labs</h3>
-            </div>
-            <div class="actions-grid">
-                {% for lab in assigned_labs %}
-                <div class="action-tile" style="border-left: 4px solid var(--primary); padding: 18px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-weight: 600;">{{ lab.short_name }}</span>
-                        <span style="font-size: 1.2rem;">🔬</span>
-                    </div>
-                    <h4 style="font-size: 1.05rem; margin: 5px 0 2px 0; font-weight: 600; color: var(--text-main);">{{ lab.name }}</h4>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">You are the designated Lab Incharge for this laboratory.</p>
-                    {% if lab.from_date or lab.to_date %}
-                    <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 4px;">
-                        <span>📅</span>
-                        <span>
-                            {% if lab.from_date %}{{ lab.from_date|date:"M d, Y" }}{% else %}...{% endif %} 
-                            - 
-                            {% if lab.to_date %}{{ lab.to_date|date:"M d, Y" }}{% else %}Present{% endif %}
-                        </span>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-        {% endif %}
-    </div>
-
-    <!-- ================= TAB 3: SCHOLARSHIPS ================= -->
-    <div id="dash-tab-scholarships" class="dash-tab-content">
-        <!-- Scholarship Management Link -->
-        <section class="actions-section" style="margin-top: 0;">
-            <div class="section-header">
-                <h3>Scholarship Management</h3>
-            </div>
-            <div class="actions-grid">
-                <a href="{% url 'staffs:scholarship_manager' %}" class="action-tile" style="border-left: 4px solid #10b981; text-decoration: none; color: inherit; display: block;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="background: var(--primary-light); color: var(--primary); padding: 12px; border-radius: 8px; font-size: 1.5rem;">
-                            🎓
-                        </div>
-                        <div>
-                            <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">Manage Scholarships</h4>
-                            <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-muted);">
-                                Advanced filtering, student lists, and CSV export.
-                            </p>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px; text-align: right; font-weight: 500; color: #10b981; font-size: 0.9rem;">
-                        Open Manager &rarr;
-                    </div>
-                </a>
-            </div>
-        </section>
-    </div>
-    <!-- ================= TAB: DEPARTMENTAL TASKS & ROLES ================= -->
-    <div id="dash-tab-dept-tasks" class="dash-tab-content">
-        {% include 'staff/includes/dept_tasks_widget.html' %}
-    </div>
-
-    {% if my_ic_clubs %}
-    <!-- ================= TAB: CLUB ACTIVITIES ================= -->
-    <div id="dash-tab-clubs" class="dash-tab-content">
-        <section class="actions-section" style="margin-top: 0;">
-            <div class="section-header">
-                <h3>Extracurricular Club Activities (Staff In-Charge)</h3>
-            </div>
-            <div class="actions-grid">
-                {% for c in my_ic_clubs %}
-                <a href="{% url 'staffs:staff_club_detail' c.id %}" class="action-tile" style="border: 1px solid #5a7d7c;">
-                    <div class="action-tile-icon"><i class="ri-team-line" style="color: #5a7d7c; font-size: 1.8rem;"></i></div>
-                    <h4>{{ c.name }}</h4>
-                    <p>{{ c.category }} Club Console | Manage {{ c.memberships.count }} members, events & attendance logs.</p>
-                </a>
-                {% endfor %}
-            </div>
-        </section>
-    </div>
-    {% endif %}
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                <a href="{% url 'staffs:student_detail' app.student.roll_number %}" style="background: var(--surface-subtle); border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; color: var(--text-main); font-weight: 600;">Profile</a>
+                                <a href="{% url 'staffs:scholarship_manager' %}?q={{ app.student.roll_number }}" style="background: var(--primary, #5a7d7c); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">Action &rarr;</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                            No scholarship records found matching your filters.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 {% endblock %}

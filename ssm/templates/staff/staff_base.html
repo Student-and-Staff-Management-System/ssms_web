@@ -1463,24 +1463,28 @@
         <!-- Dynamic Horizontal Tab Category Navigation Bar -->
         <nav class="nav-tabs-bar" id="navTabsBar">
             {% if active_role != 'Other Dept Staff' %}
+            {% with me=logged_in_staff %}
+
             <button class="nav-tab-btn" data-tab="tab-workspace" onclick="switchNavTab('tab-workspace', this)">
                 <i class="ri-macbook-line"></i> <span>My Desk</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
 
+            {% if me.is_hod or me.is_staff_admin or me.is_admin or me.is_office_staff or staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.is_class_incharge or active_role == 'HOD' or active_role == 'Class Incharge' or request.user.is_superuser %}
             <button class="nav-tab-btn" data-tab="tab-students" onclick="switchNavTab('tab-students', this)">
                 <i class="ri-graduation-cap-line"></i> <span>Students</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
+            {% endif %}
 
+            {% if me.is_hod or me.is_staff_admin or me.is_admin or me.is_office_staff or staff.is_hod or staff.is_staff_admin or staff.is_admin or active_role == 'HOD' or request.user.is_superuser %}
             <button class="nav-tab-btn" data-tab="tab-staff" onclick="switchNavTab('tab-staff', this)">
                 <i class="ri-team-line"></i> <span>Staff</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
 
-            {% with me=logged_in_staff %}
-            {% if me.is_hod or me.is_office_staff or me.is_staff_admin or me.is_admin or request.user.is_superuser %}
             <button class="nav-tab-btn" data-tab="tab-admin" onclick="switchNavTab('tab-admin', this)">
                 <i class="ri-building-4-line"></i> <span>Department Administration</span> <i class="ri-arrow-down-s-line" style="font-size: 0.8rem; opacity: 0.7;"></i>
             </button>
             {% endif %}
+
             {% endwith %}
 
             {% if assigned_consoles %}
@@ -1524,9 +1528,6 @@
                 </a>
                 <a href="{% url 'staffs:my_timetable' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-calendar-schedule-line"></i></span> <span class="title">My Timetable</span>
-                </a>
-                <a href="{% url 'staffs:academic_calendar_console' %}" class="mega-item">
-                    <span class="icon-badge"><i class="ri-umbrella-line"></i></span> <span class="title">Holiday & Day Order Manager</span>
                 </a>
                 <a href="{% url 'staffs:overall_attendance_calendar' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Attendance Calendar</span>
@@ -1593,20 +1594,18 @@
                         <a href="{% url 'staffs:attendance_deficit_list' %}" class="mega-item">
                             <span class="icon-badge"><i class="ri-mail-send-line"></i></span> <span class="title">Deficit Mailer</span>
                         </a>
-                        <a href="{% url 'staffs:assign_lab_batches' %}" class="mega-item">
-                            <span class="icon-badge"><i class="ri-team-line"></i></span> <span class="title">Assign Lab Batches</span>
-                        </a>
-                        <a href="{% url 'staffs:passed_out_batches' %}" class="mega-item">
-                            <span class="icon-badge"><i class="ri-archive-line"></i></span> <span class="title">Passed Out Archives</span>
-                        </a>
                     </div>
                 </div>
 
+                {% if me.is_hod or me.is_staff_admin or me.is_admin or active_role == 'HOD' or request.user.is_superuser %}
                 <div class="mega-section-block border-top">
                     <div class="mega-section-title">
                         <i class="ri-microscope-line" style="color: var(--primary);"></i> Research Scholars (PhD)
                     </div>
                     <div class="mega-grid">
+                        <a href="{% url 'staffs:rs_directory' %}" class="mega-item">
+                            <span class="icon-badge"><i class="ri-folder-user-line"></i></span> <span class="title">RS Directory</span>
+                        </a>
                         <a href="{% url 'staffs:manage_scholar_attendance' %}" class="mega-item">
                             <span class="icon-badge"><i class="ri-calendar-check-line"></i></span> <span class="title">Scholar Attendance</span>
                             {% if rs_pending_attendance %}
@@ -1624,6 +1623,7 @@
                         </a>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
 
@@ -1706,6 +1706,9 @@
                 <a href="{% url 'staffs:timetable' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-calendar-todo-line"></i></span> <span class="title">Master Timetable Hub</span>
                 </a>
+                <a href="{% url 'staffs:academic_calendar_console' %}" class="mega-item">
+                    <span class="icon-badge"><i class="ri-umbrella-line"></i></span> <span class="title">Holiday & Day Order Manager</span>
+                </a>
                 <a href="{% url 'staffs:generate_staff' %}" class="mega-item">
                     <span class="icon-badge"><i class="ri-user-settings-line"></i></span> <span class="title">Department Roles & Credentials</span>
                 </a>
@@ -1762,20 +1765,41 @@
             <div class="icon-wrap"><i class="ri-macbook-line"></i></div>
             <span>My Desk</span>
         </button>
+        {% with me=logged_in_staff %}
+        {% if me.is_hod or me.is_staff_admin or me.is_admin or me.is_office_staff or staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.is_class_incharge or active_role == 'HOD' or active_role == 'Class Incharge' or request.user.is_superuser %}
         <button onclick="switchNavTab('tab-students', this)" class="mobile-btn" data-tab="tab-students">
             <div class="icon-wrap"><i class="ri-graduation-cap-line"></i></div>
             <span>Students</span>
         </button>
+        {% endif %}
+        {% if me.is_hod or me.is_staff_admin or me.is_admin or me.is_office_staff or staff.is_hod or staff.is_staff_admin or staff.is_admin or active_role == 'HOD' or request.user.is_superuser %}
         <button onclick="switchNavTab('tab-staff', this)" class="mobile-btn" data-tab="tab-staff">
             <div class="icon-wrap"><i class="ri-team-line"></i></div>
             <span>Staff</span>
         </button>
-        {% with me=logged_in_staff %}
-        {% if me.is_hod or me.is_office_staff or me.is_staff_admin or me.is_admin or request.user.is_superuser %}
         <button onclick="switchNavTab('tab-admin', this)" class="mobile-btn" data-tab="tab-admin">
             <div class="icon-wrap"><i class="ri-building-4-line"></i></div>
             <span>Dept Admin</span>
         </button>
+        {% else %}
+        <a href="{% url 'staffs:my_timetable' %}" class="mobile-btn">
+            <div class="icon-wrap"><i class="ri-calendar-schedule-line"></i></div>
+            <span>Timetable</span>
+        </a>
+        {% if not me.is_class_incharge and not staff.is_class_incharge and active_role != 'Class Incharge' %}
+        <a href="{% url 'staffs:overall_attendance_calendar' %}" class="mobile-btn">
+            <div class="icon-wrap"><i class="ri-calendar-check-line"></i></div>
+            <span>Attendance</span>
+        </a>
+        <a href="{% url 'staffs:staff_portfolio' %}" class="mobile-btn">
+            <div class="icon-wrap"><i class="ri-briefcase-4-line"></i></div>
+            <span>Portfolio</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'staffs:staff_profile' %}" class="mobile-btn">
+            <div class="icon-wrap"><i class="ri-user-3-line"></i></div>
+            <span>Profile</span>
+        </a>
         {% endif %}
         {% endwith %}
         {% endif %}
@@ -1862,6 +1886,8 @@
                 const matchingBtn = document.querySelector(`.dash-tab-btn[onclick*="${tabId}"]`);
                 if (matchingBtn) matchingBtn.classList.add('active');
             }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function openTabHover(tabId, btnElement) {

@@ -1,0 +1,163 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Placement Officer Console | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block page_title %}
+    Placement & Career Opportunities Console
+    <span style="font-size: 0.75rem; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 4px 12px; border-radius: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px;">
+        <i class="ri-briefcase-line"></i> Placement Officer
+    </span>
+{% endblock %}
+
+{% block page_subtitle %}Central control panel for institutional placement drives, student eligibility criteria, company recruitment rosters, and career statistics.{% endblock %}
+
+{% block content %}
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 14px 18px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Key Placement Metrics -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-user-star-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Total Candidates</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ student_count|default:0 }} Students</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-building-4-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Campus Drives</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">Active Drives</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-trophy-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Placement Eligibility</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">CGPA & Arrear Filter</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #f3e8ff; color: #7e22ce; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-award-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Roster Export</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">HR Recruiter CSV</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOMAIN HUB 1: PLACEMENT & RECRUITMENT MANAGEMENT -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-briefcase-4-line" style="color: var(--primary, #5a7d7c);"></i> Placement Officer Operations Hub
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+            <!-- Student Roster & Directory -->
+            <a href="{% url 'staffs:student_list' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid var(--primary, #5a7d7c); padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary, #5a7d7c); background: var(--primary-surface, rgba(90,125,124,0.14)); padding: 3px 8px; border-radius: 4px;">Candidate Pool</span>
+                    <i class="ri-team-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Student Profiles & Roster</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Access full student profiles, academic history, branch records, and contact info.</p>
+            </a>
+
+            <!-- Risk & Academic Backlog Filter -->
+            <a href="{% url 'staffs:risk_students' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #ef4444; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 3px 8px; border-radius: 4px;">Eligibility Check</span>
+                    <i class="ri-error-warning-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Arrear & Backlog Roster</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Filter candidate pool by active standing arrears and low attendance alerts.</p>
+            </a>
+
+            <!-- Task Matrix & Drive Notifications -->
+            <a href="{% url 'staffs:manage_department_tasks' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #8b5cf6; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #7c3aed; background: #f3e8ff; padding: 3px 8px; border-radius: 4px;">Task Delegation</span>
+                    <i class="ri-checkbox-multiple-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Department Placement Tasks</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Coordinate drive arrangements, hall bookings, and staff invigilation duties.</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- DOMAIN HUB 2: RECRUITMENT FILTER & ELIGIBILITY CONSOLE -->
+    <section style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; padding: 20px; margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="ri-filter-3-line" style="color: var(--primary, #5a7d7c);"></i> Drive Eligibility & Recruiter Filter
+                </h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">Filter final year students based on CGPA cutoffs and arrear status for company drives.</p>
+            </div>
+            <div>
+                <a href="{% url 'staffs:student_list' %}" class="btn" style="background: var(--primary, #5a7d7c); color: #ffffff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="ri-download-cloud-line"></i> View All Candidates
+                </a>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: var(--bg-body, #f8fafc); padding: 16px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1);">
+            <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Minimum CGPA</label>
+                <select style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1); background: var(--surface, #ffffff); color: var(--text-main); font-size: 0.85rem;">
+                    <option value="">All CGPA Ranges</option>
+                    <option value="8.0">>= 8.0 CGPA (First Class Distinction)</option>
+                    <option value="7.5">>= 7.5 CGPA</option>
+                    <option value="7.0">>= 7.0 CGPA</option>
+                    <option value="6.5">>= 6.5 CGPA</option>
+                    <option value="6.0">>= 6.0 CGPA</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Standing Arrears</label>
+                <select style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1); background: var(--surface, #ffffff); color: var(--text-main); font-size: 0.85rem;">
+                    <option value="">All Candidates</option>
+                    <option value="0" selected>0 Standing Arrears (Eligible for Core IT)</option>
+                    <option value="1">Max 1 Active Arrear</option>
+                    <option value="2">Max 2 Active Arrears</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Semester</label>
+                <select style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1); background: var(--surface, #ffffff); color: var(--text-main); font-size: 0.85rem;">
+                    <option value="">Sem 7 & 8 (Final Year)</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                    <option value="5">Sem 5 & 6 (Pre-Final Year Internship)</option>
+                </select>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button type="button" style="width: 100%; padding: 8px 12px; background: var(--primary, #5a7d7c); color: #ffffff; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="ri-search-line"></i> Apply Eligibility Criteria
+                </button>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Attendance Incharge Console | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block page_title %}
+    Attendance Incharge Operations Console
+    <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 12px; border-radius: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px;"><i class="ri-file-chart-line"></i> Attendance Incharge</span>
+{% endblock %}
+
+{% block page_subtitle %}Department-wide attendance tracking, overall & subject-wise reports, attendance deficit warning mailer, risk insights, and export desk.{% endblock %}
+
+{% block content %}
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 14px 18px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Key Metrics Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-calendar-check-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Overall Scope</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">Semesters 1–8 Grid</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-user-unfollow-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: #dc2626; font-weight: 700; text-transform: uppercase;">Low Attendance Threshold</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">&lt; 75% Deficit Alert</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-mail-send-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Deficit Mailer</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main, #0f172a);">Warning Dispatch</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOMAIN HUB 1: OVERALL & SUBJECT-WISE ATTENDANCE REPORTS -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-bar-chart-2-line" style="color: var(--primary, #5a7d7c);"></i> Attendance Reports & Analytics
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Overall Department Calendar -->
+            <a href="{% url 'staffs:overall_attendance_calendar' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid var(--primary, #5a7d7c); padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary, #5a7d7c); background: var(--primary-light, rgba(90,125,124,0.12)); padding: 3px 8px; border-radius: 4px;">Department Grid</span>
+                    <i class="ri-calendar-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Overall Department Attendance Grid</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Inspect cumulative and daily attendance calendars sem-wise across all batches.</p>
+            </a>
+
+            <!-- Subject-Wise Attendance Reports -->
+            <a href="{% url 'staffs:attendance_deficit_list' %}?view=subject_wise" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #0284c7; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 3px 8px; border-radius: 4px;">Subject Analytics</span>
+                    <i class="ri-book-read-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Subject-Wise Attendance Reports</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Analyze subject-by-subject attendance percentages, conducted hours, and shortage lists.</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- DOMAIN HUB 2: ATTENDANCE DEFICIT MAILER & RISK INSIGHTS -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-send-plane-fill" style="color: var(--primary, #5a7d7c);"></i> Attendance Deficit Mailer & Risk Insights
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Deficit Mailer -->
+            <a href="{% url 'staffs:attendance_deficit_list' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #dc2626; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 3px 8px; border-radius: 4px;">Warning Mailer</span>
+                    <i class="ri-mail-warning-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Attendance Deficit Warning Mailer</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Generate shortage lists and dispatch warning emails to students below 75% attendance.</p>
+            </a>
+
+            <!-- Risk Insights -->
+            <a href="{% url 'staffs:risk_students' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #d97706; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 4px;">Risk Monitor</span>
+                    <i class="ri-error-warning-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Attendance Risk Insights</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Track chronically absent students and export risk audit lists to CSV.</p>
+            </a>
+        </div>
+    </section>
+{% endblock %}

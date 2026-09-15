@@ -236,11 +236,6 @@
                     <h4>Deficit Mailer</h4>
                     <p>Generate and send automated emails to students with low attendance.</p>
                 </a>
-                <a href="{% url 'staffs:assign_lab_batches' %}" class="action-tile">
-                    <div class="action-tile-icon">👥</div>
-                    <h4>Assign Lab Batches</h4>
-                    <p>Divide students into batches for practical lab sessions.</p>
-                </a>
                 {% if my_ic_clubs %}
                 {% for c in my_ic_clubs %}
                 <a href="{% url 'staffs:staff_club_detail' c.id %}" class="action-tile" style="border: 1px solid #5a7d7c; background: #f4f8f8;">

@@ -1341,11 +1341,11 @@
                 }
             });
 
-            // Store active tab in localStorage & URL hash so it survives reload/navigation
+            // Store active tab in localStorage so it survives reload/navigation without anchor hash jumping
             const pathKey = 'active_profile_tab_' + window.location.pathname;
             localStorage.setItem(pathKey, tabId);
             if (history.replaceState) {
-                history.replaceState(null, '', '#' + tabId);
+                history.replaceState(null, '', window.location.pathname);
             }
         }
 
@@ -1353,12 +1353,9 @@
             const validTabs = ['overview', 'personal', 'academic', 'research', 'awards'];
             const pathKey = 'active_profile_tab_' + window.location.pathname;
             const savedTab = localStorage.getItem(pathKey);
-            const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
 
             let targetTab = null;
-            if (hash && validTabs.includes(hash) && document.getElementById(hash)) {
-                targetTab = hash;
-            } else if (savedTab && validTabs.includes(savedTab) && document.getElementById(savedTab)) {
+            if (savedTab && validTabs.includes(savedTab) && document.getElementById(savedTab)) {
                 targetTab = savedTab;
             }
 
@@ -1367,6 +1364,14 @@
             } else {
                 switchProfileTab('overview');
             }
+
+            // Remove any existing hash from URL so browser does not jump down to element
+            if (window.location.hash) {
+                if (history.replaceState) {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
+            }
+            window.scrollTo(0, 0);
         });
     </script>
 {% endblock %}

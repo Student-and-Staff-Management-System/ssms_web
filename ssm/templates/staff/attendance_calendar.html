@@ -283,11 +283,21 @@
             background: #f1f5f9;
         }
 
-        /* PROMINENT TODAY HIGHLIGHT */
+        /* PROMINENT TODAY & HOLIDAY HIGHLIGHT */
         .day-box.today {
             border: 2.5px solid #10b981 !important;
             background: #f0fdf4 !important;
             box-shadow: 0 2px 10px rgba(16, 185, 129, 0.18);
+        }
+
+        .day-box.holiday {
+            border: 1.5px solid #fcd34d !important;
+            background: #fffbeb !important;
+        }
+
+        .day-box.holiday.today {
+            border: 2.5px solid #f59e0b !important;
+            background: #fff8e6 !important;
         }
 
         .day-box.selected {
@@ -318,12 +328,23 @@
             letter-spacing: 0.03em;
         }
 
+        .holiday-badge {
+            font-size: 0.55rem;
+            font-weight: 800;
+            background: #f59e0b;
+            color: #ffffff;
+            padding: 1px 5px;
+            border-radius: 4px;
+            letter-spacing: 0.03em;
+        }
+
         .status-dot {
             width: 7px; height: 7px;
             border-radius: 50%;
         }
         .status-dot.recorded { background: var(--success); }
         .status-dot.pending { background: var(--danger); }
+        .status-dot.holiday { background: #f59e0b; }
         .status-dot.future { background: var(--border); }
 
         .day-classes-list {
@@ -370,6 +391,16 @@
         }
         .period-chip.unmarked:hover {
             background: #ef4444;
+            color: #ffffff;
+        }
+
+        .period-chip.holiday {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        .period-chip.holiday:hover {
+            background: #f59e0b;
             color: #ffffff;
         }
 
@@ -487,7 +518,7 @@
             </div>
 
             <div class="att-header-actions">
-                <a href="{% url 'staffs:overall_attendance_calendar' %}?subject_id={{ subject.id }}" class="btn-action btn-report">Overall Calendar 🌐</a>
+                <a href="{% url 'staffs:overall_attendance_calendar' %}" class="btn-action btn-report">Overall Calendar 🌐</a>
                 <a href="{% url 'staffs:manage_attendance' subject.id %}" class="btn-action btn-mark">Mark Attendance 📝</a>
                 <a href="{% url 'staffs:attendance_report' subject.id %}" class="btn-action btn-report">View Report 📊</a>
                 <a href="{% url 'staffs:staff_dashboard' %}" class="btn-action btn-dashboard">Dashboard ↩</a>
@@ -515,23 +546,31 @@
             <div class="calendar-grid-body">
                 {% for week in calendar_rows %}
                 {% for day in week %}
-                <div class="day-box {% if not day.is_current_month %}other-month{% endif %} {% if day.is_today %}today{% endif %} {% if day.is_selected %}selected{% endif %}"
+                <div class="day-box {% if not day.is_current_month %}other-month{% endif %} {% if day.is_today %}today{% endif %} {% if day.is_selected %}selected{% endif %} {% if day.is_holiday %}holiday{% endif %}"
                      onclick="if(!event.target.closest('.period-chip')) window.location.href='{{ day.url }}';">
                     
                     <div class="day-top-row">
                         <a href="{{ day.url }}" class="day-number" title="Go to {{ day.date|date:'M d, Y' }}">{{ day.day_num }}</a>
                         {% if day.is_today %}
                         <span class="today-badge">TODAY</span>
+                        {% elif day.is_holiday %}
+                        <span class="holiday-badge" title="{{ day.holiday_title }}">HOLIDAY</span>
                         {% elif day.status_class %}
                         <span class="status-dot {{ day.status_class }}"></span>
                         {% endif %}
                     </div>
 
+                    {% if day.is_holiday and not day.classes %}
+                    <div style="font-size: 0.62rem; font-weight: 700; color: #b45309; margin-top: 2px;">
+                        🏖️ {{ day.holiday_title|default:"Holiday" }}
+                    </div>
+                    {% endif %}
+
                     {% if day.classes %}
                     <div class="day-classes-list">
                         {% for cls in day.classes %}
                         <a href="{{ cls.url }}" class="period-chip {{ cls.status_class }}" title="{{ cls.status_title }} ({{ cls.start }}–{{ cls.end }})">
-                            {% if cls.status_class == 'marked' %}✓ {{ cls.period_display|default:cls.period }}{% elif cls.status_class == 'unmarked' %}⚠️ {{ cls.period_display|default:cls.period }}{% else %}{{ cls.period_display|default:cls.period }}{% endif %}
+                            {% if cls.status_class == 'marked' %}✓ {{ cls.period_display|default:cls.period }}{% elif cls.status_class == 'holiday' %}🏖️ {{ cls.period_display|default:cls.period }}{% elif cls.status_class == 'unmarked' %}⚠️ {{ cls.period_display|default:cls.period }}{% else %}{{ cls.period_display|default:cls.period }}{% endif %}
                         </a>
                         {% endfor %}
                     </div>
@@ -544,6 +583,7 @@
             <div class="calendar-legend">
                 <div class="legend-item"><span class="period-chip marked">✓ P1</span> Recorded</div>
                 <div class="legend-item"><span class="period-chip unmarked">⚠️ P1</span> Class Done • Unmarked</div>
+                <div class="legend-item"><span class="period-chip holiday">🏖️ P1</span> Holiday</div>
                 <div class="legend-item"><span class="period-chip future">P1</span> Scheduled Class</div>
             </div>
         </div>

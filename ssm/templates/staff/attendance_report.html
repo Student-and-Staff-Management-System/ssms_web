@@ -3,381 +3,696 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Attendance Report | {{ subject.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png"
-        type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
+    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
     <style>
-        /* ... Existing root/body styles ... */
         :root {
-            --primary-color: #5a7d7c;
-            --secondary-color: #3b4d61;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #2c3e50;
-            --text-muted: #94a3b8;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
+            --primary: #5a7d7c;
+            --primary-dark: #4a6b69;
+            --primary-light: #eef2f2;
+            
+            --bg-body: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            --success: #166534;
+            --success-bg: #dcfce7;
+            --success-border: #bbf7d0;
+            
+            --warning: #92400e;
+            --warning-bg: #fef3c7;
+            --warning-border: #fde68a;
+            
+            --danger: #991b1b;
+            --danger-bg: #fee2e2;
+            --danger-border: #fecaca;
+
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            
+            --shadow-sm: 0 1px 3px rgba(15,23,42,0.05);
+            --shadow-md: 0 4px 12px rgba(15,23,42,0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg-color);
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-body);
             color: var(--text-main);
-            margin: 0;
+            min-height: 100vh;
             padding: 20px;
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .main-container {
-            max-width: 1200px;
+            max-width: 1320px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        /* Header */
+        /* ─── HEADER BAR ─── */
         .page-header {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
         }
 
         .brand-title {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 14px;
         }
 
-        .brand-title h1 {
-            font-size: 1.5rem;
-            color: var(--secondary-color);
+        .brand-title img {
+            height: 42px;
+            width: auto;
+        }
+
+        .brand-info h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
             margin: 0;
         }
 
-        .btn-back {
-            text-decoration: none;
-            color: var(--secondary-color);
-            background: #fff;
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+        .subject-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
             font-weight: 500;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s;
+            margin-top: 3px;
         }
 
-        .btn-back:hover {
-            background: #f8fafc;
-            transform: translateY(-1px);
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Dashboard Stats */
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: 40px;
+            padding: 0 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .btn-outline {
+            background: var(--surface);
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface-hover);
+            color: var(--text-main);
+            border-color: var(--border-strong);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        /* ─── DASHBOARD STATS GRID ─── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 14px;
         }
 
         .stat-card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            border-left: 4px solid transparent;
+            gap: 3px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
         }
 
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--border-strong);
+        }
+
+        .stat-card.primary::before { background: var(--primary); }
+        .stat-card.info::before { background: #3b82f6; }
+        .stat-card.success::before { background: #10b981; }
+        .stat-card.warning::before { background: #f59e0b; }
+        .stat-card.danger::before { background: #ef4444; }
+
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.05em;
         }
 
         .stat-value {
-            font-size: 1.8rem;
+            font-size: 1.55rem;
             font-weight: 700;
             color: var(--text-main);
+            line-height: 1.2;
         }
 
         .stat-sub {
             font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* ─── FILTER CONTROL CARD ─── */
+        .filter-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-form {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .form-field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 600;
             color: var(--text-muted);
-        }
-
-        .stat-card.primary {
-            border-left-color: var(--primary-color);
-        }
-
-        .stat-card.success {
-            border-left-color: var(--success);
-        }
-
-        .stat-card.danger {
-            border-left-color: var(--danger);
-        }
-
-        .stat-card.info {
-            border-left-color: #3b82f6;
-        }
-
-        /* Control Bar */
-        .control-bar {
-            background: #fff;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
+            white-space: nowrap;
         }
 
         .form-control {
-            padding: 8px 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 0.9rem;
+            height: 40px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
             color: var(--text-main);
+            background: #ffffff;
             outline: none;
+            transition: border-color 0.15s ease;
+            font-family: inherit;
         }
 
         .form-control:focus {
-            border-color: var(--primary-color);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15);
         }
 
-        .btn-apply {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 6px;
+        select.form-control {
             cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
         }
 
-        .btn-export {
-            text-decoration: none;
+        /* ─── DATA TABLE & ACTION TOOLBAR ─── */
+        .data-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        /* Table Action Header (Count + Export Buttons) */
+        .table-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            background: #ffffff;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .results-summary {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #10b981;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 500;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
         }
 
-        /* Table */
-        .data-card {
-            background: #fff;
+        .results-badge {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 2px 9px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .export-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-export-excel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: 38px;
+            padding: 0 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.825rem;
+            font-weight: 600;
+            text-decoration: none;
+            background: #16a34a;
+            color: #ffffff;
+            border: 1px solid #15803d;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-export-excel:hover {
+            background: #15803d;
+            box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+            color: #ffffff;
+        }
+
+        .btn-export-csv {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: 38px;
+            padding: 0 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.825rem;
+            font-weight: 600;
+            text-decoration: none;
+            background: #ffffff;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-strong);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-export-csv:hover {
+            background: var(--surface-hover);
+            color: var(--text-main);
+            border-color: #94a3b8;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 15px 20px;
             text-align: left;
-            border-bottom: 1px solid #f1f5f9;
         }
 
         th {
             background: #f8fafc;
-            color: var(--secondary-color);
+            color: var(--text-secondary);
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            color: var(--text-main);
+            vertical-align: middle;
         }
 
         tr:last-child td {
             border-bottom: none;
         }
 
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 10px;
-            background-color: #e2e8f0;
-            border-radius: 5px;
-            overflow: hidden;
-            /* Removed margin-top to ensure perfect flex centering */
+        tr:hover td {
+            background: var(--surface-hover);
         }
 
-        .progress-bar {
-            height: 100%;
-            border-radius: 5px;
-            transition: width 0.5s ease;
-        }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
+        .roll-num {
+            font-family: 'SFMono-Regular', Consolas, monospace;
             font-weight: 600;
-        }
-
-        .badge-danger {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        /* Mobile Optimization */
-        .mobile-attendance-list {
-            display: none;
-            padding: 15px;
-        }
-
-        .student-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .student-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        .student-info {
-            display: flex;
-            flex-direction: column;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
         .student-name {
             font-weight: 600;
             color: var(--text-main);
-            font-size: 1rem;
         }
 
-        .student-roll {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-family: monospace;
+        .batch-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
 
-        .attendance-progress {
-            margin-bottom: 15px;
+        .batch-pill.batch-a {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
         }
 
-        .attendance-stats-row {
+        .batch-pill.batch-b {
+            background: #faf5ff;
+            color: #7e22ce;
+            border-color: #e9d5ff;
+        }
+
+        /* Performance Cell & Progress Bar */
+        .perf-cell {
+            min-width: 220px;
+        }
+
+        .perf-flex {
             display: flex;
-            gap: 10px;
+            align-items: center;
+            gap: 14px;
         }
 
-        .stat-box {
+        .perf-val {
+            width: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .progress-track {
             flex: 1;
-            padding: 8px;
-            border-radius: 6px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-fill.safe { background-color: #22c55e; }
+        .progress-fill.warning { background-color: #f59e0b; }
+        .progress-fill.critical { background-color: #ef4444; }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .badge-safe {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .badge-warning {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+
+        .badge-critical {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+        }
+
+        /* ─── MOBILE CARD LIST VIEW ─── */
+        .mobile-list {
+            display: none;
+            padding: 12px;
+        }
+
+        .mobile-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+        }
+
+        .mobile-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .mobile-stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .mobile-stat-box {
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
             text-align: center;
         }
 
-        .stat-box.present {
-            background: #dcfce7;
-            color: #166534;
+        .mobile-stat-box.present {
+            background: var(--success-bg);
+            color: var(--success);
         }
 
-        .stat-box.absent {
-            background: #fee2e2;
-            color: #991b1b;
+        .mobile-stat-box.absent {
+            background: var(--danger-bg);
+            color: var(--danger);
         }
 
-        .stat-box .label {
-            display: block;
-            font-size: 0.75rem;
+        .mobile-stat-box .box-label {
+            font-size: 0.7rem;
             text-transform: uppercase;
-            font-weight: 600;
-            opacity: 0.8;
+            font-weight: 700;
+            opacity: 0.85;
+            display: block;
         }
 
-        .stat-box .value {
+        .mobile-stat-box .box-value {
             font-size: 1.1rem;
             font-weight: 700;
         }
 
+        /* ─── RESPONSIVE BREAKPOINTS (MOBILE FIRST UX) ─── */
         @media (max-width: 768px) {
-            .desktop-table-view {
+            body {
+                padding: 12px 10px;
+            }
+
+            .main-container {
+                gap: 12px;
+            }
+
+            .desktop-table {
                 display: none;
             }
 
-            .mobile-attendance-list {
+            .mobile-list {
                 display: block;
             }
 
+            /* Header Mobile Optimization */
             .page-header {
+                padding: 14px;
                 flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
+                align-items: stretch;
+                gap: 12px;
             }
 
-            .page-header>div:last-child {
+            .brand-title {
+                gap: 10px;
+            }
+
+            .brand-title img {
+                height: 36px;
+            }
+
+            .brand-info h1 {
+                font-size: 1.1rem;
+            }
+
+            .header-actions {
                 width: 100%;
-                justify-content: space-between;
+                display: flex;
+                gap: 6px;
             }
 
-            .btn-back {
+            .header-actions .btn {
                 flex: 1;
-                text-align: center;
-                padding: 10px;
+                height: 38px;
+                padding: 0 8px;
+                font-size: 0.8rem;
             }
 
-            .control-bar {
+            /* Dashboard Stats Mobile Optimization (2-Column Grid) */
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px 14px;
+            }
+
+            .stat-card.primary {
+                grid-column: span 2;
+            }
+
+            .stat-value {
+                font-size: 1.35rem;
+            }
+
+            /* Filter Form Mobile Grid Optimization */
+            .filter-card {
+                padding: 14px;
+            }
+
+            .filter-form {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .filter-form-full {
+                grid-column: span 2;
+            }
+
+            .form-field {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 15px;
+                gap: 4px;
             }
 
-            .filter-group {
+            .form-control {
+                width: 100% !important;
+                height: 40px;
+                font-size: 0.85rem;
+            }
+
+            .filter-btn-group {
+                grid-column: span 2;
+                display: flex;
+                gap: 8px;
+            }
+
+            .filter-btn-group .btn {
+                flex: 1;
+            }
+
+            /* Export Action Bar Mobile Optimization */
+            .table-action-bar {
+                padding: 12px 14px;
                 flex-direction: column;
                 align-items: stretch;
+                gap: 10px;
             }
 
-            .filter-group>div {
+            .results-summary {
                 justify-content: space-between;
             }
 
-            .form-control,
-            .btn-apply,
-            .btn-export {
-                width: 100% !important;
-                box-sizing: border-box;
+            .export-group {
+                width: 100%;
+                display: flex;
+                gap: 8px;
             }
 
-            .data-card {
-                background: transparent;
-                box-shadow: none;
+            .btn-export-excel,
+            .btn-export-csv {
+                flex: 1;
+                height: 40px;
+                font-size: 0.8rem;
+                padding: 0 8px;
             }
         }
     </style>
@@ -388,31 +703,36 @@
         <!-- Header -->
         <div class="page-header">
             <div class="brand-title">
-                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Logo"
-                    style="height: 45px;">
-                <div>
+                <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="Institutional Logo">
+                <div class="brand-info">
                     <h1>Attendance Report</h1>
-                    <span style="color: var(--text-muted); font-size: 0.9rem;">{{ subject.name }}
-                        ({{subject.code}})</span>
+                    <div class="subject-badge">
+                        <i class="ri-book-open-line"></i> {{ subject.name }} ({{ subject.code }})
+                    </div>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px;">
-                <a href="{% url 'staffs:staff_dashboard' %}" class="btn-back">Dashboard</a>
+            <div class="header-actions">
+                <a href="javascript:history.back()" class="btn btn-outline" onclick="if(document.referrer){history.back(); return false;}">
+                    <i class="ri-arrow-left-line"></i> Back
+                </a>
+                <a href="{% url 'staffs:staff_dashboard' %}" class="btn btn-outline">
+                    <i class="ri-dashboard-line"></i> Dashboard
+                </a>
                 {% if subject.staff == current_staff %}
-                <a href="{% url 'staffs:manage_attendance' subject.id %}" class="btn-back">Mark Attendance</a>
-                {% else %}
-                <a href="{% url 'staffs:manage_subjects' %}" class="btn-back">Back to Courses</a>
+                <a href="{% url 'staffs:manage_attendance' subject.id %}" class="btn btn-primary">
+                    <i class="ri-checkbox-line"></i> Mark
+                </a>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Dashboard Stats -->
+        <!-- Dashboard Stats (Optimized 2-Column Grid on Mobile) -->
         <div class="stats-grid">
             <div class="stat-card primary">
-                <span class="stat-label">Average</span>
+                <span class="stat-label">Average Performance</span>
                 <span class="stat-value">{{ stats.avg_attendance }}%</span>
-                <span class="stat-sub">Class Performance</span>
+                <span class="stat-sub">Overall Class Attendance</span>
             </div>
             <div class="stat-card info">
                 <span class="stat-label">Total Students</span>
@@ -420,72 +740,103 @@
                 <span class="stat-sub">Enrolled</span>
             </div>
             <div class="stat-card success">
-                <span class="stat-label">Safe (&gt;75%)</span>
+                <span class="stat-label">Safe (&ge;75%)</span>
                 <span class="stat-value">{{ stats.safe }}</span>
-                <span class="stat-sub">Students</span>
+                <span class="stat-sub">Regular</span>
             </div>
-            <div class="stat-card" style="border-left-color: #f59e0b;">
+            <div class="stat-card warning">
                 <span class="stat-label">Warning (60-75%)</span>
                 <span class="stat-value">{{ stats.warning }}</span>
-                <span class="stat-sub">Students</span>
+                <span class="stat-sub">Attention</span>
             </div>
             <div class="stat-card danger">
                 <span class="stat-label">Critical (&lt;60%)</span>
                 <span class="stat-value">{{ stats.critical }}</span>
-                <span class="stat-sub">Students</span>
+                <span class="stat-sub">Risk</span>
             </div>
         </div>
 
-        <!-- Control Bar -->
-        <form method="GET" class="control-bar">
-            <div class="filter-group">
-                <!-- Date Range -->
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">From:</span>
-                    <input type="date" name="start_date" value="{{ filters.start_date|default:'' }}"
-                        class="form-control">
+        <!-- Filter Control Card (Optimized Grid Layout) -->
+        <div class="filter-card">
+            <form method="GET" class="filter-form">
+                <!-- Search Input (Full width on mobile) -->
+                <div class="filter-form-full">
+                    <input type="text" name="q" value="{{ filters.q|default:'' }}" placeholder="Search name or roll..." class="form-control">
                 </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">To:</span>
+
+                <!-- Date Range (2 columns on mobile) -->
+                <div class="form-field">
+                    <span class="field-label">From</span>
+                    <input type="date" name="start_date" value="{{ filters.start_date|default:'' }}" class="form-control">
+                </div>
+                <div class="form-field">
+                    <span class="field-label">To</span>
                     <input type="date" name="end_date" value="{{ filters.end_date|default:'' }}" class="form-control">
                 </div>
 
-                <!-- Search -->
-                <input type="text" name="q" value="{{ filters.q|default:'' }}" placeholder="Search Name or Roll..."
-                    class="form-control" style="width: 200px;">
+                <!-- Batch & Status Selects (2 columns on mobile) -->
+                <div>
+                    <select name="batch" class="form-control">
+                        <option value="all" {% if filters.batch == 'all' or not filters.batch %}selected{% endif %}>Whole Class</option>
+                        <option value="A" {% if filters.batch == 'A' %}selected{% endif %}>Batch A</option>
+                        <option value="B" {% if filters.batch == 'B' %}selected{% endif %}>Batch B</option>
+                    </select>
+                </div>
+                <div>
+                    <select name="status" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="safe" {% if filters.status == 'safe' %}selected{% endif %}>Safe (&ge;75%)</option>
+                        <option value="warning" {% if filters.status == 'warning' %}selected{% endif %}>Warning (60-75%)</option>
+                        <option value="critical" {% if filters.status == 'critical' %}selected{% endif %}>Critical (&lt;60%)</option>
+                    </select>
+                </div>
 
-                <!-- Status Filter -->
-                <select name="status" class="form-control">
-                    <option value="">All Students</option>
-                    <option value="safe" {% if filters.status == 'safe' %}selected{% endif %}>Safe (&gt;75%)</option>
-                    <option value="warning" {% if filters.status == 'warning' %}selected{% endif %}>Warning (60-75%)
-                    </option>
-                    <option value="critical" {% if filters.status == 'critical' %}selected{% endif %}>Critical (&lt;60%)
-                    </option>
-                </select>
+                <!-- Filter Submit & Reset Buttons -->
+                <div class="filter-btn-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-filter-3-line"></i> Filter
+                    </button>
+                    {% if filters.start_date or filters.end_date or filters.q or filters.status or filters.batch and filters.batch != 'all' %}
+                    <a href="?" class="btn btn-outline" title="Clear Filters">
+                        <i class="ri-refresh-line"></i> Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
 
-                <button type="submit" class="btn-apply">Apply Filters</button>
+        <!-- Data Table Card -->
+        <div class="data-card">
+            <!-- Table Action Toolbar (Summary Count + Export Buttons) -->
+            <div class="table-action-bar">
+                <div class="results-summary">
+                    <div>
+                        <i class="ri-user-line" style="color: var(--primary);"></i>
+                        <span>Student Records</span>
+                    </div>
+                    <span class="results-badge">{{ summary_data|length }}</span>
+                </div>
+
+                <!-- Export Data Action Group -->
+                <div class="export-group">
+                    <a href="?{{ request.GET.urlencode }}&export=excel" class="btn-export-excel" title="Download Excel sheet with color-coded attendance statuses">
+                        <i class="ri-file-excel-2-line"></i> Excel (Colored)
+                    </a>
+                    <a href="?{{ request.GET.urlencode }}&export=csv" class="btn-export-csv" title="Download standard CSV file">
+                        <i class="ri-file-text-line"></i> CSV
+                    </a>
+                </div>
             </div>
 
-            <!-- Export -->
-            <a href="?{{ request.GET.urlencode }}&export=true" class="btn-export">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                Export CSV
-            </a>
-        </form>
-
-        <!-- Data Table -->
-        <div class="data-card">
-            <div class="desktop-table-view">
+            <!-- Desktop Table View -->
+            <div class="table-wrapper desktop-table">
                 <table>
                     <thead>
                         <tr>
                             <th>Roll Number</th>
                             <th>Student Name</th>
-                            <th>Performance</th> <!-- Combined Bar + % -->
+                            <th>Batch</th>
+                            <th>Performance</th>
                             <th>Present</th>
                             <th>Absent</th>
                             <th>Status</th>
@@ -494,40 +845,45 @@
                     <tbody>
                         {% for data in summary_data %}
                         <tr>
-                            <td style="font-weight: 500; font-family: monospace; font-size: 0.95rem;">
-                                {{data.student.roll_number }}</td>
+                            <td class="roll-num">{{ data.student.roll_number }}</td>
                             <td>
-                                <div style="font-weight: 500;">{{ data.student.student_name }}</div>
+                                <div class="student-name">{{ data.student.student_name }}</div>
                             </td>
-                            <td style="width: 320px;">
-                                <div style="display: flex; align-items: center; gap: 14px;">
-                                    <span
-                                        style="width: 60px; text-align: right; font-weight: 700; color: {% if data.category == 'safe' %}#166534{% elif data.category == 'warning' %}#b45309{% else %}#b91c1c{% endif %}">
+                            <td>
+                                {% if data.student.lab_batch == 'A' %}
+                                <span class="batch-pill batch-a">Batch A</span>
+                                {% elif data.student.lab_batch == 'B' %}
+                                <span class="batch-pill batch-b">Batch B</span>
+                                {% else %}
+                                <span class="batch-pill">{{ data.student.lab_batch|default:"General" }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="perf-cell">
+                                <div class="perf-flex">
+                                    <span class="perf-val" style="color: {% if data.category == 'safe' %}var(--success){% elif data.category == 'warning' %}var(--warning){% else %}var(--danger){% endif %}">
                                         {{ data.percentage }}%
                                     </span>
-                                    <div class="progress-container">
-                                        <div class="progress-bar"
-                                            style="width: {{ data.percentage }}%; background-color: {% if data.category == 'safe' %}#22c55e{% elif data.category == 'warning' %}#f59e0b{% else %}#ef4444{% endif %};">
-                                        </div>
+                                    <div class="progress-track">
+                                        <div class="progress-fill {{ data.category }}" style="width: {{ data.percentage }}%;"></div>
                                     </div>
                                 </div>
                             </td>
-
-                            <td style="color: #10b981; font-weight: 600;">{{ data.present }}</td>
-                            <td style="color: #ef4444; font-weight: 600;">{{ data.absent }}</td>
+                            <td style="color: var(--success); font-weight: 700;">{{ data.present }}</td>
+                            <td style="color: var(--danger); font-weight: 700;">{{ data.absent }}</td>
                             <td>
                                 {% if data.category == 'safe' %}
-                                <span class="badge badge-success">Safe</span>
+                                <span class="badge badge-safe"><i class="ri-checkbox-circle-line"></i> Safe</span>
                                 {% elif data.category == 'warning' %}
-                                <span class="badge" style="background: #fef3c7; color: #92400e;">Warning</span>
+                                <span class="badge badge-warning"><i class="ri-alert-line"></i> Warning</span>
                                 {% else %}
-                                <span class="badge badge-danger">Critical</span>
+                                <span class="badge badge-critical"><i class="ri-error-warning-line"></i> Critical</span>
                                 {% endif %}
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <td colspan="7" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                                <i class="ri-inbox-archive-line" style="font-size: 2.2rem; display: block; margin-bottom: 8px; color: #cbd5e1;"></i>
                                 No students found matching your filters.
                             </td>
                         </tr>
@@ -536,67 +892,78 @@
                 </table>
             </div>
 
-            <!-- Mobile Card View -->
-            <div class="mobile-attendance-list">
+            <!-- Mobile Card View (Optimized for Mobile UX) -->
+            <div class="mobile-list">
                 {% for data in summary_data %}
-                <div class="student-card">
-                    <div class="student-header">
-                        <div class="student-info">
-                            <span class="student-name">{{ data.student.student_name }}</span>
-                            <span class="student-roll">{{ data.student.roll_number }}</span>
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div>
+                            <div class="student-name">{{ data.student.student_name }}</div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
+                                <span class="roll-num">{{ data.student.roll_number }}</span>
+                                {% if data.student.lab_batch == 'A' %}
+                                <span class="batch-pill batch-a">Batch A</span>
+                                {% elif data.student.lab_batch == 'B' %}
+                                <span class="batch-pill batch-b">Batch B</span>
+                                {% else %}
+                                <span class="batch-pill">{{ data.student.lab_batch|default:"General" }}</span>
+                                {% endif %}
+                            </div>
                         </div>
                         {% if data.category == 'safe' %}
-                        <span class="badge badge-success">Safe</span>
+                        <span class="badge badge-safe">Safe</span>
                         {% elif data.category == 'warning' %}
-                        <span class="badge" style="background: #fef3c7; color: #92400e;">Warning</span>
+                        <span class="badge badge-warning">Warning</span>
                         {% else %}
-                        <span class="badge badge-danger">Critical</span>
+                        <span class="badge badge-critical">Critical</span>
                         {% endif %}
                     </div>
 
-                    <div class="attendance-progress">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">Attendance</span>
-                            <span
-                                style="font-weight: 700; color: {% if data.category == 'safe' %}#166534{% elif data.category == 'warning' %}#b45309{% else %}#b91c1c{% endif %}">{{data.percentage }}%</span>
+                    <div style="margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px;">
+                            <span style="color: var(--text-muted); font-weight: 500;">Attendance</span>
+                            <span style="font-weight: 700; color: {% if data.category == 'safe' %}var(--success){% elif data.category == 'warning' %}var(--warning){% else %}var(--danger){% endif %}">
+                                {{ data.percentage }}%
+                            </span>
                         </div>
-                        <div class="progress-container">
-                            <div class="progress-bar"
-                                style="width: {{ data.percentage }}%; background-color: {% if data.category == 'safe' %}#22c55e{% elif data.category == 'warning' %}#f59e0b{% else %}#ef4444{% endif %};">
-                            </div>
+                        <div class="progress-track">
+                            <div class="progress-fill {{ data.category }}" style="width: {{ data.percentage }}%;"></div>
                         </div>
                     </div>
 
-                    <div class="attendance-stats-row">
-                        <div class="stat-box present">
-                            <span class="label">Present</span>
-                            <span class="value">{{ data.present }}</span>
+                    <div class="mobile-stats-row">
+                        <div class="mobile-stat-box present">
+                            <span class="box-label">Present</span>
+                            <span class="box-value">{{ data.present }}</span>
                         </div>
-                        <div class="stat-box absent">
-                            <span class="label">Absent</span>
-                            <span class="value">{{ data.absent }}</span>
+                        <div class="mobile-stat-box absent">
+                            <span class="box-label">Absent</span>
+                            <span class="box-value">{{ data.absent }}</span>
                         </div>
                     </div>
                 </div>
                 {% empty %}
-                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <div style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                    <i class="ri-inbox-archive-line" style="font-size: 2.2rem; display: block; margin-bottom: 8px; color: #cbd5e1;"></i>
                     No students found matching your filters.
                 </div>
                 {% endfor %}
             </div>
         </div>
 
+        <!-- Working Dates Drawer (Mobile Responsive Position) -->
         {% if working_dates %}
-        <div style="margin-top: 20px; text-align: right;">
-            <details style="display: inline-block; text-align: left;">
-                <summary style="cursor: pointer; color: #64748b; font-size: 0.9rem;">View Working Dates
-                    ({{total_working_days }})</summary>
-                <div
-                    style="margin-top: 10px; max-width: 400px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; position: absolute; right: 20px;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <div style="text-align: right; margin-top: 4px;">
+            <details style="display: inline-block; text-align: left; position: relative; width: 100%; max-width: 360px;">
+                <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.825rem; font-weight: 500; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between;">
+                    <span><i class="ri-calendar-event-line"></i> View Working Dates</span>
+                    <span style="font-weight: 700; color: var(--primary-dark);">{{ total_working_days }} Days</span>
+                </summary>
+                <div style="margin-top: 8px; width: 100%; background: var(--surface); padding: 14px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: 1px solid var(--border); z-index: 100;">
+                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Conducted Class Dates</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 180px; overflow-y: auto;">
                         {% for date in working_dates %}
-                        <span
-                            style="background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: #475569;">{{date|date:"d M" }}</span>
+                        <span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border);">{{ date|date:"d M Y" }}</span>
                         {% endfor %}
                     </div>
                 </div>

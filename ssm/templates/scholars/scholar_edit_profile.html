@@ -3,120 +3,392 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Scholar Profile - {{ student.student_name }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" type="image/png">
-    <link rel="stylesheet" href="{% static 'css/student_style.css' %}">
+    <title>Edit Scholar Profile | {{ student.student_name }}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link rel="icon" href="{% static 'imgs/annamalai.png' %}" />
+
     <style>
         :root {
-            --input-margin: 14px;
-        }
-        .main-content { gap: 15px; }
-        .card { padding: 20px; margin-bottom: 15px; }
-        .card-title { font-size: 1.05em; border-bottom-width: 1px; margin-bottom: 15px; padding-bottom: 8px; }
-        
-        /* Compact Grids */
-        .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        
-        .input-group { margin-bottom: var(--input-margin); }
-        .input-group label { font-size: 0.85em; margin-bottom: 4px; }
-        .input-group input, .input-group select, .input-group textarea { padding: 8px 12px; font-size: 0.95em; }
-        
-        .form-grid-full { width: 100%; display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .input-group textarea { min-height: 80px; }
-        
-        .profile-sidebar { width: 260px; }
-        
-        @media (max-width: 1200px) {
-            .form-grid-4 { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (max-width: 992px) {
-            .form-grid-3, .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .form-grid-2, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; }
+            --primary: #5a7d7c;
+            --primary-hover: #4a6b69;
+            --primary-active: #405e5c;
+            --primary-light: rgba(90, 125, 124, 0.12);
+            --primary-surface: rgba(90, 125, 124, 0.12);
+            --gold: #c5a059;
+            --gold-surface: rgba(197, 160, 89, 0.12);
+            --bg-body: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --text-main: #0f172a;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --font-main: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
         }
 
-        .current-file { font-size: 0.8em; margin-top: 5px; }
-        .button-group { margin-top: 20px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        .skill-tag { font-size: 0.9em; padding: 4px 10px; }
-        .project-item { padding: 12px; }
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-primary); 
+            line-height: 1.6; 
+            font-family: var(--font-main);
+            padding-bottom: 60px;
+        }
+        
+        /* Sleek Institutional Navbar */
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            border-top: 4px solid var(--primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .nav-brand { display: flex; align-items: center; gap: 14px; }
+        .nav-brand img { height: 40px; }
+        .nav-brand div h1 { font-size: 17px; font-weight: 700; color: var(--text-main); line-height: 1.2; letter-spacing: -0.3px; }
+        .nav-brand div p { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;}
+
+        .nav-user { display: flex; align-items: center; gap: 14px; }
+        .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm); text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+        .back-btn:hover { background: var(--surface-hover, #f1f5f9); border-color: var(--primary); color: var(--primary); }
+
+        /* Main Container Layout */
+        .container { max-width: 1350px; margin: 0 auto; padding: 24px 20px; }
+
+        .edit-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Sidebar Navigation Card */
+        .sidebar-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            position: sticky;
+            top: 80px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .scholar-avatar-box {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .scholar-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-light);
+            margin: 0 auto 12px;
+            display: block;
+        }
+
+        .scholar-initials {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0 auto 12px;
+        }
+
+        .sidebar-scholar-name { font-size: 16px; font-weight: 700; color: var(--text-main); line-height: 1.3; }
+        .sidebar-scholar-roll { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 2px; }
+
+        .sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background: var(--primary-surface);
+            color: var(--primary);
+        }
+        .sidebar-nav a i { font-size: 16px; }
+
+        /* Form Card */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 26px 28px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            scroll-margin-top: 90px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.2px;
+        }
+
+        .card-title i { color: var(--primary); font-size: 20px; }
+
+        /* Form Controls */
+        .form-grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .form-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+        .form-group { margin-bottom: 4px; }
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: var(--font-main);
+            color: var(--text-main);
+            background: var(--surface);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-surface);
+        }
+
+        textarea.form-control { min-height: 80px; resize: vertical; }
+
+        /* Select2 Custom Styling */
+        .select2-container--default .select2-selection--single {
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-sm) !important;
+            height: 38px !important;
+            padding: 4px 8px !important;
+            font-family: var(--font-main) !important;
+            font-size: 13px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: var(--text-main) !important;
+            line-height: 28px !important;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+        .btn-outline { background: transparent; border-color: var(--border); color: var(--text-primary); }
+        .btn-outline:hover { background: var(--bg-body); border-color: var(--primary); color: var(--primary); }
+
+        /* File Upload Box */
+        .doc-upload-item {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+        }
+        .doc-title { font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Sticky Bottom Bar */
+        .sticky-actions-bar {
+            position: sticky;
+            bottom: 0;
+            background: #ffffff;
+            border-top: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 90;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+            border-radius: var(--radius-lg);
+        }
+
+        @media (max-width: 992px) {
+            .edit-layout { grid-template-columns: 1fr; }
+            .sidebar-card { position: relative; top: 0; }
+            .form-grid-3, .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .form-grid-2, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; }
+            .sticky-actions-bar { flex-direction: column; gap: 10px; }
+            .sticky-actions-bar .btn { width: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        
-        <aside class="profile-sidebar no-print">
-            {% if student.studentdocuments.student_photo %}
-            <img src="{{ student.studentdocuments.student_photo.url }}" alt="Student Photo" class="profile-photo" style="width: 100px; height: 100px;">
-            {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ student.student_name|urlencode }}&background=5a7d7c&color=fff&size=200" alt="Profile Photo" class="profile-photo" style="width: 100px; height: 100px;">
-            {% endif %}
 
-            <div class="profile-name" style="font-size: 1.2em;">{{ student.student_name }}</div>
-            <div class="profile-meta">{{ student.roll_number }}</div>
-
-            <div style="margin-top: 15px;">
-                <a href="{% url 'scholar_profile' %}" class="action-btn" style="width: 100%; padding: 8px; font-size: 0.9em; display: block; text-align: center; box-sizing: border-box; background-color: var(--secondary-bg); color: var(--text-primary); border: 1px solid var(--border-color);">
-                    ← Back to Profile
-                </a>
+    <!-- Top Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="https://res.cloudinary.com/deocom5lr/image/upload/v1754117176/annamalai_kuoh1j.png" alt="AU Logo">
+            <div>
+                <h1>Annamalai University</h1>
+                <p>Research Scholar Portal</p>
             </div>
-        </aside>
+        </div>
+        <div class="nav-user">
+            <a href="{% url 'scholar_profile' %}" class="back-btn">
+                <i class="ri-arrow-left-line"></i> Back to Profile
+            </a>
+        </div>
+    </nav>
 
-        <main class="main-content">
-            <header class="page-header no-print" style="padding: 12px 20px;">
-                <div class="title-group">
-                    <h1 style="font-size: 1.3em;">Edit Profile</h1>
-                </div>
-                <div class="header-actions">
-                    <button type="submit" form="editProfileForm" class="action-btn btn-primary" style="padding: 8px 20px;">💾 Save</button>
-                </div>
-            </header>
+    <div class="container">
+        
+        <!-- Django Messages -->
+        {% if messages %}
+        <div style="margin-bottom: 24px;">
+            {% for message in messages %}
+            <div style="padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border-left: 4px solid {% if message.tags == 'error' %}#ef4444; background: #fee2e2; color: #991b1b;{% else %}#059669; background: #d1fae5; color: #065f46;{% endif %}">
+                <i class="ri-{% if message.tags == 'error' %}error-warning-line{% else %}checkbox-circle-line{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-            <form id="editProfileForm" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
+        <form id="editScholarProfileForm" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="edit-layout">
                 
-                <div class="main-content">
+                <!-- Left Sidebar Navigation -->
+                <aside class="sidebar-card">
+                    <div class="scholar-avatar-box">
+                        {% if studentdocuments.student_photo %}
+                            <img src="{{ studentdocuments.student_photo.url }}" alt="{{ student.student_name }}" class="scholar-img">
+                        {% else %}
+                            <div class="scholar-initials">{{ student.student_name|make_list|first }}</div>
+                        {% endif %}
+                        <div class="sidebar-scholar-name">{{ student.student_name }}</div>
+                        <div class="sidebar-scholar-roll">{{ student.roll_number }}</div>
+                    </div>
+
+                    <nav class="sidebar-nav">
+                        <a href="#sec-personal" class="active"><i class="ri-user-settings-line"></i> Personal Info</a>
+                        <a href="#sec-parent"><i class="ri-parent-line"></i> Parent & Guardian</a>
+                        <a href="#sec-bank"><i class="ri-bank-card-line"></i> Bank Details</a>
+                        <a href="#sec-academic"><i class="ri-graduation-cap-line"></i> Academic History</a>
+                        <a href="#sec-skills"><i class="ri-lightbulb-line"></i> Skills & Projects</a>
+                        <a href="#sec-documents"><i class="ri-file-upload-line"></i> Upload Documents</a>
+                    </nav>
+                </aside>
+
+                <!-- Right Form Content -->
+                <div>
                     
-                    <!-- Basic & Personal -->
-                    <div class="card">
-                        <h2 class="card-title">👤 Basic & Personal</h2>
+                    <!-- 1. PERSONAL INFORMATION -->
+                    <div class="card" id="sec-personal">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="ri-user-settings-line"></i> Personal & Identification Details</h2>
+                        </div>
+
                         <div class="form-grid-3">
-                            <div class="input-group">
-                                <label for="student_email">Email Address *</label>
-                                <input type="email" id="student_email" name="student_email" value="{{ student.student_email|default:'' }}" required>
+                            <div class="form-group">
+                                <label class="form-label" for="student_email">Email Address *</label>
+                                <input type="email" class="form-control" id="student_email" name="student_email" value="{{ student.student_email|default:'' }}" required>
                             </div>
-                            <div class="input-group">
-                                <label for="student_mobile">Mobile Number</label>
-                                <input type="tel" id="student_mobile" name="student_mobile" value="{{ personalinfo.student_mobile|default:'' }}" maxlength="10">
+                            <div class="form-group">
+                                <label class="form-label" for="student_mobile">Mobile Number</label>
+                                <input type="tel" class="form-control" id="student_mobile" name="student_mobile" value="{{ personalinfo.student_mobile|default:'' }}" maxlength="15">
                             </div>
-                            <div class="input-group">
-                                <label for="date_of_birth">Date of Birth</label>
-                                <input type="date" id="date_of_birth" name="date_of_birth" value="{{ personalinfo.date_of_birth|date:'Y-m-d' }}">
+                            <div class="form-group">
+                                <label class="form-label" for="date_of_birth">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ personalinfo.date_of_birth|date:'Y-m-d' }}">
                             </div>
                         </div>
 
-                        <div class="form-grid-4" style="margin-top: 5px;">
-                            <div class="input-group">
-                                <label for="gender">Gender</label>
-                                <select name="gender" id="gender">
-                                    <option value="">Select</option>
+                        <div class="form-grid-4" style="margin-top: 14px;">
+                            <div class="form-group">
+                                <label class="form-label" for="gender">Gender</label>
+                                <select name="gender" id="gender" class="form-control">
+                                    <option value="">Select Gender</option>
                                     <option value="Male" {% if personalinfo.gender == 'Male' %}selected{% endif %}>Male</option>
                                     <option value="Female" {% if personalinfo.gender == 'Female' %}selected{% endif %}>Female</option>
                                     <option value="Other" {% if personalinfo.gender == 'Other' %}selected{% endif %}>Other</option>
                                 </select>
                             </div>
-                            <div class="input-group">
-                                <label for="blood_group">Blood Group</label>
-                                <input type="text" name="blood_group" id="blood_group" value="{{ personalinfo.blood_group|default:'' }}">
+                            <div class="form-group">
+                                <label class="form-label" for="blood_group">Blood Group</label>
+                                <input type="text" class="form-control" name="blood_group" id="blood_group" value="{{ personalinfo.blood_group|default:'' }}" placeholder="e.g. O+">
                             </div>
-                            <div class="input-group">
-                                <label for="community">Community</label>
-                                <select name="community" id="community" class="form-control" required>
+                            <div class="form-group">
+                                <label class="form-label" for="religion">Religion</label>
+                                <input type="text" class="form-control" name="religion" id="religion" value="{{ personalinfo.religion|default:'' }}" placeholder="e.g. Hindu">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="community">Community</label>
+                                <select name="community" id="community" class="form-control">
                                     <option value="">-- Select Community --</option>
                                     <option value="OC" {% if personalinfo.community == "OC" %}selected{% endif %}>OC</option>
                                     <option value="BC" {% if personalinfo.community == "BC" %}selected{% endif %}>BC</option>
@@ -126,246 +398,380 @@
                                     <option value="BC MUSLIM" {% if personalinfo.community == "BC MUSLIM" %}selected{% endif %}>BC-Muslim</option>
                                 </select>
                             </div>
-                            <div class="input-group">
-                                <label for="caste">Caste</label>
-                                <select name="caste" id="caste" class="form-control" required 
-                                        data-current="{{ personalinfo.caste.name|default:'' }}"></select>
+                        </div>
+
+                        <div class="form-grid-3" style="margin-top: 14px;">
+                            <div class="form-group">
+                                <label class="form-label" for="caste">Caste</label>
+                                <select name="caste" id="caste" class="form-control" data-current="{{ personalinfo.caste.name|default:'' }}"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="caste_other">Caste (Other / Specific)</label>
+                                <input type="text" class="form-control" id="caste_other" name="caste_other" value="{{ personalinfo.caste_other|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="aadhaar_number">Aadhaar Number</label>
+                                <input type="text" class="form-control" id="aadhaar_number" name="aadhaar_number" value="{{ personalinfo.aadhaar_number|default:'' }}" maxlength="12">
                             </div>
                         </div>
 
-                        <div class="form-grid" style="margin-top: 5px;">
-                             <div class="input-group">
-                                <label for="aadhaar_number">Aadhaar Number</label>
-                                <input type="text" id="aadhaar_number" name="aadhaar_number" value="{{ personalinfo.aadhaar_number|default:'' }}" maxlength="12">
-                            </div>
-                            <div class="input-group" style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                                <label style="font-weight: 600; color: var(--accent-color); margin-bottom: 5px; font-size: 0.8em;">Hostel Status</label>
-                                <div style="display: flex; gap: 20px; align-items: center;">
-                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em;">
-                                        <input type="radio" name="is_hosteler" value="yes" {% if personalinfo.is_hosteler %}checked{% endif %}> Hosteler
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em;">
-                                        <input type="radio" name="is_hosteler" value="no" {% if not personalinfo.is_hosteler %}checked{% endif %}> Day Scholar
-                                    </label>
-                                </div>
+                        <div class="form-group" style="margin-top: 14px; background: var(--bg-body); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                            <label class="form-label" style="margin-bottom: 6px;">Hostel Accommodation Status</label>
+                            <div style="display: flex; gap: 24px; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                                    <input type="radio" name="is_hosteler" value="yes" {% if personalinfo.is_hosteler %}checked{% endif %}> Hosteler
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                                    <input type="radio" name="is_hosteler" value="no" {% if not personalinfo.is_hosteler %}checked{% endif %}> Day Scholar
+                                </label>
                             </div>
                         </div>
 
-                        <div class="form-grid-2" style="margin-top: 5px;">
-                            <div class="input-group">
-                                <label for="present_address">Present Address</label>
-                                <textarea id="present_address" name="present_address">{{ personalinfo.present_address|default:'' }}</textarea>
+                        <div class="form-grid-2" style="margin-top: 14px;">
+                            <div class="form-group">
+                                <label class="form-label" for="present_address">Present Address</label>
+                                <textarea class="form-control" id="present_address" name="present_address">{{ personalinfo.present_address|default:'' }}</textarea>
                             </div>
-                            <div class="input-group">
-                                <label for="permanent_address">Permanent Address</label>
-                                <textarea id="permanent_address" name="permanent_address">{{ personalinfo.permanent_address|default:'' }}</textarea>
+                            <div class="form-group">
+                                <label class="form-label" for="permanent_address">Permanent Address</label>
+                                <textarea class="form-control" id="permanent_address" name="permanent_address">{{ personalinfo.permanent_address|default:'' }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Parent & Academic -->
-                    <div style="display: flex; flex-direction: column; gap: 24px;">
-                        <div class="card">
-                            <h2 class="card-title">👨‍👩 Parent Info</h2>
-                            <div class="form-grid-3">
-                                <div class="input-group"><label>Father's Name</label><input type="text" name="father_name" value="{{ personalinfo.father_name|default:'' }}"></div>
-                                <div class="input-group"><label>Father's Mobile</label><input type="tel" name="father_mobile" value="{{ personalinfo.father_mobile|default:'' }}"></div>
-                                <div class="input-group"><label>Annual Income (Rs)</label><input type="number" name="parent_annual_income" value="{{ personalinfo.parent_annual_income|default:'' }}"></div>
-                                <div class="input-group"><label>Mother's Name</label><input type="text" name="mother_name" value="{{ personalinfo.mother_name|default:'' }}"></div>
-                                <div class="input-group"><label>Mother's Mobile</label><input type="tel" name="mother_mobile" value="{{ personalinfo.mother_mobile|default:'' }}"></div>
+                    <!-- 2. PARENT INFORMATION -->
+                    <div class="card" id="sec-parent">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="ri-parent-line"></i> Parent & Guardian Details</h2>
+                        </div>
+
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label class="form-label">Father's Name</label>
+                                <input type="text" class="form-control" name="father_name" value="{{ personalinfo.father_name|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Father's Mobile</label>
+                                <input type="tel" class="form-control" name="father_mobile" value="{{ personalinfo.father_mobile|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Father's Occupation</label>
+                                <input type="text" class="form-control" name="father_occupation" value="{{ personalinfo.father_occupation|default:'' }}" placeholder="e.g. Engineer, Business">
                             </div>
                         </div>
 
-                        <div class="card">
-                            <h2 class="card-title">🎓 Academic History</h2>
-                            <div style="margin-bottom: 10px;">
-                                <div class="form-grid-3">
-                                    <div class="input-group"><label>SSLC %</label><input type="number" step="0.01" name="sslc_percentage" value="{{ academichistory.sslc_percentage|default:'' }}"></div>
-                                    <div class="input-group"><label>SSLC Year</label><input type="text" name="sslc_year_of_passing" value="{{ academichistory.sslc_year_of_passing|default:'' }}"></div>
-                                    <div class="input-group" style="grid-column: span 3;"><label>SSLC School Name</label><input type="text" name="sslc_school_name" value="{{ academichistory.sslc_school_name|default:'' }}"></div>
-                                    <div class="input-group" style="grid-column: span 3;"><label>SSLC School Address</label><input type="text" name="sslc_school_address" value="{{ academichistory.sslc_school_address|default:'' }}"></div>
-                                </div>
-                             </div>
-                             <div style="margin-bottom: 10px;">
-                                <div class="form-grid-3">
-                                    <div class="input-group"><label>HSC %</label><input type="number" step="0.01" name="hsc_percentage" value="{{ academichistory.hsc_percentage|default:'' }}"></div>
-                                    <div class="input-group"><label>HSC Year</label><input type="text" name="hsc_year_of_passing" value="{{ academichistory.hsc_year_of_passing|default:'' }}"></div>
-                                    <div class="input-group" style="grid-column: span 3;"><label>HSC School Name</label><input type="text" name="hsc_school_name" value="{{ academichistory.hsc_school_name|default:'' }}"></div>
-                                    <div class="input-group" style="grid-column: span 3;"><label>HSC School Address</label><input type="text" name="hsc_school_address" value="{{ academichistory.hsc_school_address|default:'' }}"></div>
-                                </div>
-                             </div>
-                             
-                             <div style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 15px; margin-bottom: 10px; color: #64748b; font-weight: 600; font-size: 14px;">Undergraduate (UG) Details</div>
-                             <div class="form-grid-3">
-                                 <div class="input-group" style="grid-column: span 2;"><label>UG College Name</label><input type="text" name="ug_college_name" value="{{ ug.ug_college_name|default:'' }}"></div>
-                                 <div class="input-group"><label>UG Degree / Specialization</label><input type="text" name="ug_course" value="{{ ug.ug_course|default:'' }}"></div>
-                                 <div class="input-group" style="grid-column: span 3;"><label>UG College Address</label><input type="text" name="ug_college_address" value="{{ ug.ug_college_address|default:'' }}"></div>
-                                 <div class="input-group"><label>UG University</label><input type="text" name="ug_university" value="{{ ug.ug_university|default:'' }}"></div>
-                                 <div class="input-group"><label>UG Passing Year</label><input type="text" name="ug_year_of_passing" value="{{ ug.ug_year_of_passing|default:'' }}"></div>
-                                 <div class="input-group"><label>UG Percentage / OGPA</label><input type="number" step="0.01" name="ug_percentage" value="{{ ug.ug_ogpa|default:'' }}"></div>
-                             </div>
-                             
-                             <div style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 15px; margin-bottom: 10px; color: #64748b; font-weight: 600; font-size: 14px;">Postgraduate (PG) Details</div>
-                             <div class="form-grid-3">
-                                 <div class="input-group" style="grid-column: span 2;"><label>PG College Name</label><input type="text" name="pg_college_name" value="{{ pg.pg_college_name|default:'' }}"></div>
-                                 <div class="input-group"><label>PG Degree / Specialization</label><input type="text" name="pg_course" value="{{ pg.pg_course|default:'' }}"></div>
-                                 <div class="input-group" style="grid-column: span 3;"><label>PG College Address</label><input type="text" name="pg_college_address" value="{{ pg.pg_college_address|default:'' }}"></div>
-                                 <div class="input-group"><label>PG University</label><input type="text" name="pg_university" value="{{ pg.pg_university|default:'' }}"></div>
-                                 <div class="input-group"><label>PG Passing Year</label><input type="text" name="pg_year_of_passing" value="{{ pg.pg_year_of_passing|default:'' }}"></div>
-                                 <div class="input-group"><label>PG Percentage / OGPA</label><input type="number" step="0.01" name="pg_percentage" value="{{ pg.pg_ogpa|default:'' }}"></div>
-                             </div>
+                        <div class="form-grid-3" style="margin-top: 14px;">
+                            <div class="form-group">
+                                <label class="form-label">Mother's Name</label>
+                                <input type="text" class="form-control" name="mother_name" value="{{ personalinfo.mother_name|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mother's Mobile</label>
+                                <input type="tel" class="form-control" name="mother_mobile" value="{{ personalinfo.mother_mobile|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mother's Occupation</label>
+                                <input type="text" class="form-control" name="mother_occupation" value="{{ personalinfo.mother_occupation|default:'' }}" placeholder="e.g. Teacher, Homemaker">
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2" style="margin-top: 14px;">
+                            <div class="form-group">
+                                <label class="form-label">Parent Annual Income (₹)</label>
+                                <input type="number" class="form-control" name="parent_annual_income" value="{{ personalinfo.parent_annual_income|default:'' }}" placeholder="e.g. 250000">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Skills, Projects & Docs -->
-                    <div class="card" id="skills">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h2 class="card-title" style="margin: 0; border: none; padding: 0;">💡 Skills & Projects</h2>
-                            <button type="button" class="btn btn-outline" style="padding: 5px 15px; font-size: 0.85em;" onclick="toggleProjectForm()">+ Add Project</button>
+                    <!-- 3. BANK DETAILS -->
+                    <div class="card" id="sec-bank">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="ri-bank-card-line"></i> Bank Account Information</h2>
                         </div>
-                        
+
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label class="form-label">Account Holder Name</label>
+                                <input type="text" class="form-control" name="bank_account_holder_name" value="{{ bankdetails.account_holder_name|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Account Number</label>
+                                <input type="text" class="form-control" name="bank_account_number" value="{{ bankdetails.account_number|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Bank Name</label>
+                                <input type="text" class="form-control" name="bank_name" value="{{ bankdetails.bank_name|default:'' }}" placeholder="e.g. State Bank of India">
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2" style="margin-top: 14px;">
+                            <div class="form-group">
+                                <label class="form-label">Branch Name</label>
+                                <input type="text" class="form-control" name="bank_branch_name" value="{{ bankdetails.branch_name|default:'' }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" name="bank_ifsc_code" value="{{ bankdetails.ifsc_code|default:'' }}" placeholder="e.g. SBIN0001234">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. ACADEMIC HISTORY -->
+                    <div class="card" id="sec-academic">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="ri-graduation-cap-line"></i> Academic History & Prior Degrees</h2>
+                        </div>
+
+                        <!-- Secondary School (SSLC) -->
+                        <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.6px;">
+                            SSLC (10th Standard) Details
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group"><label class="form-label">Percentage (%)</label><input type="number" step="0.01" class="form-control" name="sslc_percentage" value="{{ academichistory.sslc_percentage|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">Year of Passing</label><input type="text" class="form-control" name="sslc_year_of_passing" value="{{ academichistory.sslc_year_of_passing|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">School Name</label><input type="text" class="form-control" name="sslc_school_name" value="{{ academichistory.sslc_school_name|default:'' }}"></div>
+                        </div>
+                        <div class="form-grid-1" style="margin-top: 10px;">
+                            <div class="form-group"><label class="form-label">School Address</label><input type="text" class="form-control" name="sslc_school_address" value="{{ academichistory.sslc_school_address|default:'' }}"></div>
+                        </div>
+
+                        <!-- Higher Secondary (HSC) -->
+                        <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-top: 20px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.6px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                            HSC (12th Standard) Details
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group"><label class="form-label">Percentage (%)</label><input type="number" step="0.01" class="form-control" name="hsc_percentage" value="{{ academichistory.hsc_percentage|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">Year of Passing</label><input type="text" class="form-control" name="hsc_year_of_passing" value="{{ academichistory.hsc_year_of_passing|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">School Name</label><input type="text" class="form-control" name="hsc_school_name" value="{{ academichistory.hsc_school_name|default:'' }}"></div>
+                        </div>
+                        <div class="form-grid-1" style="margin-top: 10px;">
+                            <div class="form-group"><label class="form-label">School Address</label><input type="text" class="form-control" name="hsc_school_address" value="{{ academichistory.hsc_school_address|default:'' }}"></div>
+                        </div>
+
+                        <!-- Undergraduate (UG) -->
+                        <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-top: 20px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.6px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                            Undergraduate (UG) Degree
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group"><label class="form-label">Degree / Specialization</label><input type="text" class="form-control" name="ug_course" value="{{ ug.ug_course|default:'' }}" placeholder="e.g. B.E. Computer Science"></div>
+                            <div class="form-group"><label class="form-label">College Name</label><input type="text" class="form-control" name="ug_college_name" value="{{ ug.ug_college_name|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">University</label><input type="text" class="form-control" name="ug_university" value="{{ ug.ug_university|default:'' }}"></div>
+                        </div>
+                        <div class="form-grid-3" style="margin-top: 10px;">
+                            <div class="form-group"><label class="form-label">Passing Year</label><input type="text" class="form-control" name="ug_year_of_passing" value="{{ ug.ug_year_of_passing|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">Percentage / OGPA</label><input type="number" step="0.01" class="form-control" name="ug_percentage" value="{{ ug.ug_ogpa|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">College Address</label><input type="text" class="form-control" name="ug_college_address" value="{{ ug.ug_college_address|default:'' }}"></div>
+                        </div>
+
+                        <!-- Postgraduate (PG) -->
+                        <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-top: 20px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.6px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                            Postgraduate (PG) Degree
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group"><label class="form-label">Degree / Specialization</label><input type="text" class="form-control" name="pg_course" value="{{ pg.pg_course|default:'' }}" placeholder="e.g. M.Tech Software Engg"></div>
+                            <div class="form-group"><label class="form-label">College Name</label><input type="text" class="form-control" name="pg_college_name" value="{{ pg.pg_college_name|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">University</label><input type="text" class="form-control" name="pg_university" value="{{ pg.pg_university|default:'' }}"></div>
+                        </div>
+                        <div class="form-grid-3" style="margin-top: 10px;">
+                            <div class="form-group"><label class="form-label">Passing Year</label><input type="text" class="form-control" name="pg_year_of_passing" value="{{ pg.pg_year_of_passing|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">Percentage / OGPA</label><input type="number" step="0.01" class="form-control" name="pg_percentage" value="{{ pg.pg_ogpa|default:'' }}"></div>
+                            <div class="form-group"><label class="form-label">College Address</label><input type="text" class="form-control" name="pg_college_address" value="{{ pg.pg_college_address|default:'' }}"></div>
+                        </div>
+                    </div>
+
+                    <!-- 5. SKILLS & PROJECTS -->
+                    <div class="card" id="sec-skills">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="ri-lightbulb-line"></i> Skills & Research Projects</h2>
+                            <button type="button" class="btn btn-outline" style="padding: 6px 14px; font-size: 12px;" onclick="toggleProjectForm()">
+                                <i class="ri-add-line"></i> Add Project
+                            </button>
+                        </div>
+
                         <div class="form-grid-2">
+                            <!-- Skill Tags -->
                             <div>
-                                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                                    <input type="text" id="newSkillInput" placeholder="Skill" style="padding: 8px; flex: 1;">
-                                    <select id="newSkillProficiency" style="width: 120px; padding: 8px;">
-                                        <option value="Beginner">Beg</option>
-                                        <option value="Intermediate" selected>Int</option>
-                                        <option value="Advanced">Adv</option>
-                                        <option value="Expert">Exp</option>
+                                <label class="form-label">Technical Skills</label>
+                                <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                                    <input type="text" id="newSkillInput" class="form-control" placeholder="Add skill (e.g. Machine Learning)">
+                                    <select id="newSkillProficiency" class="form-control" style="width: 130px;">
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate" selected>Intermediate</option>
+                                        <option value="Advanced">Advanced</option>
+                                        <option value="Expert">Expert</option>
                                     </select>
-                                    <button type="button" class="btn btn-primary" style="padding: 8px 15px;" onclick="addSkill()">Add</button>
+                                    <button type="button" class="btn btn-primary" onclick="addSkill()"><i class="ri-add-line"></i></button>
                                 </div>
                                 <div id="skillsList" style="display: flex; flex-wrap: wrap; gap: 8px;">
                                     {% for skill in skills %}
-                                    <div class="skill-tag" id="skill-{{ skill.id }}" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 20px; display: flex; align-items: center; gap: 6px;">
-                                        <span>{{ skill.skill_name }}</span>
-                                        <span onclick="deleteSkill({{ skill.id }})" style="cursor: pointer; color: #ef4444;">&times;</span>
+                                    <div class="skill-tag" id="skill-{{ skill.id }}" style="background: var(--primary-surface); color: var(--primary); border: 1px solid var(--primary-light); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <span>{{ skill.skill_name }} ({{ skill.proficiency }})</span>
+                                        <i class="ri-close-line" onclick="deleteSkill({{ skill.id }})" style="cursor: pointer; color: #ef4444; font-size: 14px;"></i>
                                     </div>
                                     {% endfor %}
                                 </div>
                             </div>
-                            
-                            <div id="projectsList" style="display: flex; flex-direction: column; gap: 10px;">
-                                <div id="projectForm" style="display: none; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+
+                            <!-- Projects List -->
+                            <div id="projectsList" style="display: flex; flex-direction: column; gap: 12px;">
+                                <label class="form-label">Research Projects</label>
+
+                                <div id="projectForm" style="display: none; background: var(--bg-body); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border);">
                                     <div class="form-grid-2">
-                                        <div class="input-group"><label>Title *</label><input type="text" id="projTitle"></div>
-                                        <div class="input-group"><label>Role</label><input type="text" id="projRole"></div>
+                                        <div class="form-group"><label class="form-label">Title *</label><input type="text" class="form-control" id="projTitle"></div>
+                                        <div class="form-group"><label class="form-label">Role</label><input type="text" class="form-control" id="projRole"></div>
                                     </div>
-                                    <div class="input-group"><label>Desc *</label><textarea id="projDesc" style="min-height: 60px;"></textarea></div>
-                                    <div style="text-align: right;">
-                                        <button type="button" class="cancel-btn" style="padding: 5px 15px; font-size: 0.85em;" onclick="toggleProjectForm()">Cancel</button>
-                                        <button type="button" class="btn btn-primary" style="padding: 5px 15px; font-size: 0.85em;" onclick="addProject()">Save</button>
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <label class="form-label">Description *</label>
+                                        <textarea class="form-control" id="projDesc" style="min-height: 60px;"></textarea>
+                                    </div>
+                                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+                                        <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 12px;" onclick="toggleProjectForm()">Cancel</button>
+                                        <button type="button" class="btn btn-primary" style="padding: 5px 12px; font-size: 12px;" onclick="addProject()">Save Project</button>
                                     </div>
                                 </div>
+
                                 {% for project in projects %}
-                                <div class="project-item" id="project-{{ project.id }}" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div class="project-item" id="project-{{ project.id }}" style="padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface);">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <strong>{{ project.title }}</strong>
-                                        <button type="button" onclick="deleteProject({{ project.id }})" style="color: #ef4444; border: none; background: none; cursor: pointer;">🗑️</button>
+                                        <strong style="font-size: 14px; color: var(--text-main);">{{ project.title }}</strong>
+                                        <button type="button" onclick="deleteProject({{ project.id }})" style="color: #ef4444; border: none; background: none; cursor: pointer; font-size: 16px;"><i class="ri-delete-bin-line"></i></button>
                                     </div>
-                                    <p style="font-size: 0.85em; margin-top: 5px; color: var(--text-secondary);">{{ project.description|truncatechars:100 }}</p>
+                                    <p style="font-size: 12px; margin-top: 4px; color: var(--text-secondary);">{{ project.description|truncatechars:120 }}</p>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <h2 class="card-title">📂 Documents</h2>
+                    <!-- 6. DOCUMENTS UPLOAD -->
+                    <div class="card" id="sec-documents">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="ri-file-upload-line"></i> Document Uploads & Verification</h2>
+                        </div>
+
                         <div class="form-grid-3">
-                            <div class="input-group">
-                                <label>Photo</label>
-                                <input type="file" name="student_photo">
+                            <!-- Photo -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">Passport Photo</div>
+                                <input type="file" name="student_photo" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.student_photo %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.student_photo.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_student_photo" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.student_photo.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_student_photo" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="input-group">
-                                <label>Aadhaar</label>
-                                <input type="file" name="aadhaar_card">
+
+                            <!-- Aadhaar Card -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">Aadhaar Card</div>
+                                <input type="file" name="aadhaar_card" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.aadhaar_card %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.aadhaar_card.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_aadhaar_card" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.aadhaar_card.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_aadhaar_card" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="input-group">
-                                <label>Community</label>
-                                <input type="file" name="community_certificate">
+
+                            <!-- Community Certificate -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">Community Certificate</div>
+                                <input type="file" name="community_certificate" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.community_certificate %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.community_certificate.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_community_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.community_certificate.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_community_certificate" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="input-group">
-                                <label>SSLC Marksheet</label>
-                                <input type="file" name="sslc_marksheet">
+
+                            <!-- SSLC Marksheet -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">SSLC Marksheet</div>
+                                <input type="file" name="sslc_marksheet" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.sslc_marksheet %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.sslc_marksheet.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_sslc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.sslc_marksheet.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_sslc_marksheet" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="input-group">
-                                <label>HSC Marksheet</label>
-                                <input type="file" name="hsc_marksheet">
+
+                            <!-- HSC Marksheet -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">HSC Marksheet</div>
+                                <input type="file" name="hsc_marksheet" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.hsc_marksheet %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.hsc_marksheet.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_hsc_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.hsc_marksheet.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_hsc_marksheet" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="input-group">
-                                <label>UG Marksheet</label>
-                                <input type="file" name="ug_marksheet">
+
+                            <!-- UG Marksheet -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">UG Marksheet / Degree</div>
+                                <input type="file" name="ug_marksheet" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.ug_marksheet %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.ug_marksheet.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_ug_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.ug_marksheet.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_ug_marksheet" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="input-group">
-                                <label>PG Marksheet</label>
-                                <input type="file" name="pg_marksheet">
+
+                            <!-- PG Marksheet -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">PG Marksheet / Degree</div>
+                                <input type="file" name="pg_marksheet" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.pg_marksheet %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.pg_marksheet.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_pg_marksheet" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.pg_marksheet.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_pg_marksheet" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
                             </div>
-                            <div class="input-group">
-                                <label>Income Cert</label>
-                                <input type="file" name="income_certificate">
+
+                            <!-- Income Certificate -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">Income Certificate</div>
+                                <input type="file" name="income_certificate" class="form-control" style="font-size: 12px;">
                                 {% if studentdocuments.income_certificate %}
-                                <div class="current-file">
-                                    <a href="{{ studentdocuments.income_certificate.url }}" target="_blank">View</a>
-                                    <label style="margin-left: 8px; color: #dc2626; font-size: 0.85em; display: inline-flex; align-items: center; gap: 2px; cursor: pointer;">
-                                        <input type="checkbox" name="clear_income_certificate" value="true" style="width: auto; margin: 0; cursor: pointer;"> Remove
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.income_certificate.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_income_certificate" value="true"> Remove
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Bank Passbook -->
+                            <div class="doc-upload-item">
+                                <div class="doc-title">Bank Passbook</div>
+                                <input type="file" name="bank_passbook" class="form-control" style="font-size: 12px;">
+                                {% if studentdocuments.bank_passbook %}
+                                <div style="margin-top: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                    <a href="{{ studentdocuments.bank_passbook.url }}" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="ri-external-link-line"></i> View</a>
+                                    <label style="color: #dc2626; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                        <input type="checkbox" name="clear_bank_passbook" value="true"> Remove
                                     </label>
                                 </div>
                                 {% endif %}
@@ -373,18 +779,26 @@
                         </div>
                     </div>
 
-                </div>
+                    <!-- STICKY BOTTOM ACTIONS BAR -->
+                    <div class="sticky-actions-bar">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-muted);">
+                            Ensure all details are accurate before submitting.
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <a href="{% url 'scholar_profile' %}" class="btn btn-outline">Cancel</a>
+                            <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+                                <i class="ri-save-line"></i> Save All Changes
+                            </button>
+                        </div>
+                    </div>
 
-                <div class="button-group" style="text-align: right; padding-bottom: 20px;">
-                    <a href="{% url 'scholar_profile' %}" class="cancel-btn">Cancel</a>
-                    <button type="submit" class="btn btn-primary" style="padding: 10px 30px;">Save All Changes</button>
                 </div>
-            </form>
-        </main>
+            </div>
+        </form>
     </div>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
@@ -459,8 +873,8 @@
                 const newItem = document.createElement('div');
                 newItem.className = 'skill-tag';
                 newItem.id = `skill-${data.id}`;
-                newItem.style = "background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 20px; padding: 4px 10px; font-size: 0.9em; display: flex; align-items: center; gap: 8px;";
-                newItem.innerHTML = `<span>${name}</span><span onclick="deleteSkill(${data.id})" style="cursor: pointer; color: #ef4444;">&times;</span>`;
+                newItem.style = "background: var(--primary-surface); color: var(--primary); border: 1px solid var(--primary-light); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;";
+                newItem.innerHTML = `<span>${name} (${profInput.value})</span><i class="ri-close-line" onclick="deleteSkill(${data.id})" style="cursor: pointer; color: #ef4444; font-size: 14px;"></i>`;
                 list.appendChild(newItem);
                 nameInput.value = '';
             }
@@ -499,8 +913,8 @@
                 const newItem = document.createElement('div');
                 newItem.id = `project-${data.id}`;
                 newItem.className = 'project-item';
-                newItem.style = "padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;";
-                newItem.innerHTML = `<div style="display: flex; justify-content: space-between;"><strong>${title}</strong><button type="button" onclick="deleteProject(${data.id})" style="color: #ef4444; border: none; background: none; cursor: pointer;">🗑️</button></div><p style="font-size:0.85em; margin-top:5px; color:var(--text-secondary);">${desc}</p>`;
+                newItem.style = "padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface);";
+                newItem.innerHTML = `<div style="display: flex; justify-content: space-between;"><strong style="font-size: 14px; color: var(--text-main);">${title}</strong><button type="button" onclick="deleteProject(${data.id})" style="color: #ef4444; border: none; background: none; cursor: pointer; font-size: 16px;"><i class="ri-delete-bin-line"></i></button></div><p style="font-size: 12px; margin-top: 4px; color: var(--text-secondary);">${desc}</p>`;
                 list.appendChild(newItem);
                 toggleProjectForm();
             }
@@ -517,21 +931,20 @@
             if (data.success) document.getElementById(`project-${id}`).remove();
         }
 
-        // --- Clear selected files script ---
+        // Clear file input feature
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('input[type="file"]').forEach(function(input) {
                 const clearBtn = document.createElement('button');
                 clearBtn.type = 'button';
-                clearBtn.innerHTML = '✕ Clear';
-                clearBtn.className = 'btn-clear-selection';
+                clearBtn.innerHTML = '<i class="ri-close-line"></i> Clear';
                 clearBtn.style.display = 'none';
-                clearBtn.style.marginLeft = '8px';
-                clearBtn.style.padding = '3px 8px';
-                clearBtn.style.fontSize = '0.8rem';
-                clearBtn.style.border = '1px solid #cbd5e1';
+                clearBtn.style.marginTop = '6px';
+                clearBtn.style.padding = '2px 8px';
+                clearBtn.style.fontSize = '11px';
+                clearBtn.style.border = '1px solid var(--border)';
                 clearBtn.style.borderRadius = '4px';
-                clearBtn.style.backgroundColor = '#f1f5f9';
-                clearBtn.style.color = '#475569';
+                clearBtn.style.backgroundColor = 'var(--bg-body)';
+                clearBtn.style.color = 'var(--text-muted)';
                 clearBtn.style.cursor = 'pointer';
                 
                 input.parentNode.insertBefore(clearBtn, input.nextSibling);
@@ -548,6 +961,21 @@
                     input.value = '';
                     clearBtn.style.display = 'none';
                     input.dispatchEvent(new Event('change'));
+                });
+            });
+
+            // Smooth scrolling sidebar links
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetEl = document.querySelector(targetId);
+                    if (targetEl) {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        targetEl.scrollIntoView({ behavior: 'smooth' });
+                    }
                 });
             });
         });

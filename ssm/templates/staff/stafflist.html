@@ -378,7 +378,7 @@
                 <a href="javascript:void(0)" onclick="filterCardsByRole('Timetable Incharge')" class="filter-pill role-pill" data-role="Timetable Incharge">📅 Timetable Incharge</a>
                 <a href="javascript:void(0)" onclick="filterCardsByRole('Office Staff')" class="filter-pill role-pill" data-role="Office Staff">💼 Office Staff</a>
                 <a href="javascript:void(0)" onclick="filterCardsByRole('Technical Officer')" class="filter-pill role-pill" data-role="Technical Officer">⚙️ Technical Officer</a>
-                <a href="javascript:void(0)" onclick="filterCardsByRole('Other Dept Staff')" class="filter-pill role-pill" data-role="Other Dept Staff">🏛️ Other Dept Staff</a>
+                <a href="javascript:void(0)" onclick="filterCardsByRole('Other Dept Staff')" class="filter-pill role-pill" data-role="Other Dept Staff">🏛️ External Staff</a>
                 <a href="javascript:void(0)" onclick="filterCardsByRole('Admin')" class="filter-pill role-pill" data-role="Admin">🛡️ Admin Access</a>
             </div>
         </div>
@@ -428,7 +428,7 @@
                         {% elif staff.role == 'Technical Officer' %}
                             <span class="role-badge badge-core-tech">⚙️ Technical Officer</span>
                         {% elif staff.role == 'Other Dept Staff' %}
-                            <span class="role-badge badge-core-tech" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">🏛️ Other Dept Staff</span>
+                            <span class="role-badge badge-core-tech" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">🏛️ External Staff</span>
                         {% else %}
                             <span class="role-badge badge-core-course">📖 Course Incharge</span>
                         {% endif %}
@@ -498,25 +498,43 @@
                         <label style="font-weight: 700; font-size: 0.92rem; color: #0f172a; display: block; margin-bottom: 6px;">
                             Additional Roles & Duties
                         </label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid #cbd5e1;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
-                                <input type="checkbox" name="additional_roles" value="Scholarship Officer" class="add-role-cb" onchange="checkClassInchargeVisibility()"> Scholarship Officer
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
-                                <input type="checkbox" name="additional_roles" value="Timetable Incharge" class="add-role-cb" onchange="checkClassInchargeVisibility()"> Timetable Incharge
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
-                                <input type="checkbox" name="additional_roles" value="Placement Officer" class="add-role-cb" onchange="checkClassInchargeVisibility()"> Placement Officer
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
-                                <input type="checkbox" name="additional_roles" value="Bonafide Issuing" class="add-role-cb" onchange="checkClassInchargeVisibility()"> Bonafide Issuing
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
-                                <input type="checkbox" name="additional_roles" value="Marksheet & Document Requests" class="add-role-cb" onchange="checkClassInchargeVisibility()"> Marksheet Requests
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
-                                <input type="checkbox" name="additional_roles" value="Scholarship Management" class="add-role-cb" onchange="checkClassInchargeVisibility()"> Scholarship Mgmt
-                            </label>
+                        
+                        <!-- Teaching Additional Roles -->
+                        <div id="teachingRolesContainer" style="background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid #cbd5e1;">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase; margin-bottom: 8px;">Teaching Staff Additional Roles:</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Scholarship Officer" class="add-role-cb teaching-cb" onchange="checkClassInchargeVisibility()"> Scholarship Officer
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Timetable Incharge" class="add-role-cb teaching-cb" onchange="checkClassInchargeVisibility()"> Timetable Incharge
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Placement Officer" class="add-role-cb teaching-cb" onchange="checkClassInchargeVisibility()"> Placement Officer
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Student Coordinator" class="add-role-cb teaching-cb" onchange="checkClassInchargeVisibility()"> Student Coordinator
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Attendance Incharge" class="add-role-cb teaching-cb" onchange="checkClassInchargeVisibility()"> Attendance Incharge
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Non-Teaching Additional Roles -->
+                        <div id="nonTeachingRolesContainer" style="display: none; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid #cbd5e1;">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 8px;">Non-Teaching Staff Desks:</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Bonafide Issuing" class="add-role-cb non-teaching-cb" onchange="checkClassInchargeVisibility()"> Bonafide Issuing
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Marksheet & Document Requests" class="add-role-cb non-teaching-cb" onchange="checkClassInchargeVisibility()"> Marksheet Requests
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 500; color: #334155; cursor: pointer;">
+                                    <input type="checkbox" name="additional_roles" value="Scholarship Management" class="add-role-cb non-teaching-cb" onchange="checkClassInchargeVisibility()"> Scholarship Mgmt
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -593,6 +611,21 @@
 
         function checkClassInchargeVisibility() {
             const primaryVal = document.getElementById('modalPrimaryRole').value;
+            const isNonTeaching = ['Office Staff', 'Technical Officer'].includes(primaryVal);
+            
+            const teachingBox = document.getElementById('teachingRolesContainer');
+            const nonTeachingBox = document.getElementById('nonTeachingRolesContainer');
+
+            if (isNonTeaching) {
+                teachingBox.style.display = 'none';
+                nonTeachingBox.style.display = 'block';
+                document.querySelectorAll('.teaching-cb').forEach(cb => cb.checked = false);
+            } else {
+                teachingBox.style.display = 'block';
+                nonTeachingBox.style.display = 'none';
+                document.querySelectorAll('.non-teaching-cb').forEach(cb => cb.checked = false);
+            }
+
             const cbs = document.querySelectorAll('.add-role-cb');
             let isCI = (primaryVal === 'Class Incharge');
             cbs.forEach(cb => {

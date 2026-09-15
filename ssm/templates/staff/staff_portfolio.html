@@ -2447,31 +2447,39 @@
     </div>
 
     <script>
-        /* ── Tab switching – persists via URL hash ── */
+        /* ── Tab switching – persists via localStorage without hash jump ── */
         function switchPortfolioTab(evt, panelId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             const target = document.getElementById(panelId);
             if (target) target.classList.add('active');
             if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
-            // Store active tab in hash so it survives reload
-            history.replaceState(null, '', '#' + panelId);
+            localStorage.setItem('active_portfolio_panel_' + window.location.pathname, panelId);
+            if (history.replaceState) {
+                history.replaceState(null, '', window.location.pathname);
+            }
         }
 
-        /* Restore active tab from hash on page load */
+        /* Restore active tab on page load */
         document.addEventListener('DOMContentLoaded', function () {
-            const hash = window.location.hash.replace('#', '');
-            if (hash && document.getElementById(hash)) {
+            const savedPanel = localStorage.getItem('active_portfolio_panel_' + window.location.pathname);
+            const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
+            const targetId = (hash && document.getElementById(hash)) ? hash : (savedPanel && document.getElementById(savedPanel) ? savedPanel : null);
+
+            if (targetId && document.getElementById(targetId)) {
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById(hash).classList.add('active');
-                // Match the button
+                document.getElementById(targetId).classList.add('active');
                 document.querySelectorAll('.tab-btn').forEach(b => {
-                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(hash)) {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(targetId)) {
                         b.classList.add('active');
                     }
                 });
             }
+            if (window.location.hash && history.replaceState) {
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+            window.scrollTo(0, 0);
         });
 
         /* ── Dynamic Modal ── */

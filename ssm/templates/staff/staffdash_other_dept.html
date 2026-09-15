@@ -1,0 +1,231 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}External Faculty Desk | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block page_title %}
+    Hello, {{ staff.name }} {{ staff.initial|default:"" }}
+    <span style="font-size: 0.75rem; background: var(--primary-light, rgba(90,125,124,0.12)); color: var(--primary-dark, #4a6b69); border: 1px solid rgba(90, 125, 124, 0.3); padding: 4px 12px; border-radius: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px;">
+        <i class="ri-user-shared-line"></i> External Faculty Desk
+    </span>
+{% endblock %}
+
+{% block page_subtitle %}
+    Streamlined operational workspace for external department faculty — record course attendance, manage internal assessment marks, and access Class Representatives.
+{% endblock %}
+
+{% block content %}
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 14px 18px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Key Metrics Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: var(--primary-light, #eef2f2); color: var(--primary-dark, #4a6b69); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-book-read-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Assigned Subjects</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ assigned_subjects|length }} Course{% if assigned_subjects|length != 1 %}s{% endif %}</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-calendar-check-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Daily Operations</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">Attendance Desk</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-edit-box-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Assessments</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">Internal Marks</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fce7f3; color: #be185d; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-contacts-book-2-fill"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.76rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Student Contacts</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">CR Roster</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOMAIN HUB 1: ASSIGNED COURSES & ATTENDANCE RECORDING -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-calendar-check-line" style="color: var(--primary, #5a7d7c);"></i> Attendance Recording & Calendar Desk
+            </h3>
+        </div>
+
+        {% if assigned_subjects %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+            {% for subject in assigned_subjects %}
+            <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid var(--primary, #5a7d7c); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-family: monospace; font-size: 0.8rem; font-weight: 700; color: var(--primary, #5a7d7c); background: var(--primary-light, rgba(90,125,124,0.12)); padding: 3px 8px; border-radius: 4px;">
+                            {{ subject.code }}
+                        </span>
+                        <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); background: var(--bg-body, #f8fafc); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px;">
+                            Sem {{ subject.semester }}
+                        </span>
+                    </div>
+                    <h4 style="font-size: 1.02rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">
+                        {{ subject.name }}
+                    </h4>
+                    <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0 0 14px 0;">
+                        Type: <strong>{{ subject.subject_type }}</strong> {% if subject.location_name %}| Room: <strong>{{ subject.location_name }}</strong>{% endif %}
+                    </p>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 12px;">
+                    <a href="{% url 'staffs:manage_attendance' subject.id %}" style="flex: 1; text-align: center; text-decoration: none; background: var(--primary, #5a7d7c); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                        <i class="ri-check-double-line"></i> Record Attendance
+                    </a>
+                    <a href="{% url 'staffs:attendance_calendar' subject.id %}" style="text-decoration: none; background: var(--bg-body, #f8fafc); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                        <i class="ri-calendar-line"></i> Calendar
+                    </a>
+                    <a href="{% url 'staffs:attendance_report' subject.id %}" style="text-decoration: none; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 8px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                        <i class="ri-bar-chart-2-line"></i> Report
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 32px; text-align: center; color: var(--text-muted);">
+            <i class="ri-book-open-line" style="font-size: 2.5rem; margin-bottom: 8px; display: block; color: var(--text-muted);"></i>
+            <h4 style="margin: 0 0 4px 0; color: var(--text-main);">No Subjects Currently Assigned</h4>
+            <p style="margin: 0; font-size: 0.85rem;">You are registered as External Faculty. Courses assigned to you by the department head will appear here.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- DOMAIN HUB 2: INTERNAL MARKS ENTRY -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-edit-box-line" style="color: var(--primary, #5a7d7c);"></i> Internal Assessment & Marks Entry Desk
+            </h3>
+        </div>
+
+        {% if assigned_subjects %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+            {% for subject in assigned_subjects %}
+            <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #d97706; border-radius: 8px; padding: 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                <div>
+                    <span style="font-family: monospace; font-size: 0.78rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">
+                        Sem {{ subject.semester }} • {{ subject.code }}
+                    </span>
+                    <h4 style="font-size: 0.98rem; font-weight: 700; margin: 6px 0 2px 0; color: var(--text-main, #0f172a);">
+                        {{ subject.name }}
+                    </h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Enter periodic test & assignment marks</p>
+                </div>
+                <div>
+                    <a href="{% url 'staffs:manage_marks' subject.id %}" style="text-decoration: none; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 8px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" class="hover-card">
+                        <i class="ri-edit-line"></i> Enter Marks
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- DOMAIN HUB 3: CLASS REPRESENTATIVES (CR) ROSTER -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-user-star-line" style="color: var(--primary, #5a7d7c);"></i> Assigned Class Representatives (CR) Roster
+            </h3>
+            <span style="font-size: 0.78rem; font-weight: 700; color: #be185d; background: #fce7f3; border: 1px solid #fbcfe8; padding: 3px 10px; border-radius: 12px;">
+                {{ cr_students|length }} CR{% if cr_students|length != 1 %}s{% endif %} for Assigned Semesters
+            </span>
+        </div>
+
+        {% if cr_students %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+            {% for cr in cr_students %}
+            <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #be185d; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        {% if cr.studentdocuments.student_photo %}
+                        <img src="{{ cr.studentdocuments.student_photo.url }}" alt="{{ cr.student_name }}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #fbcfe8; flex-shrink: 0;">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ cr.student_name }}&background=be185d&color=fff&size=200" alt="{{ cr.student_name }}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #fbcfe8; flex-shrink: 0;">
+                        {% endif %}
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main, #0f172a); word-break: break-word;">{{ cr.student_name }}</h4>
+                                <span style="background: #fce7f3; color: #be185d; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Class Rep</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted, #64748b); margin-top: 3px;">
+                                <span style="font-weight: 600; color: var(--text-main, #0f172a);">{{ cr.roll_number }}</span>
+                                <span style="color: var(--border);">•</span>
+                                <span>Sem {{ cr.current_semester }}</span>
+                                {% if cr.lab_batch %}
+                                <span style="font-weight: 600;">(Batch {{ cr.lab_batch }})</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border, #e2e8f0); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <span style="color: var(--text-muted); font-weight: 500;"><i class="ri-phone-line" style="color: #be185d;"></i> Contact No:</span>
+                            {% if cr.student_mobile or cr.personalinfo.student_mobile %}
+                                <a href="tel:{{ cr.student_mobile|default:cr.personalinfo.student_mobile }}" style="font-weight: 700; color: #be185d; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    📞 {{ cr.student_mobile|default:cr.personalinfo.student_mobile }}
+                                </a>
+                            {% elif cr.personalinfo.father_mobile %}
+                                <a href="tel:{{ cr.personalinfo.father_mobile }}" style="font-weight: 700; color: #be185d; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    📞 {{ cr.personalinfo.father_mobile }} (Parent)
+                                </a>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-style: italic;">Not Available</span>
+                            {% endif %}
+                        </div>
+
+                        {% if cr.student_email %}
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <span style="color: var(--text-muted); font-weight: 500;"><i class="ri-mail-line" style="color: var(--primary);"></i> Email:</span>
+                            <a href="mailto:{{ cr.student_email }}" style="font-weight: 600; color: var(--primary-dark, #4a6b69); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;">
+                                {{ cr.student_email }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; text-align: center; color: var(--text-muted);">
+            <i class="ri-contacts-book-2-line" style="font-size: 2.2rem; margin-bottom: 6px; display: block; color: var(--text-muted);"></i>
+            <h4 style="margin: 0 0 4px 0; color: var(--text-main);">No Class Representatives Assigned</h4>
+            <p style="margin: 0; font-size: 0.84rem;">Class representatives assigned to your course semesters will automatically appear here with their contact numbers.</p>
+        </div>
+        {% endif %}
+    </section>
+{% endblock %}
+

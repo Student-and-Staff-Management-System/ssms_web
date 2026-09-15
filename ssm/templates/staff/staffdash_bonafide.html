@@ -1,0 +1,166 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Bonafide Issuing Console | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block page_title %}
+    Bonafide Certificate Issuing Desk
+    <span style="font-size: 0.75rem; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; padding: 4px 12px; border-radius: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px;">
+        <i class="ri-article-line"></i> Bonafide Issuing
+    </span>
+{% endblock %}
+
+{% block page_subtitle %}Non-teaching administrative control panel for processing, approving, printing, and tracking student bonafide certificates.{% endblock %}
+
+{% block content %}
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 14px 18px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Key Bonafide Metrics -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-time-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Pending Office Review</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ pending_bonafide_count|default:0 }} Requests</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-quill-pen-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">HOD Endorsement</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">Signature Queue</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-checkbox-circle-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Ready for Collection</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">Counter Pickup Desk</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #f3e8ff; color: #7e22ce; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-file-text-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Print & Dispatch</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">PDF Generator</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOMAIN HUB 1: BONAFIDE OPERATIONS DESK -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-article-fill" style="color: var(--primary, #5a7d7c);"></i> Non-Teaching Bonafide Desk Hub
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+            <!-- Main Processing Desk -->
+            <a href="{% url 'staffs:office_manage_bonafide' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid var(--primary, #5a7d7c); padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary, #5a7d7c); background: var(--primary-surface, rgba(90,125,124,0.14)); padding: 3px 8px; border-radius: 4px;">Primary Desk</span>
+                    <i class="ri-draft-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Office Bonafide Requests Desk</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Review student applications, verify fee clearances, and forward to HOD or mark ready.</p>
+            </a>
+
+            <!-- HOD Sign & Endorsement Queue -->
+            <a href="{% url 'staffs:hod_manage_bonafide' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #0284c7; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 3px 8px; border-radius: 4px;">Sign Status</span>
+                    <i class="ri-edit-2-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">HOD Signatures Desk</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Track requests pending HOD digital sign-off and seal validation.</p>
+            </a>
+
+            <!-- Student Roster -->
+            <a href="{% url 'staffs:student_list' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #16a34a; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #166534; background: #dcfce7; padding: 3px 8px; border-radius: 4px;">Student Lookup</span>
+                    <i class="ri-user-search-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Student Record Directory</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Lookup student admission details, roll numbers, father names, and enrollment status.</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- RECENT BONAFIDE REQUESTS TABLE -->
+    <section style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; padding: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-file-list-line" style="color: var(--primary, #5a7d7c);"></i> Active Bonafide Requests Queue
+            </h3>
+            <a href="{% url 'staffs:office_manage_bonafide' %}" class="btn" style="background: var(--primary, #5a7d7c); color: #ffffff; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 0.82rem; font-weight: 600;">
+                Process All Desk Requests
+            </a>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                    <tr style="background: var(--bg-body, #f8fafc); border-bottom: 2px solid var(--border, #cbd5e1); text-align: left;">
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">REQ ID</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">STUDENT NAME</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">REGISTER NO</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">PURPOSE</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">APPLIED DATE</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">STATUS</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted); text-align: right;">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in recent_bonafide_requests %}
+                    <tr style="border-bottom: 1px solid var(--border, #e2e8f0);">
+                        <td style="padding: 12px; font-weight: 700;">#{{ req.id }}</td>
+                        <td style="padding: 12px; font-weight: 600; color: var(--text-main);">{{ req.student.student_name }}</td>
+                        <td style="padding: 12px; font-family: monospace;">{{ req.student.roll_number }}</td>
+                        <td style="padding: 12px;">{{ req.purpose|default:"General Purpose" }}</td>
+                        <td style="padding: 12px; color: var(--text-muted);">{{ req.created_at|date:"d M Y" }}</td>
+                        <td style="padding: 12px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; 
+                                {% if 'Approved' in req.status or 'Signed' in req.status %}background: #dcfce7; color: #166534;
+                                {% elif 'Pending' in req.status %}background: #fef3c7; color: #92400e;
+                                {% else %}background: #e0f2fe; color: #0369a1;{% endif %}">
+                                {{ req.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <a href="{% url 'staffs:office_manage_bonafide' %}" style="font-weight: 600; color: var(--primary, #5a7d7c); text-decoration: none;">Process Request &rarr;</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                            <i class="ri-checkbox-circle-line" style="font-size: 2rem; display: block; margin-bottom: 8px; color: var(--primary);"></i>
+                            No active bonafide requests pending in desk queue.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

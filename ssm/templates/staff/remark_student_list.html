@@ -143,8 +143,8 @@
 {% block content %}
 <div class="remarks-header-card">
     <div>
-        <h2>Student Remarks</h2>
-        <p>Manage remarks for Semester {{ staff.assigned_semester|default:"-" }}{% if staff.assigned_batch and staff.assigned_batch != 'All' %} (Batch {{ staff.assigned_batch }}){% endif %}</p>
+        <h2>Student Conduct Remarks History</h2>
+        <p>Log and review conduct remarks{% if selected_sem %} for Semester {{ selected_sem }}{% else %} across department semesters{% endif %}</p>
     </div>
     <div>
         <a href="{% url 'staffs:staff_dashboard' %}" class="back-btn-link">
@@ -153,15 +153,37 @@
     </div>
 </div>
 
+<!-- Semester Filter Pills -->
+<div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; margin-right: 4px;">Filter Semester:</span>
+    {% if is_class_ic_restricted %}
+    <span style="font-size: 0.78rem; font-weight: 700; padding: 5px 14px; border-radius: 6px; background: var(--primary, #5a7d7c); color: #fff; border: 1px solid var(--primary);">
+       Semester {{ selected_sem }} (Assigned Class)
+    </span>
+    {% else %}
+    <a href="{% url 'staffs:remark_student_list' %}" 
+       style="font-size: 0.78rem; font-weight: 600; padding: 5px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border, #cbd5e1); {% if not selected_sem %}background: var(--primary, #5a7d7c); color: #fff; border-color: var(--primary);{% else %}background: var(--surface, #fff); color: var(--text-main);{% endif %}">
+       All Semesters
+    </a>
+    {% for sem_num in "12345678"|make_list %}
+    <a href="{% url 'staffs:remark_student_list' %}?semester={{ sem_num }}" 
+       style="font-size: 0.78rem; font-weight: 600; padding: 5px 12px; border-radius: 6px; text-decoration: none; border: 1px solid var(--border, #cbd5e1); {% if selected_sem|add:'0' == sem_num|add:'0' %}background: var(--primary, #5a7d7c); color: #fff; border-color: var(--primary);{% else %}background: var(--surface, #fff); color: var(--text-main);{% endif %}">
+       Sem {{ sem_num }}
+    </a>
+    {% endfor %}
+    {% endif %}
+</div>
+
 <div class="table-container">
     <table class="remarks-table">
         <thead>
             <tr>
                 <th>Roll Number</th>
                 <th>Name</th>
+                <th>Sem</th>
                 <th>Register Number</th>
                 <th>Total Remarks</th>
-                <th>Action</th>
+                <th style="text-align: right;">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -169,17 +191,18 @@
             <tr>
                 <td data-label="Roll Number"><strong>{{ student.roll_number }}</strong></td>
                 <td data-label="Name">{{ student.student_name }}</td>
+                <td data-label="Sem"><span class="count-badge">Sem {{ student.current_semester }}</span></td>
                 <td data-label="Register Number">
                     {{ student.register_number|default:"-" }}
                 </td>
                 <td data-label="Total Remarks">
                     {% if student.remarks.count > 0 %}
-                    <span class="count-badge">{{ student.remarks.count }}</span>
+                    <span class="count-badge" style="background: #fee2e2; color: #ef4444;">{{ student.remarks.count }}</span>
                     {% else %}
                     -
                     {% endif %}
                 </td>
-                <td data-label="Action">
+                <td data-label="Action" style="text-align: right;">
                     <a href="{% url 'staffs:remark_history' student.roll_number %}" class="action-btn">
                         Manage Remarks
                     </a>
@@ -187,8 +210,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" style="text-align: center; padding: 40px 20px; color: var(--text-muted, #64748b);">
-                    No students found for this semester.
+                <td colspan="6" style="text-align: center; padding: 40px 20px; color: var(--text-muted, #64748b);">
+                    No students found for the selected filter.
                 </td>
             </tr>
             {% endfor %}

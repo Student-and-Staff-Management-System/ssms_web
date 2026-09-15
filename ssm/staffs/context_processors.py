@@ -26,12 +26,15 @@ def staff_context(request):
 
             staff_recent_notifications = StaffNotification.objects.filter(
                 staff=logged_in_staff
-            ).order_by('-created_at')[:10]
+            ).order_by('-created_at')[:25]
+
+            assigned_consoles = logged_in_staff.get_assigned_consoles()
 
             return {
                 'logged_in_staff': logged_in_staff,
                 'active_role': active_role,
                 'all_assigned_roles': all_assigned_roles,
+                'assigned_consoles': assigned_consoles,
                 'pending_hour_swaps_count': pending_hour_swaps_count,
                 'unread_notifications_count': unread_notifications_count,
                 'staff_recent_notifications': staff_recent_notifications,
@@ -42,6 +45,7 @@ def staff_context(request):
         'logged_in_staff': None,
         'active_role': None,
         'all_assigned_roles': [],
+        'assigned_consoles': [],
         'pending_hour_swaps_count': 0,
         'unread_notifications_count': 0,
         'staff_recent_notifications': [],

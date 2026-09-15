@@ -10,9 +10,9 @@
     /* Smart Filter Toolbar Container */
     .smart-filter-card {
         background: var(--surface, #ffffff);
-        padding: 16px 20px;
-        border-radius: 14px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        padding: 18px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.03);
         border: 1px solid var(--border, #e2e8f0);
         margin-bottom: 24px;
     }
@@ -32,12 +32,12 @@
     .search-box-wrap input {
         width: 100%;
         padding: 10px 14px 10px 38px;
-        border: 1px solid #cbd5e1;
-        border-radius: 10px;
+        border: 1px solid var(--border, #cbd5e1);
+        border-radius: 8px;
         font-family: inherit;
         font-size: 0.88rem;
         outline: none;
-        background: #ffffff;
+        background: var(--surface, #ffffff);
         color: var(--text-main, #0f172a);
         box-sizing: border-box;
         transition: all 0.2s ease;
@@ -53,20 +53,20 @@
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #94a3b8;
-        font-size: 0.9rem;
+        color: var(--text-muted, #94a3b8);
+        font-size: 1rem;
         pointer-events: none;
     }
 
     .toolbar-select {
         flex: 0 1 210px;
         padding: 10px 14px;
-        border: 1px solid #cbd5e1;
-        border-radius: 10px;
+        border: 1px solid var(--border, #cbd5e1);
+        border-radius: 8px;
         font-family: inherit;
         font-size: 0.86rem;
         outline: none;
-        background: #ffffff;
+        background: var(--surface, #ffffff);
         color: var(--text-main, #0f172a);
         transition: all 0.2s ease;
         cursor: pointer;
@@ -81,14 +81,13 @@
         color: #ffffff;
         border: none;
         padding: 10px 20px;
-        border-radius: 10px;
+        border-radius: 8px;
         font-weight: 700;
         font-size: 0.88rem;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        box-shadow: 0 4px 12px rgba(90, 125, 124, 0.25);
         transition: all 0.2s ease;
         white-space: nowrap;
     }
@@ -99,11 +98,11 @@
     }
 
     .btn-toolbar-secondary {
-        background: #f8fafc;
+        background: var(--bg-body, #f8fafc);
         color: var(--text-main, #0f172a);
-        border: 1px solid #cbd5e1;
+        border: 1px solid var(--border, #cbd5e1);
         padding: 10px 16px;
-        border-radius: 10px;
+        border-radius: 8px;
         font-weight: 600;
         font-size: 0.85rem;
         cursor: pointer;
@@ -115,8 +114,8 @@
     }
 
     .btn-toolbar-secondary:hover {
-        background: #f1f5f9;
-        border-color: #94a3b8;
+        background: var(--surface-hover, #f1f5f9);
+        border-color: var(--border-strong, #94a3b8);
     }
 
     .btn-export-csv {
@@ -124,14 +123,13 @@
         color: #ffffff;
         border: none;
         padding: 10px 18px;
-        border-radius: 10px;
+        border-radius: 8px;
         font-weight: 700;
         font-size: 0.86rem;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
         transition: all 0.2s ease;
         white-space: nowrap;
         margin-left: auto;
@@ -160,7 +158,7 @@
 
     .advanced-field label {
         display: block;
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         font-weight: 700;
         color: var(--text-muted, #64748b);
         margin-bottom: 4px;
@@ -170,10 +168,11 @@
     .advanced-field select {
         width: 100%;
         padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
+        border: 1px solid var(--border, #cbd5e1);
+        border-radius: 6px;
         font-size: 0.84rem;
-        background: #ffffff;
+        background: var(--surface, #ffffff);
+        color: var(--text-main, #0f172a);
     }
 
     /* Checkbox Pills */
@@ -190,8 +189,8 @@
         gap: 6px;
         padding: 6px 12px;
         border-radius: 20px;
-        border: 1px solid #cbd5e1;
-        background: #ffffff;
+        border: 1px solid var(--border, #cbd5e1);
+        background: var(--surface, #ffffff);
         font-size: 0.8rem;
         font-weight: 600;
         color: var(--text-main, #0f172a);
@@ -205,10 +204,30 @@
     }
 
     .filter-pill:has(input:checked) {
-        background: var(--primary-light, #eef2f2);
+        background: var(--primary-surface, rgba(90,125,124,0.12));
         border-color: var(--primary, #5a7d7c);
         color: var(--primary, #5a7d7c);
         font-weight: 700;
+    }
+
+    /* Batch Actions Toolbar Bar */
+    .batch-bar {
+        display: none;
+        background: var(--primary-dark, #405e5c);
+        color: #ffffff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        animation: fadeIn 0.2s ease;
+    }
+
+    .batch-bar.active {
+        display: flex;
     }
 
     /* Active Filter Chips Bar */
@@ -222,9 +241,9 @@
     }
 
     .chip-item {
-        background: #eef2f2;
-        color: #4a6b69;
-        padding: 3px 10px;
+        background: var(--primary-surface, rgba(90,125,124,0.12));
+        color: var(--primary, #5a7d7c);
+        padding: 4px 10px;
         border-radius: 16px;
         font-weight: 600;
         display: inline-flex;
@@ -238,105 +257,132 @@
     }
 
     @keyframes modalPop {
-        0% { opacity: 0; transform: scale(0.92); }
+        0% { opacity: 0; transform: scale(0.95); }
         100% { opacity: 1; transform: scale(1); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="font-family: 'Poppins', sans-serif;">
+<div>
 
     <!-- Top Key Metrics Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px;">
         <!-- Pending Verification -->
-        <a href="?status=Pending+Office+Verification" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #d97706; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="background: #fef3c7; color: #d97706; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">⏳</div>
+        <a href="?status=Pending+Office+Verification" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #d97706; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="background: #fef3c7; color: #d97706; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-time-line"></i>
+            </div>
             <div>
-                <h3 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main);">{{ pending_count }}</h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Pending Verification</span>
+                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ pending_count }}</h3>
+                <span style="font-size: 0.78rem; color: #d97706; font-weight: 700;">Pending Verification</span>
             </div>
         </a>
 
         <!-- Verified & Recommended -->
-        <a href="?status=Verified+%26+Recommended" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #16a34a; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="background: #dcfce7; color: #16a34a; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">✅</div>
+        <a href="?status=Verified+%26+Recommended" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #0284c7; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="background: #e0f2fe; color: #0284c7; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-checkbox-circle-line"></i>
+            </div>
             <div>
-                <h3 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main);">{{ approved_count }}</h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Verified & Recommended</span>
+                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ approved_count }}</h3>
+                <span style="font-size: 0.78rem; color: #0284c7; font-weight: 700;">Verified & Recommended</span>
             </div>
         </a>
 
         <!-- Amount Received -->
-        <a href="?status=Govt+Sanctioned+%2F+Amount+Received" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #0284c7; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="background: #e0f2fe; color: #0284c7; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">💰</div>
+        <a href="?status=Govt+Sanctioned+%2F+Amount+Received" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #16a34a; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="background: #dcfce7; color: #166534; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-coins-line"></i>
+            </div>
             <div>
-                <h3 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main);">{{ disbursed_count }}</h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Amount Received</span>
+                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ disbursed_count }}</h3>
+                <span style="font-size: 0.78rem; color: #166534; font-weight: 700;">Sanctioned & Disbursed</span>
             </div>
         </a>
 
-        <!-- Not Received / Delayed -->
-        <a href="?status=Not+Received+%2F+Pending+Govt" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #f97316; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="background: #ffedd5; color: #ea580c; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">⏳</div>
+        <!-- Not Received / Pending Govt -->
+        <a href="?status=Not+Received+%2F+Pending+Govt" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #f97316; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="background: #ffedd5; color: #ea580c; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-history-line"></i>
+            </div>
             <div>
-                <h3 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main);">{{ not_received_count }}</h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Not Received / Pending</span>
+                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ not_received_count }}</h3>
+                <span style="font-size: 0.78rem; color: #ea580c; font-weight: 700;">Pending Govt Disbursement</span>
             </div>
         </a>
 
         <!-- Rejected / Ineligible -->
-        <a href="?status=Rejected+%2F+Ineligible" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #dc2626; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="background: #fee2e2; color: #dc2626; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">❌</div>
+        <a href="?status=Rejected+%2F+Ineligible" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #dc2626; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+            <div style="background: #fee2e2; color: #dc2626; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-close-circle-line"></i>
+            </div>
             <div>
-                <h3 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main);">{{ rejected_count }}</h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Rejected / Ineligible</span>
+                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ rejected_count }}</h3>
+                <span style="font-size: 0.78rem; color: #dc2626; font-weight: 700;">Rejected / Ineligible</span>
             </div>
         </a>
     </div>
 
+    <!-- Batch Action Toolbar (Revealed when table checkboxes are checked) -->
+    <div id="batchActionBar" class="batch-bar">
+        <div style="display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem;">
+            <i class="ri-checkbox-multiple-line" style="font-size: 1.2rem;"></i>
+            <span>Selected Applications: <strong id="batchSelectedCount">0</strong></span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" onclick="submitBatchForm('bulk_approve')" style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ri-checkbox-circle-line"></i> Bulk Verify & Recommend
+            </button>
+            <button type="button" onclick="submitBatchForm('bulk_disburse')" style="background: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ri-coins-line"></i> Bulk Mark Sanctioned
+            </button>
+            <button type="button" onclick="clearBatchSelection()" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.82rem; cursor: pointer;">
+                Clear Selection
+            </button>
+        </div>
+    </div>
+
     <!-- Smart Sleek Filter Toolbar -->
     <form method="GET" action="{% url 'staffs:scholarship_manager' %}" class="smart-filter-card" id="schFilterForm">
-        
-        <!-- Toolbar Top Row: Search + Main Selects + Primary Buttons -->
         <div class="toolbar-main-row">
             
             <!-- 1. Search Box -->
             <div class="search-box-wrap">
-                <span class="search-icon">🔍</span>
-                <input type="text" name="q" value="{{ filters.q|default:'' }}" placeholder="Search by name, roll no, ref no...">
+                <i class="ri-search-line search-icon"></i>
+                <input type="text" name="q" value="{{ filters.q|default:'' }}" placeholder="Search name, roll no, application ref...">
             </div>
 
             <!-- 2. Primary Status Dropdown -->
             <select name="status" class="toolbar-select">
-                <option value="">All Statuses 📌</option>
+                <option value="">All Application Statuses</option>
                 <option value="Pending Office Verification" {% if filters.status == 'Pending Office Verification' %}selected{% endif %}>Pending Verification</option>
                 <option value="Verified & Recommended" {% if filters.status == 'Verified & Recommended' %}selected{% endif %}>Verified & Recommended</option>
-                <option value="Govt Sanctioned / Amount Received" {% if filters.status == 'Govt Sanctioned / Amount Received' %}selected{% endif %}>Amount Received 💰</option>
-                <option value="Not Received / Pending Govt" {% if filters.status == 'Not Received / Pending Govt' %}selected{% endif %}>Not Received / Pending ⏳</option>
-                <option value="Rejected / Ineligible" {% if filters.status == 'Rejected / Ineligible' %}selected{% endif %}>Rejected / Ineligible ❌</option>
+                <option value="Govt Sanctioned / Amount Received" {% if filters.status == 'Govt Sanctioned / Amount Received' %}selected{% endif %}>Sanctioned & Disbursed</option>
+                <option value="Not Received / Pending Govt" {% if filters.status == 'Not Received / Pending Govt' %}selected{% endif %}>Pending Govt Disbursement</option>
+                <option value="Rejected / Ineligible" {% if filters.status == 'Rejected / Ineligible' %}selected{% endif %}>Rejected / Ineligible</option>
             </select>
 
-            <!-- 3. Primary Scheme Select Dropdown (or All Schemes) -->
+            <!-- 3. Primary Scheme Select Dropdown -->
             <select name="scholarship_type" class="toolbar-select">
-                <option value="">All Scholarship Schemes 🎓</option>
+                <option value="">All Scholarship Schemes</option>
                 {% for code, label in type_choices %}
-                <option value="{{ code }}" {% if code in filters.scholarship_types %}selected{% endif %}>{{ label }}</option>
+                <option value="{{ code }}" {% if code == filters.scholarship_type or code in filters.scholarship_types %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
 
             <!-- 4. Advanced Filter Toggle Button -->
             <button type="button" class="btn-toolbar-secondary" onclick="toggleAdvancedDrawer()" id="btnToggleAdv">
-                <span>⚙️ More Filters</span>
+                <i class="ri-filter-3-line"></i> More Filters
                 <span id="advBadge" style="display: none; background: var(--primary, #5a7d7c); color: white; border-radius: 10px; padding: 1px 7px; font-size: 0.72rem; font-weight: 700;"></span>
             </button>
 
             <!-- 5. Submit Filter Button -->
-            <button type="submit" class="btn-toolbar-primary">Filter 🔍</button>
+            <button type="submit" class="btn-toolbar-primary"><i class="ri-search-2-line"></i> Filter Records</button>
 
             <!-- 6. Export CSV Button -->
             <a href="?{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}export=csv" class="btn-export-csv">
-                📥 Export CSV
+                <i class="ri-file-excel-line"></i> Export CSV
             </a>
 
             {% if filters.q or filters.status or filters.scholarship_type or filters.scholarship_types or filters.max_income or filters.community or filters.program_level or filters.semester or filters.is_hosteler or filters.is_7_5 or filters.is_fg %}
@@ -349,86 +395,65 @@
 
         <!-- Active Applied Filter Chips Bar -->
         {% if filters.q or filters.status or filters.scholarship_type or filters.scholarship_types or filters.max_income or filters.community or filters.program_level or filters.semester or filters.is_hosteler or filters.is_7_5 or filters.is_fg %}
-        <div class="active-chips-bar" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border, #e2e8f0); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase;">Active Filters:</span>
+        <div class="active-chips-bar" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border, #e2e8f0);">
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase;">Active Filters:</span>
             
             {% if filters.q %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'q' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove search filter" style="text-decoration: none;">
-                🔍 "{{ filters.q }}" <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'q' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-search-line"></i> "{{ filters.q }}" &times;
             </a>
             {% endif %}
 
             {% if filters.status %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'status' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove status filter" style="text-decoration: none;">
-                📌 Status: {{ filters.status }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'status' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-flag-line"></i> {{ filters.status }} &times;
             </a>
             {% endif %}
 
             {% if filters.scholarship_type %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'scholarship_type' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove scheme filter" style="text-decoration: none;">
-                🎓 Scheme: {{ filters.scholarship_type }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'scholarship_type' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-award-line"></i> {{ filters.scholarship_type }} &times;
             </a>
             {% endif %}
-
-            {% for code in filters.scholarship_types %}
-            {% if code %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'scholarship_types' or v != code %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove scheme filter" style="text-decoration: none;">
-                🎓 {{ code }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
-            </a>
-            {% endif %}
-            {% endfor %}
 
             {% if filters.max_income %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'max_income' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove income filter" style="text-decoration: none;">
-                💰 Income &le; ₹{{ filters.max_income }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'max_income' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-money-dollar-box-line"></i> Income &le; ₹{{ filters.max_income }} &times;
             </a>
             {% endif %}
 
             {% if filters.community %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'community' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove community filter" style="text-decoration: none;">
-                🏛️ Community: {{ filters.community }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
-            </a>
-            {% endif %}
-
-            {% if filters.program_level %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'program_level' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove program filter" style="text-decoration: none;">
-                👨‍🎓 Program: {{ filters.program_level }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'community' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-group-line"></i> {{ filters.community }} &times;
             </a>
             {% endif %}
 
             {% if filters.semester %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'semester' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove semester filter" style="text-decoration: none;">
-                📅 Sem {{ filters.semester }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
-            </a>
-            {% endif %}
-
-            {% if filters.is_hosteler %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'is_hosteler' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove residency filter" style="text-decoration: none;">
-                🏠 Hosteller: {{ filters.is_hosteler }} <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'semester' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-calendar-line"></i> Sem {{ filters.semester }} &times;
             </a>
             {% endif %}
 
             {% if filters.is_7_5 %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'is_7_5' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove 7.5% quota filter" style="text-decoration: none;">
-                ⭐ Govt 7.5% Quota <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'is_7_5' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-star-line"></i> Govt 7.5% Quota &times;
             </a>
             {% endif %}
 
             {% if filters.is_fg %}
-            <a href="?{% for k,v in request.GET.items %}{% if k != 'is_fg' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" title="Click to remove First Graduate filter" style="text-decoration: none;">
-                🎓 First Graduate <span style="font-weight: 800; font-size: 0.9rem;">&times;</span>
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'is_fg' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-graduation-cap-line"></i> First Graduate &times;
             </a>
             {% endif %}
 
-            <a href="{% url 'staffs:scholarship_manager' %}" style="color: #dc2626; font-size: 0.78rem; font-weight: 700; text-decoration: none; margin-left: 4px;" title="Reset all filters">
-                Clear All Filters 🔄
+            <a href="{% url 'staffs:scholarship_manager' %}" style="color: #dc2626; font-size: 0.78rem; font-weight: 700; text-decoration: none; margin-left: 4px;">
+                Reset All
             </a>
         </div>
         {% endif %}
 
-        <!-- Expandable Advanced Drawer (Collapsed by default unless filters are active) -->
+        <!-- Expandable Advanced Drawer -->
         <div class="advanced-drawer" id="advancedDrawer">
-            
             <div class="advanced-grid">
                 <!-- Max Income -->
                 <div class="advanced-field">
@@ -492,184 +517,264 @@
 
             <!-- Special Quotas Checkbox Row -->
             <div class="pills-group" style="margin-top: 10px;">
-                <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 8px;">Special Criteria:</span>
+                <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 8px;">Special Quota Criteria:</span>
                 <label class="filter-pill">
                     <input type="checkbox" name="is_7_5" value="yes" {% if filters.is_7_5 == 'yes' %}checked{% endif %}>
-                    <span>⭐ Govt 7.5% Quota</span>
+                    <span><i class="ri-star-line"></i> Govt 7.5% Quota</span>
                 </label>
                 <label class="filter-pill">
                     <input type="checkbox" name="is_fg" value="yes" {% if filters.is_fg == 'yes' %}checked{% endif %}>
-                    <span>🎓 First Graduate</span>
+                    <span><i class="ri-graduation-cap-line"></i> First Graduate</span>
                 </label>
             </div>
-
         </div>
-
     </form>
 
-    <!-- Full-Width Master Audit Table -->
-    <div style="background: var(--surface, #ffffff); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border, #e2e8f0); overflow: hidden;">
-        <div style="padding: 18px 24px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; justify-content: space-between; align-items: center; background: var(--bg-body, #f8fafc);">
-            <div>
-                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main);">
-                    Scholarship Applications Master Audit Records
-                </h3>
-                <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">
-                    Showing <strong>{{ applications|length }}</strong> audit records matching active search & filter selection
-                </p>
+    <!-- Form Container for Batch Action POST Submissions -->
+    <form id="batchActionForm" method="POST" action="{% url 'staffs:scholarship_manager' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="batchActionField">
+        
+        <!-- Full-Width Master Audit Table -->
+        <div style="background: var(--surface, #ffffff); border-radius: 8px; border: 1px solid var(--border, #cbd5e1); overflow: hidden;">
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border, #cbd5e1); display: flex; justify-content: space-between; align-items: center; background: var(--surface-subtle, #f8fafc);">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a);">
+                        Scholarship Master Audit Roster
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted, #64748b);">
+                        Showing <strong>{{ applications|length }}</strong> audit records matching active selection
+                    </p>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="background: var(--surface, #ffffff); border-bottom: 2px solid var(--border, #cbd5e1); text-align: left; font-size: 0.76rem; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.4px;">
+                            <th style="padding: 14px 12px; width: 40px; text-align: center;">
+                                <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" style="cursor: pointer;">
+                            </th>
+                            <th style="padding: 14px 12px; min-width: 200px;">Student Details</th>
+                            <th style="padding: 14px 12px; min-width: 200px;">Scholarship Scheme</th>
+                            <th style="padding: 14px 12px; min-width: 190px;">App Ref / Income / Proof</th>
+                            <th style="padding: 14px 12px; min-width: 150px;">Bank / DBT Info</th>
+                            <th style="padding: 14px 12px; min-width: 160px;">Stage Status</th>
+                            <th style="padding: 14px 12px; text-align: right; min-width: 220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr style="border-bottom: 1px solid var(--border-subtle, #f1f5f9);" class="hover-card">
+                            <!-- Checkbox -->
+                            <td style="padding: 14px 12px; text-align: center;">
+                                <input type="checkbox" name="app_ids" value="{{ app.id }}" class="app-checkbox" onclick="updateBatchToolbar()" style="cursor: pointer;">
+                            </td>
+
+                            <!-- Student Info -->
+                            <td style="padding: 14px 12px;">
+                                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-main, #0f172a);">
+                                    <a href="{% url 'staffs:student_detail' app.student.roll_number %}" style="text-decoration: none; color: inherit;">{{ app.student.student_name }}</a>
+                                </div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                    Roll: <strong>{{ app.student.roll_number }}</strong>
+                                </div>
+                                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                                    {{ app.student.program_level }} | Sem {{ app.student.current_semester }} | Category: <strong>{{ app.student.personalinfo.community|default:"N/A" }}</strong>
+                                </div>
+                            </td>
+
+                            <!-- Scholarship Scheme -->
+                            <td style="padding: 14px 12px; font-weight: 600; color: var(--text-main);">
+                                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--primary, #5a7d7c);">
+                                    <i class="ri-award-line"></i> {{ app.get_scholarship_type_display }}
+                                </div>
+                                {% if app.private_scholarship_name %}
+                                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">Name: {{ app.private_scholarship_name }}</div>
+                                {% endif %}
+                                <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">Applied: {{ app.applied_at|date:"M d, Y" }}</div>
+                            </td>
+
+                            <!-- Ref & Income & Proof -->
+                            <td style="padding: 14px 12px;">
+                                <div style="font-size: 0.82rem; color: var(--text-main);">Ref: <strong>{{ app.application_no|default:"N/A" }}</strong></div>
+                                {% if app.annual_income %}
+                                <div style="font-size: 0.78rem; color: #d97706; font-weight: 600; margin-top: 2px;">
+                                    Income: ₹{{ app.annual_income }}
+                                </div>
+                                {% endif %}
+                                {% if app.supporting_document %}
+                                <div style="margin-top: 4px;">
+                                    <a href="{{ app.supporting_document.url }}" target="_blank" style="background: var(--primary-surface, rgba(90,125,124,0.12)); color: var(--primary, #5a7d7c); border: 1px solid rgba(90,125,124,0.3); padding: 3px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="ri-file-pdf-line"></i> View Proof
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Bank Info -->
+                            <td style="padding: 14px 12px;">
+                                <div style="font-size: 0.8rem; color: var(--text-main);">
+                                    A/C: <strong>{{ app.bank_account_no|default:"N/A" }}</strong>
+                                </div>
+                                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                                    IFSC: {{ app.bank_ifsc|default:"N/A" }}
+                                </div>
+                            </td>
+
+                            <!-- Status Badge -->
+                            <td style="padding: 14px 12px;">
+                                {% if app.status == 'Pending Office Verification' %}
+                                <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="ri-time-line"></i> Pending Verification
+                                </span>
+                                {% elif app.status == 'Verified & Recommended' %}
+                                <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="ri-checkbox-circle-line"></i> Recommended to Govt
+                                </span>
+                                {% elif app.status == 'Govt Sanctioned / Amount Received' %}
+                                <span style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="ri-coins-line"></i> Sanctioned & Disbursed
+                                </span>
+                                {% elif app.status == 'Not Received / Pending Govt' %}
+                                <span style="background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="ri-history-line"></i> Pending Govt Disbursement
+                                </span>
+                                {% else %}
+                                <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="ri-close-circle-line"></i> Rejected / Ineligible
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td style="padding: 14px 12px; text-align: right;">
+                                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                    {% if app.status == 'Pending Office Verification' %}
+                                    <button type="button" onclick="triggerApprove({{ app.id }}, '{{ app.student.student_name|escapejs }}', '{{ app.get_scholarship_type_display|escapejs }}')" style="background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="ri-check-line"></i> Verify
+                                    </button>
+                                    <button type="button" onclick="openSchRejectModal({{ app.id }}, '{{ app.student.student_name|escapejs }}', '{{ app.get_scholarship_type_display|escapejs }}')" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+                                        Reject
+                                    </button>
+                                    {% elif app.status == 'Verified & Recommended' %}
+                                    <button type="button" onclick="triggerDisburse({{ app.id }}, '{{ app.student.student_name|escapejs }}')" style="background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="ri-coins-line"></i> Mark Disbursed
+                                    </button>
+                                    {% endif %}
+
+                                    {% if app.status == 'Rejected / Ineligible' %}
+                                    <button type="button" onclick="openViewReasonModal('{{ app.student.student_name|escapejs }}', '{{ app.rejection_reason|escapejs }}')" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+                                        Reason
+                                    </button>
+                                    <button type="button" onclick="triggerReset({{ app.id }}, '{{ app.student.student_name|escapejs }}')" style="background: var(--surface-subtle); color: var(--text-main); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+                                        Re-open
+                                    </button>
+                                    {% endif %}
+
+                                    <!-- Edit Details Button -->
+                                    <button type="button" onclick="openEditDetailsModal({{ app.id }}, '{{ app.student.student_name|escapejs }}', '{{ app.application_no|escapejs }}', '{{ app.annual_income|default:"" }}', '{{ app.bank_account_no|escapejs }}', '{{ app.bank_ifsc|escapejs }}', '{{ app.office_remarks|escapejs }}')" style="background: var(--surface-subtle); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; color: var(--text-main); font-weight: 600; cursor: pointer;" title="Edit Ref / Income / Bank Info">
+                                        <i class="ri-edit-line"></i> Edit
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">
+                                No scholarship audit records found matching your active filter criteria.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
-                <thead>
-                    <tr style="background: #ffffff; border-bottom: 2px solid var(--border, #e2e8f0); text-align: left; font-size: 0.78rem; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.4px;">
-                        <th style="padding: 16px; min-width: 200px;">Student Details</th>
-                        <th style="padding: 16px; min-width: 220px;">Scholarship Scheme</th>
-                        <th style="padding: 16px; min-width: 200px;">App Ref / Income / Proof</th>
-                        <th style="padding: 16px; min-width: 160px;">Bank / DBT Info</th>
-                        <th style="padding: 16px; min-width: 160px;">Status</th>
-                        <th style="padding: 16px; text-align: right; min-width: 180px;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for app in applications %}
-                    <tr style="border-bottom: 1px solid var(--border, #f1f5f9); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                        
-                        <!-- Student Info -->
-                        <td style="padding: 16px;">
-                            <div style="font-weight: 700; font-size: 0.94rem; color: var(--text-main, #0f172a);">
-                                {{ app.student.student_name }}
-                            </div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-                                Roll: <strong>{{ app.student.roll_number }}</strong>
-                            </div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                                {{ app.student.program_level }} | Sem {{ app.student.current_semester }} | Community: <strong>{{ app.student.personalinfo.community|default:"N/A" }}</strong>
-                            </div>
-                        </td>
-
-                        <!-- Scholarship Scheme -->
-                        <td style="padding: 16px; font-weight: 600; color: var(--text-main);">
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.92rem;">
-                                🎓 {{ app.get_scholarship_type_display }}
-                            </div>
-                            {% if app.private_scholarship_name %}
-                            <div style="font-size: 0.78rem; color: var(--primary, #5a7d7c); font-weight: 600; margin-top: 2px;">Name: {{ app.private_scholarship_name }}</div>
-                            {% endif %}
-                            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">Declared: {{ app.applied_at|date:"M d, Y" }}</div>
-                        </td>
-
-                        <!-- Ref & Income & Proof -->
-                        <td style="padding: 16px;">
-                            <div style="font-size: 0.84rem; color: var(--text-main);">Ref: <strong>{{ app.application_no|default:"N/A" }}</strong></div>
-                            {% if app.annual_income %}
-                            <div style="font-size: 0.8rem; color: #b45309; font-weight: 600; margin-top: 2px;">
-                                Income: ₹{{ app.annual_income }}
-                            </div>
-                            {% endif %}
-                            {% if app.income_certificate_no %}
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">Cert No: {{ app.income_certificate_no }}</div>
-                            {% endif %}
-                            {% if app.supporting_document %}
-                            <div style="margin-top: 6px;">
-                                <a href="{{ app.supporting_document.url }}" target="_blank" style="background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-size: 0.76rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                    📄 View Proof Doc
-                                </a>
-                            </div>
-                            {% endif %}
-                        </td>
-
-                        <!-- Bank Info -->
-                        <td style="padding: 16px;">
-                            <div style="font-size: 0.82rem; color: var(--text-main);">
-                                A/C: <strong>{{ app.bank_account_no|default:"N/A" }}</strong>
-                            </div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                                IFSC: {{ app.bank_ifsc|default:"N/A" }}
-                            </div>
-                        </td>
-
-                        <!-- Status Badge -->
-                        <td style="padding: 16px;">
-                            <span style="padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;
-                            {% if app.status == 'Verified & Recommended' %}background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;
-                            {% elif app.status == 'Govt Sanctioned / Amount Received' %}background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;
-                            {% elif app.status == 'Not Received / Pending Govt' %}background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;
-                            {% elif app.status == 'Rejected / Ineligible' %}background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
-                            {% else %}background: #fef3c7; color: #b45309; border: 1px solid #fde68a;{% endif %}">
-                                {{ app.get_status_display }}
-                            </span>
-                        </td>
-
-                        <!-- Actions -->
-                        <td style="padding: 16px; text-align: right; white-space: nowrap;">
-                            
-                            {% if app.status == 'Pending Office Verification' %}
-                            <!-- Verify & Recommend -->
-                            <form id="approveForm-{{ app.id }}" method="POST" action="{% url 'staffs:scholarship_manager' %}" style="display: inline-block; margin-right: 4px;">
-                                {% csrf_token %}
-                                <input type="hidden" name="app_id" value="{{ app.id }}">
-                                <input type="hidden" name="action" value="approve">
-                                <button type="button" onclick="confirmSchAction('approveForm-{{ app.id }}', 'Verify & Recommend Scholarship?', 'Verify eligibility and recommend scholarship application for {{ app.student.student_name|escapejs }} ({{ app.get_scholarship_type_display|escapejs }})?', '✅', 'Verify & Recommend', '#16a34a')" style="background: #16a34a; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
-                                    Verify & Recommend ✅
-                                </button>
-                            </form>
-
-                            <!-- Reject -->
-                            <button type="button" onclick="openSchRejectModal({{ app.id }}, '{{ app.student.student_name|escapejs }}', '{{ app.get_scholarship_type_display|escapejs }}')" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
-                                Reject
-                            </button>
-
-                            {% else %}
-                            <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 600;">Verified</span>
-                            {% endif %}
-
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="padding: 48px; text-align: center; color: var(--text-muted); font-style: italic;">
-                            No scholarship application records found matching your active filter criteria.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    </form>
 
 </div>
 
+<!-- Single Action Form (Hidden) -->
+<form id="singleActionForm" method="POST" action="{% url 'staffs:scholarship_manager' %}">
+    {% csrf_token %}
+    <input type="hidden" name="action" id="singleActionType">
+    <input type="hidden" name="app_id" id="singleActionAppId">
+    <input type="hidden" name="office_remarks" id="singleActionRemarks">
+</form>
+
 <!-- Custom Confirmation Modal -->
 <div id="schConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
-        <div style="padding: 28px 28px 20px 28px; text-align: center;">
-            <div id="schModalIcon" style="width: 64px; height: 64px; border-radius: 50%; background: var(--primary-light, #eef2f2); color: var(--primary, #5a7d7c); display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px;">
-                🎓
+    <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding: 24px; text-align: center;">
+            <div id="schModalIcon" style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-surface, #eef2f2); color: var(--primary, #5a7d7c); display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 14px;">
+                <i class="ri-award-line"></i>
             </div>
-            <h3 id="schModalTitle" style="margin: 0 0 10px 0; font-size: 1.25rem; font-weight: 700; color: var(--text-main, #0f172a);">Confirm Action</h3>
-            <p id="schModalMessage" style="margin: 0; font-size: 0.9rem; color: var(--text-muted, #64748b); line-height: 1.5;"></p>
+            <h3 id="schModalTitle" style="margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main, #0f172a);">Confirm Action</h3>
+            <p id="schModalMessage" style="margin: 0; font-size: 0.88rem; color: var(--text-muted, #64748b); line-height: 1.5;"></p>
         </div>
-        <div style="background: var(--bg-body, #f8fafc); padding: 16px 28px; border-top: 1px solid var(--border, #e2e8f0); display: flex; justify-content: flex-end; gap: 12px;">
-            <button type="button" onclick="closeSchConfirmModal()" style="background: #ffffff; color: var(--text-main); border: 1px solid var(--border, #cbd5e1); padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">Cancel</button>
-            <button type="button" id="schConfirmBtn" onclick="submitSchForm()" style="background: var(--primary, #5a7d7c); color: #ffffff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer;">Confirm Action</button>
+        <div style="background: var(--bg-body, #f8fafc); padding: 14px 24px; border-top: 1px solid var(--border, #e2e8f0); display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="closeSchConfirmModal()" style="background: #ffffff; color: var(--text-main); border: 1px solid var(--border, #cbd5e1); padding: 8px 18px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Cancel</button>
+            <button type="button" id="schConfirmBtn" onclick="executeSingleAction()" style="background: var(--primary, #5a7d7c); color: #ffffff; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">Confirm Action</button>
         </div>
+    </div>
+</div>
+
+<!-- Edit Application Details Modal -->
+<div id="schEditModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 520px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding: 18px 24px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: var(--surface-subtle, #f8fafc);">
+            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main);" id="schEditTitle">Edit Application Details</h3>
+            <button type="button" onclick="closeSchEditModal()" style="background: transparent; border: none; font-size: 22px; color: var(--text-muted); cursor: pointer;">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'staffs:scholarship_manager' %}" style="padding: 20px 24px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_details">
+            <input type="hidden" name="app_id" id="editAppId">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Portal App Ref No</label>
+                    <input type="text" name="application_no" id="editAppNo" placeholder="Ref/Reg number" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; font-size: 0.85rem; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Annual Income (INR)</label>
+                    <input type="number" name="annual_income" id="editIncome" placeholder="e.g. 150000" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; font-size: 0.85rem; box-sizing: border-box;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Bank Account No</label>
+                    <input type="text" name="bank_account_no" id="editBankAcc" placeholder="Bank account number" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; font-size: 0.85rem; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Bank IFSC Code</label>
+                    <input type="text" name="bank_ifsc" id="editBankIfsc" placeholder="IFSC code" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; font-size: 0.85rem; box-sizing: border-box;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Office Verification Remarks</label>
+                <textarea name="office_remarks" id="editRemarks" rows="2" placeholder="Official remarks / portal verification notes..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; font-size: 0.85rem; font-family: inherit; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 14px;">
+                <button type="button" onclick="closeSchEditModal()" style="background: #ffffff; border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Cancel</button>
+                <button type="submit" style="background: var(--primary, #5a7d7c); color: white; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">Save Changes</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <!-- Custom Rejection Modal -->
 <div id="schRejectModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
-        <div style="padding: 22px 28px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: #fff5f5;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="background: #fee2e2; color: #dc2626; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">⚠️</div>
-                <div>
-                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #991b1b;">Reject Scholarship Application</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: #7f1d1d;">Specify official rejection reason</p>
-                </div>
+    <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding: 18px 24px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: #fff5f5;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="ri-error-warning-line" style="font-size: 1.4rem; color: #dc2626;"></i>
+                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #991b1b;">Reject Scholarship Application</h3>
             </div>
-            <button type="button" onclick="closeSchRejectModal()" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1;">&times;</button>
+            <button type="button" onclick="closeSchRejectModal()" style="background: transparent; border: none; font-size: 22px; color: #94a3b8; cursor: pointer;">&times;</button>
         </div>
         
         <form method="POST" action="{% url 'staffs:scholarship_manager' %}">
@@ -677,20 +782,34 @@
             <input type="hidden" name="action" value="reject">
             <input type="hidden" name="app_id" id="schRejectAppId">
             
-            <div style="padding: 24px 28px;">
-                <div style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border, #e2e8f0); padding: 12px 16px; border-radius: 10px; font-size: 0.86rem; color: var(--text-main);" id="schRejectSub"></div>
+            <div style="padding: 20px 24px;">
+                <div style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border, #e2e8f0); padding: 12px; border-radius: 6px; font-size: 0.84rem; color: var(--text-main);" id="schRejectSub"></div>
 
-                <div style="margin-top: 16px;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">Reason for Rejection *</label>
-                    <textarea name="rejection_reason" rows="3" required placeholder="Reason for rejection (e.g. Income exceeds scheme limit / Incomplete documents)..." style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-family: inherit; resize: vertical; box-sizing: border-box;"></textarea>
+                <div style="margin-top: 14px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Reason for Rejection *</label>
+                    <textarea name="rejection_reason" rows="3" required placeholder="Specify official reason for rejection..." style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1); font-size: 0.85rem; font-family: inherit; box-sizing: border-box;"></textarea>
                 </div>
             </div>
 
-            <div style="background: var(--bg-body, #f8fafc); padding: 16px 28px; border-top: 1px solid var(--border, #e2e8f0); display: flex; justify-content: flex-end; gap: 12px;">
-                <button type="button" onclick="closeSchRejectModal()" style="background: #ffffff; color: var(--text-main); border: 1px solid var(--border, #cbd5e1); padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">Cancel</button>
-                <button type="submit" style="background: #dc2626; color: white; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer;">Reject Application</button>
+            <div style="background: var(--bg-body, #f8fafc); padding: 14px 24px; border-top: 1px solid var(--border, #e2e8f0); display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeSchRejectModal()" style="background: #ffffff; color: var(--text-main); border: 1px solid var(--border, #cbd5e1); padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Cancel</button>
+                <button type="submit" style="background: #dc2626; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">Confirm Rejection</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- View Rejection Reason Modal -->
+<div id="schViewReasonModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 440px; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25); border: 1px solid var(--border, #e2e8f0); overflow: hidden; animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: #fff5f5;">
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #991b1b;" id="viewReasonTitle">Rejection Reason</h3>
+            <button type="button" onclick="closeViewReasonModal()" style="background: transparent; border: none; font-size: 22px; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 20px;" id="viewReasonText"></div>
+        <div style="padding: 12px 20px; background: var(--bg-body, #f8fafc); border-top: 1px solid var(--border, #e2e8f0); text-align: right;">
+            <button type="button" onclick="closeViewReasonModal()" style="background: var(--surface); border: 1px solid var(--border); padding: 6px 16px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">Close</button>
+        </div>
     </div>
 </div>
 
@@ -700,25 +819,20 @@
         const btn = document.getElementById('btnToggleAdv');
         if (drawer.style.display === 'block') {
             drawer.style.display = 'none';
-            btn.style.background = '#f8fafc';
-            btn.style.borderColor = '#cbd5e1';
+            btn.style.background = 'var(--bg-body, #f8fafc)';
         } else {
             drawer.style.display = 'block';
-            btn.style.background = 'var(--primary-light, #eef2f2)';
-            btn.style.borderColor = 'var(--primary, #5a7d7c)';
+            btn.style.background = 'var(--primary-surface, rgba(90,125,124,0.12))';
         }
     }
 
-    // Auto-open advanced drawer if any advanced filter is currently active
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const advFields = ['max_income', 'community', 'program_level', 'semester', 'is_hosteler', 'is_7_5', 'is_fg'];
         let activeCount = 0;
-        
         advFields.forEach(f => {
             if (urlParams.get(f)) activeCount++;
         });
-
         if (activeCount > 0) {
             document.getElementById('advancedDrawer').style.display = 'block';
             const badge = document.getElementById('advBadge');
@@ -727,32 +841,98 @@
         }
     });
 
-    let schPendingForm = null;
+    // Checkbox & Batch Operations Logic
+    function toggleSelectAll(master) {
+        const cbs = document.querySelectorAll('.app-checkbox');
+        cbs.forEach(cb => cb.checked = master.checked);
+        updateBatchToolbar();
+    }
 
-    function confirmSchAction(formId, title, message, icon, btnText, btnBg) {
-        schPendingForm = document.getElementById(formId);
+    function updateBatchToolbar() {
+        const checked = document.querySelectorAll('.app-checkbox:checked');
+        const bar = document.getElementById('batchActionBar');
+        const countSpan = document.getElementById('batchSelectedCount');
+        countSpan.innerText = checked.length;
+        if (checked.length > 0) {
+            bar.classList.add('active');
+        } else {
+            bar.classList.remove('active');
+            document.getElementById('selectAllCheckbox').checked = false;
+        }
+    }
+
+    function clearBatchSelection() {
+        document.querySelectorAll('.app-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectAllCheckbox').checked = false;
+        updateBatchToolbar();
+    }
+
+    function submitBatchForm(actionType) {
+        const checked = document.querySelectorAll('.app-checkbox:checked');
+        if (checked.length === 0) {
+            alert('Please select at least one student application checkbox.');
+            return;
+        }
+        if (confirm(`Execute batch action (${actionType}) on ${checked.length} selected applications?`)) {
+            document.getElementById('batchActionField').value = actionType;
+            document.getElementById('batchActionForm').submit();
+        }
+    }
+
+    // Single Action Triggers
+    let pendingActionData = null;
+
+    function triggerApprove(id, studentName, scheme) {
+        pendingActionData = { action: 'approve', id: id };
+        openSchConfirmModal('Verify & Recommend Application?', `Verify eligibility and recommend scholarship for ${studentName} (${scheme}) to Govt Portal.`, 'Check');
+    }
+
+    function triggerDisburse(id, studentName) {
+        pendingActionData = { action: 'disburse', id: id };
+        openSchConfirmModal('Mark Sanctioned & Disbursed?', `Confirm government scholarship funds disbursed / received for ${studentName}.`, 'Coins');
+    }
+
+    function triggerReset(id, studentName) {
+        pendingActionData = { action: 'reset_pending', id: id };
+        openSchConfirmModal('Re-open Application?', `Re-open scholarship application for ${studentName} and reset status to Pending Verification.`, 'Refresh');
+    }
+
+    function openSchConfirmModal(title, msg, iconType) {
         document.getElementById('schModalTitle').innerText = title;
-        document.getElementById('schModalMessage').innerText = message;
-        document.getElementById('schModalIcon').innerText = icon || '🎓';
-        
-        const btn = document.getElementById('schConfirmBtn');
-        btn.innerText = btnText || 'Confirm Action';
-        btn.style.background = btnBg || 'var(--primary, #5a7d7c)';
-
+        document.getElementById('schModalMessage').innerText = msg;
         document.getElementById('schConfirmModal').style.display = 'flex';
     }
 
-    function submitSchForm() {
-        if (schPendingForm) {
-            schPendingForm.submit();
+    function executeSingleAction() {
+        if (pendingActionData) {
+            document.getElementById('singleActionType').value = pendingActionData.action;
+            document.getElementById('singleActionAppId').value = pendingActionData.id;
+            document.getElementById('singleActionForm').submit();
         }
     }
 
     function closeSchConfirmModal() {
         document.getElementById('schConfirmModal').style.display = 'none';
-        schPendingForm = null;
+        pendingActionData = null;
     }
 
+    // Edit Details Modal
+    function openEditDetailsModal(id, name, appNo, income, bankAcc, bankIfsc, remarks) {
+        document.getElementById('editAppId').value = id;
+        document.getElementById('schEditTitle').innerText = `Edit Application: ${name}`;
+        document.getElementById('editAppNo').value = appNo || '';
+        document.getElementById('editIncome').value = income || '';
+        document.getElementById('editBankAcc').value = bankAcc || '';
+        document.getElementById('editBankIfsc').value = bankIfsc || '';
+        document.getElementById('editRemarks').value = remarks || '';
+        document.getElementById('schEditModal').style.display = 'flex';
+    }
+
+    function closeSchEditModal() {
+        document.getElementById('schEditModal').style.display = 'none';
+    }
+
+    // Rejection Modals
     function openSchRejectModal(id, name, scheme) {
         document.getElementById('schRejectAppId').value = id;
         document.getElementById('schRejectSub').innerHTML = `Student: <strong>${name}</strong> | Scheme: <strong>${scheme}</strong>`;
@@ -761,6 +941,16 @@
 
     function closeSchRejectModal() {
         document.getElementById('schRejectModal').style.display = 'none';
+    }
+
+    function openViewReasonModal(name, reason) {
+        document.getElementById('viewReasonTitle').innerText = `Rejection Reason: ${name}`;
+        document.getElementById('viewReasonText').innerHTML = `<p style="margin: 0; font-size: 0.9rem; color: #991b1b; font-weight: 500;">${reason || 'No rejection reason specified.'}</p>`;
+        document.getElementById('schViewReasonModal').style.display = 'flex';
+    }
+
+    function closeViewReasonModal() {
+        document.getElementById('schViewReasonModal').style.display = 'none';
     }
 </script>
 {% endblock %}

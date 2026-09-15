@@ -144,6 +144,7 @@ urlpatterns = [
     path('scholar-profile/<str:roll_number>/', views.staff_view_scholar_profile, name='staff_view_scholar_profile'),
     path('phd-completion-manager/', views.manage_phd_stages, name='manage_phd_stages'),
     path('phd-completion-manager/assign-guide/', views.assign_phd_guide, name='assign_phd_guide'),
+    path('rs-directory/', views.rs_directory, name='rs_directory'),
     
     # Password Reset
     path('password-reset/', views.staff_password_reset_identify, name='password_reset_identify'),

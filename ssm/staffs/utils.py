@@ -302,7 +302,16 @@ def get_effective_day_order(date_obj):
     Returns (day_name, is_holiday, is_working_saturday, override_obj) for a given date.
     Checks AcademicCalendarOverride for custom holiday or Day Order settings.
     """
+    import datetime
     from .models import AcademicCalendarOverride
+
+    if isinstance(date_obj, str):
+        try:
+            date_obj = datetime.datetime.strptime(date_obj, '%Y-%m-%d').date()
+        except ValueError:
+            date_obj = datetime.date.today()
+    elif hasattr(date_obj, 'date') and callable(date_obj.date):
+        date_obj = date_obj.date()
 
     override = AcademicCalendarOverride.objects.filter(date=date_obj).first()
     standard_day_name = date_obj.strftime('%A')

@@ -195,8 +195,50 @@
 
     <!-- ================= TAB 3: SCHOLARS ================= -->
     <div id="dash-tab-scholars" class="dash-tab-content">
-        <!-- Research Scholar Management Widget -->
+        <!-- Quick Link to Department RS Directory for HOD -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 42px; height: 42px; background: var(--primary-light); color: var(--primary-dark); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                    <i class="ri-folder-user-line"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 1rem; color: var(--text-main); font-weight: 700;">Department RS Directory</h4>
+                    <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">Access the department-wide directory of all Ph.D. research scholars across all guides.</p>
+                </div>
+            </div>
+            <a href="{% url 'staffs:rs_directory' %}" style="text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: #ffffff;">
+                <i class="ri-external-link-line"></i> Open RS Directory
+            </a>
+        </div>
+
+        <!-- Research Scholar Management Widget (Personal Guided Scholars) -->
         {% include 'staff/includes/rs_widget.html' %}
+    </div>
+
+    <!-- ================= TAB: TASKS & ROLES ================= -->
+    <div id="dash-tab-dept-tasks" class="dash-tab-content">
+        <section class="actions-section" style="margin-top: 0;">
+            <div class="section-header">
+                <h3>Department Tasks & Role Assignments</h3>
+            </div>
+            <div class="actions-grid">
+                <a href="{% url 'staffs:manage_department_tasks' %}" class="action-tile" style="border-left: 4px solid var(--primary);">
+                    <div class="action-tile-icon"><i class="ri-task-line" style="color: var(--primary); font-size: 1.8rem;"></i></div>
+                    <h4>Department Tasks</h4>
+                    <p>Create and assign department tasks to staff members.</p>
+                </a>
+                <a href="{% url 'staffs:staff_list' %}" class="action-tile" style="border-left: 4px solid var(--primary);">
+                    <div class="action-tile-icon"><i class="ri-user-settings-line" style="color: var(--primary); font-size: 1.8rem;"></i></div>
+                    <h4>Manage Staff Roles</h4>
+                    <p>Assign Class Incharge, Timetable Incharge, and Scholarship Officer roles.</p>
+                </a>
+                <a href="{% url 'staffs:hod_portfolio_approvals' %}" class="action-tile" style="border-left: 4px solid var(--primary);">
+                    <div class="action-tile-icon"><i class="ri-checkbox-circle-line" style="color: var(--primary); font-size: 1.8rem;"></i></div>
+                    <h4>Portfolio Approvals</h4>
+                    <p>Approve staff qualification updates and designation requests.</p>
+                </a>
+            </div>
+        </section>
     </div>
 
     <!-- ================= TAB: EXTRACURRICULAR ACTIVITIES ================= -->

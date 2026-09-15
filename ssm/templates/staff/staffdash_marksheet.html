@@ -1,0 +1,166 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Marksheet & Document Requests Desk | {{ staff.name }} {{ staff.initial|default:"" }}{% endblock %}
+
+{% block page_title %}
+    Marksheet & Document Requests Desk
+    <span style="font-size: 0.75rem; background: #ec4899; color: #ffffff; border: 1px solid #db2777; padding: 4px 12px; border-radius: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px;">
+        <i class="ri-file-copy-2-line"></i> Marksheet Requests
+    </span>
+{% endblock %}
+
+{% block page_subtitle %}Non-teaching administrative control panel for processing official grade sheets, duplicate marksheets, transcript verifications, and original certificate return tracking.{% endblock %}
+
+{% block content %}
+    <!-- Messages Block -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-warning{% endif %}"
+        style="padding: 14px 18px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Key Document Metrics -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-file-text-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Pending Marksheet Requests</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ pending_doc_count|default:0 }} Requests</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-folder-shield-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Unreturned Originals</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">{{ unreturned_doc_count|default:0 }} Certificates</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-file-copy-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Transcripts & Duplicate</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">Processing Desk</div>
+            </div>
+        </div>
+
+        <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 8px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                <i class="ri-checkbox-multiple-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Issued Documents</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a);">Verification Audit Log</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOMAIN HUB 1: MARKSHEET & DOCUMENT DESK -->
+    <section style="margin-bottom: 28px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-file-list-3-fill" style="color: var(--primary, #5a7d7c);"></i> Marksheet Operations Desk Hub
+            </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+            <!-- Document Requests Processing Desk -->
+            <a href="{% url 'staffs:office_manage_document_requests' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid var(--primary, #5a7d7c); padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary, #5a7d7c); background: var(--primary-surface, rgba(90,125,124,0.14)); padding: 3px 8px; border-radius: 4px;">Primary Desk</span>
+                    <i class="ri-file-paper-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Document Requests Manager</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Process duplicate marksheets, consolidated statements, TC, migration certificates, and transcripts.</p>
+            </a>
+
+            <!-- Original Certificate Custody Desk -->
+            <a href="{% url 'staffs:office_manage_document_requests' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #ef4444; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 3px 8px; border-radius: 4px;">Custody Register</span>
+                    <i class="ri-key-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Original Certificates Return Log</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Track 10th/12th/Diploma marksheets held in institutional custody and manage return receipts.</p>
+            </a>
+
+            <!-- Student Verification Lookup -->
+            <a href="{% url 'staffs:student_list' %}" style="text-decoration: none; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #0284c7; padding: 18px; border-radius: 8px; transition: all 0.15s ease; color: inherit; display: block;" class="hover-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 3px 8px; border-radius: 4px;">Record Verification</span>
+                    <i class="ri-user-search-line" style="font-size: 1.2rem; color: var(--text-muted);"></i>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; margin: 0 0 6px 0; color: var(--text-main, #0f172a);">Student Roster Directory</h4>
+                <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">Lookup student register numbers, academic semester logs, and official records for verification.</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- RECENT MARKSHEET & DOCUMENT REQUESTS TABLE -->
+    <section style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; padding: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-history-line" style="color: var(--primary, #5a7d7c);"></i> Document Requests Desk Queue
+            </h3>
+            <a href="{% url 'staffs:office_manage_document_requests' %}" class="btn" style="background: var(--primary, #5a7d7c); color: #ffffff; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 0.82rem; font-weight: 600;">
+                Process All Requests
+            </a>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                    <tr style="background: var(--bg-body, #f8fafc); border-bottom: 2px solid var(--border, #cbd5e1); text-align: left;">
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">REQ ID</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">STUDENT NAME</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">REGISTER NO</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">DOCUMENT TYPE</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">DATE</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">STATUS</th>
+                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted); text-align: right;">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc_req in recent_doc_requests %}
+                    <tr style="border-bottom: 1px solid var(--border, #e2e8f0);">
+                        <td style="padding: 12px; font-weight: 700;">#{{ doc_req.id }}</td>
+                        <td style="padding: 12px; font-weight: 600; color: var(--text-main);">{{ doc_req.student.student_name }}</td>
+                        <td style="padding: 12px; font-family: monospace;">{{ doc_req.student.roll_number }}</td>
+                        <td style="padding: 12px;">{{ doc_req.document_type|default:"Marksheet / Certificate" }}</td>
+                        <td style="padding: 12px; color: var(--text-muted);">{{ doc_req.created_at|date:"d M Y" }}</td>
+                        <td style="padding: 12px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; 
+                                {% if 'Issued' in doc_req.status or 'Completed' in doc_req.status %}background: #dcfce7; color: #166534;
+                                {% elif 'Pending' in doc_req.status %}background: #fef3c7; color: #92400e;
+                                {% else %}background: #e0f2fe; color: #0369a1;{% endif %}">
+                                {{ doc_req.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <a href="{% url 'staffs:office_manage_document_requests' %}" style="font-weight: 600; color: var(--primary, #5a7d7c); text-decoration: none;">Manage Request &rarr;</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                            <i class="ri-checkbox-circle-line" style="font-size: 2rem; display: block; margin-bottom: 8px; color: var(--primary);"></i>
+                            No document requests currently pending in desk queue.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

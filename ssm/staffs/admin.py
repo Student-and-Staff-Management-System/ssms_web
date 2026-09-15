@@ -371,6 +371,7 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                                 'salutation': salutation_final,
                                 'name': clean_name,
                                 'role': staff_role,
+                                'specialization': 'General',
                                 'is_active': True,
                                 'is_profile_complete': True if staff_role == 'Other Dept Staff' else False
                             }
@@ -449,6 +450,7 @@ class StaffGeneratorAdmin(admin.ModelAdmin):
                             'salutation': salutation_final,
                             'name': clean_name,
                             'role': staff_role,
+                            'specialization': 'General',
                             'is_active': True,
                             'is_profile_complete': True if staff_role == 'Other Dept Staff' else False
                         }

@@ -77,12 +77,26 @@ def staff_dashboard(request):
             student_count = 0 
     elif active_role == 'Course Incharge':
         template_name = 'staff/staffdash_course.html'
-    elif active_role == 'Scholarship Officer':
+    elif active_role in ['Scholarship Officer', 'Scholarship Management']:
         template_name = 'staff/staffdash_scholarship.html'
+    elif active_role == 'Timetable Incharge':
+        template_name = 'staff/staffdash_timetable.html'
+    elif active_role == 'Student Coordinator':
+        template_name = 'staff/staffdash_student_coordinator.html'
+    elif active_role == 'Placement Officer':
+        template_name = 'staff/staffdash_placement.html'
+    elif active_role == 'Attendance Incharge':
+        template_name = 'staff/staffdash_attendance_incharge.html'
+    elif active_role == 'Bonafide Issuing':
+        template_name = 'staff/staffdash_bonafide.html'
+    elif active_role in ['Marksheet Requests', 'Marksheet & Document Requests']:
+        template_name = 'staff/staffdash_marksheet.html'
     elif active_role == 'Office Staff':
         template_name = 'staff/staffdash_office.html'
     elif active_role == 'Technical Officer':
         template_name = 'staff/staffdash_technical.html'
+    elif active_role == 'Other Dept Staff':
+        template_name = 'staff/staffdash_other_dept.html'
     elif active_role == 'HOD' or (staff.role == 'HOD' and active_role == 'Admin'):
         template_name = 'staff/staffdash_hod.html'
     elif active_role == 'Admin':
@@ -153,7 +167,7 @@ def staff_dashboard(request):
         pending_bonafide_count = BonafideRequest.objects.filter(status__in=['Pending HOD Approval', 'Waiting for HOD Sign']).count()
         from .models import StaffPastDesignation
         pending_portfolio_count = StaffPastDesignation.objects.filter(approval_status='Pending').count()
-    elif staff.role == 'Office Staff':
+    elif staff.role == 'Office Staff' or active_role in ['Office Staff', 'Bonafide Issuing', 'Marksheet Requests', 'Marksheet & Document Requests']:
          from students.models import DocumentRequest
          # Office Staff sees all active requests not yet collected/rejected
          pending_bonafide_count = BonafideRequest.objects.filter(
@@ -188,7 +202,47 @@ def staff_dashboard(request):
     scholarship_students = []
     selected_scholarship = request.GET.get('scholarship_type')
     
-    if staff.role == 'Scholarship Officer' or staff.role == 'Office Staff':
+    from students.models import ScholarshipApplication
+    sch_apps_qs = ScholarshipApplication.objects.select_related('student', 'student__scholarshipinfo', 'student__personalinfo').order_by('-applied_at')
+    
+    sch_pending_count = sch_apps_qs.filter(status='Pending Office Verification').count()
+    sch_verified_count = sch_apps_qs.filter(status='Verified & Recommended').count()
+    sch_sanctioned_count = sch_apps_qs.filter(status='Govt Sanctioned / Amount Received').count()
+    sch_rejected_count = sch_apps_qs.filter(status='Rejected / Ineligible').count()
+    sch_total_apps_count = sch_apps_qs.count()
+    
+    sch_scheme_counts = {
+        'POSTMATRIC': sch_apps_qs.filter(scholarship_type='POSTMATRIC').count(),
+        'BCMBC': sch_apps_qs.filter(scholarship_type='BCMBC').count(),
+        'FG': sch_apps_qs.filter(scholarship_type='FG').count(),
+        'PUDHUMAI': sch_apps_qs.filter(scholarship_type='PUDHUMAI').count(),
+        'TAMIZH': sch_apps_qs.filter(scholarship_type='TAMIZH').count(),
+        'GOVT_7_5': sch_apps_qs.filter(scholarship_type='GOVT_7_5').count(),
+        'PM': sch_apps_qs.filter(scholarship_type='PM').count(),
+        'PRIVATE': sch_apps_qs.filter(scholarship_type='PRIVATE').count(),
+    }
+    
+    req_sch_type = request.GET.get('scholarship_type')
+    req_sch_status = request.GET.get('status')
+    req_sch_sem = request.GET.get('semester')
+    req_sch_q = request.GET.get('q', '').strip()
+    
+    recent_sch_apps = sch_apps_qs
+    if req_sch_type:
+        recent_sch_apps = recent_sch_apps.filter(scholarship_type=req_sch_type)
+    if req_sch_status:
+        recent_sch_apps = recent_sch_apps.filter(status=req_sch_status)
+    if req_sch_sem:
+        recent_sch_apps = recent_sch_apps.filter(student__current_semester=req_sch_sem)
+    if req_sch_q:
+        recent_sch_apps = recent_sch_apps.filter(
+            Q(student__student_name__icontains=req_sch_q) |
+            Q(student__roll_number__icontains=req_sch_q) |
+            Q(application_no__icontains=req_sch_q)
+        )
+    recent_sch_apps = recent_sch_apps[:25]
+
+    if staff.role == 'Scholarship Officer' or staff.role == 'Office Staff' or staff.is_scholarship_officer or active_role == 'Scholarship Officer':
         scholarship_qs = ScholarshipInfo.objects.select_related('student')
         
         SCHOLARSHIP_MAPPING = {
@@ -226,17 +280,12 @@ def staff_dashboard(request):
     # ── Research Scholar (RS) data ──────────────────────────────────────────
     from students.models import ResearchScholarProfile, ScholarAttendance, LeaveRequest, PhDProgress
 
-    if staff.is_hod or staff.is_staff_admin or active_role == 'HOD':
-        # HOD / Admin sees all department scholars with supervisor details
-        rs_scholars = Student.objects.filter(program_level='PHD').select_related('scholar_profile', 'phd_progress', 'scholar_profile__supervisor')
-        rs_pending_leaves = LeaveRequest.objects.filter(student__program_level='PHD', status='Pending Guide').count()
-        rs_pending_attendance = ScholarAttendance.objects.filter(scholar__program_level='PHD', status='Pending').count()
-    else:
-        # Other staff see only their assigned scholars
-        rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile', 'phd_progress', 'scholar_profile__supervisor')
-        rs_ids = rs_scholars.values_list('pk', flat=True)
-        rs_pending_leaves = LeaveRequest.objects.filter(student_id__in=rs_ids, status='Pending Guide').count() if rs_scholars.exists() else 0
-        rs_pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').count() if rs_scholars.exists() else 0
+    # Every staff member (including HOD) sees their own assigned scholars in their personal dashboard widget
+    rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD').select_related('scholar_profile', 'phd_progress', 'scholar_profile__supervisor')
+    
+    rs_ids = list(rs_scholars.values_list('pk', flat=True))
+    rs_pending_leaves = LeaveRequest.objects.filter(student_id__in=rs_ids, status='Pending Guide').count() if rs_ids else 0
+    rs_pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').count() if rs_ids else 0
 
     # Ensure phd_progress records exist for all scholars
     for s in rs_scholars:
@@ -267,310 +316,315 @@ def staff_dashboard(request):
     import datetime
     from students.models import StudentAttendance
     from .models import ClassSubstitutionRequest, StaffHourSwapRequest
+    from .utils import get_effective_day_order
 
     today_date_obj = timezone.localtime(timezone.now()).date()
     today_date = today_date_obj.strftime('%Y-%m-%d')
-    today_weekday = today_date_obj.strftime('%A')  # 'Monday', 'Tuesday' etc.
+    effective_day_name, is_today_holiday, is_working_saturday, calendar_override = get_effective_day_order(today_date_obj)
+    today_weekday = effective_day_name
     today_schedule = []
     unmarked_done_count = 0
+    holiday_title = calendar_override.title if (calendar_override and calendar_override.title) else "Declared Holiday"
+    holiday_description = calendar_override.description if (calendar_override and calendar_override.description) else ""
 
-    # Fetch approved alternate substitution requests where current staff is substitute for today
-    approved_substitutions = list(ClassSubstitutionRequest.objects.filter(
-        substitute=staff,
-        date=today_date_obj,
-        status='Approved'
-    ).select_related('subject', 'requester'))
-
-    # Fetch approved hour swap requests for today
-    approved_swaps_requested = list(StaffHourSwapRequest.objects.filter(
-        requester=staff,
-        requester_date=today_date_obj,
-        status='Approved'
-    ).select_related('target_staff', 'requester_subject', 'target_subject'))
-
-    approved_swaps_received = list(StaffHourSwapRequest.objects.filter(
-        target_staff=staff,
-        target_date=today_date_obj,
-        status='Approved'
-    ).select_related('requester', 'requester_subject', 'target_subject'))
-
-    approved_swaps_taking_today = list(StaffHourSwapRequest.objects.filter(
-        requester=staff,
-        target_date=today_date_obj,
-        status='Approved'
-    ).select_related('target_staff', 'target_subject'))
-
-    approved_swaps_giving_today = list(StaffHourSwapRequest.objects.filter(
-        target_staff=staff,
-        requester_date=today_date_obj,
-        status='Approved'
-    ).select_related('requester', 'requester_subject'))
-
-    # Periods where current staff handed off their class to an alternate or swapped out for today (approved)
-    handed_off_periods = set(ClassSubstitutionRequest.objects.filter(
-        requester=staff,
-        date=today_date_obj,
-        status='Approved'
-    ).values_list('period', flat=True))
-
-    for hs in approved_swaps_requested:
-        handed_off_periods.add(hs.requester_period)
-    for hs in approved_swaps_received:
-        handed_off_periods.add(hs.target_period)
-
-    today_tt_entries = []
-    if today_weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
-        # Auto-sync subject.lab for subjects matching Lab names/short_names
-        for lab_obj in Lab.objects.all():
-            Subject.objects.filter(
-                Q(lab__isnull=True),
-                Q(location_name__iexact=lab_obj.name) | Q(location_name__iexact=lab_obj.short_name)
-            ).update(lab=lab_obj)
-
-        asst_labs = Lab.objects.filter(Q(assistant_staff=staff) | Q(staff=staff))
-        asst_lab_ids = list(asst_labs.values_list('id', flat=True))
-        asst_lab_names = list(asst_labs.values_list('name', flat=True))
-        asst_lab_short_names = list(asst_labs.values_list('short_name', flat=True))
-        all_asst_names = [n for n in (asst_lab_names + asst_lab_short_names) if n]
-
-        ic_entries = list(Timetable.objects.filter(
-            Q(staff=staff) | Q(subject__staff=staff) | Q(subject__staff_batch_b=staff),
-            day=today_weekday
-        ).select_related('subject', 'subject__lab', 'subject__lab__assistant_staff'))
-        
-        asst_entries = list(Timetable.objects.filter(
-            Q(subject__subject_type='Lab', subject__assistant_staff=staff) |
-            Q(subject__subject_type='Lab', subject__assistant_staff_batch_b=staff) |
-            Q(subject__subject_type='Lab', subject__lab__assistant_staff=staff) |
-            Q(subject__subject_type='Lab', subject__lab_id__in=asst_lab_ids) |
-            Q(subject__subject_type='Lab', subject__location_name__in=all_asst_names),
-            day=today_weekday
-        ).select_related('subject', 'subject__staff', 'subject__staff_batch_b', 'subject__assistant_staff', 'subject__assistant_staff_batch_b', 'subject__lab', 'subject__lab__assistant_staff'))
-        
-        ic_ids = {e.id for e in ic_entries}
-        for e in asst_entries:
-            if e.id not in ic_ids:
-                e.is_assistant_only = True
-                ic_entries.append(e)
-                
-        today_tt_entries = ic_entries
-
-    # Exclude periods current staff handed off to an alternate / swapped out
-    effective_tt_entries = [e for e in today_tt_entries if e.period not in handed_off_periods]
-
-    class SyntheticTTEntry:
-        def __init__(self, subject, period, day, semester, attendance_option, requester_name, is_hour_swap=False, partner_name=""):
-            self.subject = subject
-            self.period = period
-            self.day = day
-            self.semester = semester
-            self.batch = 'All'
-            self.is_alternate = not is_hour_swap
-            self.is_hour_swap = is_hour_swap
-            self.attendance_option = attendance_option
-            self.requester_name = requester_name
-            self.partner_name = partner_name
-
-    for sub in approved_substitutions:
-        effective_tt_entries.append(SyntheticTTEntry(
-            subject=sub.subject,
-            period=sub.period,
-            day=today_weekday,
-            semester=sub.subject.semester,
-            attendance_option=sub.attendance_option,
-            requester_name=sub.requester.name
-        ))
-
-    # Add swapped periods gained from hour swaps for today
-    for hs in approved_swaps_taking_today:
-        effective_tt_entries.append(SyntheticTTEntry(
-            subject=hs.target_subject,
-            period=hs.target_period,
-            day=today_weekday,
-            semester=hs.target_subject.semester if hs.target_subject else 1,
-            attendance_option='WITH_ATTENDANCE',
-            requester_name=hs.target_staff.name,
-            is_hour_swap=True,
-            partner_name=hs.target_staff.name
-        ))
-
-    for hs in approved_swaps_giving_today:
-        effective_tt_entries.append(SyntheticTTEntry(
-            subject=hs.requester_subject,
-            period=hs.requester_period,
-            day=today_weekday,
-            semester=hs.requester_subject.semester if hs.requester_subject else 1,
-            attendance_option='WITH_ATTENDANCE',
-            requester_name=hs.requester.name,
-            is_hour_swap=True,
-            partner_name=hs.requester.name
-        ))
-
-    effective_tt_entries.sort(key=lambda x: x.period if x.period else 0)
-
-
-
-    if effective_tt_entries:
-        # Pre-fetch attendance records for today to check status per subject & period
-        subject_ids = [e.subject.id for e in effective_tt_entries if e.subject]
-        attendance_records = StudentAttendance.objects.filter(
+    if not is_today_holiday:
+        # Fetch approved alternate substitution requests where current staff is substitute for today
+        approved_substitutions = list(ClassSubstitutionRequest.objects.filter(
+            substitute=staff,
             date=today_date_obj,
-            subject_id__in=subject_ids
-        ).values('subject_id', 'time')
-        
-        attendance_set = set()
-        for rec in attendance_records:
-            attendance_set.add((rec['subject_id'], rec['time']))
+            status='Approved'
+        ).select_related('subject', 'requester'))
 
-        # Define period time slots matching official system timetable
-        PERIOD_TIMES = {
-            1: ('08:30', '09:30'),
-            2: ('09:30', '10:30'),
-            3: ('10:40', '11:40'),
-            4: ('11:40', '12:40'),
-            5: ('13:30', '14:30'),
-            6: ('14:30', '15:30'),
-            7: ('15:30', '16:30'),
-        }
-        now_time = timezone.localtime(timezone.now()).time()
+        # Fetch approved hour swap requests for today
+        approved_swaps_requested = list(StaffHourSwapRequest.objects.filter(
+            requester=staff,
+            requester_date=today_date_obj,
+            status='Approved'
+        ).select_related('target_staff', 'requester_subject', 'target_subject'))
 
-        # Determine effective batch & group contiguous period sequences per (subject, batch)
-        entry_data = []
-        for entry in effective_tt_entries:
-            if not entry.subject:
-                entry_data.append((entry, None, False))
-                continue
+        approved_swaps_received = list(StaffHourSwapRequest.objects.filter(
+            target_staff=staff,
+            target_date=today_date_obj,
+            status='Approved'
+        ).select_related('requester', 'requester_subject', 'target_subject'))
+
+        approved_swaps_taking_today = list(StaffHourSwapRequest.objects.filter(
+            requester=staff,
+            target_date=today_date_obj,
+            status='Approved'
+        ).select_related('target_staff', 'target_subject'))
+
+        approved_swaps_giving_today = list(StaffHourSwapRequest.objects.filter(
+            target_staff=staff,
+            requester_date=today_date_obj,
+            status='Approved'
+        ).select_related('requester', 'requester_subject'))
+
+        # Periods where current staff handed off their class to an alternate or swapped out for today (approved)
+        handed_off_periods = set(ClassSubstitutionRequest.objects.filter(
+            requester=staff,
+            date=today_date_obj,
+            status='Approved'
+        ).values_list('period', flat=True))
+
+        for hs in approved_swaps_requested:
+            handed_off_periods.add(hs.requester_period)
+        for hs in approved_swaps_received:
+            handed_off_periods.add(hs.target_period)
+
+        today_tt_entries = []
+        if today_weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']:
+            # Auto-sync subject.lab for subjects matching Lab names/short_names
+            for lab_obj in Lab.objects.all():
+                Subject.objects.filter(
+                    Q(lab__isnull=True),
+                    Q(location_name__iexact=lab_obj.name) | Q(location_name__iexact=lab_obj.short_name)
+                ).update(lab=lab_obj)
+
+            asst_labs = Lab.objects.filter(Q(assistant_staff=staff) | Q(staff=staff))
+            asst_lab_ids = list(asst_labs.values_list('id', flat=True))
+            asst_lab_names = list(asst_labs.values_list('name', flat=True))
+            asst_lab_short_names = list(asst_labs.values_list('short_name', flat=True))
+            all_asst_names = [n for n in (asst_lab_names + asst_lab_short_names) if n]
+
+            ic_entries = list(Timetable.objects.filter(
+                Q(staff=staff) | Q(subject__staff=staff) | Q(subject__staff_batch_b=staff),
+                day=today_weekday
+            ).select_related('subject', 'subject__lab', 'subject__lab__assistant_staff'))
             
-            subject = entry.subject
-            s_type = getattr(subject, 'subject_type', '')
-            code_upper = (subject.code or '').upper()
-            name_upper = (subject.name or '').upper()
-            is_lab = (s_type == 'Lab' or getattr(subject, 'lab', None) is not None or 'LAB' in name_upper or 'PRACTICAL' in name_upper or 'LAB' in code_upper or 'CP' in code_upper)
+            asst_entries = list(Timetable.objects.filter(
+                Q(subject__subject_type='Lab', subject__assistant_staff=staff) |
+                Q(subject__subject_type='Lab', subject__assistant_staff_batch_b=staff) |
+                Q(subject__subject_type='Lab', subject__lab__assistant_staff=staff) |
+                Q(subject__subject_type='Lab', subject__lab_id__in=asst_lab_ids) |
+                Q(subject__subject_type='Lab', subject__location_name__in=all_asst_names),
+                day=today_weekday
+            ).select_related('subject', 'subject__staff', 'subject__staff_batch_b', 'subject__assistant_staff', 'subject__assistant_staff_batch_b', 'subject__lab', 'subject__lab__assistant_staff'))
+            
+            ic_ids = {e.id for e in ic_entries}
+            for e in asst_entries:
+                if e.id not in ic_ids:
+                    e.is_assistant_only = True
+                    ic_entries.append(e)
+                    
+            today_tt_entries = ic_entries
 
-            eff_batch = getattr(entry, 'batch', 'All')
-            if is_lab and not getattr(entry, 'is_alternate', False):
-                if subject.staff == staff and subject.staff_batch_b and subject.staff_batch_b != staff:
-                    eff_batch = 'A'
-                elif subject.staff_batch_b == staff and subject.staff != staff:
-                    eff_batch = 'B'
-                elif subject.staff == staff and (not subject.staff_batch_b or subject.staff_batch_b == staff):
-                    eff_batch = None  # Teaches whole class / both batches together
-                elif subject.assigned_batch in ['A', 'B']:
-                    eff_batch = subject.assigned_batch
+        # Exclude periods current staff handed off to an alternate / swapped out
+        effective_tt_entries = [e for e in today_tt_entries if e.period not in handed_off_periods]
 
-            entry_data.append((entry, eff_batch, is_lab))
+        class SyntheticTTEntry:
+            def __init__(self, subject, period, day, semester, attendance_option, requester_name, is_hour_swap=False, partner_name=""):
+                self.subject = subject
+                self.period = period
+                self.day = day
+                self.semester = semester
+                self.batch = 'All'
+                self.is_alternate = not is_hour_swap
+                self.is_hour_swap = is_hour_swap
+                self.attendance_option = attendance_option
+                self.requester_name = requester_name
+                self.partner_name = partner_name
 
-        grouped_entries = []
-        for entry, eff_batch, is_lab in entry_data:
-            if not entry.subject:
-                grouped_entries.append({'entries': [entry], 'batch': eff_batch, 'is_lab': is_lab})
-                continue
+        for sub in approved_substitutions:
+            effective_tt_entries.append(SyntheticTTEntry(
+                subject=sub.subject,
+                period=sub.period,
+                day=today_weekday,
+                semester=sub.subject.semester,
+                attendance_option=sub.attendance_option,
+                requester_name=sub.requester.name
+            ))
 
-            # Look for an existing group with the same subject and same batch where period continues
-            placed = False
-            for group in grouped_entries:
-                grp_first = group['entries'][0]
-                grp_last = group['entries'][-1]
-                if grp_first.subject and grp_first.subject.id == entry.subject.id and group['batch'] == eff_batch:
-                    if entry.period == grp_last.period + 1:
-                        group['entries'].append(entry)
-                        placed = True
-                        break
+        # Add swapped periods gained from hour swaps for today
+        for hs in approved_swaps_taking_today:
+            effective_tt_entries.append(SyntheticTTEntry(
+                subject=hs.target_subject,
+                period=hs.target_period,
+                day=today_weekday,
+                semester=hs.target_subject.semester if hs.target_subject else 1,
+                attendance_option='WITH_ATTENDANCE',
+                requester_name=hs.target_staff.name,
+                is_hour_swap=True,
+                partner_name=hs.target_staff.name
+            ))
 
-            if not placed:
-                grouped_entries.append({'entries': [entry], 'batch': eff_batch, 'is_lab': is_lab})
+        for hs in approved_swaps_giving_today:
+            effective_tt_entries.append(SyntheticTTEntry(
+                subject=hs.requester_subject,
+                period=hs.requester_period,
+                day=today_weekday,
+                semester=hs.requester_subject.semester if hs.requester_subject else 1,
+                attendance_option='WITH_ATTENDANCE',
+                requester_name=hs.requester.name,
+                is_hour_swap=True,
+                partner_name=hs.requester.name
+            ))
 
-        for item in grouped_entries:
-            group = item['entries']
-            first_entry = group[0]
-            last_entry = group[-1]
-            first_period = first_entry.period
-            last_period = last_entry.period
+        effective_tt_entries.sort(key=lambda x: x.period if x.period else 0)
 
-            if len(group) == 1:
-                period_display = f"P{first_period}"
-            else:
-                period_display = f"P{first_period}–P{last_period}"
+        if effective_tt_entries:
+            # Pre-fetch attendance records for today to check status per subject & period
+            subject_ids = [e.subject.id for e in effective_tt_entries if e.subject]
+            attendance_records = StudentAttendance.objects.filter(
+                date=today_date_obj,
+                subject_id__in=subject_ids
+            ).values('subject_id', 'time')
+            
+            attendance_set = set()
+            for rec in attendance_records:
+                attendance_set.add((rec['subject_id'], rec['time']))
 
-            times_first = PERIOD_TIMES.get(first_period, ('--', '--'))
-            times_last = PERIOD_TIMES.get(last_period, ('--', '--'))
-            start_str = times_first[0]
-            end_str = times_last[1]
+            # Define period time slots matching official system timetable
+            PERIOD_TIMES = {
+                1: ('08:30', '09:30'),
+                2: ('09:30', '10:30'),
+                3: ('10:40', '11:40'),
+                4: ('11:40', '12:40'),
+                5: ('13:30', '14:30'),
+                6: ('14:30', '15:30'),
+                7: ('15:30', '16:30'),
+            }
+            now_time = timezone.localtime(timezone.now()).time()
 
-            start_t = None
-            try:
-                start_t = datetime.time(int(start_str[:2]), int(start_str[3:]))
-                end_t   = datetime.time(int(end_str[:2]), int(end_str[3:]))
-                if now_time < start_t:
-                    status = 'upcoming'
-                elif start_t <= now_time <= end_t:
-                    status = 'ongoing'
+            # Determine effective batch & group contiguous period sequences per (subject, batch)
+            entry_data = []
+            for entry in effective_tt_entries:
+                if not entry.subject:
+                    entry_data.append((entry, None, False))
+                    continue
+                
+                subject = entry.subject
+                s_type = getattr(subject, 'subject_type', '')
+                code_upper = (subject.code or '').upper()
+                name_upper = (subject.name or '').upper()
+                is_lab = (s_type == 'Lab' or getattr(subject, 'lab', None) is not None or 'LAB' in name_upper or 'PRACTICAL' in name_upper or 'LAB' in code_upper or 'CP' in code_upper)
+
+                eff_batch = getattr(entry, 'batch', 'All')
+                if is_lab and not getattr(entry, 'is_alternate', False):
+                    if subject.staff == staff and subject.staff_batch_b and subject.staff_batch_b != staff:
+                        eff_batch = 'A'
+                    elif subject.staff_batch_b == staff and subject.staff != staff:
+                        eff_batch = 'B'
+                    elif subject.staff == staff and (not subject.staff_batch_b or subject.staff_batch_b == staff):
+                        eff_batch = None  # Teaches whole class / both batches together
+                    elif subject.assigned_batch in ['A', 'B']:
+                        eff_batch = subject.assigned_batch
+
+                entry_data.append((entry, eff_batch, is_lab))
+
+            grouped_entries = []
+            for entry, eff_batch, is_lab in entry_data:
+                if not entry.subject:
+                    grouped_entries.append({'entries': [entry], 'batch': eff_batch, 'is_lab': is_lab})
+                    continue
+
+                # Look for an existing group with the same subject and same batch where period continues
+                placed = False
+                for group in grouped_entries:
+                    grp_first = group['entries'][0]
+                    grp_last = group['entries'][-1]
+                    if grp_first.subject and grp_first.subject.id == entry.subject.id and group['batch'] == eff_batch:
+                        if entry.period == grp_last.period + 1:
+                            group['entries'].append(entry)
+                            placed = True
+                            break
+
+                if not placed:
+                    grouped_entries.append({'entries': [entry], 'batch': eff_batch, 'is_lab': is_lab})
+
+            for item in grouped_entries:
+                group = item['entries']
+                first_entry = group[0]
+                last_entry = group[-1]
+                first_period = first_entry.period
+                last_period = last_entry.period
+
+                if len(group) == 1:
+                    period_display = f"P{first_period}"
                 else:
-                    status = 'done'
-            except Exception:
-                status = 'upcoming'
+                    period_display = f"P{first_period}–P{last_period}"
 
-            subject = first_entry.subject
-            is_lab = item['is_lab']
-            batch = item['batch'] or getattr(first_entry, 'batch', 'All')
+                times_first = PERIOD_TIMES.get(first_period, ('--', '--'))
+                times_last = PERIOD_TIMES.get(last_period, ('--', '--'))
+                start_str = times_first[0]
+                end_str = times_last[1]
 
-            is_marked = False
-            if subject:
-                if (subject.id, start_t) in attendance_set:
-                    is_marked = True
-                elif (subject.id, None) in attendance_set:
-                    is_marked = True
-                elif any(rec_s_id == subject.id for (rec_s_id, rec_time) in attendance_set if rec_time is None):
-                    is_marked = True
+                start_t = None
+                try:
+                    start_t = datetime.time(int(start_str[:2]), int(start_str[3:]))
+                    end_t   = datetime.time(int(end_str[:2]), int(end_str[3:]))
+                    if now_time < start_t:
+                        status = 'upcoming'
+                    elif start_t <= now_time <= end_t:
+                        status = 'ongoing'
+                    else:
+                        status = 'done'
+                except Exception:
+                    status = 'upcoming'
 
-            if status == 'done' and not is_marked:
-                unmarked_done_count += 1
+                subject = first_entry.subject
+                is_lab = item['is_lab']
+                batch = item['batch'] or getattr(first_entry, 'batch', 'All')
 
-            today_schedule.append({
-                'period': first_period,
-                'period_display': period_display,
-                'subject': subject,
-                'batch': batch,
-                'semester': getattr(first_entry, 'semester', getattr(subject, 'semester', None)),
-                'start': start_str,
-                'end': end_str,
-                'status': status,
-                'is_marked': is_marked,
-                'is_lab': is_lab,
-                'is_alternate': getattr(first_entry, 'is_alternate', False),
-                'is_assistant_only': getattr(first_entry, 'is_assistant_only', False),
-                'attendance_option': getattr(first_entry, 'attendance_option', None),
-                'requester_name': getattr(first_entry, 'requester_name', None),
-            })
+                is_marked = False
+                if subject:
+                    if (subject.id, start_t) in attendance_set:
+                        is_marked = True
+                    elif (subject.id, None) in attendance_set:
+                        is_marked = True
+                    elif any(rec_s_id == subject.id for (rec_s_id, rec_time) in attendance_set if rec_time is None):
+                        is_marked = True
 
-        # Merge duplicate lab cards for the same subject and period_display (e.g., Batch A and Batch B)
-        merged_schedule = []
-        for card in today_schedule:
-            dup = None
-            for existing in merged_schedule:
-                if (existing['subject'] and card['subject'] and 
-                    existing['subject'].id == card['subject'].id and 
-                    existing['period_display'] == card['period_display']):
-                    dup = existing
-                    break
-            if dup:
-                if dup['batch'] and card['batch'] and dup['batch'] != card['batch']:
-                    dup['batch'] = 'A & B'
-                elif card['batch']:
-                    dup['batch'] = card['batch']
-                if card['is_marked']:
-                    dup['is_marked'] = True
-            else:
-                merged_schedule.append(card)
+                if status == 'done' and not is_marked:
+                    unmarked_done_count += 1
 
-        today_schedule = merged_schedule
+                today_schedule.append({
+                    'period': first_period,
+                    'period_display': period_display,
+                    'subject': subject,
+                    'batch': batch,
+                    'semester': getattr(first_entry, 'semester', getattr(subject, 'semester', None)),
+                    'start': start_str,
+                    'end': end_str,
+                    'status': status,
+                    'is_marked': is_marked,
+                    'is_lab': is_lab,
+                    'is_alternate': getattr(first_entry, 'is_alternate', False),
+                    'is_assistant_only': getattr(first_entry, 'is_assistant_only', False),
+                    'attendance_option': getattr(first_entry, 'attendance_option', None),
+                    'requester_name': getattr(first_entry, 'requester_name', None),
+                })
+
+            # Merge duplicate lab cards for the same subject and period_display (e.g., Batch A and Batch B)
+            merged_schedule = []
+            for card in today_schedule:
+                dup = None
+                for existing in merged_schedule:
+                    if (existing['subject'] and card['subject'] and 
+                        existing['subject'].id == card['subject'].id and 
+                        existing['period_display'] == card['period_display']):
+                        dup = existing
+                        break
+                if dup:
+                    if dup['batch'] and card['batch'] and dup['batch'] != card['batch']:
+                        dup['batch'] = 'A & B'
+                    elif card['batch']:
+                        dup['batch'] = card['batch']
+                    if card['is_marked']:
+                        dup['is_marked'] = True
+                else:
+                    merged_schedule.append(card)
+
+            today_schedule = merged_schedule
 
     has_unmarked_done = (unmarked_done_count > 0)
 
     # Dynamic Sarcastic / Emotional Mood Text Generator based on Class Count & Day
     import random
     class_count = len(today_schedule)
-    if today_weekday in ['Saturday', 'Sunday']:
+    if is_today_holiday:
+        schedule_mood_text = f"🏖️ Holiday: {holiday_title}. No classes scheduled today!"
+    elif today_weekday in ['Saturday', 'Sunday']:
         schedule_mood_text = random.choice([
             "Weekend vibes! Zero classes, zero stress 🌅",
             "It's the weekend! Time to recharge 🔋",
@@ -631,12 +685,21 @@ def staff_dashboard(request):
                 "5 classes today! Heavy duty shift in progress 🏋️"
             ])
 
+    # Class Representatives (CRs) filtered for assigned course semesters
+    cr_students = []
+    assigned_sems = [s.semester for s in assigned_subjects if s.semester]
+    cr_qs = Student.objects.filter(is_class_representative=True).select_related('personalinfo', 'studentdocuments')
+    if assigned_sems:
+        cr_qs = cr_qs.filter(current_semester__in=assigned_sems)
+    cr_students = list(cr_qs.order_by('current_semester', 'roll_number'))
+
     # ────────────────────────────────────────────────────────────────────────
     dashboard_context = {
         'staff': staff, 
         'student_count': student_count,
         'subjects': assigned_subjects,
         'assigned_subjects': assigned_subjects, # For HOD dashboard compatibility
+        'cr_students': cr_students,
         'pending_leaves_count': pending_leaves_count,
         'pending_staff_leaves_count': pending_staff_leaves_count,
         'pending_bonafide_count': pending_bonafide_count,
@@ -648,6 +711,13 @@ def staff_dashboard(request):
         'news_list': news_list,
         'scholarship_students': scholarship_students,
         'selected_scholarship': selected_scholarship,
+        'sch_pending_count': sch_pending_count,
+        'sch_verified_count': sch_verified_count,
+        'sch_sanctioned_count': sch_sanctioned_count,
+        'sch_rejected_count': sch_rejected_count,
+        'sch_total_apps_count': sch_total_apps_count,
+        'sch_scheme_counts': sch_scheme_counts,
+        'recent_sch_apps': recent_sch_apps,
         'profile_completion_percentage': _completion_data['percentage'],
         'profile_missing_fields': _completion_data['missing_fields'],
         # Research Scholar Context
@@ -672,6 +742,9 @@ def staff_dashboard(request):
         'schedule_mood_text': schedule_mood_text,
         'unmarked_done_count': unmarked_done_count,
         'has_unmarked_done': has_unmarked_done,
+        'is_today_holiday': is_today_holiday,
+        'holiday_title': holiday_title,
+        'holiday_description': holiday_description,
         'all_assigned_roles': all_assigned_roles,
         'active_role': active_role,
         'is_hod_or_admin': (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or active_role == 'HOD'),
@@ -715,7 +788,7 @@ def get_staff_profile_completion_data(staff):
             else:
                 missing_fields.append(FIELD_LABELS.get(field, field.replace('_', ' ').title()))
 
-    if staff.role in ['Office Staff', 'Technical Officer']:
+    if staff.role in ['Office Staff', 'Technical Officer', 'Other Dept Staff']:
         if not staff.is_profile_complete:
             staff.is_profile_complete = True
             staff.save(update_fields=['is_profile_complete'])
@@ -924,6 +997,7 @@ def generate_staff(request):
         roles_set = set(roles_list)
         email_candidate = next_temp_email(staff_id)
         is_office = ('Office Staff' in roles_set or has_office_duty)
+        is_other_dept = ('Other Dept Staff' in roles_set or primary_role == 'Other Dept Staff')
 
         defaults = {
             'name': name,
@@ -934,11 +1008,11 @@ def generate_staff(request):
             'is_timetable_incharge': 'Timetable Incharge' in roles_set,
             'is_admin': 'HOD' in roles_set,
             'salutation': 'Mr.' if is_office else 'Dr.',
-            'designation': 'Office Assistant' if is_office else 'Assistant Professor',
-            'qualification': 'Graduate' if is_office else 'Ph.D.',
-            'specialization': 'General Administration' if is_office else 'Information Technology',
-            'department': 'Information Technology',
-            'is_profile_complete': False,
+            'designation': 'External Faculty' if is_other_dept else ('Office Assistant' if is_office else 'Assistant Professor'),
+            'qualification': 'Post Graduate' if is_other_dept else ('Graduate' if is_office else 'Ph.D.'),
+            'specialization': 'External Department' if is_other_dept else ('General Administration' if is_office else 'Information Technology'),
+            'department': 'Other Department' if is_other_dept else 'Information Technology',
+            'is_profile_complete': True if is_other_dept else False,
         }
         staff_obj, created = Staff.objects.get_or_create(staff_id=staff_id, defaults=defaults)
         if not created:
@@ -1059,18 +1133,24 @@ def student_list(request):
     program_level = request.GET.get('program_level')
     start_roll = request.GET.get('start_roll')
     end_roll = request.GET.get('end_roll')
+    filter_cr = request.GET.get('filter_cr') == 'true'
     
     students = Student.objects.all().select_related('studentdocuments')
 
+    if filter_cr:
+        students = students.filter(is_class_representative=True)
+
     # Restrict view for Class Incharge
+    is_class_ic_restricted = False
     try:
         current_staff = Staff.objects.get(staff_id=request.session['staff_id'])
-        if current_staff.has_role('Class Incharge') and current_staff.assigned_semester:
+        active_role = request.session.get('active_role')
+        if not current_staff.is_staff_admin and (current_staff.role == 'Class Incharge' or active_role == 'Class Incharge') and current_staff.assigned_semester:
+            is_class_ic_restricted = True
             students = students.filter(current_semester=current_staff.assigned_semester)
             if current_staff.assigned_batch in ['A', 'B']:
                 students = students.filter(lab_batch=current_staff.assigned_batch)
                 batch = current_staff.assigned_batch
-            # Override semester filter to be the assigned one (or hide the filter in template)
             semester = str(current_staff.assigned_semester) 
     except Staff.DoesNotExist:
         pass
@@ -1082,7 +1162,7 @@ def student_list(request):
             Q(student_email__icontains=query)
         )
     
-    if semester:
+    if semester and not is_class_ic_restricted:
         try:
             semester_num = int(semester)
             if semester_num >= 9:
@@ -1330,6 +1410,8 @@ def student_list(request):
         'start_roll': start_roll,
         'end_roll': end_roll,
         'sort_by': sort_by,
+        'is_cr_filter': filter_cr,
+        'is_class_ic_restricted': is_class_ic_restricted,
     })
 
 
@@ -2018,7 +2100,15 @@ def manage_attendance(request, subject_id):
         messages.error(request, "Access Denied: Lab Assistants are assigned for lab support and cannot mark attendance. Attendance marking is reserved for the course instructor or assigned substitute.")
         return redirect('staffs:staff_dashboard')
 
-    if not current_staff.is_staff_admin and subject.staff != current_staff and subject.staff_batch_b != current_staff and not is_substitute:
+    can_manage_att = (
+        current_staff.is_staff_admin or 
+        current_staff.has_role('Attendance Incharge') or 
+        current_staff.has_role('Student Coordinator') or 
+        subject.staff == current_staff or 
+        subject.staff_batch_b == current_staff or 
+        is_substitute
+    )
+    if not can_manage_att:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
@@ -2249,8 +2339,15 @@ def manage_attendance(request, subject_id):
         if not is_p_marked and students.exists():
             is_p_marked = StudentAttendance.objects.filter(subject=subject, date=date_obj, time__isnull=True, student__in=students).exists()
 
+        is_p_holiday = is_calendar_holiday or (
+            start_t and StudentAttendance.objects.filter(subject=subject, date=date_obj, time=start_t, status='Holiday').exists()
+        )
+
         is_p_future_date = (date_obj > today_date)
-        if is_p_marked:
+        if is_p_holiday:
+            p_badge = "🏖️ Holiday"
+            p_class = "holiday"
+        elif is_p_marked:
             p_badge = "✓ Marked"
             p_class = "marked"
         elif is_p_future_date:
@@ -2449,7 +2546,15 @@ def attendance_calendar(request, subject_id):
         status='Approved'
     ).exists()
 
-    if not current_staff.is_staff_admin and subject.staff != current_staff and not is_substitute:
+    can_view_cal = (
+        current_staff.is_staff_admin or 
+        current_staff.has_role('Attendance Incharge') or 
+        current_staff.has_role('Student Coordinator') or 
+        subject.staff == current_staff or 
+        subject.staff_batch_b == current_staff or 
+        is_substitute
+    )
+    if not can_view_cal:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
@@ -2522,6 +2627,8 @@ def attendance_calendar(request, subject_id):
             marked_slots_map[rec['date']] = []
         marked_slots_map[rec['date']].append((rec['time'], rec['end_time']))
 
+    from .utils import get_effective_day_order
+
     calendar_rows = []
     for week in month_days:
         week_data = []
@@ -2531,7 +2638,13 @@ def attendance_calendar(request, subject_id):
             day_has_unmarked = False
             day_has_marked = False
             
-            day_name = day.strftime('%A')
+            eff_day_name, is_day_holiday, is_working_sat, day_override = get_effective_day_order(day)
+            holiday_title = day_override.title if (day_override and day_override.title) else "Holiday"
+            
+            if not is_day_holiday:
+                is_day_holiday = StudentAttendance.objects.filter(subject=subject, date=day, status='Holiday').exists()
+
+            day_name = eff_day_name if (is_working_sat and eff_day_name) else day.strftime('%A')
             if day_name in timetable_map:
                 sorted_p = sorted(list(set(timetable_map[day_name])))
                 grouped_p = []
@@ -2575,7 +2688,10 @@ def attendance_calendar(request, subject_id):
                                 is_marked = True
                                 break
 
-                    if is_marked:
+                    if is_day_holiday:
+                        p_status = 'holiday'
+                        p_title = f'Period {period_display}: Holiday ({holiday_title})'
+                    elif is_marked:
                         p_status = 'marked'
                         p_title = f'Period {period_display}: Attendance Recorded'
                         day_has_marked = True
@@ -2598,7 +2714,9 @@ def attendance_calendar(request, subject_id):
                     })
 
             # Overall day status indicator dot
-            if day_has_unmarked:
+            if is_day_holiday:
+                status_class = "holiday"
+            elif day_has_unmarked:
                 status_class = "pending" # Needs attention
             elif day_has_marked:
                 status_class = "recorded" # All marked
@@ -2613,6 +2731,8 @@ def attendance_calendar(request, subject_id):
                 'is_current_month': is_current_month,
                 'is_selected': (day == date_obj),
                 'is_today': (day == today_date),
+                'is_holiday': is_day_holiday,
+                'holiday_title': holiday_title if is_day_holiday else None,
                 'classes': day_classes,
                 'status_class': status_class,
                 'url': reverse('staffs:manage_attendance', kwargs={'subject_id': subject.id}) + f"?date={day.strftime('%Y-%m-%d')}"
@@ -2652,14 +2772,17 @@ def overall_attendance_calendar(request):
     from django.urls import reverse
 
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    assigned_subjects = current_staff.get_teaching_subjects()
+    if current_staff.has_role('Attendance Incharge') or current_staff.has_role('Student Coordinator') or current_staff.has_role('HOD') or current_staff.is_staff_admin:
+        assigned_subjects = Subject.objects.all().order_by('semester', 'code')
+    else:
+        assigned_subjects = current_staff.get_teaching_subjects()
 
     selected_subject_id = request.GET.get('subject_id')
     selected_subject = None
     if selected_subject_id and selected_subject_id != 'all':
         try:
             selected_subject = Subject.objects.get(id=selected_subject_id)
-            if selected_subject not in assigned_subjects and not current_staff.is_staff_admin:
+            if selected_subject not in assigned_subjects and not current_staff.is_staff_admin and not current_staff.has_role('Attendance Incharge') and not current_staff.has_role('Student Coordinator'):
                 selected_subject = None
         except (Subject.DoesNotExist, ValueError):
             selected_subject = None
@@ -2746,6 +2869,8 @@ def overall_attendance_calendar(request):
             marked_slots_map[key] = []
         marked_slots_map[key].append((rec['time'], rec['end_time']))
 
+    from .utils import get_effective_day_order
+
     calendar_rows = []
     for week in month_days:
         week_data = []
@@ -2755,7 +2880,13 @@ def overall_attendance_calendar(request):
             day_has_unmarked = False
             day_has_marked = False
 
-            day_name = day.strftime('%A')
+            eff_day_name, is_day_holiday, is_working_sat, day_override = get_effective_day_order(day)
+            holiday_title = day_override.title if (day_override and day_override.title) else "Holiday"
+
+            if not is_day_holiday:
+                is_day_holiday = StudentAttendance.objects.filter(subject__in=subjects_to_include, date=day, status='Holiday').exists()
+
+            day_name = eff_day_name if (is_working_sat and eff_day_name) else day.strftime('%A')
             if day_name in timetable_map:
                 sorted_entries = sorted(timetable_map[day_name], key=lambda x: x['period'])
                 grouped_entries = []
@@ -2812,7 +2943,10 @@ def overall_attendance_calendar(request):
 
                     subj_badge = subj.code or subj.name[:6]
 
-                    if is_marked:
+                    if is_day_holiday:
+                        p_status = 'holiday'
+                        p_title = f'Period {period_display} ({subj.name}): Holiday ({holiday_title})'
+                    elif is_marked:
                         p_status = 'marked'
                         p_title = f'Period {period_display} ({subj.name}): Attendance Recorded'
                         day_has_marked = True
@@ -2837,7 +2971,9 @@ def overall_attendance_calendar(request):
                         'url': reverse('staffs:manage_attendance', kwargs={'subject_id': subj.id}) + f"?date={day.strftime('%Y-%m-%d')}&time={start_str}&end_time={end_str}"
                     })
 
-            if day_has_unmarked:
+            if is_day_holiday:
+                status_class = "holiday"
+            elif day_has_unmarked:
                 status_class = "pending"
             elif day_has_marked:
                 status_class = "recorded"
@@ -2857,6 +2993,8 @@ def overall_attendance_calendar(request):
                 'is_current_month': is_current_month,
                 'is_selected': (day == date_obj),
                 'is_today': (day == today_date),
+                'is_holiday': is_day_holiday,
+                'holiday_title': holiday_title if is_day_holiday else None,
                 'classes': day_classes,
                 'status_class': status_class,
                 'url': first_class_url
@@ -2900,8 +3038,17 @@ def attendance_report(request, subject_id):
     subject = get_object_or_404(Subject, id=subject_id)
     current_staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
 
-    # Access Control
-    if not current_staff.is_staff_admin and subject.staff != current_staff:
+    can_view_report = (
+        current_staff.is_staff_admin or 
+        current_staff.has_role('Attendance Incharge') or 
+        current_staff.has_role('Student Coordinator') or 
+        current_staff.has_role('HOD') or
+        (current_staff.has_role('Class Incharge') and subject.semester == current_staff.assigned_semester) or
+        subject.staff == current_staff or 
+        subject.staff_batch_b == current_staff or 
+        subject.assistant_staff == current_staff
+    )
+    if not can_view_report:
         messages.error(request, "Access Denied: You are not assigned to this subject.")
         return redirect('staffs:staff_dashboard')
 
@@ -2912,8 +3059,12 @@ def attendance_report(request, subject_id):
     end_date = request.GET.get('end_date')
     search_query = request.GET.get('q')
     status_filter = request.GET.get('status')
-    export_csv = request.GET.get('export')
+    batch_filter = request.GET.get('batch', '').strip()
+    export_action = request.GET.get('export')
     
+    if batch_filter in ['A', 'B']:
+        students = students.filter(lab_batch=batch_filter)
+        
     attendance_qs = StudentAttendance.objects.filter(subject=subject)
     
     # Date Filtering
@@ -2938,7 +3089,7 @@ def attendance_report(request, subject_id):
     count_warning = 0   # 60-75%
     count_critical = 0  # < 60%
     
-    class_total_students = Student.objects.filter(current_semester=subject.semester).count()
+    class_total_students = students.count()
 
     for student in students:
         student_attendance = attendance_qs.filter(student=student)
@@ -2976,39 +3127,179 @@ def attendance_report(request, subject_id):
         })
 
     # Calculate Class Average
-    avg_attendance = (total_percentage_sum / len(students)) if len(students) > 0 else 0
+    avg_attendance = (total_percentage_sum / len(summary_data)) if len(summary_data) > 0 else 0
 
-    # EXPORT CSV LOGIC
-    if export_csv:
-        import csv
+    # EXPORT LOGIC (EXCEL WITH STATUS COLOR FORMATTING OR CSV)
+    if export_action:
         from django.http import HttpResponse
 
-        response = HttpResponse(content_type='text/csv')
-        filename = f"Attendance_{subject.code}"
+        filename_base = f"Attendance_{subject.code}"
+        if batch_filter in ['A', 'B']:
+            filename_base += f"_Batch_{batch_filter}"
         if start_date and end_date:
-            filename += f"_{start_date}_to_{end_date}"
+            filename_base += f"_{start_date}_to_{end_date}"
         else:
-            filename += "_Overall"
-        filename += ".csv"
-            
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            filename_base += "_Overall"
 
-        writer = csv.writer(response)
-        writer.writerow(['Roll Number', 'Student Name', 'Percentage', 'Status'])
+        if export_action == 'csv':
+            import csv
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{filename_base}.csv"'
+            writer = csv.writer(response)
+            writer.writerow(['Roll Number', 'Student Name', 'Batch', 'Conducted Sessions', 'Present', 'Absent', 'Percentage', 'Status'])
 
-        for data in summary_data:
-            status_label = "Safe"
-            if data['category'] == 'warning': status_label = "Warning"
-            if data['category'] == 'critical': status_label = "Critical"
-            
-            writer.writerow([
-                f'="{data["student"].roll_number}"', 
-                data['student'].student_name, 
-                f"{data['percentage']}%",
-                status_label
-            ])
-        
-        return response
+            for data in summary_data:
+                status_label = "Safe"
+                if data['category'] == 'warning': status_label = "Warning"
+                elif data['category'] == 'critical': status_label = "Critical"
+                
+                writer.writerow([
+                    f'="{data["student"].roll_number}"', 
+                    data['student'].student_name, 
+                    getattr(data['student'], 'lab_batch', '') or 'All',
+                    total_dates,
+                    data['present'],
+                    data['absent'],
+                    f"{data['percentage']}%",
+                    status_label
+                ])
+            return response
+        else:
+            # Excel export with OpenPyXL formatting & Status Cell Colors
+            import openpyxl
+            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+            from openpyxl.utils import get_column_letter
+
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Attendance Report"
+            ws.views.sheetView[0].showGridLines = True
+
+            # Styles
+            title_font = Font(name='Segoe UI', size=14, bold=True, color='5A7D7C')
+            sub_font = Font(name='Segoe UI', size=10, italic=True, color='475569')
+            header_font = Font(name='Segoe UI', size=11, bold=True, color='FFFFFF')
+            header_fill = PatternFill(start_color='5A7D7C', end_color='5A7D7C', fill_type='solid')
+
+            data_font = Font(name='Segoe UI', size=10)
+            roll_font = Font(name='Consolas', size=10, bold=True)
+
+            thin_border = Border(
+                left=Side(style='thin', color='E2E8F0'),
+                right=Side(style='thin', color='E2E8F0'),
+                top=Side(style='thin', color='E2E8F0'),
+                bottom=Side(style='thin', color='E2E8F0')
+            )
+
+            # Color Fills & Fonts for Status
+            fill_safe = PatternFill(start_color='DCFCE7', end_color='DCFCE7', fill_type='solid')
+            font_safe = Font(name='Segoe UI', size=10, bold=True, color='166534')
+
+            fill_warning = PatternFill(start_color='FEF3C7', end_color='FEF3C7', fill_type='solid')
+            font_warning = Font(name='Segoe UI', size=10, bold=True, color='92400E')
+
+            fill_critical = PatternFill(start_color='FEE2E2', end_color='FEE2E2', fill_type='solid')
+            font_critical = Font(name='Segoe UI', size=10, bold=True, color='991B1B')
+
+            # Title Rows
+            ws.append([f"SSMS Attendance Report — {subject.name} ({subject.code})"])
+            ws.cell(row=1, column=1).font = title_font
+
+            date_range_info = f"Date Range: {start_date} to {end_date}" if (start_date and end_date) else "Date Range: Overall Semester"
+            batch_info = f" | Batch: {batch_filter}" if batch_filter in ['A', 'B'] else " | Batch: Whole Class"
+            ws.append([date_range_info + batch_info + f" | Conducted Sessions: {total_dates}"])
+            ws.cell(row=2, column=1).font = sub_font
+            ws.append([]) # Blank row
+
+            # Header Row (Row 4)
+            headers = ['Roll Number', 'Student Name', 'Lab Batch', 'Conducted Sessions', 'Present', 'Absent', 'Percentage', 'Status']
+            ws.append(headers)
+            for col_num, h_text in enumerate(headers, start=1):
+                cell = ws.cell(row=4, column=col_num)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            # Data Rows (Row 5+)
+            for row_idx, data in enumerate(summary_data, start=5):
+                cat = data['category']
+                status_str = "Safe" if cat == 'safe' else ("Warning" if cat == 'warning' else "Critical")
+
+                row_vals = [
+                    data['student'].roll_number,
+                    data['student'].student_name,
+                    getattr(data['student'], 'lab_batch', '') or 'All',
+                    total_dates,
+                    data['present'],
+                    data['absent'],
+                    f"{data['percentage']}%",
+                    status_str
+                ]
+                ws.append(row_vals)
+
+                # Format Cells
+                c_roll = ws.cell(row=row_idx, column=1)
+                c_roll.font = roll_font
+                c_roll.alignment = Alignment(horizontal='center', vertical='center')
+                c_roll.border = thin_border
+
+                c_name = ws.cell(row=row_idx, column=2)
+                c_name.font = data_font
+                c_name.alignment = Alignment(horizontal='left', vertical='center')
+                c_name.border = thin_border
+
+                c_batch = ws.cell(row=row_idx, column=3)
+                c_batch.font = data_font
+                c_batch.alignment = Alignment(horizontal='center', vertical='center')
+                c_batch.border = thin_border
+
+                c_cond = ws.cell(row=row_idx, column=4)
+                c_cond.font = data_font
+                c_cond.alignment = Alignment(horizontal='center', vertical='center')
+                c_cond.border = thin_border
+
+                c_pres = ws.cell(row=row_idx, column=5)
+                c_pres.font = Font(name='Segoe UI', size=10, bold=True, color='10B981')
+                c_pres.alignment = Alignment(horizontal='center', vertical='center')
+                c_pres.border = thin_border
+
+                c_abs = ws.cell(row=row_idx, column=6)
+                c_abs.font = Font(name='Segoe UI', size=10, bold=True, color='EF4444')
+                c_abs.alignment = Alignment(horizontal='center', vertical='center')
+                c_abs.border = thin_border
+
+                c_pct = ws.cell(row=row_idx, column=7)
+                c_pct.alignment = Alignment(horizontal='right', vertical='center')
+                c_pct.border = thin_border
+
+                c_status = ws.cell(row=row_idx, column=8)
+                c_status.alignment = Alignment(horizontal='center', vertical='center')
+                c_status.border = thin_border
+
+                # Apply Colored Fills & Fonts based on status category
+                if cat == 'safe':
+                    c_status.fill = fill_safe
+                    c_status.font = font_safe
+                    c_pct.font = font_safe
+                elif cat == 'warning':
+                    c_status.fill = fill_warning
+                    c_status.font = font_warning
+                    c_pct.font = font_warning
+                else: # critical
+                    c_status.fill = fill_critical
+                    c_status.font = font_critical
+                    c_pct.font = font_critical
+
+            # Auto Column Widths
+            for col in ws.columns:
+                max_len = max(len(str(cell.value or '')) for cell in col)
+                col_letter = get_column_letter(col[0].column)
+                ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename="{filename_base}.xlsx"'
+            wb.save(response)
+            return response
 
     return render(request, 'staff/attendance_report.html', {
         'subject': subject,
@@ -3029,7 +3320,8 @@ def attendance_report(request, subject_id):
             'start_date': start_date,
             'end_date': end_date,
             'q': search_query,
-            'status': status_filter
+            'status': status_filter,
+            'batch': batch_filter,
         }
     })
 
@@ -4468,6 +4760,7 @@ def risk_students(request):
     # Imports
     from .utils import get_risk_metrics
     from .models import Subject
+    from django.db.models import Q
     
     risk_insights = []
     subjects_to_analyze = []
@@ -4478,9 +4771,9 @@ def risk_students(request):
     
     elif staff.role == 'Class Incharge' and staff.assigned_semester:
         # Class Incharge sees subjects they teach + ALL subjects in their assigned semester
-        teaching_subjects = staff.get_teaching_subjects()
-        semester_subjects = Subject.objects.filter(semester=staff.assigned_semester)
-        subjects_to_analyze = (teaching_subjects | semester_subjects).distinct().order_by('semester', 'code')
+        subjects_to_analyze = Subject.objects.filter(
+            Q(staff=staff) | Q(staff_batch_b=staff) | Q(semester=staff.assigned_semester)
+        ).distinct().order_by('semester', 'code')
         
     else:
         # Regular Staff / Course Incharge
@@ -4943,9 +5236,52 @@ def scholarship_manager(request):
     import csv
     from django.http import HttpResponse
 
-    # --- Handle POST Actions (Approval, Disbursement, Rejection) ---
+    # --- Handle POST Actions (Approval, Disbursement, Rejection, Bulk Actions, Edits) ---
     if request.method == 'POST':
         action = request.POST.get('action')
+        
+        # 1. Bulk Verification & Recommendation
+        if action == 'bulk_approve':
+            app_ids = request.POST.getlist('app_ids')
+            if app_ids:
+                apps = ScholarshipApplication.objects.filter(id__in=app_ids)
+                count = 0
+                for app_obj in apps:
+                    app_obj.status = 'Verified & Recommended'
+                    app_obj.verified_at = timezone.now()
+                    app_obj.save()
+                    # Sync to ScholarshipInfo
+                    sch_info, _ = ScholarshipInfo.objects.get_or_create(student=app_obj.student)
+                    stype = app_obj.scholarship_type
+                    if stype == 'FG': sch_info.is_first_graduate = True
+                    elif stype == 'BCMBC': sch_info.sch_bcmbc = True
+                    elif stype == 'POSTMATRIC': sch_info.sch_postmetric = True
+                    elif stype == 'PM': sch_info.sch_pm = True
+                    elif stype == 'GOVT_7_5': sch_info.sch_govt = True; sch_info.is_7_5_reservation = True
+                    elif stype == 'PUDHUMAI': sch_info.sch_pudhumai = True
+                    elif stype == 'TAMIZH': sch_info.sch_tamizh = True
+                    elif stype == 'PRIVATE': sch_info.sch_private = True
+                    sch_info.save()
+                    count += 1
+                messages.success(request, f"Successfully verified & recommended {count} scholarship application(s) to Govt portal.")
+            else:
+                messages.warning(request, "No applications selected for bulk verification.")
+            return redirect('staffs:scholarship_manager')
+
+        # 2. Bulk Disbursement
+        elif action == 'bulk_disburse':
+            app_ids = request.POST.getlist('app_ids')
+            if app_ids:
+                count = ScholarshipApplication.objects.filter(id__in=app_ids).update(
+                    status='Govt Sanctioned / Amount Received',
+                    disbursed_at=timezone.now()
+                )
+                messages.success(request, f"Successfully updated {count} application(s) to Govt Sanctioned / Amount Received.")
+            else:
+                messages.warning(request, "No applications selected for bulk disbursement.")
+            return redirect('staffs:scholarship_manager')
+
+        # Individual Application Actions
         app_id = request.POST.get('app_id')
         sch_app = get_object_or_404(ScholarshipApplication, id=app_id)
 
@@ -4976,14 +5312,44 @@ def scholarship_manager(request):
             messages.success(request, f"Scholarship application for {sch_app.student.student_name} ({sch_app.get_scholarship_type_display()}) verified & recommended to Govt portal!")
 
         elif action == 'disburse':
-            sch_app.status = 'Govt Sanctioned / Availed'
+            sch_app.status = 'Govt Sanctioned / Amount Received'
             sch_app.disbursed_at = timezone.now()
             remarks = request.POST.get('office_remarks', '').strip()
             if remarks:
                 sch_app.office_remarks = remarks
             sch_app.save()
 
-            messages.info(request, f"Scholarship status updated to Govt Sanctioned / Availed for {sch_app.student.student_name}.")
+            messages.info(request, f"Scholarship status updated to Govt Sanctioned / Amount Received for {sch_app.student.student_name}.")
+
+        elif action == 'mark_not_received':
+            sch_app.status = 'Not Received / Pending Govt'
+            remarks = request.POST.get('office_remarks', '').strip()
+            if remarks:
+                sch_app.office_remarks = remarks
+            sch_app.save()
+            messages.info(request, f"Status updated to Not Received / Pending Govt for {sch_app.student.student_name}.")
+
+        elif action == 'reset_pending':
+            sch_app.status = 'Pending Office Verification'
+            sch_app.rejection_reason = ''
+            sch_app.save()
+            messages.info(request, f"Scholarship application for {sch_app.student.student_name} re-opened and reset to Pending Verification.")
+
+        elif action == 'update_details':
+            app_no = request.POST.get('application_no', '').strip()
+            income = request.POST.get('annual_income', '').strip()
+            acc = request.POST.get('bank_account_no', '').strip()
+            ifsc = request.POST.get('bank_ifsc', '').strip()
+            remarks = request.POST.get('office_remarks', '').strip()
+
+            if app_no: sch_app.application_no = app_no
+            if income.isdigit(): sch_app.annual_income = int(income)
+            if acc: sch_app.bank_account_no = acc
+            if ifsc: sch_app.bank_ifsc = ifsc
+            if remarks: sch_app.office_remarks = remarks
+            sch_app.save()
+
+            messages.success(request, f"Application details updated for {sch_app.student.student_name}.")
 
         elif action == 'reject':
             reason = request.POST.get('rejection_reason', '').strip()
@@ -7830,30 +8196,50 @@ def office_manage_bonafide(request):
 # --- Student Remarks System ---
 
 def remark_student_list(request):
-    """Lists students for the class incharge to add/view remarks."""
+    """Lists students for authorized staff to add/view remarks."""
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
     
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
     
-    # Security: Ensure only Class Incharge (or HOD/authorized roles) triggers this
-    # For now, we assume Class Incharge logic as per request.
-    if not staff.has_role('Class Incharge') and not staff.is_staff_admin:
-         messages.error(request, "Access restricted to Class Incharges and Admins.")
-         return redirect('staffs:staff_dashboard')
+    # Security: Ensure authorized staff roles can view/add remarks
+    is_authorized = (
+        staff.has_role('Class Incharge') or
+        staff.has_role('Student Coordinator') or
+        staff.has_role('Attendance Incharge') or
+        staff.has_role('HOD') or
+        staff.is_staff_admin or
+        staff.is_teaching_staff
+    )
+    if not is_authorized:
+        messages.error(request, "Access restricted to authorized faculty and staff.")
+        return redirect('staffs:staff_dashboard')
 
-    students = Student.objects.none()
-    
-    if staff.has_role('Class Incharge') and staff.assigned_semester:
+    active_role = request.session.get('active_role')
+    is_class_ic_restricted = (
+        not staff.is_staff_admin and 
+        (staff.role == 'Class Incharge' or active_role == 'Class Incharge') and 
+        staff.assigned_semester is not None
+    )
+
+    selected_sem = request.GET.get('semester')
+    if is_class_ic_restricted:
+        selected_sem = str(staff.assigned_semester)
         students = Student.objects.filter(current_semester=staff.assigned_semester)
         if staff.assigned_batch in ['A', 'B']:
             students = students.filter(lab_batch=staff.assigned_batch)
         students = students.order_by('roll_number')
-    elif staff.is_staff_admin:
-        # HOD can see all? Or filter by sem? Let's show all for now or maybe a filter
-        students = Student.objects.all().order_by('roll_number')
+    elif selected_sem and selected_sem.isdigit():
+        students = Student.objects.filter(current_semester=int(selected_sem)).order_by('roll_number')
+    else:
+        students = Student.objects.all().order_by('current_semester', 'roll_number')
 
-    return render(request, 'staff/remark_student_list.html', {'staff': staff, 'students': students})
+    return render(request, 'staff/remark_student_list.html', {
+        'staff': staff, 
+        'students': students,
+        'selected_sem': int(selected_sem) if selected_sem and str(selected_sem).isdigit() else None,
+        'is_class_ic_restricted': is_class_ic_restricted,
+    })
 
 def remark_history(request, roll_number):
     """View and add remarks for a specific student with violation types, incident details, and parent email notification."""
@@ -7927,15 +8313,22 @@ def remark_history(request, roll_number):
     })
 
 def attendance_deficit_list(request):
-    """View to list students with < 70% attendance for Class Incharge."""
+    """View to list students with < 70% attendance or view subject-wise reports."""
     if 'staff_id' not in request.session:
         return redirect('staffs:stafflogin')
         
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
     
-    # Access Control: Class Incharge Only
-    if not staff.has_role('Class Incharge') or not staff.assigned_semester:
-        messages.error(request, "Access Restricted to Class Incharge.")
+    # Access Control: Allow Class Incharge, Student Coordinator, Attendance Incharge, HOD, and Admins
+    is_authorized = (
+        staff.has_role('Class Incharge') or
+        staff.has_role('Student Coordinator') or
+        staff.has_role('Attendance Incharge') or
+        staff.has_role('HOD') or
+        staff.is_staff_admin
+    )
+    if not is_authorized:
+        messages.error(request, "Access Restricted to Class Incharges, Attendance Incharges, Student Coordinators, and Admins.")
         return redirect('staffs:staff_dashboard')
         
     import datetime
@@ -7943,12 +8336,25 @@ def attendance_deficit_list(request):
     from .models import Subject, Timetable
     from students.models import StudentAttendance, Student
     
-    # --- Month Selection ---
-    today = datetime.date.today()
+    # --- Filter & Parameters ---
+    view_type = request.GET.get('view', 'deficit')  # 'deficit' or 'subject_wise'
     month_offset = int(request.GET.get('month_offset', 0))
+    selected_sem_raw = request.GET.get('semester')
     
-    # Calculate target month
-    # Logic: Go back 'month_offset' months
+    active_role = request.session.get('active_role')
+    is_class_ic_restricted = (
+        not staff.is_staff_admin and 
+        (staff.role == 'Class Incharge' or active_role == 'Class Incharge') and 
+        staff.assigned_semester is not None
+    )
+    
+    selected_sem = None
+    if is_class_ic_restricted:
+        selected_sem = staff.assigned_semester
+    elif selected_sem_raw and selected_sem_raw.isdigit():
+        selected_sem = int(selected_sem_raw)
+
+    today = datetime.date.today()
     target_date = today
     for _ in range(month_offset):
         target_date = target_date.replace(day=1) - datetime.timedelta(days=1)
@@ -7956,64 +8362,88 @@ def attendance_deficit_list(request):
     target_month = target_date.month
     target_year = target_date.year
     month_name = calendar.month_name[target_month]
-    
-    # --- Logic ---
-    # 1. Get Students in Assigned Semester
-    students = Student.objects.filter(current_semester=staff.assigned_semester)
-    if staff.assigned_batch in ['A', 'B']:
-        students = students.filter(lab_batch=staff.assigned_batch)
+
+    # --- Subject-Wise View ---
+    if view_type == 'subject_wise':
+        subjects_qs = Subject.objects.all().order_by('semester', 'code')
+        if selected_sem:
+            subjects_qs = subjects_qs.filter(semester=selected_sem)
+            
+        subject_reports = []
+        for subj in subjects_qs:
+            att_qs = StudentAttendance.objects.filter(
+                subject=subj,
+                date__year=target_year,
+                date__month=target_month
+            )
+            total_records = att_qs.count()
+            present_records = att_qs.filter(status='Present').count()
+            avg_pct = int((present_records / total_records) * 100) if total_records > 0 else 0
+            
+            subject_reports.append({
+                'id': subj.id,
+                'code': subj.code,
+                'name': subj.name,
+                'semester': subj.semester,
+                'type': subj.subject_type,
+                'instructor': subj.staff.name if subj.staff else 'Unassigned',
+                'total_records': total_records,
+                'present_records': present_records,
+                'avg_pct': avg_pct
+            })
+            
+        return render(request, 'staff/attendance_deficit_list.html', {
+            'staff': staff,
+            'view_type': 'subject_wise',
+            'subject_reports': subject_reports,
+            'month_name': f"{month_name} {target_year}",
+            'month_offset': month_offset,
+            'selected_sem': selected_sem,
+            'is_class_ic_restricted': is_class_ic_restricted,
+        })
+
+    # --- Deficit Mailer Logic ---
+    students = Student.objects.all()
+    if selected_sem:
+        students = students.filter(current_semester=selected_sem)
+        if staff.has_role('Class Incharge') and staff.assigned_batch in ['A', 'B'] and selected_sem == staff.assigned_semester:
+            students = students.filter(lab_batch=staff.assigned_batch)
     students = students.select_related('personalinfo')
     
-    # 2. Get Subjects for this Semester
-    subjects = Subject.objects.filter(semester=staff.assigned_semester)
-    
-    # 3. Calculate Attendance
-    # We need: Total Working Days (Unique dates with ANY attendance for ANY subject in this sem)
-    # AND Student Presence (Count of unique dates student was present)
-    # NOTE: This approximates "days" rather than "periods". If strict period count needed, logic changes.
-    # Assuming "Daily Attendance":
-    
-    # Get all dates where attendance was taken for this semester's subjects in this month
-    working_dates_qs = StudentAttendance.objects.filter(
-        subject__semester=staff.assigned_semester,
-        date__year=target_year,
-        date__month=target_month
-    ).values_list('date', flat=True).distinct()
+    if selected_sem:
+        working_dates_qs = StudentAttendance.objects.filter(
+            subject__semester=selected_sem,
+            date__year=target_year,
+            date__month=target_month
+        ).values_list('date', flat=True).distinct()
+    else:
+        working_dates_qs = StudentAttendance.objects.filter(
+            date__year=target_year,
+            date__month=target_month
+        ).values_list('date', flat=True).distinct()
     
     working_days_count = working_dates_qs.count()
-    
     deficit_students = []
     
     if working_days_count > 0:
         for student in students:
-            # Count days present (distinct dates where status='Present' for any subject)
-            # A student is "Present" for the day if they attended at least one class? 
-            # OR better: Check percentage based on per-subject or aggregate?
-            # Requirement: "monthly attendance deficit students below 70%" -> Usually global aggregate.
-            
-            # Let's use: (Total Periods Attended / Total Periods Conducted) * 100
-            
-            # Total Periods Conducted for this class (sum of all subject sessions)
             total_sessions = StudentAttendance.objects.filter(
-                subject__semester=staff.assigned_semester,
+                student=student,
                 date__year=target_year,
-                date__month=target_month,
-                student=student # Filter by student to match exact records created for them
+                date__month=target_month
             ).count()
             
-            # Total Present
+            if total_sessions == 0:
+                continue
+
             attended_sessions = StudentAttendance.objects.filter(
-                subject__semester=staff.assigned_semester,
+                student=student,
                 date__year=target_year,
                 date__month=target_month,
-                student=student,
                 status='Present'
             ).count()
             
-            percentage = 0
-            if total_sessions > 0:
-                percentage = int((attended_sessions / total_sessions) * 100)
-                
+            percentage = int((attended_sessions / total_sessions) * 100)
             if percentage < 70:
                 parent_email = None
                 if hasattr(student, 'personalinfo'):
@@ -8022,6 +8452,7 @@ def attendance_deficit_list(request):
                 deficit_students.append({
                     'roll': student.roll_number,
                     'name': student.student_name,
+                    'semester': student.current_semester,
                     'present': attended_sessions,
                     'total': total_sessions,
                     'percentage': percentage,
@@ -8030,10 +8461,13 @@ def attendance_deficit_list(request):
     
     return render(request, 'staff/attendance_deficit_list.html', {
         'staff': staff,
+        'view_type': 'deficit',
         'deficit_students': deficit_students,
         'month_name': f"{month_name} {target_year}",
-        'working_days': working_days_count, # Just for reference
-        'month_offset': month_offset
+        'working_days': working_days_count,
+        'month_offset': month_offset,
+        'selected_sem': selected_sem,
+        'is_class_ic_restricted': is_class_ic_restricted,
     })
 
 def send_deficit_email(request):
@@ -8044,11 +8478,22 @@ def send_deficit_email(request):
     if request.method == 'POST':
         student_roll = request.POST.get('student_roll')
         month_offset = request.POST.get('month_offset')
+        selected_sem = request.POST.get('semester')
         
         staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
         student = get_object_or_404(Student, roll_number=student_roll)
         
-        # Re-calculate to get data for email (Hours based)
+        is_authorized = (
+            staff.has_role('Class Incharge') or
+            staff.has_role('Student Coordinator') or
+            staff.has_role('Attendance Incharge') or
+            staff.has_role('HOD') or
+            staff.is_staff_admin
+        )
+        if not is_authorized:
+            messages.error(request, "Access Denied.")
+            return redirect('staffs:staff_dashboard')
+
         import datetime
         import calendar
         from students.models import StudentAttendance
@@ -8065,7 +8510,7 @@ def send_deficit_email(request):
         month_name = f"{calendar.month_name[target_month]} {target_year}"
         
         attendance_records = StudentAttendance.objects.filter(
-            subject__semester=staff.assigned_semester,
+            subject__semester=student.current_semester,
             date__year=target_year,
             date__month=target_month,
             student=student
@@ -8083,10 +8528,8 @@ def send_deficit_email(request):
         if total_hours > 0:
             percentage = int((attended_hours / total_hours) * 100)
             
-        # Send Email
         from .utils import send_attendance_deficit_email
         if send_attendance_deficit_email(student, month_name, percentage, total_hours, attended_hours, staff.name):
-            # Log the email
             MailLog.objects.create(
                 student=student,
                 staff=staff,
@@ -8099,7 +8542,8 @@ def send_deficit_email(request):
             messages.error(request, "Failed to send email. Check if parent email exists.")
             
         from django.urls import reverse
-        return redirect(f"{reverse('staffs:attendance_deficit_list')}?month_offset={offset}")
+        sem_param = f"&semester={selected_sem}" if selected_sem else ""
+        return redirect(f"{reverse('staffs:attendance_deficit_list')}?month_offset={offset}{sem_param}")
         
     from django.urls import reverse
     return redirect('staffs:attendance_deficit_list')
@@ -8190,13 +8634,18 @@ def manage_scholar_attendance(request):
         return redirect('stafflogin')
         
     staff = get_object_or_404(Staff, staff_id=staff_id)
+    active_role = request.session.get('active_role')
     
-    # Scholars assigned to this staff
-    assigned_scholars = ResearchScholarProfile.objects.filter(supervisor=staff).values_list('student', flat=True)
+    if staff.is_hod or staff.is_staff_admin or staff.is_admin or active_role == 'HOD':
+        rs_scholars = Student.objects.filter(program_level='PHD')
+    else:
+        rs_scholars = Student.objects.filter(scholar_profile__supervisor=staff, program_level='PHD')
+        
+    rs_ids = list(rs_scholars.values_list('pk', flat=True))
     
     # Get attendance records
-    pending_attendance = ScholarAttendance.objects.filter(scholar__in=assigned_scholars, status='Pending').order_by('-date', '-time_marked')
-    history_attendance = ScholarAttendance.objects.filter(scholar__in=assigned_scholars).exclude(status='Pending').order_by('-date', '-time_marked')[:50]
+    pending_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids, status='Pending').order_by('-date', '-time_marked')
+    history_attendance = ScholarAttendance.objects.filter(scholar_id__in=rs_ids).exclude(status='Pending').order_by('-date', '-time_marked')[:50]
     
     context = {
         'staff': staff,
@@ -8212,9 +8661,13 @@ def update_scholar_attendance(request, attendance_id):
         
     staff = get_object_or_404(Staff, staff_id=staff_id)
     attendance = get_object_or_404(ScholarAttendance, id=attendance_id)
+    active_role = request.session.get('active_role')
     
-    # Verify ownership
-    if not getattr(attendance.scholar, 'scholar_profile', None) or attendance.scholar.scholar_profile.supervisor != staff:
+    # Verify ownership / authorization
+    is_supervisor = getattr(attendance.scholar, 'scholar_profile', None) and attendance.scholar.scholar_profile.supervisor == staff
+    is_admin_or_hod = staff.is_hod or staff.is_staff_admin or staff.is_admin or active_role == 'HOD'
+    
+    if not (is_supervisor or is_admin_or_hod):
         messages.error(request, "You are not authorized to update this attendance record.")
         return redirect('staffs:manage_scholar_attendance')
         
@@ -8877,6 +9330,80 @@ def assign_phd_guide(request):
     return redirect(reverse('staffs:manage_phd_stages') + f'?student_roll={roll}')
 
 
+def rs_directory(request):
+    """Department-wide Research Scholar Directory for HOD, Staff Admins, and Admins."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+        
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    active_role = request.session.get('active_role')
+    
+    # Restrict to HOD, Staff Admin, and Admin only
+    if not (staff.is_hod or staff.is_staff_admin or staff.is_admin or active_role == 'HOD'):
+        messages.error(request, "Access Denied: The Research Scholar Directory is only accessible to HOD and Staff Admins.")
+        return redirect('staffs:staff_dashboard')
+    
+    from students.models import Student, PhDProgress, ResearchScholarProfile, LeaveRequest, ScholarAttendance
+    from django.db.models import Q
+    
+    # Base queryset for PhD scholars
+    scholars_qs = Student.objects.filter(program_level='PHD').select_related(
+        'scholar_profile', 'phd_progress', 'scholar_profile__supervisor', 'studentdocuments'
+    ).order_by('student_name')
+    
+    # Search filter (name, roll, reg number)
+    q = request.GET.get('q', '').strip()
+    if q:
+        scholars_qs = scholars_qs.filter(
+            Q(student_name__icontains=q) | 
+            Q(roll_number__icontains=q) | 
+            Q(register_number__icontains=q)
+        )
+        
+    # Guide / Supervisor filter
+    supervisor_id = request.GET.get('supervisor_id', '').strip()
+    if supervisor_id:
+        if supervisor_id == 'unassigned':
+            scholars_qs = scholars_qs.filter(scholar_profile__supervisor__isnull=True)
+        else:
+            scholars_qs = scholars_qs.filter(scholar_profile__supervisor__staff_id=supervisor_id)
+            
+    # PhD stage filter
+    stage = request.GET.get('stage', '').strip()
+    if stage:
+        if stage == 'RAC_REVIEW':
+            scholars_qs = scholars_qs.filter(Q(phd_progress__current_stage='RAC_REVIEW') | Q(phd_progress__isnull=True))
+        else:
+            scholars_qs = scholars_qs.filter(phd_progress__current_stage=stage)
+            
+    # Ensure phd_progress objects exist
+    for s in scholars_qs:
+        if not hasattr(s, 'phd_progress') or s.phd_progress is None:
+            PhDProgress.objects.get_or_create(scholar=s)
+            
+    # Summary stats
+    total_phd_count = Student.objects.filter(program_level='PHD').count()
+    unassigned_count = Student.objects.filter(program_level='PHD', scholar_profile__supervisor__isnull=True).count()
+    
+    # All staff who act as guides
+    all_guides = Staff.objects.all().order_by('name')
+    
+    context = {
+        'staff': staff,
+        'scholars': scholars_qs,
+        'total_phd_count': total_phd_count,
+        'unassigned_count': unassigned_count,
+        'all_guides': all_guides,
+        'stage_choices': PhDProgress.CURRENT_STAGE_CHOICES,
+        'filters': {
+            'q': q,
+            'supervisor_id': supervisor_id,
+            'stage': stage,
+        }
+    }
+    return render(request, 'staff/rs_directory.html', context)
+
+
 def manage_department_tasks(request):
     """View to assign Department Tasks & Roles to staff members with checkboxes."""
     if 'staff_id' not in request.session:
@@ -9179,9 +9706,18 @@ def update_staff_roles(request, staff_id):
             return redirect(request.META.get('HTTP_REFERER', 'staffs:staff_list'))
 
         target_staff.role = primary_role
-        target_staff.secondary_roles = ", ".join(additional_roles) if additional_roles else ""
+        
+        TEACHING_ADDITIONAL = {'Scholarship Officer', 'Timetable Incharge', 'Placement Officer', 'Student Coordinator', 'Attendance Incharge'}
+        NON_TEACHING_ADDITIONAL = {'Bonafide Issuing', 'Marksheet Requests', 'Marksheet & Document Requests', 'Scholarship Management'}
+        
+        if primary_role in ['Office Staff', 'Technical Officer']:
+            valid_additional = [r for r in additional_roles if r in NON_TEACHING_ADDITIONAL]
+        else:
+            valid_additional = [r for r in additional_roles if r in TEACHING_ADDITIONAL]
+            
+        target_staff.secondary_roles = ", ".join(valid_additional) if valid_additional else ""
 
-        all_roles_set = set([primary_role] + additional_roles)
+        all_roles_set = set([primary_role] + valid_additional)
 
         target_staff.is_scholarship_officer = ('Scholarship Officer' in all_roles_set or 'Scholarship Management' in all_roles_set)
         target_staff.is_timetable_incharge = ('Timetable Incharge' in all_roles_set)

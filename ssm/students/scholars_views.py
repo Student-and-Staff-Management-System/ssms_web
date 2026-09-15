@@ -518,73 +518,86 @@ def scholar_edit_profile(request):
     academic_history, _ = AcademicHistory.objects.get_or_create(student=student)
     ug_details, _ = UGDetails.objects.get_or_create(student=student)
     pg_details, _ = PGDetails.objects.get_or_create(student=student)
+    from students.models import BankDetails
+    bank_details, _ = BankDetails.objects.get_or_create(student=student)
 
     if request.method == 'POST':
         # 1. Update basic student details
-        student.student_email = request.POST.get('student_email')
-        student.save()
+        if 'student_email' in request.POST:
+            student.student_email = request.POST.get('student_email', '') or ''
+            student.save()
         
-        # 2. Update personal info (Synchronized with studedit.html)
-        personal_info.student_mobile = request.POST.get('student_mobile')
-        personal_info.gender = request.POST.get('gender')
+        # 2. Update personal info (Safely defaulting empty strings to prevent NULL IntegrityError)
+        personal_info.student_mobile = request.POST.get('student_mobile', '') or ''
+        personal_info.gender = request.POST.get('gender', '') or ''
         personal_info.date_of_birth = request.POST.get('date_of_birth') or None
-        personal_info.blood_group = request.POST.get('blood_group')
-        personal_info.community = request.POST.get('community')
+        personal_info.blood_group = request.POST.get('blood_group', '') or ''
+        personal_info.community = request.POST.get('community', '') or ''
+        personal_info.religion = request.POST.get('religion', '') or ''
         
-        # Handle Caste ForeignKey (Synchronized with UG logic)
+        # Handle Caste ForeignKey
         caste_name = request.POST.get('caste')
         if caste_name and caste_name not in ['Not Applicable', '']:
             from students.models import Caste
             caste_obj, _ = Caste.objects.get_or_create(name=caste_name)
             personal_info.caste = caste_obj
+        else:
+            personal_info.caste = None
             
-        personal_info.caste_other = request.POST.get('caste_other')
-        
-        personal_info.aadhaar_number = request.POST.get('aadhaar_number')
-        personal_info.present_address = request.POST.get('present_address')
-        personal_info.permanent_address = request.POST.get('permanent_address')
+        personal_info.caste_other = request.POST.get('caste_other', '') or ''
+        personal_info.aadhaar_number = request.POST.get('aadhaar_number', '') or ''
+        personal_info.present_address = request.POST.get('present_address', '') or ''
+        personal_info.permanent_address = request.POST.get('permanent_address', '') or ''
         personal_info.is_hosteler = (request.POST.get('is_hosteler') == 'yes')
         
         # Parent Details
-        personal_info.father_name = request.POST.get('father_name')
-        personal_info.father_mobile = request.POST.get('father_mobile')
-        personal_info.father_occupation = request.POST.get('father_occupation')
-        personal_info.mother_name = request.POST.get('mother_name')
-        personal_info.mother_mobile = request.POST.get('mother_mobile')
-        personal_info.mother_occupation = request.POST.get('mother_occupation')
+        personal_info.father_name = request.POST.get('father_name', '') or ''
+        personal_info.father_mobile = request.POST.get('father_mobile', '') or ''
+        personal_info.father_occupation = request.POST.get('father_occupation', '') or ''
+        personal_info.mother_name = request.POST.get('mother_name', '') or ''
+        personal_info.mother_mobile = request.POST.get('mother_mobile', '') or ''
+        personal_info.mother_occupation = request.POST.get('mother_occupation', '') or ''
         
         income = request.POST.get('parent_annual_income')
         personal_info.parent_annual_income = int(income) if income and income.isdigit() else None
         
         personal_info.save()
 
+        # Bank Details
+        bank_details.account_holder_name = request.POST.get('bank_account_holder_name', '') or ''
+        bank_details.account_number = request.POST.get('bank_account_number', '') or ''
+        bank_details.bank_name = request.POST.get('bank_name', '') or ''
+        bank_details.branch_name = request.POST.get('bank_branch_name', '') or ''
+        bank_details.ifsc_code = request.POST.get('bank_ifsc_code', '') or ''
+        bank_details.save()
+
         # 3. Update Academic History (SSLC/HSC)
-        academic_history.sslc_school_name = request.POST.get('sslc_school_name')
+        academic_history.sslc_school_name = request.POST.get('sslc_school_name', '') or ''
         academic_history.sslc_percentage = request.POST.get('sslc_percentage') or None
-        academic_history.sslc_year_of_passing = request.POST.get('sslc_year_of_passing')
-        academic_history.sslc_school_address = request.POST.get('sslc_school_address')
+        academic_history.sslc_year_of_passing = request.POST.get('sslc_year_of_passing', '') or ''
+        academic_history.sslc_school_address = request.POST.get('sslc_school_address', '') or ''
         
-        academic_history.hsc_school_name = request.POST.get('hsc_school_name')
+        academic_history.hsc_school_name = request.POST.get('hsc_school_name', '') or ''
         academic_history.hsc_percentage = request.POST.get('hsc_percentage') or None
-        academic_history.hsc_year_of_passing = request.POST.get('hsc_year_of_passing')
-        academic_history.hsc_school_address = request.POST.get('hsc_school_address')
+        academic_history.hsc_year_of_passing = request.POST.get('hsc_year_of_passing', '') or ''
+        academic_history.hsc_school_address = request.POST.get('hsc_school_address', '') or ''
         academic_history.save()
 
         # 4. Update UG & PG (RS Specific)
-        ug_details.ug_course = request.POST.get('ug_course', '')
-        ug_details.ug_college_name = request.POST.get('ug_college_name', '')
-        ug_details.ug_college_address = request.POST.get('ug_college_address', '')
-        ug_details.ug_university = request.POST.get('ug_university', '')
+        ug_details.ug_course = request.POST.get('ug_course', '') or ''
+        ug_details.ug_college_name = request.POST.get('ug_college_name', '') or ''
+        ug_details.ug_college_address = request.POST.get('ug_college_address', '') or ''
+        ug_details.ug_university = request.POST.get('ug_university', '') or ''
         ug_details.ug_ogpa = request.POST.get('ug_percentage') or None
-        ug_details.ug_year_of_passing = request.POST.get('ug_year_of_passing', '')
+        ug_details.ug_year_of_passing = request.POST.get('ug_year_of_passing', '') or ''
         ug_details.save()
 
-        pg_details.pg_course = request.POST.get('pg_course', '')
-        pg_details.pg_college_name = request.POST.get('pg_college_name', '')
-        pg_details.pg_college_address = request.POST.get('pg_college_address', '')
-        pg_details.pg_university = request.POST.get('pg_university', '')
+        pg_details.pg_course = request.POST.get('pg_course', '') or ''
+        pg_details.pg_college_name = request.POST.get('pg_college_name', '') or ''
+        pg_details.pg_college_address = request.POST.get('pg_college_address', '') or ''
+        pg_details.pg_university = request.POST.get('pg_university', '') or ''
         pg_details.pg_ogpa = request.POST.get('pg_percentage') or None
-        pg_details.pg_year_of_passing = request.POST.get('pg_year_of_passing', '')
+        pg_details.pg_year_of_passing = request.POST.get('pg_year_of_passing', '') or ''
         pg_details.save()
 
         # 5. Update document uploads
@@ -611,6 +624,7 @@ def scholar_edit_profile(request):
         'ug': ug_details,
         'pg': pg_details,
         'studentdocuments': student_docs,
+        'bankdetails': bank_details,
         'skills': student.skills.all(),
         'projects': student.projects.all(),
     }
