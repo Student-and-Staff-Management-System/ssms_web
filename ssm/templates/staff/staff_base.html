@@ -1462,7 +1462,7 @@
 
         <!-- Dynamic Horizontal Tab Category Navigation Bar -->
         <nav class="nav-tabs-bar" id="navTabsBar">
-            {% if active_role != 'Other Dept Staff' %}
+            {% if active_role != 'Other Dept Staff' or me.is_admin or staff.is_admin or logged_in_staff.is_admin or request.user.is_superuser %}
             {% with me=logged_in_staff %}
 
             <button class="nav-tab-btn" data-tab="tab-workspace" onclick="switchNavTab('tab-workspace', this)">
@@ -1671,7 +1671,7 @@
 
         <!-- Mega Menu 4: Department Administration -->
         {% with me=logged_in_staff %}
-        {% if me.is_hod or me.is_office_staff or me.is_staff_admin or me.is_admin or request.user.is_superuser %}
+        {% if me.is_hod or me.is_office_staff or me.is_staff_admin or me.is_admin or staff.is_hod or staff.is_office_staff or staff.is_staff_admin or staff.is_admin or logged_in_staff.is_admin or request.user.is_superuser %}
         <div class="mega-dropdown" id="tab-admin">
             <div class="mobile-sheet-header">
                 <div class="notif-drawer-drag-handle"><div class="drag-bar"></div></div>

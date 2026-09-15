@@ -122,8 +122,6 @@ class Staff(models.Model):
                 if r in allowed_set and r not in roles:
                     roles.append(r)
 
-        if self.is_admin and 'HOD' in allowed_set and 'HOD' not in roles:
-            roles.append('HOD')
         if self.is_timetable_incharge and 'Timetable Incharge' in allowed_set and 'Timetable Incharge' not in roles:
             roles.append('Timetable Incharge')
         if self.is_scholarship_officer:
@@ -233,7 +231,7 @@ class Staff(models.Model):
                 'badge': 'Documents',
                 'url': "?active_role=Marksheet+Requests"
             })
-        if ('HOD' in roles or self.is_admin) and self.role != 'HOD':
+        if 'HOD' in roles and self.role != 'HOD':
             consoles.append({
                 'role_key': 'HOD',
                 'label': "HOD Console",
@@ -248,7 +246,7 @@ class Staff(models.Model):
 
     @property
     def is_hod(self):
-        return self.has_role('HOD') or self.is_admin
+        return self.has_role('HOD') or self.role == 'HOD'
 
     @property
     def is_class_incharge(self):

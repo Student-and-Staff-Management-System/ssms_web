@@ -747,7 +747,7 @@ def staff_dashboard(request):
         'holiday_description': holiday_description,
         'all_assigned_roles': all_assigned_roles,
         'active_role': active_role,
-        'is_hod_or_admin': (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or active_role == 'HOD'),
+        'is_hod_or_admin': (staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.role == 'HOD' or active_role == 'HOD'),
         'my_ic_clubs': Club.objects.filter(Q(staff_incharge=staff) | Q(staff_incharge_2=staff)).distinct().prefetch_related('memberships', 'events'),
     }
     dashboard_context.update(_get_portfolio_summary_stats(staff))
@@ -10089,7 +10089,7 @@ def hod_sports_teams(request):
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
     
     # Check HOD or Admin access
-    if not (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
+    if not (staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
         messages.error(request, "Access Denied: Sports Team Management is reserved for Head of Department / Admin.")
         return redirect('staffs:staff_dashboard')
 
@@ -10371,7 +10371,7 @@ def export_sports_teams(request):
         return redirect('staffs:stafflogin')
 
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if not (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
+    if not (staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
         messages.error(request, "Access Denied: Export reserved for HOD / Admin.")
         return redirect('staffs:staff_dashboard')
 
@@ -10545,7 +10545,7 @@ def hod_clubs_manage(request):
         return redirect('staffs:stafflogin')
 
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    is_hod_or_admin = (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD')
+    is_hod_or_admin = (staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD')
 
     from students.models import Club, Student, ClubEvent, ClubAttendance, ClubMembership
 
@@ -10593,7 +10593,7 @@ def hod_club_create(request):
         return redirect('staffs:stafflogin')
 
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
-    if not (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
+    if not (staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD'):
         messages.error(request, "Access Denied: Reserved for HOD / Admin.")
         return redirect('staffs:hod_clubs_manage')
 
@@ -10701,7 +10701,7 @@ def staff_club_detail(request, club_id):
 
     staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
     from students.models import Club, ClubMembership, ClubEvent, ClubAttendance, Student
-    is_hod_or_admin = (staff.is_hod or staff.is_staff_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD')
+    is_hod_or_admin = (staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD')
 
     club = get_object_or_404(Club, id=club_id)
 
