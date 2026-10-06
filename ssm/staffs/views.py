@@ -10093,9 +10093,14 @@ def hod_sports_teams(request):
         messages.error(request, "Access Denied: Sports Team Management is reserved for Head of Department / Admin.")
         return redirect('staffs:staff_dashboard')
 
-    from students.models import Student, SPORTS_TEAM_CHOICES
+    from students.models import Student, SPORTS_TEAM_CHOICES, SportsTeamAllocation
+    from django.urls import reverse
 
     TEAMS = ['Team A', 'Team B', 'Team C', 'Team D']
+    
+    selected_academic_year = request.GET.get('academic_year', '2025-2026')
+    if request.method == 'POST':
+        selected_academic_year = request.POST.get('academic_year', '2025-2026')
 
     # Base Queryset: Registered UG Current 1st to 4th Year Students Only (Sem 1 to 8), excluding PG, PhD, and unregistered students (is_password_changed=False)
     def get_ug_students():
@@ -10110,9 +10115,10 @@ def hod_sports_teams(request):
         )
 
     # Ensure unregistered (is_password_changed=False), PG, and PhD students have sports_team cleared
-    Student.objects.filter(
+    invalid_students = Student.objects.filter(
         Q(is_password_changed=False) | Q(current_semester__gt=8) | Q(program_level__in=['PG', 'PHD']) | Q(scholar_profile__isnull=False)
-    ).exclude(sports_team__isnull=True).exclude(sports_team='').update(sports_team=None)
+    )
+    SportsTeamAllocation.objects.filter(student__in=invalid_students, academic_year=selected_academic_year).delete()
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -10121,19 +10127,21 @@ def hod_sports_teams(request):
             import random
 
             # Check if any students are already assigned
-            has_assigned = get_ug_students().exclude(sports_team__isnull=True).exclude(sports_team='').exists()
+            allocations = SportsTeamAllocation.objects.filter(academic_year=selected_academic_year)
+            assigned_student_ids = set(allocations.values_list('student_id', flat=True))
+            has_assigned = bool(assigned_student_ids)
 
             # If action is 'assign_unassigned' OR ('auto_assign' when teams already exist)
             if action == 'assign_unassigned' or (action == 'auto_assign' and has_assigned):
-                unassigned_students = list(get_ug_students().filter(Q(sports_team__isnull=True) | Q(sports_team='')))
+                unassigned_students = list(get_ug_students().exclude(roll_number__in=assigned_student_ids))
                 if not unassigned_students:
-                    messages.info(request, "All eligible UG students are already assigned to sports teams.")
-                    return redirect('staffs:hod_sports_teams')
+                    messages.info(request, f"All eligible UG students are already assigned to sports teams for {selected_academic_year}.")
+                    return redirect(f"{reverse('staffs:hod_sports_teams')}?academic_year={selected_academic_year}")
 
                 # Pre-calculate current counts per team for Male, Female, Other
-                male_counts = {t: get_ug_students().filter(personalinfo__gender='Male', sports_team=t).count() for t in TEAMS}
-                female_counts = {t: get_ug_students().filter(personalinfo__gender='Female', sports_team=t).count() for t in TEAMS}
-                other_counts = {t: get_ug_students().filter(sports_team=t).exclude(personalinfo__gender__in=['Male', 'Female']).count() for t in TEAMS}
+                male_counts = {t: allocations.filter(student__personalinfo__gender='Male', sports_team=t).count() for t in TEAMS}
+                female_counts = {t: allocations.filter(student__personalinfo__gender='Female', sports_team=t).count() for t in TEAMS}
+                other_counts = {t: allocations.filter(sports_team=t).exclude(student__personalinfo__gender__in=['Male', 'Female']).count() for t in TEAMS}
 
                 male_unassigned = []
                 female_unassigned = []
@@ -10159,29 +10167,26 @@ def hod_sports_teams(request):
                 # Assign unassigned males to team with lowest current male count
                 for std in male_unassigned:
                     best_team = min(TEAMS, key=lambda t: (male_counts[t], TEAMS.index(t)))
-                    std.sports_team = best_team
-                    std.save(update_fields=['sports_team'])
+                    SportsTeamAllocation.objects.create(student=std, academic_year=selected_academic_year, sports_team=best_team)
                     male_counts[best_team] += 1
                     total_updated += 1
 
                 # Assign unassigned females to team with lowest current female count
                 for std in female_unassigned:
                     best_team = min(TEAMS, key=lambda t: (female_counts[t], TEAMS.index(t)))
-                    std.sports_team = best_team
-                    std.save(update_fields=['sports_team'])
+                    SportsTeamAllocation.objects.create(student=std, academic_year=selected_academic_year, sports_team=best_team)
                     female_counts[best_team] += 1
                     total_updated += 1
 
                 # Assign unassigned others to team with lowest current other count
                 for std in other_unassigned:
                     best_team = min(TEAMS, key=lambda t: (other_counts[t], TEAMS.index(t)))
-                    std.sports_team = best_team
-                    std.save(update_fields=['sports_team'])
+                    SportsTeamAllocation.objects.create(student=std, academic_year=selected_academic_year, sports_team=best_team)
                     other_counts[best_team] += 1
                     total_updated += 1
 
-                messages.success(request, f"Successfully assigned {total_updated} unassigned student(s) to sports teams without disturbing existing team assignments.")
-                return redirect('staffs:hod_sports_teams')
+                messages.success(request, f"Successfully assigned {total_updated} unassigned student(s) to sports teams for {selected_academic_year} without disturbing existing team assignments.")
+                return redirect(f"{reverse('staffs:hod_sports_teams')}?academic_year={selected_academic_year}")
 
             else:
                 # Full auto-assign or full reshuffle across all students
@@ -10217,8 +10222,7 @@ def hod_sports_teams(request):
                         group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
 
                     for std in group:
-                        std.sports_team = TEAMS[male_index % 4]
-                        std.save(update_fields=['sports_team'])
+                        SportsTeamAllocation.objects.update_or_create(student=std, academic_year=selected_academic_year, defaults={'sports_team': TEAMS[male_index % 4]})
                         male_index += 1
                         total_updated += 1
 
@@ -10232,8 +10236,7 @@ def hod_sports_teams(request):
                         group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
 
                     for std in group:
-                        std.sports_team = TEAMS[female_index % 4]
-                        std.save(update_fields=['sports_team'])
+                        SportsTeamAllocation.objects.update_or_create(student=std, academic_year=selected_academic_year, defaults={'sports_team': TEAMS[female_index % 4]})
                         female_index += 1
                         total_updated += 1
 
@@ -10247,19 +10250,18 @@ def hod_sports_teams(request):
                         group.sort(key=lambda s: (s.current_semester or 1, s.roll_number))
 
                     for std in group:
-                        std.sports_team = TEAMS[other_index % 4]
-                        std.save(update_fields=['sports_team'])
+                        SportsTeamAllocation.objects.update_or_create(student=std, academic_year=selected_academic_year, defaults={'sports_team': TEAMS[other_index % 4]})
                         other_index += 1
                         total_updated += 1
 
                 verb = "shuffled and re-assigned" if action == 'shuffle' else "auto-assigned"
-                messages.success(request, f"Successfully {verb} {total_updated} UG students across the 4 sports teams with exact Boys & Girls gender equality.")
-                return redirect('staffs:hod_sports_teams')
+                messages.success(request, f"Successfully {verb} {total_updated} UG students across the 4 sports teams with exact Boys & Girls gender equality for {selected_academic_year}.")
+                return redirect(f"{reverse('staffs:hod_sports_teams')}?academic_year={selected_academic_year}")
 
         elif action == 'clear_teams':
-            get_ug_students().update(sports_team=None)
-            messages.success(request, "Cleared all sports team assignments for UG students.")
-            return redirect('staffs:hod_sports_teams')
+            SportsTeamAllocation.objects.filter(academic_year=selected_academic_year).delete()
+            messages.success(request, f"Cleared all sports team assignments for UG students for {selected_academic_year}.")
+            return redirect(f"{reverse('staffs:hod_sports_teams')}?academic_year={selected_academic_year}")
 
     # Calculate Matrix Summaries: Boys Division, Girls Division, and Combined
     boys_stats = {
@@ -10288,13 +10290,22 @@ def hod_sports_teams(request):
 
     all_students_all = get_ug_students()
     
+    # Load allocations for the selected year
+    allocations = SportsTeamAllocation.objects.filter(academic_year=selected_academic_year)
+    alloc_dict = {a.student_id: a.sports_team for a in allocations}
+    
     total_boys_count = 0
     assigned_boys_count = 0
     total_girls_count = 0
     assigned_girls_count = 0
 
     for s in all_students_all:
-        t_key = s.sports_team if s.sports_team in TEAMS else 'Unassigned'
+        assigned_team = alloc_dict.get(s.pk)
+        t_key = assigned_team if assigned_team in TEAMS else 'Unassigned'
+        
+        # Also attach sports_team to the student object temporarily for the template to render it
+        s.sports_team = t_key if t_key != 'Unassigned' else None
+
         sem = s.current_semester or 1
         yr = min(4, max(1, (sem + 1) // 2))
         p_info = getattr(s, 'personalinfo', None)
@@ -10344,7 +10355,8 @@ def hod_sports_teams(request):
         {'name': 'Unassigned Students', 'key': 'Unassigned', 'badge_class': 'badge-unassigned', 'icon': 'ri-question-line', **combined_stats['Unassigned']},
     ]
 
-    unassigned_count = all_students_all.filter(Q(sports_team__isnull=True) | Q(sports_team='')).count()
+    assigned_count = allocations.filter(student__in=all_students_all).values('student').distinct().count()
+    unassigned_count = all_students_all.count() - assigned_count
 
     return render(request, 'staff/hod_sports_teams.html', {
         'staff': staff,
@@ -10353,12 +10365,14 @@ def hod_sports_teams(request):
         'girls_matrix_list': girls_matrix_list,
         'combined_matrix_list': combined_matrix_list,
         'total_students_count': all_students_all.count(),
-        'assigned_count': all_students_all.exclude(sports_team__isnull=True).exclude(sports_team='').count(),
+        'assigned_count': assigned_count,
         'unassigned_count': unassigned_count,
         'total_boys_count': total_boys_count,
         'assigned_boys_count': assigned_boys_count,
         'total_girls_count': total_girls_count,
         'assigned_girls_count': assigned_girls_count,
+        'selected_academic_year': selected_academic_year,
+        'available_academic_years': ['2024-2025', '2025-2026', '2026-2027'],
     })
 
 
@@ -10379,8 +10393,9 @@ def export_sports_teams(request):
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
     from django.http import HttpResponse
-    from students.models import Student
-
+    from students.models import Student, SportsTeamAllocation
+    
+    selected_academic_year = request.GET.get('academic_year', '2025-2026')
     sel_gender = request.GET.get('gender', '')
     sel_team = request.GET.get('team', '')
 
@@ -10398,14 +10413,22 @@ def export_sports_teams(request):
             students_qs = students_qs.filter(Q(personalinfo__gender__isnull=True) | Q(personalinfo__gender=''))
         else:
             students_qs = students_qs.filter(personalinfo__gender=sel_gender)
+            
+    allocations = SportsTeamAllocation.objects.filter(academic_year=selected_academic_year)
+    assigned_student_ids = set(allocations.values_list('student_id', flat=True))
 
     if sel_team:
         if sel_team == 'Unassigned':
-            students_qs = students_qs.filter(Q(sports_team__isnull=True) | Q(sports_team=''))
+            students_qs = students_qs.exclude(roll_number__in=assigned_student_ids)
         else:
-            students_qs = students_qs.filter(sports_team=sel_team)
+            team_student_ids = set(allocations.filter(sports_team=sel_team).values_list('student_id', flat=True))
+            students_qs = students_qs.filter(roll_number__in=team_student_ids)
 
-    students_qs = students_qs.order_by('sports_team', 'personalinfo__gender', 'current_semester', 'roll_number')
+    # Note: sorting by sports_team is complex without annotation, so we'll sort in python or just sort by gender and semester
+    students_qs = students_qs.order_by('personalinfo__gender', 'current_semester', 'roll_number')
+    
+    # Attach sports_team for rendering
+    alloc_dict = {a.student_id: a.sports_team for a in allocations}
 
     if sel_gender:
         if sel_gender == 'Unspecified':
@@ -10485,7 +10508,8 @@ def export_sports_teams(request):
     for row_idx, s in enumerate(students_qs, start=2):
         sem = s.current_semester or 1
         yr = (sem + 1) // 2
-        team_key = s.sports_team if s.sports_team in team_styles else 'Unassigned'
+        assigned_team = alloc_dict.get(s.pk)
+        team_key = assigned_team if assigned_team in team_styles else 'Unassigned'
         style_info = team_styles[team_key]
         p_info = getattr(s, 'personalinfo', None)
         gender_val = p_info.gender if (p_info and p_info.gender) else 'Unspecified'
@@ -10549,7 +10573,7 @@ def hod_clubs_manage(request):
 
     from students.models import Club, Student, ClubEvent, ClubAttendance, ClubMembership
 
-    clubs = Club.objects.all().prefetch_related('student_coordinators', 'memberships', 'events')
+    clubs = Club.objects.all().prefetch_related('student_coordinators', 'memberships', 'events', 'timetables')
     staff_members = Staff.objects.all().order_by('name')
     all_students = Student.objects.all().order_by('roll_number')
 
@@ -10565,7 +10589,10 @@ def hod_clubs_manage(request):
         sc1_id = sc_list[0].pk if len(sc_list) > 0 else None
         sc2_id = sc_list[1].pk if len(sc_list) > 1 else None
 
+        timetable = c.timetables.first()
+
         clubs_data.append({
+            'timetable': timetable,
             'club': c,
             'total_members': total_members,
             'total_events': total_events,
@@ -10616,8 +10643,8 @@ def hod_club_create(request):
             messages.error(request, f"A club named '{name}' already exists.")
             return redirect('staffs:hod_clubs_manage')
 
-        staff_ic = Staff.objects.filter(id=staff_ic_id).first() if staff_ic_id else None
-        staff_ic2 = Staff.objects.filter(id=staff_ic2_id).first() if staff_ic2_id else None
+        staff_ic = Staff.objects.filter(pk=staff_ic_id).first() if staff_ic_id else None
+        staff_ic2 = Staff.objects.filter(pk=staff_ic2_id).first() if staff_ic2_id else None
         club = Club.objects.create(
             name=name,
             description=description,
@@ -10630,6 +10657,15 @@ def hod_club_create(request):
         if sc_ids:
             sc_students = Student.objects.filter(pk__in=sc_ids)
             club.student_coordinators.set(sc_students)
+            
+            # Ensure coordinators are also members
+            from students.models import ClubMembership
+            for sc_student in sc_students:
+                ClubMembership.objects.get_or_create(
+                    club=club,
+                    student=sc_student,
+                    defaults={'academic_year': '2025-2026'}
+                )
 
         messages.success(request, f"Successfully created club '{club.name}' and assigned coordinators.")
         return redirect('staffs:hod_clubs_manage')
@@ -10660,13 +10696,22 @@ def hod_club_edit(request, club_id):
             club.name = name
         club.description = description
         club.category = category
-        club.staff_incharge = Staff.objects.filter(id=staff_ic_id).first() if staff_ic_id else None
-        club.staff_incharge_2 = Staff.objects.filter(id=staff_ic2_id).first() if staff_ic2_id else None
+        club.staff_incharge = Staff.objects.filter(pk=staff_ic_id).first() if staff_ic_id else None
+        club.staff_incharge_2 = Staff.objects.filter(pk=staff_ic2_id).first() if staff_ic2_id else None
         club.save()
 
         sc_ids = [s_id for s_id in [sc1_id, sc2_id] if s_id]
         sc_students = Student.objects.filter(pk__in=sc_ids)
         club.student_coordinators.set(sc_students)
+
+        # Ensure coordinators are also members
+        from students.models import ClubMembership
+        for sc_student in sc_students:
+            ClubMembership.objects.get_or_create(
+                club=club,
+                student=sc_student,
+                defaults={'academic_year': '2025-2026'}
+            )
 
         messages.success(request, f"Updated club '{club.name}' configuration successfully.")
         return redirect('staffs:hod_clubs_manage')
@@ -10770,5 +10815,134 @@ def mark_all_notifications_read(request):
     return redirect(referer or 'staffs:staff_dashboard')
 
 
+
+
+
+def hod_club_timetable(request, club_id):
+    """HOD Action to add/update Club Timetable."""
+    if "staff_id" not in request.session:
+        return redirect("staffs:stafflogin")
+    from students.models import Club, ClubTimetable
+    club = get_object_or_404(Club, id=club_id)
+    if request.method == "POST":
+        academic_year = request.POST.get("academic_year", "2025-2026")
+        day_of_week = request.POST.get("day_of_week")
+        start_time = request.POST.get("start_time")
+        end_time = request.POST.get("end_time")
+        venue = request.POST.get("venue", "")
+
+        timetable, created = ClubTimetable.objects.get_or_create(
+            club=club,
+            academic_year=academic_year,
+            defaults={
+                "day_of_week": day_of_week,
+                "start_time": start_time,
+                "end_time": end_time,
+                "venue": venue
+            }
+        )
+        if not created:
+            timetable.day_of_week = day_of_week
+            timetable.start_time = start_time
+            timetable.end_time = end_time
+            timetable.venue = venue
+            timetable.save()
+            
+        messages.success(request, f"Timetable updated for {club.name}.")
+    return redirect("staffs:hod_club_master_schedule")
+
+
+def hod_club_master_schedule(request):
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+    staff = get_object_or_404(Staff, staff_id=request.session['staff_id'])
+    is_hod_or_admin = (staff.is_hod or staff.is_staff_admin or staff.is_admin or staff.role == 'HOD' or request.session.get('active_role') == 'HOD')
+    
+    from students.models import Club, ClubTimetable
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create_or_update':
+            timetable_id = request.POST.get('timetable_id')
+            club_id = request.POST.get('club_id')
+            day_of_week = request.POST.get('day_of_week')
+            start_time = request.POST.get('start_time')
+            end_time = request.POST.get('end_time')
+            venue = request.POST.get('venue', '').strip()
+            academic_year = request.POST.get('academic_year', '2025-2026')
+
+            if not club_id or not day_of_week or not start_time or not end_time:
+                messages.error(request, "Please fill in all required fields (Club, Day, Start Time, End Time).")
+                return redirect('staffs:hod_club_master_schedule')
+
+            club = get_object_or_404(Club, id=club_id)
+
+            if timetable_id:
+                timetable = get_object_or_404(ClubTimetable, id=timetable_id)
+                timetable.club = club
+                timetable.day_of_week = day_of_week
+                timetable.start_time = start_time
+                timetable.end_time = end_time
+                timetable.venue = venue
+                timetable.academic_year = academic_year
+                timetable.save()
+                messages.success(request, f"Timetable schedule updated for {club.name}.")
+            else:
+                ClubTimetable.objects.create(
+                    club=club,
+                    day_of_week=day_of_week,
+                    start_time=start_time,
+                    end_time=end_time,
+                    venue=venue,
+                    academic_year=academic_year
+                )
+                messages.success(request, f"New club timetable scheduled for {club.name}.")
+            return redirect('staffs:hod_club_master_schedule')
+
+        elif action == 'delete':
+            timetable_id = request.POST.get('timetable_id')
+            timetable = get_object_or_404(ClubTimetable, id=timetable_id)
+            club_name = timetable.club.name
+            timetable.delete()
+            messages.success(request, f"Timetable schedule for {club_name} removed successfully.")
+            return redirect('staffs:hod_club_master_schedule')
+
+    timetables = ClubTimetable.objects.select_related('club').filter(club__is_active=True)
+    all_clubs = Club.objects.filter(is_active=True).order_by('name')
+
+    day_list = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    day_map = {d: {} for d in day_list}
+
+    for tt in timetables:
+        d = tt.day_of_week
+        if d not in day_map:
+            day_map[d] = {}
+        slot_key = (tt.start_time, tt.end_time)
+        if slot_key not in day_map[d]:
+            day_map[d][slot_key] = []
+        day_map[d][slot_key].append(tt)
+
+    schedule_days = []
+    for d in day_list:
+        if day_map[d]:
+            sorted_slots = sorted(day_map[d].items(), key=lambda item: item[0][0])
+            slots_data = []
+            for (st, et), tt_list in sorted_slots:
+                slots_data.append({
+                    'start_time': st,
+                    'end_time': et,
+                    'timetables': tt_list
+                })
+            schedule_days.append({
+                'day': d,
+                'slots': slots_data
+            })
+
+    return render(request, 'staff/hod_club_schedule.html', {
+        'staff': staff,
+        'is_hod_or_admin': is_hod_or_admin,
+        'schedule_days': schedule_days,
+        'all_clubs': all_clubs,
+    })
 
 

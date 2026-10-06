@@ -133,6 +133,7 @@ class Student(models.Model):
     is_class_representative = models.BooleanField(default=False, verbose_name="Class Representative")
     
     # Extracurricular & Sports
+    # Note: sports_team field is kept temporarily for migration, but will be replaced by SportsTeamAllocation
     sports_team = models.CharField(
         max_length=50,
         choices=SPORTS_TEAM_CHOICES,
@@ -162,6 +163,17 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.student_name} ({self.roll_number})"
+
+class SportsTeamAllocation(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='sports_team_allocations')
+    academic_year = models.CharField(max_length=20, default='2025-2026')
+    sports_team = models.CharField(max_length=50, choices=SPORTS_TEAM_CHOICES)
+    
+    class Meta:
+        unique_together = ('student', 'academic_year')
+        
+    def __str__(self):
+        return f"{self.student.student_name} - {self.sports_team} ({self.academic_year})"
 
     @property
     def phd_overall_percent(self):
@@ -1102,13 +1114,14 @@ class Club(models.Model):
 class ClubMembership(models.Model):
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='memberships')
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='club_memberships')
+    academic_year = models.CharField(max_length=20, default='2025-2026')
     joined_date = models.DateField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('club', 'student')
+        unique_together = ('club', 'student', 'academic_year')
 
     def __str__(self):
-        return f"{self.student.student_name} - {self.club.name}"
+        return f"{self.student.student_name} - {self.club.name} ({self.academic_year})"
 
 
 class ClubEvent(models.Model):
@@ -1145,11 +1158,36 @@ class ClubJoinRequest(models.Model):
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='join_requests')
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='club_join_requests')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    academic_year = models.CharField(max_length=20, default='2025-2026')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('club', 'student')
+        unique_together = ('club', 'student', 'academic_year')
 
     def __str__(self):
-        return f"{self.student.student_name} -> {self.club.name} ({self.status})"
+        return f"{self.student.student_name} -> {self.club.name} ({self.status}) [{self.academic_year}]"
+
+
+class ClubTimetable(models.Model):
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="timetables")
+    academic_year = models.CharField(max_length=20, default="2025-2026")
+    day_of_week = models.CharField(max_length=20, choices=[
+        ("Monday", "Monday"),
+        ("Tuesday", "Tuesday"),
+        ("Wednesday", "Wednesday"),
+        ("Thursday", "Thursday"),
+        ("Friday", "Friday"),
+        ("Saturday", "Saturday"),
+        ("Sunday", "Sunday")
+    ])
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    venue = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "club_timetable"
+
+    def __str__(self):
+        return f"{self.club.name} - {self.day_of_week}"
 

@@ -281,7 +281,12 @@
                         <td style="color: #adb5bd;">{{ forloop.counter }}</td>
                         <td><strong>{{ row.student.roll_number }}</strong></td>
                         <td>{{ row.student.register_number|default:"-" }}</td>
-                        <td>{{ row.student.student_name }}</td>
+                        <td>
+                            {{ row.student.student_name }}
+                            {% if row.student in coordinators %}
+                                <span style="background: var(--theme-teal-light); color: var(--theme-teal-dark); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: 600; border: 1px solid rgba(90, 125, 124, 0.2);">COO</span>
+                            {% endif %}
+                        </td>
                         <td>Sem {{ row.student.current_semester }}</td>
                         <td>{% if row.student.lab_batch %}Batch {{ row.student.lab_batch }}{% else %}-{% endif %}</td>
                         <td><strong>{{ row.attended_count }}</strong> / {{ row.total_events_count }}</td>

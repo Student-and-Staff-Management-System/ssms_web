@@ -151,6 +151,7 @@
                         <th>Roll Number</th>
                         <th>Register Number</th>
                         <th>Student Name</th>
+                        <th>Academic Year</th>
                         <th>Year & Sem</th>
                         <th>Lab Batch</th>
                         <th>Requested On</th>
@@ -164,6 +165,7 @@
                         <td><strong style="color: #5a7d7c;">{{ req.student.roll_number }}</strong></td>
                         <td>{{ req.student.register_number|default:"-" }}</td>
                         <td><strong>{{ req.student.student_name }}</strong></td>
+                        <td><span style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{{ req.academic_year }}</span></td>
                         <td>Sem {{ req.student.current_semester }}</td>
                         <td>{% if req.student.lab_batch %}Batch {{ req.student.lab_batch }}{% else %}-{% endif %}</td>
                         <td>{{ req.created_at|date:"d M Y, h:i A" }}</td>
@@ -186,7 +188,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 24px; color: #94a3b8;">
+                        <td colspan="9" style="text-align: center; padding: 24px; color: #94a3b8;">
                             No pending join requests at this time. Students can explore clubs and click "I'm Interested" to submit requests.
                         </td>
                     </tr>
@@ -224,7 +226,12 @@
                         <td style="color: #94a3b8;">{{ forloop.counter }}</td>
                         <td><strong style="color: #5a7d7c;">{{ m.student.roll_number }}</strong></td>
                         <td>{{ m.student.register_number|default:"-" }}</td>
-                        <td><strong>{{ m.student.student_name }}</strong></td>
+                        <td>
+                            <strong>{{ m.student.student_name }}</strong>
+                            {% if m.student in club.student_coordinators.all %}
+                                <span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-left: 6px;">COO</span>
+                            {% endif %}
+                        </td>
                         <td>Sem {{ m.student.current_semester }}</td>
                         <td>{% if m.student.lab_batch %}Batch {{ m.student.lab_batch }}{% else %}-{% endif %}</td>
                         <td>{{ m.joined_date|date:"d M Y" }}</td>
@@ -239,7 +246,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 36px; color: #94a3b8;">
+                        <td colspan="9" style="text-align: center; padding: 36px; color: #94a3b8;">
                             No official members in this club yet. Students can express interest on the clubs page to submit join requests.
                         </td>
                     </tr>

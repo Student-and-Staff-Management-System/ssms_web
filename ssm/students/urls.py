@@ -95,6 +95,7 @@ urlpatterns = [
     
     # Club Activities (Student & Coordinator)
     path('clubs/', views.student_clubs_view, name='student_clubs_view'),
+    path('clubs/enroll/', views.student_club_enrollment, name='student_club_enrollment'),
     path('clubs/<int:club_id>/join-request/', views.student_request_club_join, name='student_request_club_join'),
     path('clubs/<int:club_id>/coordinator/', views.coordinator_club_console, name='coordinator_club_console'),
     path('clubs/<int:club_id>/requests/<int:request_id>/approve/', views.coordinator_approve_request, name='coordinator_approve_request'),

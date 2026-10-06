@@ -600,6 +600,11 @@ def student_dashboard(request):
     # Helper for calendar data
     calendar_data = get_attendance_calendar_data(student)
 
+    # Fetch Sports Team Allocation
+    from students.models import SportsTeamAllocation
+    sports_allocation = SportsTeamAllocation.objects.filter(student=student).order_by('-academic_year').first()
+    print(f"DEBUG: sports_allocation for {student.roll_number} = {sports_allocation}")
+
     _completion_data = get_profile_completion_data(student)
     context = {
         'student': student,
@@ -623,7 +628,8 @@ def student_dashboard(request):
         'calendar_data': calendar_data,
         'profile_completion_percentage': _completion_data['percentage'],
         'profile_missing_fields': _completion_data['missing_fields'],
-        'is_profile_complete': student.is_profile_complete
+        'is_profile_complete': student.is_profile_complete,
+        'sports_allocation': sports_allocation,
     }
     
     # New Logic: If profile is incomplete, show the status page instead of dashboard
@@ -2663,13 +2669,14 @@ def student_request_club_join(request, club_id):
     club = get_object_or_404(Club, id=club_id, is_active=True)
 
     if request.method == 'POST':
+        academic_year = request.POST.get('academic_year', '2025-2026')
         # Check if already a member
-        if ClubMembership.objects.filter(club=club, student=student).exists():
-            messages.info(request, f"You are already a member of {club.name}.")
+        if ClubMembership.objects.filter(club=club, student=student, academic_year=academic_year).exists():
+            messages.info(request, f"You are already a member of {club.name} for {academic_year}.")
             return redirect('student_clubs_view')
 
         # Check or create join request
-        req, created = ClubJoinRequest.objects.get_or_create(club=club, student=student)
+        req, created = ClubJoinRequest.objects.get_or_create(club=club, student=student, academic_year=academic_year)
         if not created and req.status == 'REJECTED':
             req.status = 'PENDING'
             req.save()
@@ -2730,7 +2737,7 @@ def coordinator_approve_request(request, club_id, request_id):
         join_req.status = 'APPROVED'
         join_req.save()
 
-        ClubMembership.objects.get_or_create(club=club, student=join_req.student)
+        ClubMembership.objects.get_or_create(club=club, student=join_req.student, academic_year=join_req.academic_year)
         messages.success(request, f"Approved {join_req.student.student_name} ({join_req.student.roll_number}) to join {club.name}.")
 
     return redirect('coordinator_club_console', club_id=club.id)
@@ -2833,3 +2840,38 @@ def coordinator_log_attendance(request, club_id):
         messages.success(request, f"Logged attendance for event '{event.title}' on {event.event_date}.")
 
     return redirect('coordinator_club_console', club_id=club.id)
+
+@student_login_required
+def student_club_enrollment(request):
+    roll_number = request.session.get('student_roll_number')
+    student = get_object_or_404(Student, roll_number=roll_number)
+    from students.models import Club, ClubTimetable, ClubMembership, ClubJoinRequest
+    timetables = ClubTimetable.objects.select_related('club').filter(club__is_active=True)
+    joined_club_ids = set(ClubMembership.objects.filter(student=student).values_list('club_id', flat=True))
+    pending_club_ids = set(ClubJoinRequest.objects.filter(student=student, status='PENDING').values_list('club_id', flat=True))
+    occupied_slots = set()
+    for tt in timetables:
+        if tt.club.id in joined_club_ids or tt.club.id in pending_club_ids:
+            slot = (tt.day_of_week, tt.start_time, tt.end_time)
+            occupied_slots.add(slot)
+    day_order = {'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7}
+    sorted_timetables = sorted(timetables, key=lambda t: (day_order.get(t.day_of_week, 8), t.start_time))
+    grouped_slots = {}
+    for tt in sorted_timetables:
+        slot = (tt.day_of_week, tt.start_time, tt.end_time)
+        if slot not in grouped_slots:
+            grouped_slots[slot] = []
+        is_member = tt.club.id in joined_club_ids
+        is_pending = tt.club.id in pending_club_ids
+        is_conflict = not (is_member or is_pending) and slot in occupied_slots
+        grouped_slots[slot].append({
+            'club': tt.club,
+            'timetable': tt,
+            'is_member': is_member,
+            'is_pending': is_pending,
+            'is_conflict': is_conflict,
+        })
+    return render(request, 'student/club_enrollment.html', {
+        'student': student,
+        'grouped_slots': grouped_slots,
+    })

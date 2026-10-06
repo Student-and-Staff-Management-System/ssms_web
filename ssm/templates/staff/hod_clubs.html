@@ -4,21 +4,22 @@
 {% block title %}Extracurricular Activities - Club Management | HOD Console{% endblock %}
 
 {% block extra_css %}
-<style>
-    :root {
-        --theme-teal: #5a7d7c;
-        --theme-teal-dark: #4a6b69;
-        --theme-teal-light: #eef2f2;
-        --theme-border: #dee2e6;
-        --theme-slate: #2c3e50;
-    }
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --theme-teal: #5a7d7c;
+            --theme-teal-dark: #4a6b69;
+            --theme-teal-light: #eef2f2;
+            --theme-border: #dee2e6;
+            --theme-slate: #2c3e50;
+        }
 
-    .clubs-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 24px 16px 60px 16px;
-        font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-    }
+        .clubs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px 60px 16px;
+            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+        }
 
     .clubs-header {
         display: flex;
@@ -218,6 +219,22 @@
     .form-control:focus {
         border-color: var(--theme-teal);
     }
+
+    /* Select2 overrides */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+    }
+    .select2-container--default .select2-selection--single:focus {
+        border-color: var(--theme-teal);
+        outline: none;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
 </style>
 {% endblock %}
 
@@ -233,6 +250,9 @@
 
         <div style="display: flex; gap: 10px;">
             {% if is_hod_or_admin %}
+            <a href="{% url 'staffs:hod_club_master_schedule' %}" class="btn-action" style="background: white; color: var(--theme-teal); border: 1px solid var(--theme-teal);">
+                <i class="ri-calendar-todo-line"></i> Master Schedule
+            </a>
             <button onclick="document.getElementById('createClubModal').style.display='flex';" class="btn-action btn-teal">
                 <i class="ri-add-circle-line"></i> Create New Club
             </button>
@@ -295,6 +315,20 @@
                         {% endfor %}
                     </span>
                 </div>
+
+                <div class="role-row">
+                    <span class="role-label"><i class="ri-time-line"></i> Timetable:</span>
+                    <span class="role-val">
+                        {% if item.timetable %}
+                            <span style="background: #e8f5e9; color: #2e7d32; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; border: 1px solid #c8e6c9;">
+                                {{ item.timetable.day_of_week }}, {{ item.timetable.start_time|time:"g:i A" }} - {{ item.timetable.end_time|time:"g:i A" }}
+                                {% if item.timetable.venue %}({{ item.timetable.venue }}){% endif %}
+                            </span>
+                        {% else %}
+                            <span style="color: #adb5bd; font-style: italic;">Not Assigned</span>
+                        {% endif %}
+                    </span>
+                </div>
             </div>
 
             <div>
@@ -309,6 +343,9 @@
                         <i class="ri-eye-line"></i> View Console
                     </a>
                     {% if is_hod_or_admin %}
+                    <button onclick="document.getElementById('timetableModal_{{ c.id }}').style.display='flex';" class="btn-action" style="background: #f8f9fa; color: #495057; border: 1px solid #ced4da;" title="Assign Timetable">
+                        <i class="ri-calendar-event-line"></i>
+                    </button>
                     <button onclick="document.getElementById('editClubModal_{{ c.id }}').style.display='flex';" class="btn-action" style="background: var(--theme-teal-light); color: var(--theme-teal-dark); border: 1px solid rgba(90,125,124,0.3);" title="Edit Staff IC & Student Coordinators">
                         <i class="ri-edit-line"></i> Edit
                     </button>
@@ -324,6 +361,60 @@
         </div>
 
         {% if is_hod_or_admin %}
+        <!-- Timetable Modal for {{ c.name }} -->
+        <div id="timetableModal_{{ c.id }}" class="modal-overlay">
+            <div class="modal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; font-size: 1.15rem; color: var(--theme-slate);"><i class="ri-calendar-event-line" style="color: var(--theme-teal);"></i> Assign Timetable</h3>
+                    <button onclick="document.getElementById('timetableModal_{{ c.id }}').style.display='none';" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #6c757d;">&times;</button>
+                </div>
+
+                <form method="POST" action="{% url 'staffs:hod_club_timetable' c.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label>Academic Year *</label>
+                        <input type="text" name="academic_year" value="{{ item.timetable.academic_year|default:'2025-2026' }}" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Day of Week *</label>
+                        <select name="day_of_week" required class="form-control">
+                            <option value="">Select Day...</option>
+                            <option value="Monday" {% if item.timetable.day_of_week == 'Monday' %}selected{% endif %}>Monday</option>
+                            <option value="Tuesday" {% if item.timetable.day_of_week == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                            <option value="Wednesday" {% if item.timetable.day_of_week == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                            <option value="Thursday" {% if item.timetable.day_of_week == 'Thursday' %}selected{% endif %}>Thursday</option>
+                            <option value="Friday" {% if item.timetable.day_of_week == 'Friday' %}selected{% endif %}>Friday</option>
+                            <option value="Saturday" {% if item.timetable.day_of_week == 'Saturday' %}selected{% endif %}>Saturday</option>
+                            <option value="Sunday" {% if item.timetable.day_of_week == 'Sunday' %}selected{% endif %}>Sunday</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Start Time *</label>
+                            <input type="time" name="start_time" value="{{ item.timetable.start_time|time:'H:i' }}" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>End Time *</label>
+                            <input type="time" name="end_time" value="{{ item.timetable.end_time|time:'H:i' }}" required class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Venue / Location</label>
+                        <input type="text" name="venue" value="{{ item.timetable.venue|default:'' }}" class="form-control">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                        <button type="button" onclick="document.getElementById('timetableModal_{{ c.id }}').style.display='none';" class="btn-action" style="background: #f8f9fa; color: #212529; border: 1px solid #ced4da;">Cancel</button>
+                        <button type="submit" class="btn-action" style="background: var(--theme-teal); color: white;">Save Timetable</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Edit Club Modal for {{ c.name }} -->
         <div id="editClubModal_{{ c.id }}" class="modal-overlay">
             <div class="modal-card">
@@ -360,7 +451,7 @@
                             <select name="staff_incharge_1" class="form-control">
                                 <option value="">Select Staff 1...</option>
                                 {% for st in staff_members %}
-                                <option value="{{ st.id }}" {% if c.staff_incharge_id == st.id %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                                <option value="{{ st.pk }}" {% if c.staff_incharge_id == st.pk %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -370,7 +461,7 @@
                             <select name="staff_incharge_2" class="form-control">
                                 <option value="">Select Staff 2...</option>
                                 {% for st in staff_members %}
-                                <option value="{{ st.id }}" {% if c.staff_incharge_2_id == st.id %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                                <option value="{{ st.pk }}" {% if c.staff_incharge_2_id == st.pk %}selected{% endif %}>{{ st.name }} ({{ st.department|default:"Dept" }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -379,7 +470,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div class="form-group">
                             <label>Student Coordinator 1</label>
-                            <select name="student_coordinator_1" class="form-control">
+                            <select name="student_coordinator_1" class="form-control select2-enable" style="width: 100%;">
                                 <option value="">Select Student 1...</option>
                                 {% for std in all_students %}
                                 <option value="{{ std.pk }}" {% if item.sc1_id == std.pk %}selected{% endif %}>{{ std.roll_number }} - {{ std.student_name }}</option>
@@ -389,7 +480,7 @@
 
                         <div class="form-group">
                             <label>Student Coordinator 2</label>
-                            <select name="student_coordinator_2" class="form-control">
+                            <select name="student_coordinator_2" class="form-control select2-enable" style="width: 100%;">
                                 <option value="">Select Student 2...</option>
                                 {% for std in all_students %}
                                 <option value="{{ std.pk }}" {% if item.sc2_id == std.pk %}selected{% endif %}>{{ std.roll_number }} - {{ std.student_name }}</option>
@@ -454,7 +545,7 @@
                     <select name="staff_incharge_1" class="form-control">
                         <option value="">Select Staff 1...</option>
                         {% for st in staff_members %}
-                        <option value="{{ st.id }}">{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                        <option value="{{ st.pk }}">{{ st.name }} ({{ st.department|default:"Dept" }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -464,7 +555,7 @@
                     <select name="staff_incharge_2" class="form-control">
                         <option value="">Select Staff 2...</option>
                         {% for st in staff_members %}
-                        <option value="{{ st.id }}">{{ st.name }} ({{ st.department|default:"Dept" }})</option>
+                        <option value="{{ st.pk }}">{{ st.name }} ({{ st.department|default:"Dept" }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -473,7 +564,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
                     <label>Student Coordinator 1</label>
-                    <select name="student_coordinator_1" class="form-control">
+                    <select name="student_coordinator_1" class="form-control select2-enable" style="width: 100%;">
                         <option value="">Select Student 1...</option>
                         {% for std in all_students %}
                         <option value="{{ std.pk }}">{{ std.roll_number }} - {{ std.student_name }}</option>
@@ -483,7 +574,7 @@
 
                 <div class="form-group">
                     <label>Student Coordinator 2</label>
-                    <select name="student_coordinator_2" class="form-control">
+                    <select name="student_coordinator_2" class="form-control select2-enable" style="width: 100%;">
                         <option value="">Select Student 2...</option>
                         {% for std in all_students %}
                         <option value="{{ std.pk }}">{{ std.roll_number }} - {{ std.student_name }}</option>
@@ -499,4 +590,21 @@
         </form>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2-enable').each(function() {
+            var $this = $(this);
+            var $parentModal = $this.closest('.modal-card');
+            
+            $this.select2({
+                dropdownParent: $parentModal.length ? $parentModal : $(document.body),
+                placeholder: "Search...",
+                allowClear: true
+            });
+        });
+    });
+</script>
 {% endblock %}

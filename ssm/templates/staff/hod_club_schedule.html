@@ -1,0 +1,624 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block page_title %}Master Club Schedule | HOD Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schedule-container {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 24px 20px 60px 20px;
+    }
+    .schedule-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        padding: 22px 28px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .schedule-title-group {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .schedule-title-group h1 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-main, #1e293b);
+        letter-spacing: -0.01em;
+    }
+    .schedule-title-group p {
+        margin: 4px 0 0 0;
+        font-size: 0.88rem;
+        color: var(--text-muted, #64748b);
+    }
+    .back-link {
+        text-decoration: none;
+        color: var(--text-muted, #64748b);
+        font-size: 1.25rem;
+        line-height: 1;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: var(--surface-subtle, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+    }
+    .back-link:hover {
+        color: var(--primary, #5a7d7c);
+        border-color: var(--primary, #5a7d7c);
+        background: rgba(90, 125, 124, 0.08);
+    }
+    .btn-add-schedule {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 20px;
+        background: var(--primary, #5a7d7c);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.92rem;
+        cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(90, 125, 124, 0.25);
+    }
+    .btn-add-schedule:hover {
+        background: var(--primary-hover, #4a6b69);
+        box-shadow: 0 4px 12px rgba(90, 125, 124, 0.35);
+    }
+    .day-block {
+        background: var(--surface, #ffffff);
+        border-radius: 12px;
+        border: 1px solid var(--border, #e2e8f0);
+        margin-bottom: 28px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        overflow: hidden;
+    }
+    .day-header {
+        background: var(--surface-subtle, #f8fafc);
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border, #e2e8f0);
+        font-weight: 700;
+        color: var(--text-main, #1e293b);
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .btn-day-add {
+        font-size: 0.84rem;
+        padding: 6px 14px;
+        background: rgba(90, 125, 124, 0.08);
+        color: var(--primary, #5a7d7c);
+        border: 1px solid rgba(90, 125, 124, 0.28);
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-day-add:hover {
+        background: var(--primary, #5a7d7c);
+        color: white;
+    }
+    .slots-container {
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .slot-card {
+        background: var(--surface-subtle, #f8fafc);
+        border-radius: 10px;
+        border: 1px solid var(--border, #e2e8f0);
+        padding: 18px 20px;
+    }
+    .slot-time-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed var(--border-strong, #cbd5e1);
+    }
+    .slot-time-text {
+        font-weight: 700;
+        color: var(--primary, #5a7d7c);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+    }
+    .slot-count-badge {
+        font-size: 0.75rem;
+        background: rgba(90, 125, 124, 0.12);
+        color: var(--primary, #5a7d7c);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+    .club-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+    .club-item-card {
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-left: 4px solid var(--primary, #5a7d7c);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+    .club-item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border-color: var(--primary, #5a7d7c);
+    }
+    .club-cat {
+        font-size: 0.68rem;
+        background: rgba(90, 125, 124, 0.12);
+        color: var(--primary, #5a7d7c);
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        display: inline-block;
+        letter-spacing: 0.03em;
+    }
+    .club-name {
+        font-weight: 700;
+        color: var(--text-main, #1e293b);
+        font-size: 1rem;
+        margin-bottom: 4px;
+    }
+    .club-venue {
+        font-size: 0.82rem;
+        color: var(--text-muted, #64748b);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .club-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .icon-btn {
+        background: var(--surface-subtle, #f8fafc);
+        border: 1px solid var(--border, #e2e8f0);
+        color: var(--text-muted, #64748b);
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+    .icon-btn:hover {
+        background: rgba(90, 125, 124, 0.12);
+        color: var(--primary, #5a7d7c);
+        border-color: var(--primary, #5a7d7c);
+    }
+    .icon-btn.danger:hover {
+        background: rgba(248, 113, 113, 0.12);
+        color: #ef4444;
+        border-color: #ef4444;
+    }
+
+    /* Modal overlay & container */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(3px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    .modal-box {
+        background: var(--surface, #ffffff);
+        border-radius: 12px;
+        border: 1px solid var(--border, #e2e8f0);
+        width: 100%;
+        max-width: 520px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+        animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .modal-header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border, #e2e8f0);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface-subtle, #f8fafc);
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main, #1e293b);
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        color: var(--text-muted, #64748b);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+    }
+    .modal-close:hover {
+        color: var(--text-main, #1e293b);
+    }
+    .modal-body {
+        padding: 24px;
+    }
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid var(--border, #e2e8f0);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        background: var(--surface-subtle, #f8fafc);
+    }
+    .form-group {
+        margin-bottom: 16px;
+    }
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary, #475569);
+        margin-bottom: 6px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 6px;
+        background: var(--surface, #ffffff);
+        color: var(--text-main, #1e293b);
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary, #5a7d7c);
+        box-shadow: 0 0 0 3px rgba(90, 125, 124, 0.15);
+    }
+    .btn-secondary {
+        padding: 9px 18px;
+        border: 1px solid var(--border, #e2e8f0);
+        background: white;
+        color: var(--text-secondary, #475569);
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .btn-secondary:hover {
+        background: var(--surface-hover, #f1f5f9);
+    }
+    .btn-primary {
+        padding: 9px 20px;
+        border: none;
+        background: var(--primary, #5a7d7c);
+        color: white;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .btn-primary:hover {
+        background: var(--primary-hover, #4a6b69);
+    }
+    .btn-danger {
+        padding: 9px 20px;
+        border: none;
+        background: #ef4444;
+        color: white;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="schedule-container">
+
+    <!-- Page Header Bar -->
+    <div class="schedule-header">
+        <div class="schedule-title-group">
+            <a href="{% url 'staffs:hod_clubs_manage' %}" class="back-link" title="Back to Club Management">&larr;</a>
+            <div>
+                <h1>📅 Master Club Schedule</h1>
+                <p>Visual map of all institutional clubs organized by their meeting schedules (e.g. 5 days, 2 clubs/slot).</p>
+            </div>
+        </div>
+
+        {% if is_hod_or_admin %}
+        <button type="button" onclick="openScheduleModal()" class="btn-add-schedule">
+            <i class="ri-add-line" style="font-size: 1.15rem;"></i> Schedule Club Timetable
+        </button>
+        {% endif %}
+    </div>
+    
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div style="margin-bottom: 24px;">
+        {% for message in messages %}
+        <div style="padding: 14px 20px; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; {% if message.tags == 'error' %}background: rgba(248, 113, 113, 0.12); color: #dc2626; border: 1px solid rgba(248, 113, 113, 0.3);{% else %}background: rgba(90, 125, 124, 0.14); color: #4a6b69; border: 1px solid rgba(90, 125, 124, 0.3);{% endif %}">
+            <i class="{% if message.tags == 'error' %}ri-error-warning-line{% else %}ri-checkbox-circle-line{% endif %}" style="font-size: 1.1rem;"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% for day_obj in schedule_days %}
+    <div class="day-block">
+        <div class="day-header">
+            <div>
+                <i class="ri-calendar-event-line" style="color: var(--primary, #5a7d7c); margin-right: 6px;"></i> {{ day_obj.day }}s
+            </div>
+            {% if is_hod_or_admin %}
+            <button type="button" class="btn-day-add" onclick="openScheduleModal(null, '{{ day_obj.day }}')">
+                <i class="ri-add-line"></i> Add Schedule to {{ day_obj.day }}
+            </button>
+            {% endif %}
+        </div>
+        <div class="slots-container">
+            {% for slot in day_obj.slots %}
+            <div class="slot-card">
+                <div class="slot-time-banner">
+                    <div class="slot-time-text">
+                        <i class="ri-time-line"></i> {{ slot.start_time|time:"g:i A" }} - {{ slot.end_time|time:"g:i A" }}
+                    </div>
+                    <span class="slot-count-badge">
+                        {{ slot.timetables|length }} Club{% if slot.timetables|length > 1 %}s{% endif %} Scheduled
+                    </span>
+                </div>
+                <div class="club-grid">
+                    {% for tt in slot.timetables %}
+                    <div class="club-item-card">
+                        <div>
+                            <span class="club-cat">{{ tt.club.category }}</span>
+                            <div class="club-name">{{ tt.club.name }}</div>
+                            {% if tt.venue %}
+                            <div class="club-venue">
+                                <i class="ri-map-pin-line" style="color: var(--primary, #5a7d7c);"></i> {{ tt.venue }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if is_hod_or_admin %}
+                        <div class="club-actions">
+                            <button type="button" class="icon-btn" title="Edit Schedule" 
+                                onclick="openScheduleModal({
+                                    id: '{{ tt.id }}',
+                                    club_id: '{{ tt.club.id }}',
+                                    day_of_week: '{{ tt.day_of_week }}',
+                                    start_time: '{{ tt.start_time|time:"H:i" }}',
+                                    end_time: '{{ tt.end_time|time:"H:i" }}',
+                                    venue: '{{ tt.venue|escapejs }}',
+                                    academic_year: '{{ tt.academic_year|escapejs }}'
+                                })">
+                                <i class="ri-pencil-line"></i>
+                            </button>
+                            <button type="button" class="icon-btn danger" title="Delete Schedule"
+                                onclick="openDeleteModal('{{ tt.id }}', '{{ tt.club.name|escapejs }}', '{{ tt.day_of_week }} {{ tt.start_time|time:"g:i A" }}-{{ tt.end_time|time:"g:i A" }}')">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 56px 24px; background: var(--surface, #ffffff); border-radius: 12px; border: 1px dashed var(--border-strong, #cbd5e1); color: var(--text-muted, #64748b);">
+        <i class="ri-calendar-close-line" style="font-size: 2.8rem; color: #94a3b8; margin-bottom: 12px; display: block;"></i>
+        <h3 style="margin: 0 0 8px 0; color: var(--text-main, #1e293b); font-size: 1.15rem; font-weight: 700;">No club timetables scheduled yet</h3>
+        <p style="margin: 0 0 24px 0; font-size: 0.9rem;">Start allocating weekly meeting times for clubs so students can enroll.</p>
+        {% if is_hod_or_admin %}
+        <button onclick="openScheduleModal()" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i class="ri-add-line"></i> Schedule First Club Timetable
+        </button>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+</div>
+
+<!-- Schedule Modal (Create / Edit) -->
+<div id="scheduleModal" class="modal-backdrop">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modalTitle">Schedule Club Timetable</h3>
+            <button type="button" class="modal-close" onclick="closeScheduleModal()">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'staffs:hod_club_master_schedule' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_or_update">
+            <input type="hidden" name="timetable_id" id="formTimetableId" value="">
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="formClubId">Select Club <span style="color:#ef4444;">*</span></label>
+                    <select name="club_id" id="formClubId" class="form-control" required>
+                        <option value="">-- Select a Club --</option>
+                        {% for club in all_clubs %}
+                        <option value="{{ club.id }}">{{ club.name }} ({{ club.category }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="formDayOfWeek">Day of Week <span style="color:#ef4444;">*</span></label>
+                    <select name="day_of_week" id="formDayOfWeek" class="form-control" required>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label for="formStartTime">Start Time <span style="color:#ef4444;">*</span></label>
+                        <input type="time" name="start_time" id="formStartTime" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formEndTime">End Time <span style="color:#ef4444;">*</span></label>
+                        <input type="time" name="end_time" id="formEndTime" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formVenue">Venue / Location</label>
+                    <input type="text" name="venue" id="formVenue" class="form-control" placeholder="e.g. Auditorium / Main Seminar Hall">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="formAcademicYear">Academic Year</label>
+                    <input type="text" name="academic_year" id="formAcademicYear" class="form-control" value="2025-2026">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeScheduleModal()">Cancel</button>
+                <button type="submit" class="btn-primary" id="modalSubmitBtn">Save Timetable</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteScheduleModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 440px;">
+        <div class="modal-header" style="background: rgba(248, 113, 113, 0.08);">
+            <h3 style="color: #dc2626;"><i class="ri-error-warning-line"></i> Delete Timetable Schedule</h3>
+            <button type="button" class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <form method="POST" action="{% url 'staffs:hod_club_master_schedule' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="timetable_id" id="deleteTimetableId" value="">
+            
+            <div class="modal-body">
+                <p style="margin: 0 0 10px 0; color: var(--text-main, #1e293b); font-size: 0.95rem;">
+                    Are you sure you want to delete the schedule for <strong id="deleteClubName"></strong>?
+                </p>
+                <p style="margin: 0; color: var(--text-muted, #64748b); font-size: 0.85rem;" id="deleteSlotInfo"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn-danger">Delete Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openScheduleModal(tt = null, preselectDay = 'Monday') {
+        const modal = document.getElementById('scheduleModal');
+        const title = document.getElementById('modalTitle');
+        const submitBtn = document.getElementById('modalSubmitBtn');
+        const ttIdInput = document.getElementById('formTimetableId');
+        const clubInput = document.getElementById('formClubId');
+        const dayInput = document.getElementById('formDayOfWeek');
+        const startInput = document.getElementById('formStartTime');
+        const endInput = document.getElementById('formEndTime');
+        const venueInput = document.getElementById('formVenue');
+        const yearInput = document.getElementById('formAcademicYear');
+
+        if (tt) {
+            title.textContent = 'Edit Club Timetable';
+            submitBtn.textContent = 'Update Timetable';
+            ttIdInput.value = tt.id;
+            clubInput.value = tt.club_id;
+            dayInput.value = tt.day_of_week;
+            startInput.value = tt.start_time;
+            endInput.value = tt.end_time;
+            venueInput.value = tt.venue || '';
+            yearInput.value = tt.academic_year || '2025-2026';
+        } else {
+            title.textContent = 'Schedule Club Timetable';
+            submitBtn.textContent = 'Save Timetable';
+            ttIdInput.value = '';
+            clubInput.value = '';
+            dayInput.value = preselectDay || 'Monday';
+            startInput.value = '16:30';
+            endInput.value = '17:30';
+            venueInput.value = '';
+            yearInput.value = '2025-2026';
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeScheduleModal() {
+        document.getElementById('scheduleModal').style.display = 'none';
+    }
+
+    function openDeleteModal(ttId, clubName, slotInfo) {
+        document.getElementById('deleteTimetableId').value = ttId;
+        document.getElementById('deleteClubName').textContent = clubName;
+        document.getElementById('deleteSlotInfo').textContent = 'Time slot: ' + slotInfo;
+        document.getElementById('deleteScheduleModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteScheduleModal').style.display = 'none';
+    }
+
+    // Close modals when clicking backdrop
+    window.addEventListener('click', function(e) {
+        const scheduleModal = document.getElementById('scheduleModal');
+        const deleteModal = document.getElementById('deleteScheduleModal');
+        if (e.target === scheduleModal) closeScheduleModal();
+        if (e.target === deleteModal) closeDeleteModal();
+    });
+</script>
+{% endblock %}

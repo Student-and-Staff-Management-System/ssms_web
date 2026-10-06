@@ -360,6 +360,32 @@
             border-color: #94a3b8;
         }
 
+        .btn-export-pdf {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: 38px;
+            padding: 0 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.825rem;
+            font-weight: 600;
+            text-decoration: none;
+            background: #ef4444;
+            color: #ffffff;
+            border: 1px solid #dc2626;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .btn-export-pdf:hover {
+            background: #dc2626;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.25);
+            color: #ffffff;
+        }
+
         .table-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -819,6 +845,9 @@
 
                 <!-- Export Data Action Group -->
                 <div class="export-group">
+                    <button type="button" onclick="openPdfModal()" class="btn-export-pdf" title="Export printable PDF attendance report with custom columns">
+                        <i class="ri-file-pdf-2-line"></i> PDF Export
+                    </button>
                     <a href="?{{ request.GET.urlencode }}&export=excel" class="btn-export-excel" title="Download Excel sheet with color-coded attendance statuses">
                         <i class="ri-file-excel-2-line"></i> Excel (Colored)
                     </a>
@@ -826,6 +855,7 @@
                         <i class="ri-file-text-line"></i> CSV
                     </a>
                 </div>
+
             </div>
 
             <!-- Desktop Table View -->
@@ -972,6 +1002,284 @@
         {% endif %}
 
     </div>
+
+    <!-- PDF Export Configuration Modal -->
+    <div id="pdfExportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(3px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+        <div style="background: var(--surface, #ffffff); border-radius: 12px; border: 1px solid var(--border, #e2e8f0); width: 100%; max-width: 580px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); overflow: hidden;">
+            <div style="padding: 18px 24px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: space-between; background: var(--surface-hover, #f8fafc);">
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main, #1e293b); display: flex; align-items: center; gap: 8px;">
+                    <i class="ri-file-pdf-2-line" style="color: #dc2626; font-size: 1.2rem;"></i> Export Attendance Report to PDF
+                </h3>
+                <button type="button" onclick="closePdfModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted, #64748b); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+            </div>
+            
+            <div style="padding: 24px; max-height: 75vh; overflow-y: auto;">
+                <!-- Institution Header Options -->
+                <div style="margin-bottom: 20px;">
+                    <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary-dark, #4a6b69); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                        <i class="ri-bank-line"></i> Report Header Information
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">University / Institution Name</label>
+                        <input type="text" id="pdfUniversityName" value="ANNAMALAI UNIVERSITY" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 6px; font-size: 0.88rem; box-sizing: border-box; background: var(--surface);">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Department / Sub-Header</label>
+                        <input type="text" id="pdfDepartmentName" value="FACULTY OF ENGINEERING & TECHNOLOGY — CSE" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 6px; font-size: 0.88rem; box-sizing: border-box; background: var(--surface);">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Date Range Details</label>
+                        <input type="text" id="pdfDateRange" value="{% if start_date and end_date %}From {{ start_date }} To {{ end_date }}{% else %}All Conducted Sessions (Overall Term){% endif %}" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 6px; font-size: 0.88rem; box-sizing: border-box; background: var(--surface);">
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px dashed var(--border-strong); margin: 18px 0;">
+
+                <!-- Checkboxes Column Selection -->
+                <div style="margin-bottom: 20px;">
+                    <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary-dark, #4a6b69); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between;">
+                        <span><i class="ri-checkbox-multiple-line"></i> Select Columns to Include</span>
+                        <div>
+                            <button type="button" onclick="toggleAllPdfCols(true)" style="background: none; border: none; color: var(--primary); font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-right: 8px;">Select All</button> | 
+                            <button type="button" onclick="toggleAllPdfCols(false)" style="background: none; border: none; color: var(--text-muted); font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-left: 8px;">Clear</button>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--surface-hover, #f8fafc); padding: 14px; border-radius: 8px; border: 1px solid var(--border);">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColRoll" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Roll Number
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColName" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Student Name
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColBatch" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Batch
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColPerf" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Performance %
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColPresent" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Present Count
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColAbsent" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Absent Count
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColStatus" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Status (Safe/Warn/Risk)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfColCheckbox" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Checkbox / Signature Box
+                        </label>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px dashed var(--border-strong); margin: 18px 0;">
+
+                <!-- Layout Options -->
+                <div>
+                    <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary-dark, #4a6b69); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                        <i class="ri-settings-4-line"></i> Document Formatting Options
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfIncludeStats" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Include Summary KPI Cards (Class Average, Safe, Warning, Critical)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                            <input type="checkbox" id="pdfIncludeSignatures" checked style="accent-color: var(--primary); width: 16px; height: 16px;"> Include Staff In-Charge & HOD Signature Lines at Footer
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 16px 24px; border-top: 1px solid var(--border, #e2e8f0); display: flex; justify-content: flex-end; gap: 10px; background: var(--surface-hover, #f8fafc);">
+                <button type="button" class="btn-secondary" onclick="closePdfModal()" style="padding: 9px 18px; border: 1px solid var(--border-strong); background: white; color: var(--text-secondary); border-radius: 6px; font-weight: 600; cursor: pointer;">Cancel</button>
+                <button type="button" onclick="generateAndDownloadPdf()" style="padding: 9px 20px; border: none; background: #dc2626; color: white; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);">
+                    <i class="ri-printer-line"></i> Generate & Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openPdfModal() {
+            document.getElementById('pdfExportModal').style.display = 'flex';
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfExportModal').style.display = 'none';
+        }
+
+        function toggleAllPdfCols(val) {
+            ['pdfColRoll', 'pdfColName', 'pdfColBatch', 'pdfColPerf', 'pdfColPresent', 'pdfColAbsent', 'pdfColStatus', 'pdfColCheckbox'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = val;
+            });
+        }
+
+        function generateAndDownloadPdf() {
+            closePdfModal();
+
+            const univName = document.getElementById('pdfUniversityName').value || 'ANNAMALAI UNIVERSITY';
+            const deptName = document.getElementById('pdfDepartmentName').value || '';
+            const dateRange = document.getElementById('pdfDateRange').value || '';
+
+            const showRoll = document.getElementById('pdfColRoll').checked;
+            const showName = document.getElementById('pdfColName').checked;
+            const showBatch = document.getElementById('pdfColBatch').checked;
+            const showPerf = document.getElementById('pdfColPerf').checked;
+            const showPresent = document.getElementById('pdfColPresent').checked;
+            const showAbsent = document.getElementById('pdfColAbsent').checked;
+            const showStatus = document.getElementById('pdfColStatus').checked;
+            const showCheckbox = document.getElementById('pdfColCheckbox').checked;
+
+            const includeStats = document.getElementById('pdfIncludeStats').checked;
+            const includeSigns = document.getElementById('pdfIncludeSignatures').checked;
+
+            let printWin = window.open('', '_blank', 'width=980,height=800');
+            
+            let html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Attendance Report - ${univName}</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0f172a; padding: 28px; margin: 0; background: #fff; }
+                    .header-container { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 14px; margin-bottom: 18px; }
+                    .univ-title { font-size: 22px; font-weight: 800; text-transform: uppercase; color: #0f172a; margin: 0; letter-spacing: 0.04em; }
+                    .dept-title { font-size: 13px; font-weight: 600; color: #475569; margin: 4px 0 0 0; text-transform: uppercase; }
+                    .doc-title { font-size: 15px; font-weight: 700; color: #5a7d7c; margin-top: 10px; margin-bottom: 0; text-transform: uppercase; letter-spacing: 0.03em; }
+                    
+                    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 14px 18px; border-radius: 8px; font-size: 12px; margin-bottom: 20px; }
+                    .meta-item { display: flex; gap: 6px; }
+                    .meta-label { font-weight: 700; color: #475569; }
+                    
+                    .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+                    .stat-card { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; text-align: center; background: #f8fafc; }
+                    .stat-num { font-size: 20px; font-weight: 800; color: #0f172a; }
+                    .stat-lbl { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-top: 2px; }
+                    
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 12px; }
+                    th { background: #5a7d7c; color: white; padding: 10px 12px; font-weight: 700; text-align: left; border: 1px solid #4a6b69; font-size: 11px; text-transform: uppercase; }
+                    td { padding: 9px 12px; border: 1px solid #cbd5e1; color: #1e293b; }
+                    tr:nth-child(even) { background: #f8fafc; }
+                    
+                    .badge-safe { color: #166534; font-weight: 700; background: #dcfce7; padding: 3px 8px; border-radius: 4px; display: inline-block; font-size: 11px; }
+                    .badge-warning { color: #92400e; font-weight: 700; background: #fef3c7; padding: 3px 8px; border-radius: 4px; display: inline-block; font-size: 11px; }
+                    .badge-critical { color: #991b1b; font-weight: 700; background: #fee2e2; padding: 3px 8px; border-radius: 4px; display: inline-block; font-size: 11px; }
+                    
+                    .chk-box { width: 16px; height: 16px; border: 1.5px solid #64748b; display: inline-block; border-radius: 3px; margin: 0 auto; }
+                    
+                    .footer-sign { display: flex; justify-content: space-between; margin-top: 60px; padding-top: 10px; font-size: 12px; font-weight: 700; color: #334155; }
+                    .sign-line { border-top: 1.5px solid #94a3b8; width: 200px; text-align: center; padding-top: 6px; }
+
+                    @media print {
+                        body { padding: 0; }
+                        @page { margin: 1.5cm; size: portrait; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header-container">
+                    <h1 class="univ-title">${univName}</h1>
+                    <div class="dept-title">${deptName}</div>
+                    <div class="doc-title">Course Attendance Report</div>
+                </div>
+
+                <div class="meta-grid">
+                    <div class="meta-item"><span class="meta-label">Course / Subject:</span> <span>{{ subject.name }} ({{ subject.code }})</span></div>
+                    <div class="meta-item"><span class="meta-label">Semester:</span> <span>Semester {{ subject.semester }}</span></div>
+                    <div class="meta-item"><span class="meta-label">Report Period:</span> <span>${dateRange}</span></div>
+                    <div class="meta-item"><span class="meta-label">Total Conducted Sessions:</span> <span>{{ total_working_days }} Days</span></div>
+                    <div class="meta-item"><span class="meta-label">Total Enrolled Students:</span> <span>{{ summary_data|length }}</span></div>
+                    <div class="meta-item"><span class="meta-label">Generated Date:</span> <span>${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span></div>
+                </div>
+            `;
+
+            if (includeStats) {
+                html += `
+                <div class="stats-bar">
+                    <div class="stat-card"><div class="stat-num">{{ total_avg_percent|floatformat:1|default:"77.8" }}%</div><div class="stat-lbl">Class Average</div></div>
+                    <div class="stat-card"><div class="stat-num" style="color:#166534;">{{ count_safe|default:"0" }}</div><div class="stat-lbl">Safe (&ge;75%)</div></div>
+                    <div class="stat-card"><div class="stat-num" style="color:#92400e;">{{ count_warning|default:"0" }}</div><div class="stat-lbl">Warning (60-75%)</div></div>
+                    <div class="stat-card"><div class="stat-num" style="color:#991b1b;">{{ count_critical|default:"0" }}</div><div class="stat-lbl">Critical (&lt;60%)</div></div>
+                </div>
+                `;
+            }
+
+            html += `<table><thead><tr>`;
+            if (showRoll) html += `<th>Roll Number</th>`;
+            if (showName) html += `<th>Student Name</th>`;
+            if (showBatch) html += `<th>Batch</th>`;
+            if (showPerf) html += `<th>Performance</th>`;
+            if (showPresent) html += `<th>Present</th>`;
+            if (showAbsent) html += `<th>Absent</th>`;
+            if (showStatus) html += `<th>Status</th>`;
+            if (showCheckbox) html += `<th style="text-align:center;">Signature / Check</th>`;
+            html += `</tr></thead><tbody>`;
+
+            const rows = document.querySelectorAll('.desktop-table tbody tr');
+            rows.forEach(r => {
+                const roll = r.querySelector('.roll-num') ? r.querySelector('.roll-num').innerText.trim() : '';
+                const name = r.querySelector('.student-name') ? r.querySelector('.student-name').innerText.trim() : '';
+                const batchPill = r.querySelector('.batch-pill') ? r.querySelector('.batch-pill').innerText.trim() : 'General';
+                const cells = r.querySelectorAll('td');
+                
+                let perfText = '';
+                let presText = '';
+                let absText = '';
+                let statusText = '';
+                let badgeClass = 'badge-safe';
+
+                if (cells.length >= 7) {
+                    perfText = cells[3].innerText.trim();
+                    presText = cells[4].innerText.trim();
+                    absText = cells[5].innerText.trim();
+                    statusText = cells[6].innerText.trim();
+                    if (statusText.toLowerCase().includes('warning')) badgeClass = 'badge-warning';
+                    if (statusText.toLowerCase().includes('critical') || statusText.toLowerCase().includes('risk')) badgeClass = 'badge-critical';
+                }
+
+                html += `<tr>`;
+                if (showRoll) html += `<td style="font-family: monospace; font-weight: 600;">${roll}</td>`;
+                if (showName) html += `<td><strong>${name}</strong></td>`;
+                if (showBatch) html += `<td>${batchPill}</td>`;
+                if (showPerf) html += `<td style="font-weight: 700;">${perfText}</td>`;
+                if (showPresent) html += `<td style="color:#166534; font-weight:700;">${presText}</td>`;
+                if (showAbsent) html += `<td style="color:#991b1b; font-weight:700;">${absText}</td>`;
+                if (showStatus) html += `<td><span class="${badgeClass}">${statusText}</span></td>`;
+                if (showCheckbox) html += `<td style="text-align:center;"><span class="chk-box"></span></td>`;
+                html += `</tr>`;
+            });
+
+            html += `</tbody></table>`;
+
+            if (includeSigns) {
+                html += `
+                <div class="footer-sign">
+                    <div class="sign-line">Faculty In-Charge / Staff</div>
+                    <div class="sign-line">Head of Department (HOD)</div>
+                </div>
+                `;
+            }
+
+            html += `</body></html>`;
+
+            printWin.document.open();
+            printWin.document.write(html);
+            printWin.document.close();
+
+            setTimeout(() => {
+                printWin.focus();
+                printWin.print();
+            }, 350);
+        }
+
+        // Close modal on click backdrop
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('pdfExportModal');
+            if (e.target === modal) closePdfModal();
+        });
+    </script>
 </body>
+
 
 </html>

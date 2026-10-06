@@ -388,11 +388,19 @@
         </div>
 
         <div class="header-actions">
+            <form method="GET" action="{% url 'staffs:hod_sports_teams' %}" style="display: inline-block; margin-right: 15px;">
+                <select name="academic_year" onchange="this.form.submit()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 600; color: #334155;">
+                    {% for yr in available_academic_years %}
+                        <option value="{{ yr }}" {% if yr == selected_academic_year %}selected{% endif %}>Year {{ yr }}</option>
+                    {% endfor %}
+                </select>
+            </form>
             {% if unassigned_count > 0 %}
             <!-- Hidden Assign Unassigned Form -->
             <form id="assignUnassignedForm" method="POST" style="display: none;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="assign_unassigned">
+                <input type="hidden" name="academic_year" value="{{ selected_academic_year }}">
             </form>
             
             <!-- Assign Unassigned Trigger Button -->
@@ -405,6 +413,7 @@
             <form id="shuffleForm" method="POST" style="display: none;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="shuffle">
+                <input type="hidden" name="academic_year" value="{{ selected_academic_year }}">
             </form>
             
             <!-- Shuffle Trigger Button -->
@@ -416,6 +425,7 @@
             <form id="clearForm" method="POST" style="display: none;">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="clear_teams">
+                <input type="hidden" name="academic_year" value="{{ selected_academic_year }}">
             </form>
 
             <!-- Clear Trigger Button -->
@@ -487,7 +497,7 @@
     <div class="matrix-section" style="border-top: 3px solid #2563eb;">
         <div class="matrix-title">
             <span><i class="ri-men-line" style="color: #2563eb;"></i> Boys Division Team Strength</span>
-            <a href="{% url 'staffs:export_sports_teams' %}?gender=Male" class="btn-action btn-export-boys">
+            <a href="{% url 'staffs:export_sports_teams' %}?academic_year={{ selected_academic_year }}&gender=Male" class="btn-action btn-export-boys">
                 <i class="ri-file-excel-line"></i> Export Boys List
             </a>
         </div>
@@ -525,7 +535,7 @@
     <div class="matrix-section" style="border-top: 3px solid #db2777;">
         <div class="matrix-title">
             <span><i class="ri-women-line" style="color: #db2777;"></i> Girls Division Team Strength</span>
-            <a href="{% url 'staffs:export_sports_teams' %}?gender=Female" class="btn-action btn-export-girls">
+            <a href="{% url 'staffs:export_sports_teams' %}?academic_year={{ selected_academic_year }}&gender=Female" class="btn-action btn-export-girls">
                 <i class="ri-file-excel-line"></i> Export Girls List
             </a>
         </div>
@@ -563,7 +573,7 @@
     <div class="matrix-section" style="border-top: 3px solid #5a7d7c;">
         <div class="matrix-title">
             <span><i class="ri-bar-chart-grouped-line" style="color: #5a7d7c;"></i> Overall Department Team Strength</span>
-            <a href="{% url 'staffs:export_sports_teams' %}" class="btn-action btn-export-all">
+            <a href="{% url 'staffs:export_sports_teams' %}?academic_year={{ selected_academic_year }}" class="btn-action btn-export-all">
                 <i class="ri-file-excel-line"></i> Export Full Master List
             </a>
         </div>

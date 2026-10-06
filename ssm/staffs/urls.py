@@ -170,9 +170,11 @@ urlpatterns = [
     path('extracurricular/sports-teams/', views.hod_sports_teams, name='hod_sports_teams'),
     path('extracurricular/sports-teams/export/', views.export_sports_teams, name='export_sports_teams'),
     path('extracurricular/clubs/', views.hod_clubs_manage, name='hod_clubs_manage'),
+    path('extracurricular/clubs/schedule/', views.hod_club_master_schedule, name='hod_club_master_schedule'),
     path('extracurricular/clubs/create/', views.hod_club_create, name='hod_club_create'),
     path('extracurricular/clubs/<int:club_id>/edit/', views.hod_club_edit, name='hod_club_edit'),
     path('extracurricular/clubs/<int:club_id>/delete/', views.hod_club_delete, name='hod_club_delete'),
+    path('extracurricular/clubs/<int:club_id>/timetable/', views.hod_club_timetable, name='hod_club_timetable'),
     path('extracurricular/clubs/<int:club_id>/detail/', views.staff_club_detail, name='staff_club_detail'),
 
     # Web Push
