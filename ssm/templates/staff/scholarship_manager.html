@@ -266,6 +266,14 @@
 {% block content %}
 <div>
 
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-main);">Scholarship Audit Console</h2>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: inline-flex; overflow: hidden;">
+            <a href="?mode=applications" style="padding: 8px 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if mode != 'potential_eligible' %}background: var(--primary); color: white;{% else %}color: var(--text-main);{% endif %}">Active Applications</a>
+            <a href="?mode=potential_eligible" style="padding: 8px 16px; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if mode == 'potential_eligible' %}background: var(--primary); color: white;{% else %}color: var(--text-main);{% endif %}">Potential Eligible Students</a>
+        </div>
+    </div>
+
     <!-- Top Key Metrics Cards -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px;">
         <!-- Pending Verification -->
@@ -344,6 +352,7 @@
     </div>
 
     <!-- Smart Sleek Filter Toolbar -->
+    {% if mode != 'potential_eligible' %}
     <form method="GET" action="{% url 'staffs:scholarship_manager' %}" class="smart-filter-card" id="schFilterForm">
         <div class="toolbar-main-row">
             
@@ -691,6 +700,11 @@
             </div>
         </div>
     </form>
+    {% else %}
+    <!-- Potential Eligible UI -->
+    {% include "staff/includes/potential_eligible.html" %}
+    {% endif %}
+
 
 </div>
 

@@ -236,6 +236,11 @@
                     <h4>Deficit Mailer</h4>
                     <p>Generate and send automated emails to students with low attendance.</p>
                 </a>
+                <a href="{% url 'staffs:class_attendance_report' %}" class="action-tile" style="border: 1px solid var(--primary);">
+                    <div class="action-tile-icon" style="color: var(--primary);">📈</div>
+                    <h4>Class Attendance Report</h4>
+                    <p>View overall and course-wise attendance statistics for all your students.</p>
+                </a>
                 {% if my_ic_clubs %}
                 {% for c in my_ic_clubs %}
                 <a href="{% url 'staffs:staff_club_detail' c.id %}" class="action-tile" style="border: 1px solid #5a7d7c; background: #f4f8f8;">

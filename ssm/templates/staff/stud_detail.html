@@ -35,12 +35,12 @@
             background-color: var(--primary-bg);
             color: var(--text-primary);
             margin: 0;
-            padding: 40px 20px;
-            line-height: 1.6;
+            padding: 20px;
+            line-height: 1.5;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -49,9 +49,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 16px;
             background: var(--secondary-bg);
-            padding: 20px;
+            padding: 16px 20px;
             border-radius: var(--card-radius);
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
@@ -110,27 +110,27 @@
             border-radius: var(--card-radius);
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow);
-            padding: 25px;
-            margin-bottom: 25px;
+            padding: 20px;
+            margin-bottom: 16px;
         }
 
         .section-title {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             font-weight: 600;
             color: var(--accent-color);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border-bottom: 2px solid var(--light-accent-bg);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
         }
 
         .info-item {
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
 
         .info-label {
@@ -541,7 +541,7 @@
                     <span class="info-label">Community</span>
                     <span class="info-value">{% if personal_info.community %}{{ personal_info.community }}{% else %}-{% endif %}</span>
                 </div>
-                <div class="info-item">
+                <div class="info-item" style="grid-column: 1 / -1;">
                     <span class="info-label">Caste</span>
                     <span class="info-value">{% if personal_info.caste %}{{ personal_info.caste.name }}{% else %}-{% endif %}</span>
                 </div>
@@ -602,6 +602,58 @@
             {% else %}
             <p style="color: var(--text-secondary);">No parent/guardian details available.</p>
             {% endif %}
+        </section>
+
+        <!-- Scholarships & Extracurricular -->
+        <section class="section-card">
+            <div class="section-title">Scholarships & Extracurricular Activities</div>
+            
+            <div class="info-grid">
+                <!-- Applied Scholarships -->
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <span class="info-label">Applied Scholarships</span>
+                    <div style="margin-top: 8px;">
+                        {% with apps=student.scholarship_applications.all %}
+                        {% if apps %}
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                            {% for app in apps %}
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--light-accent-bg);">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--accent-color);">{{ app.get_scholarship_type_display }}</div>
+                                        <div style="font-size: 0.85em; color: var(--text-secondary); margin-top: 2px;">Applied on: {{ app.applied_at|date:"M d, Y" }}</div>
+                                    </div>
+                                    <span style="font-size: 0.8em; padding: 4px 10px; border-radius: 20px; font-weight: 600; 
+                                        {% if 'Pending' in app.status %}background: #fef3c7; color: #d97706; border: 1px solid #fde68a;
+                                        {% elif 'Verified' in app.status %}background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;
+                                        {% elif 'Sanctioned' in app.status %}background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0;
+                                        {% elif 'Rejected' in app.status %}background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;
+                                        {% else %}background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;{% endif %}">
+                                        {{ app.status }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                            </div>
+                        {% else %}
+                            <span class="info-value" style="color: var(--text-secondary); font-style: italic;">No scholarships applied.</span>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+
+                <!-- Sports House -->
+                <div class="info-item" style="margin-top: 15px;">
+                    <span class="info-label">Sports House (Current Academic Year)</span>
+                    <span class="info-value" style="font-weight: 600; font-size: 1.1em; color: var(--text-primary);">
+                        {% if sports_allocation %}
+                            🏆 {{ sports_allocation.get_sports_team_display }} <span style="font-size: 0.8em; color: var(--text-secondary); font-weight: 400;">({{ sports_allocation.academic_year }})</span>
+                        {% elif student.sports_team %}
+                            🏆 {{ student.get_sports_team_display }}
+                        {% else %}
+                            <span style="color: var(--text-secondary); font-style: italic; font-weight: 400;">Not Assigned</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
         </section>
 
         <!-- Academic History -->

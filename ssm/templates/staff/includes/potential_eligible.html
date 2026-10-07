@@ -1,0 +1,110 @@
+<form method="GET" action="{% url 'staffs:scholarship_manager' %}" class="smart-filter-card" id="peFilterForm">
+    <input type="hidden" name="mode" value="potential_eligible">
+    
+    <div class="toolbar-main-row">
+        <!-- 1. Income Threshold -->
+        <div class="search-box-wrap">
+            <i class="ri-money-dollar-circle-line search-icon"></i>
+            <input type="number" name="income_threshold" value="{{ filters.income_threshold|default:'' }}" placeholder="Max Annual Income (e.g. 250000)" required>
+        </div>
+
+        <!-- 2. Eligibility Status -->
+        <select name="eligibility_status" class="toolbar-select">
+            <option value="">All Students (Applied & Not Applied)</option>
+            <option value="applied" {% if filters.eligibility_status == 'applied' %}selected{% endif %}>Applied Only</option>
+            <option value="not_applied" {% if filters.eligibility_status == 'not_applied' %}selected{% endif %}>Not Applied Only</option>
+        </select>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-toolbar-primary"><i class="ri-search-2-line"></i> Find Eligible Students</button>
+
+        {% if filters.income_threshold %}
+        <!-- Export CSV Button -->
+        <a href="?mode=potential_eligible&income_threshold={{ filters.income_threshold }}&eligibility_status={{ filters.eligibility_status }}&export=csv" class="btn-export-csv">
+            <i class="ri-file-excel-line"></i> Export CSV
+        </a>
+        <a href="?mode=potential_eligible" class="btn-toolbar-secondary" style="color: #dc2626; border-color: #fca5a5;">
+            Clear ✕
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+{% if filters.income_threshold %}
+<div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--border, #cbd5e1); background: var(--bg-body, #f8fafc); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);"><i class="ri-group-line" style="margin-right: 6px; color: var(--primary);"></i> Eligible Students (Income &le; ₹{{ filters.income_threshold }})</h3>
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: var(--surface); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border);">Total Found: {{ students|length }}</span>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+            <thead style="background: var(--surface-subtle, #f8fafc); color: var(--text-muted, #64748b);">
+                <tr>
+                    <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Student Info</th>
+                    <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Academic Detail</th>
+                    <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Family Income</th>
+                    <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Application Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr style="border-bottom: 1px solid var(--border, #e2e8f0); background: var(--surface, #ffffff); transition: background 0.2s;">
+                    <td style="padding: 16px 20px; vertical-align: top;">
+                        <div style="font-weight: 700; color: var(--text-main, #0f172a); font-size: 0.95rem;">{{ student.student_name }}</div>
+                        <div style="color: var(--text-muted, #64748b); font-size: 0.82rem; margin-top: 2px;">{{ student.roll_number }}</div>
+                    </td>
+                    <td style="padding: 16px 20px; vertical-align: top;">
+                        <div style="color: var(--text-main, #0f172a); font-weight: 500;">{{ student.program_level }}</div>
+                        <div style="color: var(--text-muted, #64748b); font-size: 0.82rem; margin-top: 2px;">Sem {{ student.current_semester }} &bull; {{ student.personalinfo.community|default:'N/A' }}</div>
+                    </td>
+                    <td style="padding: 16px 20px; vertical-align: top;">
+                        {% if student.personalinfo.parent_annual_income %}
+                        <div style="font-weight: 600; color: #16a34a;">₹{{ student.personalinfo.parent_annual_income }}</div>
+                        {% else %}
+                        <div style="font-weight: 600; color: var(--text-muted);">N/A</div>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px 20px; vertical-align: top;">
+                        {% with apps=student.scholarship_applications.all %}
+                        {% if apps %}
+                            {% for app in apps %}
+                            <div style="margin-bottom: 6px; padding: 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-subtle);">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">{{ app.get_scholarship_type_display }}</div>
+                                <div style="font-size: 0.75rem; margin-top: 2px;
+                                    {% if 'Pending' in app.status %}color: #d97706;{% elif 'Verified' in app.status %}color: #0284c7;{% elif 'Sanctioned' in app.status %}color: #16a34a;{% elif 'Rejected' in app.status %}color: #dc2626;{% else %}color: var(--text-muted);{% endif %}
+                                ">
+                                    &bull; {{ app.status }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <span style="display: inline-block; padding: 4px 10px; background: #fee2e2; color: #dc2626; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                                Not Applied
+                            </span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">
+                        No students found matching this income threshold.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div style="padding: 60px 20px; text-align: center; background: var(--surface, #ffffff); border: 1px dashed var(--border, #cbd5e1); border-radius: 12px; margin-top: 10px;">
+    <div style="font-size: 3rem; color: var(--border, #cbd5e1); margin-bottom: 12px;">
+        <i class="ri-money-dollar-box-line"></i>
+    </div>
+    <h3 style="margin: 0 0 8px 0; color: var(--text-main); font-size: 1.2rem;">Find Potential Eligible Students</h3>
+    <p style="margin: 0; color: var(--text-muted); max-width: 400px; margin: 0 auto; font-size: 0.9rem;">
+        Enter a maximum annual income threshold above to discover students who might be eligible for scholarships but haven't applied yet.
+    </p>
+</div>
+{% endif %}

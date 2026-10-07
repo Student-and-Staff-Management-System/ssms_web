@@ -132,7 +132,7 @@
                         <div class="detail-item"><strong>Community</strong>
                             <span>{{student.personalinfo.community|default:"-" }}</span>
                         </div>
-                        <div class="detail-item"><strong>Caste</strong> <span>{% if student.personalinfo.caste%}{{student.personalinfo.caste.name }}{% elif student.personalinfo.caste_other %}{{student.personalinfo.caste_other }}{% else %}-{% endif %}</span></div>
+                        <div class="detail-item" style="grid-column: 1 / -1;"><strong>Caste</strong> <span>{% if student.personalinfo.caste%}{{student.personalinfo.caste.name }}{% elif student.personalinfo.caste_other %}{{student.personalinfo.caste_other }}{% else %}-{% endif %}</span></div>
                         <div class="detail-item"><strong>Blood Group</strong>
                             <span>{{student.personalinfo.get_blood_group_display|default:"-" }}</span>
                         </div>
@@ -277,26 +277,54 @@
                     </div>
                 </div>
 
-                <!-- Scholarship -->
+                <!-- Scholarships & Extracurricular Activities -->
                 <div class="card">
-                    <h2 class="card-title"><span class="no-print">🎓</span> Scholarship</h2>
+                    <h2 class="card-title"><span class="no-print">🎓</span> Scholarships & Extracurricular Activities</h2>
                     <div class="details-grid">
-                        <div class="detail-item">
-                            <strong>Status</strong>
-                            <span>{% if student.personalinfo.has_scholarship %}Applied{% else %}Not
-                                Applied{%endif%}</span>
-                        </div>
-                        {% if student.personalinfo.has_scholarship %}
+                        <!-- Applied Scholarships -->
                         <div class="detail-item" style="grid-column: 1 / -1;">
-                            <strong>Schemes</strong>
-                            <ul class="scholarship-list">
-                                {% if student.scholarshipinfo.is_first_graduate %}<li>First Graduate</li>{% endif %}
-                                {% if student.scholarshipinfo.sch_govt %}<li>Govt 7.5% Quota</li>{% endif %}
-                                {% if student.scholarshipinfo.sch_postmetric %}<li>Post-Matric</li>{% endif %}
-                                {% if student.scholarshipinfo.is_7_5_reservation %}<li>7.5% Reservation (UG/Research)</li>{% endif %}
-                            </ul>
+                            <strong>Applied Scholarships</strong>
+                            <div style="margin-top: 8px;">
+                                {% with apps=student.scholarship_applications.all %}
+                                {% if apps %}
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for app in apps %}
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 6px; background: #f8fafc;">
+                                            <div>
+                                                <div style="font-weight: 600; color: #5a7d7c;">{{ app.get_scholarship_type_display }}</div>
+                                                <div style="font-size: 0.85em; color: #64748b; margin-top: 2px;">Applied on: {{ app.applied_at|date:"M d, Y" }}</div>
+                                            </div>
+                                            <span style="font-size: 0.8em; padding: 4px 10px; border-radius: 20px; font-weight: 600; 
+                                                {% if 'Pending' in app.status %}background: #fef3c7; color: #d97706; border: 1px solid #fde68a;
+                                                {% elif 'Verified' in app.status %}background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;
+                                                {% elif 'Sanctioned' in app.status %}background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0;
+                                                {% elif 'Rejected' in app.status %}background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;
+                                                {% else %}background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;{% endif %}">
+                                                {{ app.status }}
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span style="color: #64748b; font-style: italic;">No scholarships applied.</span>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
                         </div>
-                        {% endif %}
+
+                        <!-- Sports House -->
+                        <div class="detail-item" style="margin-top: 15px; grid-column: 1 / -1;">
+                            <strong>Sports House (Current Academic Year)</strong>
+                            <span style="font-weight: 600; font-size: 1.1em; color: #1e293b; display: block; margin-top: 5px;">
+                                {% if sports_allocation %}
+                                    🏆 {{ sports_allocation.get_sports_team_display }} <span style="font-size: 0.8em; color: #64748b; font-weight: 400;">({{ sports_allocation.academic_year }})</span>
+                                {% elif student.sports_team %}
+                                    🏆 {{ student.get_sports_team_display }}
+                                {% else %}
+                                    <span style="color: #64748b; font-style: italic; font-weight: 400;">Not Assigned</span>
+                                {% endif %}
+                            </span>
+                        </div>
                     </div>
                 </div>
 

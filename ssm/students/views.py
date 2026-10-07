@@ -911,6 +911,7 @@ def student_profile(request):
     
     # Copy of the fetching logic from old dashboard
     from staffs.models import News
+    from students.models import SportsTeamAllocation
     def get_related_or_none(model_class, student_obj):
         try:
             return model_class.objects.get(student=student_obj)
@@ -927,6 +928,7 @@ def student_profile(request):
         'other_details': get_related_or_none(OtherDetails, student),
         'profile_completion_percentage': _completion_data['percentage'],
         'profile_missing_fields': _completion_data['missing_fields'],
+        'sports_allocation': SportsTeamAllocation.objects.filter(student=student).order_by('-academic_year').first(),
     }
     return render(request, 'student_profile.html', context)
 

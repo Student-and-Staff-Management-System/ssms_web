@@ -1,16 +1,363 @@
 {% extends "base2.html" %}
 
-{% block title %}Something Went Wrong - Dept of IT{% endblock %}
+{% block title %}500 Internal Server Error - AU Dept of IT{% endblock %}
 
 {% block content %}
-<div class="login-main-content">
-  <div class="page-container" style="flex-direction: column; justify-content: center; align-items: center; text-align: center; max-width: 700px; min-height: 400px; padding: 40px; margin: 40px auto;">
-    <div style="font-size: 5rem; margin-bottom: 20px;">🛠️</div>
-    <h1 style="font-size: 2.2em; color: var(--accent-color); margin-top: 0; margin-bottom: 15px;">Oops! Something went wrong.</h1>
-    <p style="color: var(--text-secondary); font-size: 1.1em; margin-bottom: 30px; line-height: 1.6; max-width: 500px;">
-        We apologize, but an unexpected error occurred on our end. Our technical team has been notified and we are working to fix it. sorry for the error
+<style>
+  .ssms-error-wrapper {
+    --err-primary: #5a7d7c;
+    --err-primary-hover: #4a6b69;
+    --err-primary-active: #405e5c;
+    --err-gold: #c5a059;
+    --err-bg: #f8fafc;
+    --err-surface: #ffffff;
+    --err-surface-subtle: #f1f5f9;
+    --err-border: #e2e8f0;
+    --err-border-strong: #cbd5e1;
+    --err-text-main: #0f172a;
+    --err-text-secondary: #475569;
+    --err-text-muted: #64748b;
+    --err-danger: #dc2626;
+    --err-danger-bg: #fef2f2;
+    --err-danger-border: #fecaca;
+    --err-danger-text: #991b1b;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px;
+    min-height: calc(100vh - 220px);
+    background-color: var(--err-bg);
+    box-sizing: border-box;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .ssms-error-wrapper {
+      --err-bg: #0b0f19;
+      --err-surface: #111827;
+      --err-surface-subtle: #172033;
+      --err-border: #263244;
+      --err-border-strong: #334155;
+      --err-text-main: #f8fafc;
+      --err-text-secondary: #cbd5e1;
+      --err-text-muted: #94a3b8;
+      --err-primary: #6f9290;
+      --err-primary-hover: #7da19f;
+      --err-danger: #f87171;
+      --err-danger-bg: rgba(248, 113, 113, 0.12);
+      --err-danger-border: rgba(248, 113, 113, 0.28);
+      --err-danger-text: #fca5a5;
+    }
+  }
+
+  html.dark .ssms-error-wrapper,
+  body.dark .ssms-error-wrapper,
+  .dark-theme .ssms-error-wrapper {
+    --err-bg: #0b0f19;
+    --err-surface: #111827;
+    --err-surface-subtle: #172033;
+    --err-border: #263244;
+    --err-border-strong: #334155;
+    --err-text-main: #f8fafc;
+    --err-text-secondary: #cbd5e1;
+    --err-text-muted: #94a3b8;
+    --err-primary: #6f9290;
+    --err-primary-hover: #7da19f;
+    --err-danger: #f87171;
+    --err-danger-bg: rgba(248, 113, 113, 0.12);
+    --err-danger-border: rgba(248, 113, 113, 0.28);
+    --err-danger-text: #fca5a5;
+  }
+
+  .ssms-error-card {
+    background-color: var(--err-surface);
+    border: 1px solid var(--err-border);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 640px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .ssms-error-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background-color: var(--err-danger-bg);
+    border: 1px solid var(--err-danger-border);
+    color: var(--err-danger-text);
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .ssms-error-icon-container {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: var(--err-surface-subtle);
+    border: 1px solid var(--err-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px auto;
+    color: var(--err-primary);
+  }
+
+  .ssms-error-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--err-text-main);
+    margin: 0 0 12px 0;
+    line-height: 1.3;
+  }
+
+  .ssms-error-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--err-text-secondary);
+    margin: 0 0 28px 0;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .ssms-error-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .ssms-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+    box-sizing: border-box;
+    min-height: 42px;
+    border: 1px solid transparent;
+  }
+
+  .ssms-btn:focus-visible {
+    outline: 2px solid var(--err-primary);
+    outline-offset: 2px;
+  }
+
+  .ssms-btn-primary {
+    background-color: var(--err-primary);
+    color: #ffffff;
+    border-color: var(--err-primary);
+  }
+
+  .ssms-btn-primary:hover {
+    background-color: var(--err-primary-hover);
+    border-color: var(--err-primary-hover);
+    color: #ffffff;
+  }
+
+  .ssms-btn-secondary {
+    background-color: var(--err-surface-subtle);
+    color: var(--err-text-main);
+    border-color: var(--err-border-strong);
+  }
+
+  .ssms-btn-secondary:hover {
+    background-color: var(--err-border);
+    color: var(--err-text-main);
+  }
+
+  .ssms-guidance-box {
+    background-color: var(--err-surface-subtle);
+    border: 1px solid var(--err-border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: left;
+    margin-bottom: 24px;
+  }
+
+  .ssms-guidance-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--err-text-muted);
+    margin: 0 0 12px 0;
+  }
+
+  .ssms-guidance-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ssms-guidance-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.875rem;
+    color: var(--err-text-secondary);
+    line-height: 1.45;
+  }
+
+  .ssms-guidance-item svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--err-primary);
+  }
+
+  .ssms-meta-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid var(--err-border);
+    font-size: 0.775rem;
+    color: var(--err-text-muted);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ssms-meta-ref {
+    font-family: monospace, monospace;
+    background-color: var(--err-surface-subtle);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--err-border);
+  }
+
+  @media (max-width: 640px) {
+    .ssms-error-card {
+      padding: 24px 16px;
+      border-radius: 8px;
+    }
+    
+    .ssms-error-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .ssms-btn {
+      width: 100%;
+    }
+
+    .ssms-meta-footer {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+  }
+</style>
+
+<div class="ssms-error-wrapper">
+  <div class="ssms-error-card">
+    <div class="ssms-error-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      HTTP 500 &bull; Internal Server Error
+    </div>
+
+    <div class="ssms-error-icon-container">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+        <line x1="10" y1="6" x2="14" y2="6"></line>
+        <line x1="10" y1="18" x2="14" y2="18"></line>
+      </svg>
+    </div>
+
+    <h1 class="ssms-error-title">Something Went Wrong</h1>
+    
+    <p class="ssms-error-desc">
+      The server encountered an unexpected error while processing your request. Our technical operations team has been automatically alerted to investigate the issue.
     </p>
-    <a href="/" class="btn-login" style="width: auto; padding: 12px 30px; text-decoration: none; display: inline-block;">← Return to Home</a>
+
+    <div class="ssms-error-actions">
+      <a href="/" class="ssms-btn ssms-btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Return to Home
+      </a>
+      <button type="button" onclick="window.location.reload();" class="ssms-btn ssms-btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        Reload Page
+      </button>
+    </div>
+
+    <div class="ssms-guidance-box">
+      <div class="ssms-guidance-title">Next Steps &amp; Troubleshooting</div>
+      <ul class="ssms-guidance-list">
+        <li class="ssms-guidance-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span><strong>Try refreshing:</strong> Server glitches are frequently transient and resolve within a few moments.</span>
+        </li>
+        <li class="ssms-guidance-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span><strong>Verify records:</strong> If you were submitting a form or request, check your portal dashboard before re-submitting.</span>
+        </li>
+        <li class="ssms-guidance-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span><strong>Contact support:</strong> If the problem persists, reach out to Department of IT support referencing the code below.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="ssms-meta-footer">
+      <span>SSMS Operational Support</span>
+      <span>Ref Code: <code class="ssms-meta-ref" id="ref-code">ERR-500-SYS</code></span>
+    </div>
   </div>
 </div>
+
+<script>
+  (function() {
+    var refElem = document.getElementById('ref-code');
+    if (refElem) {
+      var now = new Date();
+      var code = '500-' + now.getFullYear().toString().substr(-2) + 
+                 ('0' + (now.getMonth() + 1)).slice(-2) + 
+                 ('0' + now.getDate()).slice(-2) + '-' + 
+                 Math.floor(1000 + Math.random() * 9000);
+      refElem.textContent = code;
+    }
+  })();
+</script>
 {% endblock %}
+

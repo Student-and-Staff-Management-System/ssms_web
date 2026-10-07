@@ -1434,7 +1434,7 @@ def student_detail(request, roll_number):
     from students.models import (
         PersonalInfo, AcademicHistory, DiplomaDetails, UGDetails, PGDetails, 
         PhDDetails, ScholarshipInfo, StudentDocuments, BankDetails, OtherDetails,
-        StudentGPA 
+        StudentGPA, SportsTeamAllocation
     )
 
     from students.views import get_profile_completion_data
@@ -1455,6 +1455,7 @@ def student_detail(request, roll_number):
         'other_details': get_or_none(OtherDetails, student=student),
         'profile_completion_percentage': _comp['percentage'],
         'profile_missing_fields': _comp['missing_fields'],
+        'sports_allocation': SportsTeamAllocation.objects.filter(student=student).order_by('-academic_year').first(),
     }
 
     return render(request, 'staff/stud_detail.html', context)
@@ -5361,6 +5362,84 @@ def scholarship_manager(request):
 
         return redirect('staffs:scholarship_manager')
 
+    # Stats counters for header tiles
+    all_apps = ScholarshipApplication.objects.all()
+    pending_count = all_apps.filter(status='Pending Office Verification').count()
+    approved_count = all_apps.filter(status='Verified & Recommended').count()
+    disbursed_count = all_apps.filter(status='Govt Sanctioned / Amount Received').count()
+    not_received_count = all_apps.filter(status='Not Received / Pending Govt').count()
+    rejected_count = all_apps.filter(status='Rejected / Ineligible').count()
+
+    mode = request.GET.get('mode', 'applications')
+
+    # --- Potential Eligible Students Mode ---
+    if mode == 'potential_eligible':
+        threshold_str = request.GET.get('income_threshold', '')
+        students_qs = Student.objects.none()
+        
+        if threshold_str.isdigit():
+            threshold = int(threshold_str)
+            students_qs = Student.objects.select_related('personalinfo').prefetch_related(
+                'scholarship_applications'
+            ).filter(
+                Q(personalinfo__parent_annual_income__lte=threshold) |
+                Q(scholarship_applications__annual_income__lte=threshold)
+            ).distinct()
+            
+            app_status_filter = request.GET.get('eligibility_status', '')
+            if app_status_filter == 'not_applied':
+                students_qs = students_qs.filter(scholarship_applications__isnull=True)
+            elif app_status_filter == 'applied':
+                students_qs = students_qs.filter(scholarship_applications__isnull=False)
+
+            if request.GET.get('export') == 'csv':
+                response = HttpResponse(content_type='text/csv')
+                response['Content-Disposition'] = f'attachment; filename="potential_eligible_students_{threshold}.csv"'
+                writer = csv.writer(response)
+                writer.writerow([
+                    'Roll Number', 'Student Name', 'Program', 'Semester', 'Community',
+                    'Family Annual Income', 'Max App Income', 'Application Status'
+                ])
+                for student in students_qs:
+                    try:
+                        pi = student.personalinfo
+                        pi_income = pi.parent_annual_income if pi.parent_annual_income is not None else 'N/A'
+                        comm = pi.community
+                    except Exception:
+                        pi_income = 'N/A'
+                        comm = 'N/A'
+                    
+                    apps = list(student.scholarship_applications.all())
+                    max_app_income = max([a.annual_income for a in apps if a.annual_income is not None] + [0]) if apps else 'N/A'
+                    if max_app_income == 0: max_app_income = 'N/A'
+                    
+                    if apps:
+                        status_text = 'Applied: ' + ' | '.join([f"{a.get_scholarship_type_display()} ({a.status})" for a in apps])
+                    else:
+                        status_text = 'Not Applied'
+                        
+                    writer.writerow([
+                        student.roll_number, student.student_name, student.program_level,
+                        student.current_semester, comm, pi_income, max_app_income, status_text
+                    ])
+                return response
+
+        context = {
+            'staff': staff,
+            'mode': 'potential_eligible',
+            'students': students_qs,
+            'pending_count': pending_count,
+            'approved_count': approved_count,
+            'disbursed_count': disbursed_count,
+            'not_received_count': not_received_count,
+            'rejected_count': rejected_count,
+            'filters': {
+                'income_threshold': threshold_str,
+                'eligibility_status': request.GET.get('eligibility_status', ''),
+            }
+        }
+        return render(request, 'staff/scholarship_manager.html', context)
+
     # Base Applications QuerySet
     app_qs = ScholarshipApplication.objects.select_related('student', 'student__scholarshipinfo', 'student__personalinfo').all()
 
@@ -5471,16 +5550,9 @@ def scholarship_manager(request):
             ])
         return response
 
-    # Stats counters for header tiles
-    all_apps = ScholarshipApplication.objects.all()
-    pending_count = all_apps.filter(status='Pending Office Verification').count()
-    approved_count = all_apps.filter(status='Verified & Recommended').count()
-    disbursed_count = all_apps.filter(status='Govt Sanctioned / Amount Received').count()
-    not_received_count = all_apps.filter(status='Not Received / Pending Govt').count()
-    rejected_count = all_apps.filter(status='Rejected / Ineligible').count()
-
     context = {
         'staff': staff,
+        'mode': 'applications',
         'applications': app_qs,
         'pending_count': pending_count,
         'approved_count': approved_count,
@@ -10946,3 +11018,69 @@ def hod_club_master_schedule(request):
     })
 
 
+def class_attendance_report(request):
+    """
+    Class Incharge dashboard view to see overall and course-wise attendance stats for their students.
+    """
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff_id = request.session['staff_id']
+    try:
+        staff = Staff.objects.get(staff_id=staff_id)
+    except Staff.DoesNotExist:
+        return redirect('staffs:stafflogin')
+
+    if staff.role != 'Class Incharge' and staff.active_role != 'Class Incharge' and not staff.is_staff_admin:
+        messages.error(request, "Access restricted to Class Incharges.")
+        return redirect('staffs:staff_dashboard')
+
+    if not staff.assigned_semester:
+        messages.error(request, "You are not assigned to a specific semester.")
+        return redirect('staffs:staff_dashboard')
+
+    from students.models import Student, StudentAttendance
+    from .models import Subject
+
+    if staff.assigned_batch and staff.assigned_batch != 'All':
+        students = Student.objects.filter(current_semester=staff.assigned_semester, lab_batch=staff.assigned_batch).order_by('roll_number')
+    else:
+        students = Student.objects.filter(current_semester=staff.assigned_semester).order_by('roll_number')
+
+    subjects = Subject.objects.filter(semester=staff.assigned_semester).order_by('code')
+
+    student_stats = []
+    for student in students:
+        overall_total = 0
+        overall_present = 0
+        course_stats = []
+        for subject in subjects:
+            attendance_entries = StudentAttendance.objects.filter(student=student, subject=subject)
+            total = attendance_entries.count()
+            present = attendance_entries.filter(status='Present').count()
+            overall_total += total
+            overall_present += present
+            
+            percentage = (present / total * 100) if total > 0 else 0
+            course_stats.append({
+                'subject': subject,
+                'total': total,
+                'present': present,
+                'percentage': round(percentage, 1)
+            })
+            
+        overall_percentage = (overall_present / overall_total * 100) if overall_total > 0 else 0
+        student_stats.append({
+            'student': student,
+            'overall_percentage': round(overall_percentage, 1),
+            'course_stats': course_stats,
+            'is_low': overall_percentage < 75
+        })
+
+    return render(request, 'staff/class_attendance_report.html', {
+        'staff': staff,
+        'students_stats': student_stats,
+        'subjects': subjects,
+        'semester': staff.assigned_semester,
+        'batch': staff.assigned_batch
+    })

@@ -157,9 +157,10 @@ urlpatterns = [
     path('remarks/', views.remark_student_list, name='remark_student_list'),
     path('remarks/<str:roll_number>/', views.remark_history, name='remark_history'),
 
-    # Attendance Deficit
+    # Attendance Deficit & Reports
     path('attendance-deficit/', views.attendance_deficit_list, name='attendance_deficit_list'),
     path('attendance-deficit/send/', views.send_deficit_email, name='send_deficit_email'),
+    path('class-attendance-report/', views.class_attendance_report, name='class_attendance_report'),
     
     # Department Tasks & Roles Management
     path('department-tasks/', views.manage_department_tasks, name='manage_department_tasks'),
