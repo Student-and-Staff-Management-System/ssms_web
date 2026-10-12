@@ -105,8 +105,10 @@ def auto_compress_all_uploaded_files(sender, instance, **kwargs):
 
         for field in instance._meta.get_fields():
             if isinstance(field, FileField):
-                file_attr = getattr(instance, field.name)
-                # Check if it's a new upload (isinstance of UploadedFile)
-                if file_attr and hasattr(file_attr, 'file') and isinstance(file_attr.file, UploadedFile):
-                    compress_file(file_attr)
+                try:
+                    file_attr = getattr(instance, field.name, None)
+                    if file_attr and getattr(file_attr, '_file', None) and isinstance(file_attr._file, UploadedFile):
+                        compress_file(file_attr)
+                except Exception:
+                    pass
 

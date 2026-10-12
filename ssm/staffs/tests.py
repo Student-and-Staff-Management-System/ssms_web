@@ -1410,11 +1410,20 @@ class ScholarshipDistributionDashboardTestCase(TestCase):
         self.assertEqual(sch_reg_counts['TAMIZH'], 1)
         self.assertEqual(sch_reg_counts['POSTMATRIC'], 0)
 
-        # Check template rendering has both Applied and In Reg
+        # Check not applied counts in context
+        sch_not_applied_counts = response.context['sch_not_applied_counts']
+        self.assertEqual(sch_not_applied_counts['FG'], 0)
+        self.assertEqual(sch_not_applied_counts['BCMBC'], 1)
+        self.assertEqual(sch_not_applied_counts['TAMIZH'], 1)
+        self.assertEqual(sch_not_applied_counts['POSTMATRIC'], 0)
+
+        # Check template rendering has Applied, In Reg, and Not Applied mentions
         content = response.content.decode('utf-8')
         self.assertIn("Scholarship Scheme Distribution", content)
         self.assertIn("Applied:</strong> Portal Applications", content)
         self.assertIn("In Reg:</strong> Checked During Reg", content)
+        self.assertIn("Not Applied:</strong> Checked in Reg, Awaiting Application", content)
+        self.assertIn("Not Applied", content)
         self.assertIn("Checked in Reg", content)
         self.assertIn("Portal Application", content)
 
@@ -1564,5 +1573,136 @@ class ScholarshipDistributionDashboardTestCase(TestCase):
         self.assertIn(app_27, recent_sch)
         self.assertNotIn(app_26, recent_sch)
         self.assertEqual(dash_resp.context['selected_academic_year'], '2027-2028')
+
+    def test_roster_tag_display_and_filtering(self):
+        """Tests that the student roster displays students with Applied and In Reg tags and respects tag filters."""
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        # 1. Base dashboard without filters - all schemes
+        resp = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer')
+        self.assertEqual(resp.status_code, 200)
+        roster = list(resp.context['recent_sch_apps'])
+        
+        # In setUp:
+        # stud1 applied for FG and checked FG in reg -> BOTH tags
+        # stud1 checked BCMBC in reg (no application) -> In Reg tag
+        # stud2 applied for POSTMATRIC (not in reg) -> Applied tag
+        # stud2 checked TAMIZH in reg (no application) -> In Reg tag
+        self.assertEqual(resp.context['roster_total_count'], 4)
+        self.assertEqual(resp.context['roster_applied_count'], 2)
+        self.assertEqual(resp.context['roster_in_reg_count'], 3)
+        self.assertEqual(resp.context['roster_both_count'], 1)
+        self.assertEqual(resp.context['roster_in_reg_only_count'], 2)
+
+        content = resp.content.decode('utf-8')
+        self.assertIn("Tag Filter:", content)
+        self.assertIn("Applied (2)", content)
+        self.assertIn("In Reg (3)", content)
+        self.assertIn("Both Applied & Reg (1)", content)
+
+        # 2. Filter by scholarship_type=BCMBC (in setUp, BCMBC has 0 applied and 1 in reg)
+        resp_bcmbc = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&scholarship_type=BCMBC')
+        self.assertEqual(resp_bcmbc.status_code, 200)
+        roster_bcmbc = list(resp_bcmbc.context['recent_sch_apps'])
+        self.assertEqual(len(roster_bcmbc), 1)
+        item_bcmbc = roster_bcmbc[0]
+        self.assertEqual(item_bcmbc.student.roll_number, self.stud1.roll_number)
+        self.assertEqual(item_bcmbc.scholarship_type, 'BCMBC')
+        self.assertFalse(item_bcmbc.is_applied)
+        self.assertTrue(item_bcmbc.is_in_reg)
+
+        # 3. Filter by source_tag=applied (only portal applications: FG and POSTMATRIC)
+        resp_applied = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&source_tag=applied')
+        self.assertEqual(resp_applied.status_code, 200)
+        roster_applied = list(resp_applied.context['recent_sch_apps'])
+        self.assertEqual(len(roster_applied), 2)
+        applied_types = {x.scholarship_type for x in roster_applied}
+        self.assertEqual(applied_types, {'FG', 'POSTMATRIC'})
+
+        # 4. Filter by source_tag=in_reg (all students who checked during registration)
+        resp_in_reg = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&source_tag=in_reg')
+        self.assertEqual(resp_in_reg.status_code, 200)
+        roster_in_reg = list(resp_in_reg.context['recent_sch_apps'])
+        self.assertEqual(len(roster_in_reg), 3)
+
+        # 5. Filter by source_tag=both (both applied and checked during registration: FG for stud1)
+        resp_both = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&source_tag=both')
+        self.assertEqual(resp_both.status_code, 200)
+        roster_both = list(resp_both.context['recent_sch_apps'])
+        self.assertEqual(len(roster_both), 1)
+        self.assertEqual(roster_both[0].student.roll_number, self.stud1.roll_number)
+        self.assertEqual(roster_both[0].scholarship_type, 'FG')
+        self.assertTrue(roster_both[0].is_applied)
+        self.assertTrue(roster_both[0].is_in_reg)
+
+        # 6. Filter by source_tag=in_reg_only (checked in reg but no application yet)
+        resp_reg_only = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&source_tag=in_reg_only')
+        self.assertEqual(resp_reg_only.status_code, 200)
+        roster_reg_only = list(resp_reg_only.context['recent_sch_apps'])
+        self.assertEqual(len(roster_reg_only), 2)
+        reg_only_types = {x.scholarship_type for x in roster_reg_only}
+        self.assertEqual(reg_only_types, {'BCMBC', 'TAMIZH'})
+
+        # 7. Filter by source_tag=not_applied (alias for in_reg_only)
+        resp_not_app = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&source_tag=not_applied')
+        self.assertEqual(resp_not_app.status_code, 200)
+        roster_not_app = list(resp_not_app.context['recent_sch_apps'])
+        self.assertEqual(len(roster_not_app), 2)
+        self.assertEqual({x.scholarship_type for x in roster_not_app}, {'BCMBC', 'TAMIZH'})
+
+    def test_roster_csv_export(self):
+        """Tests that the Scholarship Officer can export the roster with tags to CSV."""
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        resp = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&export=csv')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('text/csv', resp['Content-Type'])
+        self.assertIn('attachment; filename="scholarship_roster_all_all.csv"', resp['Content-Disposition'])
+
+        import csv, io
+        reader = list(csv.reader(io.StringIO(resp.content.decode('utf-8-sig'))))
+        header = reader[0]
+        self.assertEqual(header[0], 'Roll Number')
+        self.assertEqual(header[1], 'Student Name')
+        self.assertEqual(header[6], 'Scholarship Scheme')
+        self.assertEqual(header[7], 'Tags')
+        # Check that rows have tag strings like 'Applied & In Reg', 'In Reg', 'Applied'
+        tags_col = [row[7] for row in reader[1:]]
+        self.assertIn('Applied & In Reg', tags_col)
+        self.assertIn('In Reg', tags_col)
+        self.assertIn('Applied', tags_col)
+
+    def test_potential_eligible_desk_population(self):
+        """Tests that potential eligible desk mode populates registered candidates even without income threshold."""
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        # 1. Access potential eligible desk without income threshold
+        resp = self.client.get(reverse('staffs:scholarship_manager') + '?mode=potential_eligible')
+        self.assertEqual(resp.status_code, 200)
+        students = list(resp.context['students'])
+        self.assertEqual(len(students), 2)
+        roll_nos = {s.roll_number for s in students}
+        self.assertEqual(roll_nos, {self.stud1.roll_number, self.stud2.roll_number})
+
+        # 2. Filter by scheme=sch_bcmbc
+        resp_bcmbc = self.client.get(reverse('staffs:scholarship_manager') + '?mode=potential_eligible&scheme=sch_bcmbc')
+        self.assertEqual(resp_bcmbc.status_code, 200)
+        students_bcmbc = list(resp_bcmbc.context['students'])
+        self.assertEqual(len(students_bcmbc), 1)
+        self.assertEqual(students_bcmbc[0].roll_number, self.stud1.roll_number)
+
+        # 3. Filter by search q
+        resp_q = self.client.get(reverse('staffs:scholarship_manager') + f'?mode=potential_eligible&q={self.stud2.roll_number}')
+        self.assertEqual(resp_q.status_code, 200)
+        students_q = list(resp_q.context['students'])
+        self.assertEqual(len(students_q), 1)
+        self.assertEqual(students_q[0].roll_number, self.stud2.roll_number)
+
 
 

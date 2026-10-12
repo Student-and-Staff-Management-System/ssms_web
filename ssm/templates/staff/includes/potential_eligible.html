@@ -2,17 +2,23 @@
     <input type="hidden" name="mode" value="potential_eligible">
     
     <div class="toolbar-main-row" style="flex-wrap: wrap;">
+        <!-- 0. Student Search -->
+        <div class="search-box-wrap" style="min-width: 200px;">
+            <i class="ri-search-line search-icon"></i>
+            <input type="text" name="q" value="{{ filters.q|default:'' }}" placeholder="Search Name / Roll No...">
+        </div>
+
         <!-- 1. Income Threshold -->
         <div class="search-box-wrap">
             <i class="ri-money-dollar-circle-line search-icon"></i>
-            <input type="number" name="income_threshold" value="{{ filters.income_threshold|default:'' }}" placeholder="Max Annual Income (e.g. 250000)" required>
+            <input type="number" name="income_threshold" value="{{ filters.income_threshold|default:'' }}" placeholder="Max Annual Income (optional)">
         </div>
 
         <!-- 2. Eligibility Status -->
         <select name="eligibility_status" class="toolbar-select">
             <option value="">All Students (Applied & Not Applied)</option>
-            <option value="applied" {% if filters.eligibility_status == 'applied' %}selected{% endif %}>Applied Only</option>
             <option value="not_applied" {% if filters.eligibility_status == 'not_applied' %}selected{% endif %}>Not Applied Only</option>
+            <option value="applied" {% if filters.eligibility_status == 'applied' %}selected{% endif %}>Applied Only</option>
         </select>
 
         <!-- 3. Community -->
@@ -44,9 +50,9 @@
         <!-- Submit Button -->
         <button type="submit" class="btn-toolbar-primary"><i class="ri-search-2-line"></i> Find Eligible Students</button>
 
-        {% if filters.income_threshold %}
+        {% if filters.income_threshold or filters.scheme or filters.eligibility_status or filters.community or filters.q %}
         <!-- Export CSV Button -->
-        <a href="?mode=potential_eligible&income_threshold={{ filters.income_threshold }}&eligibility_status={{ filters.eligibility_status }}&community={{ filters.community }}&scheme={{ filters.scheme }}&export=csv" class="btn-export-csv">
+        <a href="?mode=potential_eligible{% if filters.income_threshold %}&income_threshold={{ filters.income_threshold }}{% endif %}{% if filters.eligibility_status %}&eligibility_status={{ filters.eligibility_status }}{% endif %}{% if filters.community %}&community={{ filters.community }}{% endif %}{% if filters.scheme %}&scheme={{ filters.scheme }}{% endif %}{% if filters.q %}&q={{ filters.q }}{% endif %}&export=csv" class="btn-export-csv">
             <i class="ri-file-excel-line"></i> Export CSV
         </a>
         <a href="?mode=potential_eligible" class="btn-toolbar-secondary" style="color: #dc2626; border-color: #fca5a5;">
@@ -56,10 +62,13 @@
     </div>
 </form>
 
-{% if filters.income_threshold %}
+{% if filters.income_threshold or filters.scheme or filters.eligibility_status or filters.community or filters.q or students %}
 <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
     <div style="padding: 16px 20px; border-bottom: 1px solid var(--border, #cbd5e1); background: var(--bg-body, #f8fafc); display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);"><i class="ri-group-line" style="margin-right: 6px; color: var(--primary);"></i> Eligible Students (Income &le; ₹{{ filters.income_threshold }})</h3>
+        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">
+            <i class="ri-group-line" style="margin-right: 6px; color: var(--primary);"></i> 
+            {% if filters.income_threshold %}Eligible Students (Income &le; ₹{{ filters.income_threshold }}){% else %}Registered Scholarship Candidates{% endif %}
+        </h3>
         <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: var(--surface); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border);">Total Found: {{ students|length }}</span>
     </div>
 
@@ -128,8 +137,8 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">
-                        No students found matching this income threshold.
+                    <td colspan="5" style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">
+                        No students found matching current filters.
                     </td>
                 </tr>
                 {% endfor %}

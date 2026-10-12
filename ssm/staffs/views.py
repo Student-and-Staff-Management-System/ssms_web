@@ -44,6 +44,96 @@ def stafflogin(request):
     return render(request, 'staff/stafflogin.html')
 
 
+SCHEME_ROSTER_MAP = {
+    'POSTMATRIC': {
+        'code': 'POSTMATRIC',
+        'display': 'Post-Matric Scholarship (SC / ST / SCC)',
+        'q': Q(sch_postmetric=True),
+    },
+    'BCMBC': {
+        'code': 'BCMBC',
+        'display': 'BC / MBC Welfare Scholarship',
+        'q': Q(sch_bcmbc=True),
+    },
+    'FG': {
+        'code': 'FG',
+        'display': 'First Graduate Scholarship',
+        'q': Q(is_first_graduate=True),
+    },
+    'PUDHUMAI': {
+        'code': 'PUDHUMAI',
+        'display': 'Pudhumai Penn Scheme (Higher Ed for Girls)',
+        'q': Q(sch_pudhumai=True),
+    },
+    'TAMIZH': {
+        'code': 'TAMIZH',
+        'display': 'Tamizh Puthalvan Scheme',
+        'q': Q(sch_tamizh=True),
+    },
+    'GOVT_7_5': {
+        'code': 'GOVT_7_5',
+        'display': 'Govt 7.5% School Reservation Scheme',
+        'q': Q(sch_govt=True) | Q(is_7_5_reservation=True),
+    },
+    'PM': {
+        'code': 'PM',
+        'display': 'Prime Minister (PM) Central Scholarship',
+        'q': Q(sch_pm=True),
+    },
+    'PRIVATE': {
+        'code': 'PRIVATE',
+        'display': 'Private / Endowment Scholarship',
+        'q': Q(sch_private=True) | (~Q(private_scholarship_name='') & Q(private_scholarship_name__isnull=False)),
+    },
+}
+
+class ScholarshipRegCandidate:
+    """Represents a student who selected a scholarship scheme during registration but has not yet submitted a portal application."""
+    def __init__(self, student, scholarship_type, academic_year='2026-2027'):
+        self.student = student
+        self.scholarship_type = scholarship_type
+        self.private_scholarship_name = getattr(student.scholarshipinfo, 'private_scholarship_name', '') if (hasattr(student, 'scholarshipinfo') and scholarship_type == 'PRIVATE') else ''
+        self.application_no = ''
+        self.academic_year = academic_year or getattr(student, 'batch', '2026-2027')
+        
+        pi = getattr(student, 'personalinfo', None)
+        self.annual_income = getattr(pi, 'parent_annual_income', None) if pi else None
+        
+        self.status = 'Registered in Scheme (Not Applied)'
+        self.is_applied = False
+        self.is_in_reg = True
+        self.is_checked_in_registration = True
+        self.has_application = False
+        self.id = None
+        self.applied_at = None
+
+    @property
+    def scheme_filter_key(self):
+        mapping = {
+            'POSTMATRIC': 'sch_postmetric',
+            'BCMBC': 'sch_bcmbc',
+            'FG': 'is_first_graduate',
+            'PUDHUMAI': 'sch_pudhumai',
+            'TAMIZH': 'sch_tamizh',
+            'GOVT_7_5': 'sch_govt',
+            'PM': 'sch_pm',
+            'PRIVATE': 'sch_private',
+        }
+        return mapping.get(self.scholarship_type, '')
+
+    def get_scholarship_type_display(self):
+        return SCHEME_ROSTER_MAP.get(self.scholarship_type, {}).get('display', self.scholarship_type)
+
+    def __eq__(self, other):
+        if hasattr(other, 'id') and other.id is not None:
+            return False
+        return (
+            isinstance(other, ScholarshipRegCandidate) and
+            getattr(self.student, 'pk', None) == getattr(other.student, 'pk', None) and
+            self.scholarship_type == other.scholarship_type
+        )
+
+
 def staff_dashboard(request):
     """Displays the staff dashboard. Requires login."""
     if 'staff_id' not in request.session:
@@ -263,26 +353,168 @@ def staff_dashboard(request):
         'PM': reg_agg.get('PM') or 0,
         'PRIVATE': reg_agg.get('PRIVATE') or 0,
     }
+
+    # Count of candidates who checked scheme in registration AND submitted an application
+    both_apps_filter = Q()
+    if req_sch_ay and req_sch_ay != 'all':
+        both_apps_filter = Q(student__scholarship_applications__academic_year=req_sch_ay)
+
+    both_reg_applied_agg = ScholarshipInfo.objects.aggregate(
+        POSTMATRIC=Count('student_id', distinct=True, filter=Q(sch_postmetric=True, student__scholarship_applications__scholarship_type='POSTMATRIC') & both_apps_filter),
+        BCMBC=Count('student_id', distinct=True, filter=Q(sch_bcmbc=True, student__scholarship_applications__scholarship_type='BCMBC') & both_apps_filter),
+        FG=Count('student_id', distinct=True, filter=Q(is_first_graduate=True, student__scholarship_applications__scholarship_type='FG') & both_apps_filter),
+        PUDHUMAI=Count('student_id', distinct=True, filter=Q(sch_pudhumai=True, student__scholarship_applications__scholarship_type='PUDHUMAI') & both_apps_filter),
+        TAMIZH=Count('student_id', distinct=True, filter=Q(sch_tamizh=True, student__scholarship_applications__scholarship_type='TAMIZH') & both_apps_filter),
+        GOVT_7_5=Count('student_id', distinct=True, filter=(Q(sch_govt=True) | Q(is_7_5_reservation=True)) & Q(student__scholarship_applications__scholarship_type='GOVT_7_5') & both_apps_filter),
+        PM=Count('student_id', distinct=True, filter=Q(sch_pm=True, student__scholarship_applications__scholarship_type='PM') & both_apps_filter),
+        PRIVATE=Count('student_id', distinct=True, filter=(Q(sch_private=True) | (~Q(private_scholarship_name='') & Q(private_scholarship_name__isnull=False))) & Q(student__scholarship_applications__scholarship_type='PRIVATE') & both_apps_filter),
+    )
+    sch_not_applied_counts = {
+        code: max(0, sch_reg_counts.get(code, 0) - (both_reg_applied_agg.get(code) or 0))
+        for code in ['POSTMATRIC', 'BCMBC', 'FG', 'PUDHUMAI', 'TAMIZH', 'GOVT_7_5', 'PM', 'PRIVATE']
+    }
     
-    req_sch_type = request.GET.get('scholarship_type')
-    req_sch_status = request.GET.get('status')
-    req_sch_sem = request.GET.get('semester')
+    req_sch_type = request.GET.get('scholarship_type', '').strip()
+    req_sch_status = request.GET.get('status', '').strip()
+    req_sch_sem = request.GET.get('semester', '').strip()
     req_sch_q = request.GET.get('q', '').strip()
-    
-    recent_sch_apps = sch_apps_qs
+    req_sch_tag = request.GET.get('source_tag', '').strip()
+    if req_sch_tag == 'not_applied':
+        req_sch_tag = 'in_reg_only'
+
+    # 1. Filter applications
+    filtered_apps_qs = sch_apps_qs
     if req_sch_type:
-        recent_sch_apps = recent_sch_apps.filter(scholarship_type=req_sch_type)
-    if req_sch_status:
-        recent_sch_apps = recent_sch_apps.filter(status=req_sch_status)
+        filtered_apps_qs = filtered_apps_qs.filter(scholarship_type=req_sch_type)
+    if req_sch_status and req_sch_status != 'Registered in Scheme (Not Applied)':
+        filtered_apps_qs = filtered_apps_qs.filter(status=req_sch_status)
+    elif req_sch_status == 'Registered in Scheme (Not Applied)':
+        filtered_apps_qs = filtered_apps_qs.none()
     if req_sch_sem:
-        recent_sch_apps = recent_sch_apps.filter(student__current_semester=req_sch_sem)
+        filtered_apps_qs = filtered_apps_qs.filter(student__current_semester=req_sch_sem)
     if req_sch_q:
-        recent_sch_apps = recent_sch_apps.filter(
+        filtered_apps_qs = filtered_apps_qs.filter(
             Q(student__student_name__icontains=req_sch_q) |
             Q(student__roll_number__icontains=req_sch_q) |
             Q(application_no__icontains=req_sch_q)
         )
-    recent_sch_apps = recent_sch_apps[:25]
+
+    app_items = list(filtered_apps_qs)
+    for app_obj in app_items:
+        app_obj.is_applied = True
+        app_obj.is_in_reg = app_obj.is_checked_in_registration
+        app_obj.has_application = True
+
+    # 2. In-Reg Candidates (checked in registration but have not submitted a portal application)
+    in_reg_candidates = []
+    if req_sch_tag != 'applied' and (not req_sch_status or req_sch_status == 'Registered in Scheme (Not Applied)'):
+        existing_app_pairs = set(sch_apps_qs.values_list('student_id', 'scholarship_type'))
+
+        info_qs = ScholarshipInfo.objects.select_related('student', 'student__personalinfo')
+        if req_sch_sem:
+            info_qs = info_qs.filter(student__current_semester=req_sch_sem)
+        if req_sch_q:
+            info_qs = info_qs.filter(
+                Q(student__student_name__icontains=req_sch_q) |
+                Q(student__roll_number__icontains=req_sch_q)
+            )
+
+        schemes_to_check = [req_sch_type] if (req_sch_type and req_sch_type in SCHEME_ROSTER_MAP) else list(SCHEME_ROSTER_MAP.keys())
+
+        if req_sch_type and req_sch_type in SCHEME_ROSTER_MAP:
+            info_qs = info_qs.filter(SCHEME_ROSTER_MAP[req_sch_type]['q'])
+        else:
+            combined_q = Q()
+            for s_code in schemes_to_check:
+                combined_q |= SCHEME_ROSTER_MAP[s_code]['q']
+            info_qs = info_qs.filter(combined_q)
+
+        for s_info in info_qs:
+            for s_code in schemes_to_check:
+                is_checked = False
+                if s_code == 'POSTMATRIC': is_checked = bool(s_info.sch_postmetric)
+                elif s_code == 'BCMBC': is_checked = bool(s_info.sch_bcmbc)
+                elif s_code == 'FG': is_checked = bool(s_info.is_first_graduate)
+                elif s_code == 'PUDHUMAI': is_checked = bool(s_info.sch_pudhumai)
+                elif s_code == 'TAMIZH': is_checked = bool(s_info.sch_tamizh)
+                elif s_code == 'GOVT_7_5': is_checked = bool(s_info.sch_govt or s_info.is_7_5_reservation)
+                elif s_code == 'PM': is_checked = bool(s_info.sch_pm)
+                elif s_code == 'PRIVATE': is_checked = bool(s_info.sch_private or s_info.private_scholarship_name)
+
+                if is_checked and (s_info.student_id, s_code) not in existing_app_pairs:
+                    cand = ScholarshipRegCandidate(s_info.student, s_code, academic_year=req_sch_ay)
+                    in_reg_candidates.append(cand)
+
+    combined_roster = app_items + in_reg_candidates
+
+    # Compute breakdown counts for filter pills
+    roster_total_count = len(combined_roster)
+    roster_applied_count = sum(1 for x in combined_roster if getattr(x, 'is_applied', False))
+    roster_in_reg_count = sum(1 for x in combined_roster if getattr(x, 'is_in_reg', False))
+    roster_both_count = sum(1 for x in combined_roster if getattr(x, 'is_applied', False) and getattr(x, 'is_in_reg', False))
+    roster_in_reg_only_count = sum(1 for x in combined_roster if getattr(x, 'is_in_reg', False) and not getattr(x, 'is_applied', False))
+
+    # Apply tag filter
+    if req_sch_tag == 'applied':
+        filtered_roster = [x for x in combined_roster if getattr(x, 'is_applied', False)]
+    elif req_sch_tag == 'in_reg':
+        filtered_roster = [x for x in combined_roster if getattr(x, 'is_in_reg', False)]
+    elif req_sch_tag == 'both':
+        filtered_roster = [x for x in combined_roster if getattr(x, 'is_applied', False) and getattr(x, 'is_in_reg', False)]
+    elif req_sch_tag == 'in_reg_only':
+        filtered_roster = [x for x in combined_roster if getattr(x, 'is_in_reg', False) and not getattr(x, 'is_applied', False)]
+    else:
+        filtered_roster = combined_roster
+
+    # Sort roster: Pending verification apps first, then other apps, then in-reg candidates; then by semester and roll number
+    filtered_roster.sort(key=lambda x: (
+        0 if getattr(x, 'status', '') == 'Pending Office Verification' else (
+            1 if getattr(x, 'is_applied', False) else 2
+        ),
+        getattr(x.student, 'current_semester', 0) if getattr(x, 'student', None) else 0,
+        getattr(x.student, 'roll_number', '') if getattr(x, 'student', None) else ''
+    ))
+
+    # Handle Export CSV
+    if request.GET.get('export') == 'csv':
+        import csv
+        from django.http import HttpResponse
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        export_fname = f"scholarship_roster_{req_sch_type or 'all'}_{req_sch_tag or 'all'}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{export_fname}"'
+        response.write('\ufeff')
+        csv_w = csv.writer(response)
+        csv_w.writerow([
+            'Roll Number', 'Student Name', 'Program', 'Semester', 'Department',
+            'Academic Year', 'Scholarship Scheme', 'Tags', 'App Ref No',
+            'Annual Income', 'Stage Status'
+        ])
+        for item in filtered_roster:
+            tag_badges = []
+            if getattr(item, 'is_applied', False): tag_badges.append('Applied')
+            if getattr(item, 'is_in_reg', False): tag_badges.append('In Reg')
+            csv_w.writerow([
+                f'="{item.student.roll_number}"' if item.student else 'N/A',
+                item.student.student_name if item.student else 'N/A',
+                item.student.program_level if item.student else 'N/A',
+                item.student.current_semester if item.student else 'N/A',
+                getattr(item.student, 'department', 'N/A'),
+                getattr(item, 'academic_year', '2026-2027'),
+                item.get_scholarship_type_display(),
+                ' & '.join(tag_badges) if tag_badges else 'None',
+                f'="{item.application_no}"' if getattr(item, 'application_no', '') else 'N/A',
+                getattr(item, 'annual_income', None) or 'N/A',
+                getattr(item, 'status', 'N/A')
+            ])
+        return response
+
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    page_num = request.GET.get('page', 1)
+    paginator = Paginator(filtered_roster, 30)
+    try:
+        recent_sch_apps = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        recent_sch_apps = paginator.page(1)
 
     if staff.role == 'Scholarship Officer' or staff.role == 'Office Staff' or staff.is_scholarship_officer or active_role == 'Scholarship Officer':
         scholarship_qs = ScholarshipInfo.objects.select_related('student')
@@ -760,9 +992,18 @@ def staff_dashboard(request):
         'sch_total_apps_count': sch_total_apps_count,
         'sch_scheme_counts': sch_scheme_counts,
         'sch_reg_counts': sch_reg_counts,
+        'sch_not_applied_counts': sch_not_applied_counts,
         'recent_sch_apps': recent_sch_apps,
         'selected_academic_year': req_sch_ay,
         'available_academic_years': available_academic_years,
+        'req_sch_type': req_sch_type,
+        'req_sch_tag': req_sch_tag,
+        'roster_total_count': roster_total_count,
+        'roster_applied_count': roster_applied_count,
+        'roster_in_reg_count': roster_in_reg_count,
+        'roster_both_count': roster_both_count,
+        'roster_in_reg_only_count': roster_in_reg_only_count,
+        'roster_not_applied_count': roster_in_reg_only_count,
         'profile_completion_percentage': _completion_data['percentage'],
         'profile_missing_fields': _completion_data['missing_fields'],
         # Research Scholar Context
@@ -5539,80 +5780,103 @@ def scholarship_manager(request):
 
     # --- Potential Eligible Students Mode ---
     if mode == 'potential_eligible':
-        threshold_str = request.GET.get('income_threshold', '')
-        students_qs = Student.objects.none()
+        threshold_str = request.GET.get('income_threshold', '').strip()
+        app_status_filter = request.GET.get('eligibility_status', '').strip()
+        community_filter = request.GET.get('community', '').strip()
+        scheme_filter = request.GET.get('scheme', '').strip()
+        pe_q = request.GET.get('q', '').strip()
+
+        students_qs = Student.objects.select_related('personalinfo', 'scholarshipinfo').prefetch_related(
+            'scholarship_applications'
+        )
         
         if threshold_str.isdigit():
             threshold = int(threshold_str)
-            students_qs = Student.objects.select_related('personalinfo', 'scholarshipinfo').prefetch_related(
-                'scholarship_applications'
-            ).filter(
+            students_qs = students_qs.filter(
                 Q(personalinfo__parent_annual_income__lte=threshold) |
                 Q(scholarship_applications__annual_income__lte=threshold)
-            ).distinct()
-            
-            app_status_filter = request.GET.get('eligibility_status', '')
-            community_filter = request.GET.get('community', '')
-            scheme_filter = request.GET.get('scheme', '')
+            )
+        else:
+            # When no income threshold is specified, show all students who checked at least one scholarship in registration
+            students_qs = students_qs.filter(
+                Q(scholarshipinfo__is_first_graduate=True) |
+                Q(scholarshipinfo__sch_bcmbc=True) |
+                Q(scholarshipinfo__sch_postmetric=True) |
+                Q(scholarshipinfo__sch_pm=True) |
+                Q(scholarshipinfo__sch_govt=True) |
+                Q(scholarshipinfo__is_7_5_reservation=True) |
+                Q(scholarshipinfo__sch_pudhumai=True) |
+                Q(scholarshipinfo__sch_tamizh=True) |
+                Q(scholarshipinfo__sch_private=True)
+            )
 
-            if app_status_filter == 'not_applied':
-                students_qs = students_qs.filter(scholarship_applications__isnull=True)
-            elif app_status_filter == 'applied':
-                students_qs = students_qs.filter(scholarship_applications__isnull=False)
+        if pe_q:
+            students_qs = students_qs.filter(
+                Q(student_name__icontains=pe_q) |
+                Q(roll_number__icontains=pe_q)
+            )
 
-            if community_filter:
-                students_qs = students_qs.filter(personalinfo__community=community_filter)
+        if app_status_filter == 'not_applied':
+            students_qs = students_qs.filter(scholarship_applications__isnull=True)
+        elif app_status_filter == 'applied':
+            students_qs = students_qs.filter(scholarship_applications__isnull=False)
 
-            if scheme_filter:
-                if scheme_filter == 'is_first_graduate':
-                    students_qs = students_qs.filter(scholarshipinfo__is_first_graduate=True)
-                elif scheme_filter == 'sch_bcmbc':
-                    students_qs = students_qs.filter(scholarshipinfo__sch_bcmbc=True)
-                elif scheme_filter == 'sch_postmetric':
-                    students_qs = students_qs.filter(scholarshipinfo__sch_postmetric=True)
-                elif scheme_filter == 'sch_pm':
-                    students_qs = students_qs.filter(scholarshipinfo__sch_pm=True)
-                elif scheme_filter == 'sch_govt':
-                    students_qs = students_qs.filter(Q(scholarshipinfo__sch_govt=True) | Q(scholarshipinfo__is_7_5_reservation=True))
-                elif scheme_filter == 'sch_pudhumai':
-                    students_qs = students_qs.filter(scholarshipinfo__sch_pudhumai=True)
-                elif scheme_filter == 'sch_tamizh':
-                    students_qs = students_qs.filter(scholarshipinfo__sch_tamizh=True)
-                elif scheme_filter == 'sch_private':
-                    students_qs = students_qs.filter(scholarshipinfo__sch_private=True)
+        if community_filter:
+            students_qs = students_qs.filter(personalinfo__community=community_filter)
 
-            if request.GET.get('export') == 'csv':
-                response = HttpResponse(content_type='text/csv')
-                response['Content-Disposition'] = f'attachment; filename="potential_eligible_students_{threshold}.csv"'
-                writer = csv.writer(response)
+        if scheme_filter:
+            if scheme_filter == 'is_first_graduate':
+                students_qs = students_qs.filter(scholarshipinfo__is_first_graduate=True)
+            elif scheme_filter == 'sch_bcmbc':
+                students_qs = students_qs.filter(scholarshipinfo__sch_bcmbc=True)
+            elif scheme_filter == 'sch_postmetric':
+                students_qs = students_qs.filter(scholarshipinfo__sch_postmetric=True)
+            elif scheme_filter == 'sch_pm':
+                students_qs = students_qs.filter(scholarshipinfo__sch_pm=True)
+            elif scheme_filter == 'sch_govt':
+                students_qs = students_qs.filter(Q(scholarshipinfo__sch_govt=True) | Q(scholarshipinfo__is_7_5_reservation=True))
+            elif scheme_filter == 'sch_pudhumai':
+                students_qs = students_qs.filter(scholarshipinfo__sch_pudhumai=True)
+            elif scheme_filter == 'sch_tamizh':
+                students_qs = students_qs.filter(scholarshipinfo__sch_tamizh=True)
+            elif scheme_filter == 'sch_private':
+                students_qs = students_qs.filter(scholarshipinfo__sch_private=True)
+
+        students_qs = students_qs.distinct()
+
+        if request.GET.get('export') == 'csv':
+            response = HttpResponse(content_type='text/csv')
+            fname = f"potential_eligible_students_{threshold_str}.csv" if threshold_str else "potential_eligible_students.csv"
+            response['Content-Disposition'] = f'attachment; filename="{fname}"'
+            writer = csv.writer(response)
+            writer.writerow([
+                'Roll Number', 'Student Name', 'Program', 'Semester', 'Community',
+                'Family Annual Income', 'Registration Scholarships', 'Max App Income', 'Application Status'
+            ])
+            for student in students_qs:
+                try:
+                    pi = student.personalinfo
+                    pi_income = pi.parent_annual_income if pi.parent_annual_income is not None else 'N/A'
+                    comm = pi.community
+                except Exception:
+                    pi_income = 'N/A'
+                    comm = 'N/A'
+                
+                apps = list(student.scholarship_applications.all())
+                max_app_income = max([a.annual_income for a in apps if a.annual_income is not None] + [0]) if apps else 'N/A'
+                if max_app_income == 0: max_app_income = 'N/A'
+                
+                if apps:
+                    status_text = 'Applied: ' + ' | '.join([f"{a.get_scholarship_type_display()} ({a.status})" for a in apps])
+                else:
+                    status_text = 'Not Applied'
+                    
+                roll_str = f'="{student.roll_number}"' if student.roll_number else 'N/A'
                 writer.writerow([
-                    'Roll Number', 'Student Name', 'Program', 'Semester', 'Community',
-                    'Family Annual Income', 'Registration Scholarships', 'Max App Income', 'Application Status'
+                    roll_str, student.student_name, student.program_level,
+                    student.current_semester, comm, pi_income, (' | '.join(student.registration_scholarships) if student.registration_scholarships else 'None'), max_app_income, status_text
                 ])
-                for student in students_qs:
-                    try:
-                        pi = student.personalinfo
-                        pi_income = pi.parent_annual_income if pi.parent_annual_income is not None else 'N/A'
-                        comm = pi.community
-                    except Exception:
-                        pi_income = 'N/A'
-                        comm = 'N/A'
-                    
-                    apps = list(student.scholarship_applications.all())
-                    max_app_income = max([a.annual_income for a in apps if a.annual_income is not None] + [0]) if apps else 'N/A'
-                    if max_app_income == 0: max_app_income = 'N/A'
-                    
-                    if apps:
-                        status_text = 'Applied: ' + ' | '.join([f"{a.get_scholarship_type_display()} ({a.status})" for a in apps])
-                    else:
-                        status_text = 'Not Applied'
-                        
-                    roll_str = f'="{student.roll_number}"' if student.roll_number else 'N/A'
-                    writer.writerow([
-                        roll_str, student.student_name, student.program_level,
-                        student.current_semester, comm, pi_income, (' | '.join(student.registration_scholarships) if student.registration_scholarships else 'None'), max_app_income, status_text
-                    ])
-                return response
+            return response
 
         context = {
             'staff': staff,
@@ -5625,9 +5889,10 @@ def scholarship_manager(request):
             'rejected_count': rejected_count,
             'filters': {
                 'income_threshold': threshold_str,
-                'eligibility_status': request.GET.get('eligibility_status', ''),
-                'community': request.GET.get('community', ''),
-                'scheme': request.GET.get('scheme', ''),
+                'eligibility_status': app_status_filter,
+                'community': community_filter,
+                'scheme': scheme_filter,
+                'q': pe_q,
             }
         }
         return render(request, 'staff/scholarship_manager.html', context)
