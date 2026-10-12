@@ -6,7 +6,7 @@ import string
 
 from .models import Staff, Subject, ExamSchedule, Timetable, StaffPublication, StaffAwardHonour, StaffSeminar, StaffStudentGuided, AuditLog, Lab, AdminSettings, ClassMapping
 from students.models import Student, ResearchScholarProfile, ScholarAttendance
-from django.db.models import Q, Case, When
+from django.db.models import Q, Case, When, Count
 from django.db import transaction
 
 def stafflogin(request):
@@ -202,24 +202,66 @@ def staff_dashboard(request):
     scholarship_students = []
     selected_scholarship = request.GET.get('scholarship_type')
     
-    from students.models import ScholarshipApplication
+    from students.models import ScholarshipApplication, ScholarshipInfo
     sch_apps_qs = ScholarshipApplication.objects.select_related('student', 'student__scholarshipinfo', 'student__personalinfo').order_by('-applied_at')
     
+    req_sch_ay = request.GET.get('academic_year', '').strip()
+    available_academic_years = ['2026-2027', '2027-2028', '2025-2026', '2024-2025']
+    distinct_ays = list(ScholarshipApplication.objects.values_list('academic_year', flat=True).distinct())
+    for ay in distinct_ays:
+        if ay and ay not in available_academic_years:
+            available_academic_years.append(ay)
+
+    if req_sch_ay and req_sch_ay != 'all':
+        sch_apps_qs = sch_apps_qs.filter(academic_year=req_sch_ay)
+
     sch_pending_count = sch_apps_qs.filter(status='Pending Office Verification').count()
     sch_verified_count = sch_apps_qs.filter(status='Verified & Recommended').count()
     sch_sanctioned_count = sch_apps_qs.filter(status='Govt Sanctioned / Amount Received').count()
     sch_rejected_count = sch_apps_qs.filter(status='Rejected / Ineligible').count()
     sch_total_apps_count = sch_apps_qs.count()
     
+    scheme_agg = sch_apps_qs.aggregate(
+        POSTMATRIC=Count('id', filter=Q(scholarship_type='POSTMATRIC')),
+        BCMBC=Count('id', filter=Q(scholarship_type='BCMBC')),
+        FG=Count('id', filter=Q(scholarship_type='FG')),
+        PUDHUMAI=Count('id', filter=Q(scholarship_type='PUDHUMAI')),
+        TAMIZH=Count('id', filter=Q(scholarship_type='TAMIZH')),
+        GOVT_7_5=Count('id', filter=Q(scholarship_type='GOVT_7_5')),
+        PM=Count('id', filter=Q(scholarship_type='PM')),
+        PRIVATE=Count('id', filter=Q(scholarship_type='PRIVATE')),
+    )
     sch_scheme_counts = {
-        'POSTMATRIC': sch_apps_qs.filter(scholarship_type='POSTMATRIC').count(),
-        'BCMBC': sch_apps_qs.filter(scholarship_type='BCMBC').count(),
-        'FG': sch_apps_qs.filter(scholarship_type='FG').count(),
-        'PUDHUMAI': sch_apps_qs.filter(scholarship_type='PUDHUMAI').count(),
-        'TAMIZH': sch_apps_qs.filter(scholarship_type='TAMIZH').count(),
-        'GOVT_7_5': sch_apps_qs.filter(scholarship_type='GOVT_7_5').count(),
-        'PM': sch_apps_qs.filter(scholarship_type='PM').count(),
-        'PRIVATE': sch_apps_qs.filter(scholarship_type='PRIVATE').count(),
+        'POSTMATRIC': scheme_agg.get('POSTMATRIC') or 0,
+        'BCMBC': scheme_agg.get('BCMBC') or 0,
+        'FG': scheme_agg.get('FG') or 0,
+        'PUDHUMAI': scheme_agg.get('PUDHUMAI') or 0,
+        'TAMIZH': scheme_agg.get('TAMIZH') or 0,
+        'GOVT_7_5': scheme_agg.get('GOVT_7_5') or 0,
+        'PM': scheme_agg.get('PM') or 0,
+        'PRIVATE': scheme_agg.get('PRIVATE') or 0,
+    }
+
+    # Count of candidates who checked each scholarship scheme during registration
+    reg_agg = ScholarshipInfo.objects.aggregate(
+        POSTMATRIC=Count('student_id', filter=Q(sch_postmetric=True)),
+        BCMBC=Count('student_id', filter=Q(sch_bcmbc=True)),
+        FG=Count('student_id', filter=Q(is_first_graduate=True)),
+        PUDHUMAI=Count('student_id', filter=Q(sch_pudhumai=True)),
+        TAMIZH=Count('student_id', filter=Q(sch_tamizh=True)),
+        GOVT_7_5=Count('student_id', filter=Q(sch_govt=True) | Q(is_7_5_reservation=True)),
+        PM=Count('student_id', filter=Q(sch_pm=True)),
+        PRIVATE=Count('student_id', filter=Q(sch_private=True) | (~Q(private_scholarship_name='') & Q(private_scholarship_name__isnull=False))),
+    )
+    sch_reg_counts = {
+        'POSTMATRIC': reg_agg.get('POSTMATRIC') or 0,
+        'BCMBC': reg_agg.get('BCMBC') or 0,
+        'FG': reg_agg.get('FG') or 0,
+        'PUDHUMAI': reg_agg.get('PUDHUMAI') or 0,
+        'TAMIZH': reg_agg.get('TAMIZH') or 0,
+        'GOVT_7_5': reg_agg.get('GOVT_7_5') or 0,
+        'PM': reg_agg.get('PM') or 0,
+        'PRIVATE': reg_agg.get('PRIVATE') or 0,
     }
     
     req_sch_type = request.GET.get('scholarship_type')
@@ -717,7 +759,10 @@ def staff_dashboard(request):
         'sch_rejected_count': sch_rejected_count,
         'sch_total_apps_count': sch_total_apps_count,
         'sch_scheme_counts': sch_scheme_counts,
+        'sch_reg_counts': sch_reg_counts,
         'recent_sch_apps': recent_sch_apps,
+        'selected_academic_year': req_sch_ay,
+        'available_academic_years': available_academic_years,
         'profile_completion_percentage': _completion_data['percentage'],
         'profile_missing_fields': _completion_data['missing_fields'],
         # Research Scholar Context
@@ -5218,6 +5263,94 @@ def create_superuser(request):
     return render(request, 'staff/create_superuser.html', {'staff': staff})
 
 
+def export_scholarship_csv_response(applications, filename="scholarship_applications_audit.csv"):
+    """Exports scholarship applications to CSV, ensuring Roll Numbers, Bank Account Numbers, and App Numbers are formatted for Excel to prevent scientific notation."""
+    import csv
+    from django.http import HttpResponse
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Roll Number', 'Student Name', 'Program', 'Semester', 'Community', 'Gender',
+        'Academic Year', 'Scholarship Scheme', 'App Ref No', 'Annual Income', 'Bank Account', 'IFSC', 'Status', 'Applied Date'
+    ])
+
+    for app in applications:
+        comm = 'N/A'
+        gen = 'N/A'
+        try:
+            if hasattr(app.student, 'personalinfo'):
+                comm = app.student.personalinfo.community or 'N/A'
+                gen = app.student.personalinfo.gender or 'N/A'
+        except Exception:
+            pass
+
+        # Excel formula format f'="<val>"' prevents Excel from converting numeric roll numbers and bank accounts to scientific notation (e.g. 2.34E+09)
+        roll_val = f'="{app.student.roll_number}"' if (app.student and app.student.roll_number) else 'N/A'
+        bank_val = f'="{app.bank_account_no}"' if app.bank_account_no else 'N/A'
+        app_ref_val = f'="{app.application_no}"' if (app.application_no and str(app.application_no).strip().isdigit()) else (app.application_no or 'N/A')
+
+        writer.writerow([
+            roll_val,
+            app.student.student_name if app.student else 'N/A',
+            app.student.program_level if app.student else 'N/A',
+            app.student.current_semester if app.student else 'N/A',
+            comm,
+            gen,
+            app.academic_year or '2026-2027',
+            app.get_scholarship_type_display(),
+            app_ref_val,
+            app.annual_income or 'N/A',
+            bank_val,
+            app.bank_ifsc or 'N/A',
+            app.status,
+            app.applied_at.strftime('%Y-%m-%d') if app.applied_at else 'N/A'
+        ])
+    return response
+
+
+def export_scholarship_pdf_response(applications, title="Scholarship Applications Summary & Audit Report", staff=None, filename="scholarship_applications_audit.pdf"):
+    """Generates an institutional PDF audit report for scholarship applications."""
+    import os, base64
+    from django.conf import settings
+    from django.template.loader import get_template
+    from django.http import HttpResponse
+    from xhtml2pdf import pisa
+
+    logo_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'imgs', 'annamalai.png')
+    if not os.path.exists(logo_path):
+        logo_path = os.path.join(settings.BASE_DIR, 'static', 'imgs', 'annamalai.png')
+    logo_b64 = ''
+    if os.path.exists(logo_path):
+        try:
+            with open(logo_path, 'rb') as f:
+                logo_b64 = base64.b64encode(f.read()).decode('utf-8')
+        except Exception:
+            pass
+
+    template = get_template('staff/scholarship_audit_pdf_template.html')
+    context = {
+        'applications': applications,
+        'title': title,
+        'staff': staff,
+        'generated_at': timezone.now(),
+        'logo_b64': logo_b64,
+        'logo_path': logo_path if os.path.exists(logo_path) else '',
+    }
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error generating PDF document.<pre>' + html + '</pre>', status=500)
+    return response
+
+
 def scholarship_manager(request):
     """Dedicated page for managing scholarships with advanced multi-combination filtering, approval POST actions, and export."""
     if 'staff_id' not in request.session:
@@ -5281,6 +5414,38 @@ def scholarship_manager(request):
             else:
                 messages.warning(request, "No applications selected for bulk disbursement.")
             return redirect('staffs:scholarship_manager')
+
+        # 3. Bulk / Selection Export to PDF
+        elif action in ['export_pdf', 'export_selected_pdf']:
+            app_ids = request.POST.getlist('app_ids')
+            if app_ids:
+                selected_apps = ScholarshipApplication.objects.filter(
+                    id__in=app_ids
+                ).select_related('student', 'student__personalinfo', 'student__scholarshipinfo').order_by('-applied_at')
+                return export_scholarship_pdf_response(
+                    selected_apps,
+                    title="Selected Scholarship Applications Audit Report",
+                    staff=staff,
+                    filename="selected_scholarships_audit.pdf"
+                )
+            else:
+                messages.warning(request, "No applications selected for PDF export. Please select at least one row.")
+                return redirect('staffs:scholarship_manager')
+
+        # 4. Bulk / Selection Export to CSV
+        elif action in ['export_csv', 'export_selected_csv']:
+            app_ids = request.POST.getlist('app_ids')
+            if app_ids:
+                selected_apps = ScholarshipApplication.objects.filter(
+                    id__in=app_ids
+                ).select_related('student', 'student__personalinfo', 'student__scholarshipinfo').order_by('-applied_at')
+                return export_scholarship_csv_response(
+                    selected_apps,
+                    filename="selected_scholarships_audit.csv"
+                )
+            else:
+                messages.warning(request, "No applications selected for CSV export. Please select at least one row.")
+                return redirect('staffs:scholarship_manager')
 
         # Individual Application Actions
         app_id = request.POST.get('app_id')
@@ -5379,7 +5544,7 @@ def scholarship_manager(request):
         
         if threshold_str.isdigit():
             threshold = int(threshold_str)
-            students_qs = Student.objects.select_related('personalinfo').prefetch_related(
+            students_qs = Student.objects.select_related('personalinfo', 'scholarshipinfo').prefetch_related(
                 'scholarship_applications'
             ).filter(
                 Q(personalinfo__parent_annual_income__lte=threshold) |
@@ -5387,10 +5552,34 @@ def scholarship_manager(request):
             ).distinct()
             
             app_status_filter = request.GET.get('eligibility_status', '')
+            community_filter = request.GET.get('community', '')
+            scheme_filter = request.GET.get('scheme', '')
+
             if app_status_filter == 'not_applied':
                 students_qs = students_qs.filter(scholarship_applications__isnull=True)
             elif app_status_filter == 'applied':
                 students_qs = students_qs.filter(scholarship_applications__isnull=False)
+
+            if community_filter:
+                students_qs = students_qs.filter(personalinfo__community=community_filter)
+
+            if scheme_filter:
+                if scheme_filter == 'is_first_graduate':
+                    students_qs = students_qs.filter(scholarshipinfo__is_first_graduate=True)
+                elif scheme_filter == 'sch_bcmbc':
+                    students_qs = students_qs.filter(scholarshipinfo__sch_bcmbc=True)
+                elif scheme_filter == 'sch_postmetric':
+                    students_qs = students_qs.filter(scholarshipinfo__sch_postmetric=True)
+                elif scheme_filter == 'sch_pm':
+                    students_qs = students_qs.filter(scholarshipinfo__sch_pm=True)
+                elif scheme_filter == 'sch_govt':
+                    students_qs = students_qs.filter(Q(scholarshipinfo__sch_govt=True) | Q(scholarshipinfo__is_7_5_reservation=True))
+                elif scheme_filter == 'sch_pudhumai':
+                    students_qs = students_qs.filter(scholarshipinfo__sch_pudhumai=True)
+                elif scheme_filter == 'sch_tamizh':
+                    students_qs = students_qs.filter(scholarshipinfo__sch_tamizh=True)
+                elif scheme_filter == 'sch_private':
+                    students_qs = students_qs.filter(scholarshipinfo__sch_private=True)
 
             if request.GET.get('export') == 'csv':
                 response = HttpResponse(content_type='text/csv')
@@ -5398,7 +5587,7 @@ def scholarship_manager(request):
                 writer = csv.writer(response)
                 writer.writerow([
                     'Roll Number', 'Student Name', 'Program', 'Semester', 'Community',
-                    'Family Annual Income', 'Max App Income', 'Application Status'
+                    'Family Annual Income', 'Registration Scholarships', 'Max App Income', 'Application Status'
                 ])
                 for student in students_qs:
                     try:
@@ -5418,9 +5607,10 @@ def scholarship_manager(request):
                     else:
                         status_text = 'Not Applied'
                         
+                    roll_str = f'="{student.roll_number}"' if student.roll_number else 'N/A'
                     writer.writerow([
-                        student.roll_number, student.student_name, student.program_level,
-                        student.current_semester, comm, pi_income, max_app_income, status_text
+                        roll_str, student.student_name, student.program_level,
+                        student.current_semester, comm, pi_income, (' | '.join(student.registration_scholarships) if student.registration_scholarships else 'None'), max_app_income, status_text
                     ])
                 return response
 
@@ -5436,12 +5626,31 @@ def scholarship_manager(request):
             'filters': {
                 'income_threshold': threshold_str,
                 'eligibility_status': request.GET.get('eligibility_status', ''),
+                'community': request.GET.get('community', ''),
+                'scheme': request.GET.get('scheme', ''),
             }
         }
         return render(request, 'staff/scholarship_manager.html', context)
 
     # Base Applications QuerySet
     app_qs = ScholarshipApplication.objects.select_related('student', 'student__scholarshipinfo', 'student__personalinfo').all()
+
+    # 0. Academic Year Filter
+    academic_year = request.GET.get('academic_year', '').strip()
+    available_academic_years = ['2026-2027', '2027-2028', '2025-2026', '2024-2025']
+    distinct_ays = list(ScholarshipApplication.objects.values_list('academic_year', flat=True).distinct())
+    for ay in distinct_ays:
+        if ay and ay not in available_academic_years:
+            available_academic_years.append(ay)
+
+    if academic_year and academic_year != 'all':
+        app_qs = app_qs.filter(academic_year=academic_year)
+        all_apps = all_apps.filter(academic_year=academic_year)
+        pending_count = all_apps.filter(status='Pending Office Verification').count()
+        approved_count = all_apps.filter(status='Verified & Recommended').count()
+        disbursed_count = all_apps.filter(status='Govt Sanctioned / Amount Received').count()
+        not_received_count = all_apps.filter(status='Not Received / Pending Govt').count()
+        rejected_count = all_apps.filter(status='Rejected / Ineligible').count()
 
     # --- Multi-Combination Filtering ---
     # 1. Multi-Select Scholarship Types
@@ -5513,42 +5722,20 @@ def scholarship_manager(request):
             Q(application_no__icontains=q)
         )
 
-    # --- Export to CSV ---
+    # --- Export to PDF / CSV ---
+    if request.GET.get('export') == 'pdf':
+        return export_scholarship_pdf_response(
+            app_qs,
+            title="Scholarship Applications Summary & Audit Report",
+            staff=staff,
+            filename="scholarship_applications_audit.pdf"
+        )
+
     if request.GET.get('export') == 'csv':
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="scholarship_applications_audit.csv"'
-
-        writer = csv.writer(response)
-        writer.writerow([
-            'Roll Number', 'Student Name', 'Program', 'Semester', 'Community', 'Gender',
-            'Scholarship Scheme', 'App Ref No', 'Annual Income', 'Bank Account', 'IFSC', 'Status', 'Applied Date'
-        ])
-
-        for app in app_qs:
-            comm = 'N/A'
-            gen = 'N/A'
-            try:
-                comm = app.student.personalinfo.community
-                gen = app.student.personalinfo.gender
-            except PersonalInfo.DoesNotExist:
-                pass
-
-            writer.writerow([
-                app.student.roll_number,
-                app.student.student_name,
-                app.student.program_level,
-                app.student.current_semester,
-                comm,
-                gen,
-                app.get_scholarship_type_display(),
-                app.application_no or 'N/A',
-                app.annual_income or 'N/A',
-                app.bank_account_no or 'N/A',
-                app.bank_ifsc or 'N/A',
-                app.status,
-                app.applied_at.strftime('%Y-%m-%d')
-            ])
-        return response
+        return export_scholarship_csv_response(
+            app_qs,
+            filename="scholarship_applications_audit.csv"
+        )
 
     context = {
         'staff': staff,
@@ -5560,7 +5747,9 @@ def scholarship_manager(request):
         'not_received_count': not_received_count,
         'rejected_count': rejected_count,
         'type_choices': SCHOLARSHIP_TYPE_CHOICES,
+        'available_academic_years': available_academic_years,
         'filters': {
+            'academic_year': academic_year,
             'scholarship_types': sel_types,
             'scholarship_type': request.GET.get('scholarship_type', ''),
             'status': app_status,

@@ -1,7 +1,7 @@
 <form method="GET" action="{% url 'staffs:scholarship_manager' %}" class="smart-filter-card" id="peFilterForm">
     <input type="hidden" name="mode" value="potential_eligible">
     
-    <div class="toolbar-main-row">
+    <div class="toolbar-main-row" style="flex-wrap: wrap;">
         <!-- 1. Income Threshold -->
         <div class="search-box-wrap">
             <i class="ri-money-dollar-circle-line search-icon"></i>
@@ -15,12 +15,38 @@
             <option value="not_applied" {% if filters.eligibility_status == 'not_applied' %}selected{% endif %}>Not Applied Only</option>
         </select>
 
+        <!-- 3. Community -->
+        <select name="community" class="toolbar-select">
+            <option value="">Any Community</option>
+            <option value="OC" {% if filters.community == 'OC' %}selected{% endif %}>OC</option>
+            <option value="BC" {% if filters.community == 'BC' %}selected{% endif %}>BC</option>
+            <option value="BCM" {% if filters.community == 'BCM' %}selected{% endif %}>BCM</option>
+            <option value="MBC" {% if filters.community == 'MBC' %}selected{% endif %}>MBC</option>
+            <option value="DNC" {% if filters.community == 'DNC' %}selected{% endif %}>DNC</option>
+            <option value="SC" {% if filters.community == 'SC' %}selected{% endif %}>SC</option>
+            <option value="SCA" {% if filters.community == 'SCA' %}selected{% endif %}>SCA</option>
+            <option value="ST" {% if filters.community == 'ST' %}selected{% endif %}>ST</option>
+        </select>
+
+        <!-- 4. Registration Scheme -->
+        <select name="scheme" class="toolbar-select">
+            <option value="">Any Reg. Scheme</option>
+            <option value="is_first_graduate" {% if filters.scheme == 'is_first_graduate' %}selected{% endif %}>First Graduate</option>
+            <option value="sch_bcmbc" {% if filters.scheme == 'sch_bcmbc' %}selected{% endif %}>BC/MBC Scholarship</option>
+            <option value="sch_postmetric" {% if filters.scheme == 'sch_postmetric' %}selected{% endif %}>Post Metric</option>
+            <option value="sch_pm" {% if filters.scheme == 'sch_pm' %}selected{% endif %}>PM Scholarship</option>
+            <option value="sch_govt" {% if filters.scheme == 'sch_govt' %}selected{% endif %}>Govt / 7.5%</option>
+            <option value="sch_pudhumai" {% if filters.scheme == 'sch_pudhumai' %}selected{% endif %}>Pudhumai Penn</option>
+            <option value="sch_tamizh" {% if filters.scheme == 'sch_tamizh' %}selected{% endif %}>Tamizh Puthalvan</option>
+            <option value="sch_private" {% if filters.scheme == 'sch_private' %}selected{% endif %}>Private</option>
+        </select>
+
         <!-- Submit Button -->
         <button type="submit" class="btn-toolbar-primary"><i class="ri-search-2-line"></i> Find Eligible Students</button>
 
         {% if filters.income_threshold %}
         <!-- Export CSV Button -->
-        <a href="?mode=potential_eligible&income_threshold={{ filters.income_threshold }}&eligibility_status={{ filters.eligibility_status }}&export=csv" class="btn-export-csv">
+        <a href="?mode=potential_eligible&income_threshold={{ filters.income_threshold }}&eligibility_status={{ filters.eligibility_status }}&community={{ filters.community }}&scheme={{ filters.scheme }}&export=csv" class="btn-export-csv">
             <i class="ri-file-excel-line"></i> Export CSV
         </a>
         <a href="?mode=potential_eligible" class="btn-toolbar-secondary" style="color: #dc2626; border-color: #fca5a5;">
@@ -44,6 +70,7 @@
                     <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Student Info</th>
                     <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Academic Detail</th>
                     <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Family Income</th>
+                    <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Checked During Reg</th>
                     <th style="padding: 12px 20px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Application Status</th>
                 </tr>
             </thead>
@@ -64,6 +91,19 @@
                         {% else %}
                         <div style="font-weight: 600; color: var(--text-muted);">N/A</div>
                         {% endif %}
+                    </td>
+                    <td style="padding: 16px 20px; vertical-align: top;">
+                        {% with reg_schs=student.registration_scholarships %}
+                        {% if reg_schs %}
+                            {% for sch in reg_schs %}
+                            <span style="display: inline-block; margin-bottom: 4px; padding: 3px 8px; background: rgba(90, 125, 124, 0.12); color: var(--primary, #5a7d7c); border: 1px solid rgba(90, 125, 124, 0.3); border-radius: 6px; font-size: 0.75rem; font-weight: 700;">
+                                🎓 {{ sch }}
+                            </span><br>
+                            {% endfor %}
+                        {% else %}
+                            <span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">None checked</span>
+                        {% endif %}
+                        {% endwith %}
                     </td>
                     <td style="padding: 16px 20px; vertical-align: top;">
                         {% with apps=student.scholarship_applications.all %}

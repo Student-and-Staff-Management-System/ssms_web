@@ -21,6 +21,39 @@
     {% endfor %}
     {% endif %}
 
+    <!-- QUICK ACADEMIC YEAR SWITCHER BANNER -->
+    <div style="background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-radius: 8px; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="ri-calendar-check-line" style="color: var(--primary, #5a7d7c); font-size: 1.25rem;"></i>
+            <div>
+                <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main, #0f172a);">Academic Year:</span>
+                {% if selected_academic_year and selected_academic_year != 'all' %}
+                <span style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700; padding: 3px 10px; border-radius: 6px; font-size: 0.8rem; margin-left: 4px;">
+                    AY {{ selected_academic_year }}
+                </span>
+                <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 6px;">(Showing metrics &amp; applications for AY {{ selected_academic_year }} only)</span>
+                {% else %}
+                <span style="background: #f1f5f9; color: #475569; font-weight: 700; padding: 3px 10px; border-radius: 6px; font-size: 0.8rem; margin-left: 4px;">
+                    All Academic Years
+                </span>
+                <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 6px;">(Showing all recorded applications across all academic years)</span>
+                {% endif %}
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="dashAySelect" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Filter Year:</label>
+            <select id="dashAySelect" onchange="window.location.href='?active_role=Scholarship+Officer&academic_year=' + this.value" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.84rem; background: var(--surface); color: var(--text-main); outline: none; cursor: pointer; font-weight: 600;">
+                <option value="all" {% if not selected_academic_year or selected_academic_year == 'all' %}selected{% endif %}>All Academic Years</option>
+                {% for ay in available_academic_years %}
+                <option value="{{ ay }}" {% if selected_academic_year == ay %}selected{% endif %}>AY {{ ay }}</option>
+                {% endfor %}
+            </select>
+            {% if selected_academic_year and selected_academic_year != 'all' %}
+            <a href="?active_role=Scholarship+Officer" style="font-size: 0.8rem; color: var(--primary, #5a7d7c); text-decoration: underline; font-weight: 600; margin-left: 4px;">Reset</a>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- 1. EXECUTIVE METRICS GRID -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <!-- Total Applications -->
@@ -35,7 +68,7 @@
         </div>
 
         <!-- Pending Office Verification -->
-        <a href="?active_role=Scholarship+Officer&status=Pending+Office+Verification" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #d97706; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+        <a href="?active_role=Scholarship+Officer&status=Pending+Office+Verification{% if selected_academic_year %}&academic_year={{ selected_academic_year }}{% endif %}" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #d97706; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
             <div style="width: 46px; height: 46px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
                 <i class="ri-time-line"></i>
             </div>
@@ -46,7 +79,7 @@
         </a>
 
         <!-- Verified & Recommended -->
-        <a href="?active_role=Scholarship+Officer&status=Verified+%26+Recommended" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #0284c7; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+        <a href="?active_role=Scholarship+Officer&status=Verified+%26+Recommended{% if selected_academic_year %}&academic_year={{ selected_academic_year }}{% endif %}" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #0284c7; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
             <div style="width: 46px; height: 46px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
                 <i class="ri-checkbox-circle-line"></i>
             </div>
@@ -57,7 +90,7 @@
         </a>
 
         <!-- Govt Sanctioned & Disbursed -->
-        <a href="?active_role=Scholarship+Officer&status=Govt+Sanctioned+/+Amount+Received" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #16a34a; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
+        <a href="?active_role=Scholarship+Officer&status=Govt+Sanctioned+/+Amount+Received{% if selected_academic_year %}&academic_year={{ selected_academic_year }}{% endif %}" style="text-decoration: none; color: inherit; background: var(--surface, #ffffff); border: 1px solid var(--border, #cbd5e1); border-left: 4px solid #16a34a; padding: 18px; border-radius: 8px; display: flex; align-items: center; gap: 14px;" class="hover-card">
             <div style="width: 46px; height: 46px; border-radius: 8px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
                 <i class="ri-coins-line"></i>
             </div>
@@ -74,11 +107,14 @@
             <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="ri-route-line" style="color: var(--primary, #5a7d7c);"></i> Scholarship Verification Stage Pipeline
             </h3>
-            <div style="display: flex; gap: 10px;">
-                <a href="{% url 'staffs:scholarship_manager' %}?export=csv" style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--border, #cbd5e1); color: var(--text-main); text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <a href="{% url 'staffs:scholarship_manager' %}?export=pdf{% if selected_academic_year %}&academic_year={{ selected_academic_year }}{% endif %}" style="background: #dc2626; color: white; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="ri-file-pdf-line"></i> Export Audit PDF
+                </a>
+                <a href="{% url 'staffs:scholarship_manager' %}?export=csv{% if selected_academic_year %}&academic_year={{ selected_academic_year }}{% endif %}" style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--border, #cbd5e1); color: var(--text-main); text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="ri-file-excel-line" style="color: #16a34a;"></i> Export Audit CSV
                 </a>
-                <a href="{% url 'staffs:scholarship_manager' %}" style="background: var(--primary, #5a7d7c); color: white; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <a href="{% url 'staffs:scholarship_manager' %}{% if selected_academic_year %}?academic_year={{ selected_academic_year }}{% endif %}" style="background: var(--primary, #5a7d7c); color: white; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="ri-external-link-line"></i> Full Manager Desk
                 </a>
             </div>
@@ -118,73 +154,189 @@
 
     <!-- 3. SCHEME DISTRIBUTION ANALYTICS -->
     <section style="margin-bottom: 24px;">
-        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
-            <i class="ri-pie-chart-line" style="color: var(--primary, #5a7d7c);"></i> Scholarship Scheme Distribution
-        </h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main, #0f172a); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="ri-pie-chart-line" style="color: var(--primary, #5a7d7c);"></i> Scholarship Scheme Distribution
+            </h3>
+            <div style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <span style="display: inline-flex; align-items: center; gap: 5px;" title="Candidates who submitted an application on the portal">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary, #5a7d7c); display: inline-block;"></span>
+                    <strong style="color: var(--text-main, #0f172a);">Applied:</strong> Portal Applications
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 5px;" title="Candidates who checked this scheme during student registration">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--info, #0284c7); display: inline-block;"></span>
+                    <strong style="color: var(--text-main, #0f172a);">In Reg:</strong> Checked During Reg
+                </span>
+            </div>
+        </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-            <a href="?active_role=Scholarship+Officer&scholarship_type=POSTMATRIC" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">Post-Matric (SC/ST)</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Government Scheme</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <!-- Post-Matric -->
+            <a href="{% if request.GET.scholarship_type == 'POSTMATRIC' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=POSTMATRIC{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'POSTMATRIC' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'POSTMATRIC' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="Post-Matric (SC/ST) — Applied: {{ sch_scheme_counts.POSTMATRIC|default:0 }} | Checked in Reg: {{ sch_reg_counts.POSTMATRIC|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Post-Matric (SC/ST)</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Government Scheme</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.POSTMATRIC|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.POSTMATRIC|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.POSTMATRIC|default:0 }}</span>
+                    </div>
+                </div>
             </a>
 
-            <a href="?active_role=Scholarship+Officer&scholarship_type=BCMBC" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">BC / MBC Welfare</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">State Welfare</div>
+            <!-- BC / MBC Welfare -->
+            <a href="{% if request.GET.scholarship_type == 'BCMBC' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=BCMBC{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'BCMBC' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'BCMBC' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="BC / MBC Welfare — Applied: {{ sch_scheme_counts.BCMBC|default:0 }} | Checked in Reg: {{ sch_reg_counts.BCMBC|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">BC / MBC Welfare</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">State Welfare</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.BCMBC|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.BCMBC|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.BCMBC|default:0 }}</span>
+                    </div>
+                </div>
             </a>
 
-            <a href="?active_role=Scholarship+Officer&scholarship_type=FG" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">First Graduate</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Tuition Waiver</div>
+            <!-- First Graduate -->
+            <a href="{% if request.GET.scholarship_type == 'FG' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=FG{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'FG' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'FG' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="First Graduate — Applied: {{ sch_scheme_counts.FG|default:0 }} | Checked in Reg: {{ sch_reg_counts.FG|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">First Graduate</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tuition Waiver</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.FG|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.FG|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.FG|default:0 }}</span>
+                    </div>
+                </div>
             </a>
 
-            <a href="?active_role=Scholarship+Officer&scholarship_type=PUDHUMAI" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">Pudhumai Penn</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Girl Student Aid</div>
+            <!-- Pudhumai Penn -->
+            <a href="{% if request.GET.scholarship_type == 'PUDHUMAI' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=PUDHUMAI{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'PUDHUMAI' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'PUDHUMAI' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="Pudhumai Penn — Applied: {{ sch_scheme_counts.PUDHUMAI|default:0 }} | Checked in Reg: {{ sch_reg_counts.PUDHUMAI|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Pudhumai Penn</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Girl Student Aid</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.PUDHUMAI|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.PUDHUMAI|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.PUDHUMAI|default:0 }}</span>
+                    </div>
+                </div>
             </a>
 
-            <a href="?active_role=Scholarship+Officer&scholarship_type=TAMIZH" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">Tamizh Puthalvan</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Boy Student Aid</div>
+            <!-- Tamizh Puthalvan -->
+            <a href="{% if request.GET.scholarship_type == 'TAMIZH' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=TAMIZH{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'TAMIZH' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'TAMIZH' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="Tamizh Puthalvan — Applied: {{ sch_scheme_counts.TAMIZH|default:0 }} | Checked in Reg: {{ sch_reg_counts.TAMIZH|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tamizh Puthalvan</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Boy Student Aid</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.TAMIZH|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.TAMIZH|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.TAMIZH|default:0 }}</span>
+                    </div>
+                </div>
             </a>
 
-            <a href="?active_role=Scholarship+Officer&scholarship_type=GOVT_7_5" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">7.5% Govt School</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Quota Waiver</div>
+            <!-- 7.5% Govt School -->
+            <a href="{% if request.GET.scholarship_type == 'GOVT_7_5' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=GOVT_7_5{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'GOVT_7_5' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'GOVT_7_5' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="7.5% Govt School — Applied: {{ sch_scheme_counts.GOVT_7_5|default:0 }} | Checked in Reg: {{ sch_reg_counts.GOVT_7_5|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">7.5% Govt School</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Quota Waiver</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.GOVT_7_5|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.GOVT_7_5|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.GOVT_7_5|default:0 }}</span>
+                    </div>
+                </div>
             </a>
 
-            <a href="?active_role=Scholarship+Officer&scholarship_type=PM" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">PMSSS / Central</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">National Portal</div>
+            <!-- PMSSS / Central -->
+            <a href="{% if request.GET.scholarship_type == 'PM' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=PM{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'PM' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'PM' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="PMSSS / Central — Applied: {{ sch_scheme_counts.PM|default:0 }} | Checked in Reg: {{ sch_reg_counts.PM|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">PMSSS / Central</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">National Portal</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.PM|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.PM|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.PM|default:0 }}</span>
+                    </div>
+                </div>
             </a>
 
-            <a href="?active_role=Scholarship+Officer&scholarship_type=PRIVATE" style="text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit;" class="hover-card">
-                <div>
-                    <div style="font-size: 0.82rem; font-weight: 700;">Private & Trust</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Endowments</div>
+            <!-- Private & Trust -->
+            <a href="{% if request.GET.scholarship_type == 'PRIVATE' %}?active_role=Scholarship+Officer{% else %}?active_role=Scholarship+Officer&scholarship_type=PRIVATE{% endif %}" 
+               style="text-decoration: none; background: var(--surface); border: 1px solid {% if request.GET.scholarship_type == 'PRIVATE' %}var(--primary, #5a7d7c){% else %}var(--border, #cbd5e1){% endif %}; padding: 12px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; color: inherit; gap: 10px; {% if request.GET.scholarship_type == 'PRIVATE' %}background: var(--surface-subtle, #f8fafc); box-shadow: 0 0 0 1px var(--primary, #5a7d7c);{% endif %}" 
+               class="hover-card"
+               title="Private & Trust — Applied: {{ sch_scheme_counts.PRIVATE|default:0 }} | Checked in Reg: {{ sch_reg_counts.PRIVATE|default:0 }}">
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Private & Trust</div>
+                    <div style="font-size: 0.73rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Endowments</div>
                 </div>
-                <span style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">{{ sch_scheme_counts.PRIVATE|default:0 }}</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">Applied</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary, #5a7d7c); min-width: 14px; text-align: right;">{{ sch_scheme_counts.PRIVATE|default:0 }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; line-height: 1.2;">
+                        <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;">In Reg</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: var(--info, #0284c7); min-width: 14px; text-align: right;">{{ sch_reg_counts.PRIVATE|default:0 }}</span>
+                    </div>
+                </div>
             </a>
         </div>
     </section>
@@ -200,6 +352,12 @@
             <form method="GET" action="{% url 'staffs:staff_dashboard' %}" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                 <input type="hidden" name="active_role" value="Scholarship Officer">
                 <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search Student / Roll No / App Ref..." style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; width: 220px;">
+                <select name="academic_year" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; background: var(--surface);">
+                    <option value="">All Academic Years</option>
+                    {% for ay in available_academic_years %}
+                    <option value="{{ ay }}" {% if selected_academic_year == ay or request.GET.academic_year == ay %}selected{% endif %}>AY {{ ay }}</option>
+                    {% endfor %}
+                </select>
                 <select name="status" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem;">
                     <option value="">All Statuses</option>
                     <option value="Pending Office Verification" {% if request.GET.status == 'Pending Office Verification' %}selected{% endif %}>Pending Verification</option>
@@ -214,70 +372,169 @@
                     {% endfor %}
                 </select>
                 <button type="submit" style="background: var(--primary, #5a7d7c); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">Filter</button>
-                {% if request.GET.q or request.GET.status or request.GET.semester or request.GET.scholarship_type %}
+                {% if request.GET.q or request.GET.status or request.GET.semester or request.GET.scholarship_type or request.GET.academic_year or selected_academic_year %}
                 <a href="?active_role=Scholarship+Officer" style="color: var(--text-muted); font-size: 0.82rem; text-decoration: none; margin-left: 4px;">Clear</a>
                 {% endif %}
             </form>
         </div>
 
-        <!-- Table View -->
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
-                <thead>
-                    <tr style="background: var(--surface-subtle, #f8fafc); border-bottom: 1px solid var(--border, #cbd5e1); text-align: left;">
-                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Student</th>
-                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Sem & Dept</th>
-                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Scholarship Scheme</th>
-                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Family Income</th>
-                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Stage Status</th>
-                        <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted); text-align: right;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for app in recent_sch_apps %}
-                    <tr style="border-bottom: 1px solid var(--border-light, #f1f5f9);">
-                        <td style="padding: 12px;">
-                            <div style="font-weight: 700; color: var(--text-main);">{{ app.student.student_name }}</div>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">Roll: {{ app.student.roll_number }} | Ref: {{ app.application_no|default:"N/A" }}</div>
-                        </td>
-                        <td style="padding: 12px;">
-                            <span style="font-weight: 600;">Sem {{ app.student.current_semester }}</span>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.student.department|default:"Dept" }}</div>
-                        </td>
-                        <td style="padding: 12px;">
-                            <span style="font-weight: 600; color: var(--primary);">{{ app.get_scholarship_type_display }}</span>
-                            {% if app.private_scholarship_name %}<div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.private_scholarship_name }}</div>{% endif %}
-                        </td>
-                        <td style="padding: 12px;">
-                            {% if app.annual_income %}₹{{ app.annual_income }}{% else %}<span style="color: var(--text-muted);">Not Specified</span>{% endif %}
-                        </td>
-                        <td style="padding: 12px;">
-                            {% if app.status == 'Pending Office Verification' %}
-                            <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">⏳ Pending Verification</span>
-                            {% elif app.status == 'Verified & Recommended' %}
-                            <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">✅ Recommended to Govt</span>
-                            {% elif app.status == 'Govt Sanctioned / Amount Received' %}
-                            <span style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">💰 Sanctioned & Disbursed</span>
-                            {% else %}
-                            <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">❌ {{ app.status }}</span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 12px; text-align: right;">
-                            <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                <a href="{% url 'staffs:student_detail' app.student.roll_number %}" style="background: var(--surface-subtle); border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; color: var(--text-main); font-weight: 600;">Profile</a>
-                                <a href="{% url 'staffs:scholarship_manager' %}?q={{ app.student.roll_number }}" style="background: var(--primary, #5a7d7c); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">Action &rarr;</a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                            No scholarship records found matching your filters.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <!-- Table & Batch Selection Form -->
+        <form id="dashBatchForm" method="POST" action="{% url 'staffs:scholarship_manager' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="dashBatchAction" value="export_pdf">
+
+            <!-- Batch Selection Action Bar -->
+            <div id="dashBatchBar" style="display: none; background: #1e293b; color: white; padding: 10px 16px; border-radius: 8px; margin-bottom: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.86rem;">
+                    <i class="ri-checkbox-multiple-line" style="color: var(--primary, #5a7d7c); font-size: 1.1rem;"></i>
+                    <span>Selected: <strong id="dashSelectedCount">0</strong> applications</span>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" onclick="submitDashBatch('export_pdf')" style="background: #dc2626; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="ri-file-pdf-line"></i> Export PDF (Selected)
+                    </button>
+                    <button type="button" onclick="submitDashBatch('export_csv')" style="background: #16a34a; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="ri-file-excel-line"></i> Export CSV (Selected)
+                    </button>
+                    <button type="button" onclick="submitDashBatch('bulk_approve')" style="background: var(--primary, #5a7d7c); color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="ri-checkbox-circle-line"></i> Bulk Verify
+                    </button>
+                    <button type="button" onclick="clearDashBatch()" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="background: var(--surface-subtle, #f8fafc); border-bottom: 1px solid var(--border, #cbd5e1); text-align: left;">
+                            <th style="width: 36px; padding: 10px 8px; text-align: center;">
+                                <input type="checkbox" id="dashSelectAll" onchange="toggleDashSelectAll(this)" style="cursor: pointer;" title="Select All">
+                            </th>
+                            <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Student</th>
+                            <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Sem & Dept</th>
+                            <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Academic Year</th>
+                            <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Scholarship Scheme</th>
+                            <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Family Income</th>
+                            <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted);">Stage Status</th>
+                            <th style="padding: 10px 12px; font-weight: 700; color: var(--text-muted); text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in recent_sch_apps %}
+                        <tr style="border-bottom: 1px solid var(--border-light, #f1f5f9);">
+                            <td style="padding: 12px 8px; text-align: center;">
+                                <input type="checkbox" name="app_ids" value="{{ app.id }}" class="dash-sch-checkbox" onchange="updateDashBatchBar()" style="cursor: pointer;">
+                            </td>
+                            <td style="padding: 12px;">
+                                <div style="font-weight: 700; color: var(--text-main);">{{ app.student.student_name }}</div>
+                                <div style="font-size: 0.76rem; color: var(--text-muted);">Roll: {{ app.student.roll_number }} | Ref: {{ app.application_no|default:"N/A" }}</div>
+                            </td>
+                            <td style="padding: 12px;">
+                                <span style="font-weight: 600;">Sem {{ app.student.current_semester }}</span>
+                                <div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.student.department|default:"Dept" }}</div>
+                            </td>
+                            <td style="padding: 12px;">
+                                <span style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; white-space: nowrap;">
+                                    AY {{ app.academic_year|default:"2026-2027" }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px;">
+                                <span style="font-weight: 600; color: var(--primary);">{{ app.get_scholarship_type_display }}</span>
+                                {% if app.private_scholarship_name %}<div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.private_scholarship_name }}</div>{% endif %}
+                                {% if app.is_checked_in_registration %}
+                                <div><span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 4px; font-weight: 600; margin-top: 3px;"><i class="ri-checkbox-circle-line"></i> Checked in Reg</span></div>
+                                {% else %}
+                                <div><span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: #f1f5f9; color: #64748b; padding: 1px 6px; border-radius: 4px; font-weight: 500; margin-top: 3px;"><i class="ri-file-add-line"></i> Portal Application</span></div>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px;">
+                                {% if app.annual_income %}₹{{ app.annual_income }}{% else %}<span style="color: var(--text-muted);">Not Specified</span>{% endif %}
+                            </td>
+                            <td style="padding: 12px;">
+                                {% if app.status == 'Pending Office Verification' %}
+                                <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">⏳ Pending Verification</span>
+                                {% elif app.status == 'Verified & Recommended' %}
+                                <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">✅ Recommended to Govt</span>
+                                {% elif app.status == 'Govt Sanctioned / Amount Received' %}
+                                <span style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">💰 Sanctioned & Disbursed</span>
+                                {% else %}
+                                <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">❌ {{ app.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px; text-align: right;">
+                                <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                    <a href="{% url 'staffs:student_detail' app.student.roll_number %}" style="background: var(--surface-subtle); border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; color: var(--text-main); font-weight: 600;">Profile</a>
+                                    <a href="{% url 'staffs:scholarship_manager' %}?q={{ app.student.roll_number }}" style="background: var(--primary, #5a7d7c); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">Action &rarr;</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                No scholarship records found matching your filters.
+                                {% if request.GET.scholarship_type %}
+                                <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-secondary);">
+                                    Looking for candidates who checked this scheme during registration? You can review all registered students in the <a href="{% url 'staffs:scholarship_manager' %}" style="color: var(--primary); font-weight: 600;">Scholarship Manager Desk</a>.
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
     </section>
+
+    <script>
+        function toggleDashSelectAll(master) {
+            document.querySelectorAll('.dash-sch-checkbox').forEach(cb => {
+                cb.checked = master.checked;
+            });
+            updateDashBatchBar();
+        }
+
+        function updateDashBatchBar() {
+            const checked = document.querySelectorAll('.dash-sch-checkbox:checked');
+            const count = checked.length;
+            const bar = document.getElementById('dashBatchBar');
+            const countSpan = document.getElementById('dashSelectedCount');
+            const total = document.querySelectorAll('.dash-sch-checkbox').length;
+            const master = document.getElementById('dashSelectAll');
+
+            if (countSpan) countSpan.innerText = count;
+            if (master && total > 0) master.checked = (count === total);
+
+            if (bar) {
+                if (count > 0) {
+                    bar.style.display = 'flex';
+                } else {
+                    bar.style.display = 'none';
+                }
+            }
+        }
+
+        function clearDashBatch() {
+            document.querySelectorAll('.dash-sch-checkbox').forEach(cb => cb.checked = false);
+            const master = document.getElementById('dashSelectAll');
+            if (master) master.checked = false;
+            updateDashBatchBar();
+        }
+
+        function submitDashBatch(action) {
+            const checked = document.querySelectorAll('.dash-sch-checkbox:checked');
+            if (checked.length === 0) {
+                alert('Please select at least one student application checkbox.');
+                return;
+            }
+            if (action === 'bulk_approve') {
+                if (!confirm(`Bulk verify & recommend ${checked.length} selected applications?`)) return;
+            }
+            document.getElementById('dashBatchAction').value = action;
+            document.getElementById('dashBatchForm').submit();
+        }
+    </script>
 {% endblock %}

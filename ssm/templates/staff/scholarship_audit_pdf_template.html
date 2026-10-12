@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title|default:"Scholarship Applications Audit Report" }}</title>
+    <style>
+        @page {
+            size: a4 landscape;
+            margin: 10mm 12mm 12mm 12mm;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 8pt;
+            color: #0f172a;
+            line-height: 1.3;
+            margin: 0;
+            padding: 0;
+        }
+
+        .inst-header {
+            width: 100%;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            text-align: center;
+        }
+
+        .brand-table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+
+        .brand-table td {
+            border: none;
+            vertical-align: middle;
+        }
+
+        .brand-text {
+            font-family: "Times-Roman", "Times New Roman", Times, serif;
+            font-size: 16pt;
+            font-weight: bold;
+            color: #000000;
+            letter-spacing: 1.5px;
+        }
+
+        .dept-text {
+            font-family: "Times-Roman", "Times New Roman", Times, serif;
+            font-size: 11pt;
+            font-weight: bold;
+            color: #000000;
+            letter-spacing: 0.8px;
+            text-align: center;
+            margin-top: 3px;
+        }
+
+        .meta-bar-box {
+            border-top: 1px solid #cbd5e1;
+            border-bottom: 2px solid #5a7d7c;
+            padding: 5px 0;
+            margin-bottom: 10px;
+        }
+
+        .doc-title {
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: #5a7d7c;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .inst-sub {
+            font-size: 7pt;
+            color: #64748b;
+        }
+
+        .meta-line {
+            font-size: 7.2pt;
+            color: #475569;
+            line-height: 1.3;
+        }
+
+        /* Applications Table */
+        .roster-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5pt;
+        }
+
+        .roster-table th {
+            background-color: #5a7d7c;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: left;
+            padding: 6px 5px;
+            border: 1px solid #4a6b69;
+            text-transform: uppercase;
+            font-size: 7pt;
+            letter-spacing: 0.3px;
+        }
+
+        .roster-table td {
+            padding: 5px 5px;
+            border: 1px solid #cbd5e1;
+            vertical-align: middle;
+        }
+
+        .roster-table tr.even {
+            background-color: #f8fafc;
+        }
+
+        .roster-table tr.odd {
+            background-color: #ffffff;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+
+        .roll-no {
+            font-family: "Courier New", Courier, monospace;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .bank-acc {
+            font-family: "Courier New", Courier, monospace;
+            color: #334155;
+        }
+
+        .badge-status {
+            font-weight: bold;
+            font-size: 6.8pt;
+            padding: 2px 4px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-verified {
+            background-color: #eff6ff;
+            color: #1e40af;
+        }
+
+        .status-sanctioned {
+            background-color: #f0fdf4;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+
+        .status-other {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .reg-badge {
+            font-size: 6.5pt;
+            font-weight: bold;
+            color: #0284c7;
+        }
+
+        .portal-badge {
+            font-size: 6.5pt;
+            color: #64748b;
+        }
+
+        .footer-summary {
+            margin-top: 10px;
+            padding-top: 6px;
+            border-top: 1px solid #cbd5e1;
+            font-size: 7.5pt;
+            color: #64748b;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Institutional University Header (ANNAMALAI [LOGO] UNIVERSITY) -->
+    <div class="inst-header">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="text-align: center; border: none; padding: 0;">
+                    <table class="brand-table" align="center">
+                        <tr>
+                            <td class="brand-text" style="text-align: right; padding-right: 14px;">
+                                ANNAMALAI
+                            </td>
+                            <td style="text-align: center; width: 44px; padding: 0 4px;">
+                                {% if logo_b64 %}
+                                    <img src="data:image/png;base64,{{ logo_b64 }}" height="42" alt="Annamalai University Emblem" />
+                                {% elif logo_path %}
+                                    <img src="{{ logo_path }}" height="42" alt="Annamalai University Emblem" />
+                                {% endif %}
+                            </td>
+                            <td class="brand-text" style="text-align: left; padding-left: 14px;">
+                                UNIVERSITY
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="dept-text">
+                        DEPARTMENT OF INFORMATION TECHNOLOGY
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Document Title & Audit Metadata Bar -->
+    <div class="meta-bar-box">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="vertical-align: middle; border: none; padding: 0;">
+                    <div class="doc-title">{{ title|default:"Scholarship Applications Summary &amp; Audit Report" }}</div>
+                    <div class="inst-sub">Central Scholarship &amp; Financial Aid Administration Desk</div>
+                </td>
+                <td style="text-align: right; vertical-align: middle; border: none; padding: 0; width: 340px;">
+                    <div class="meta-line"><strong>Report Date:</strong> {{ generated_at|date:"d M Y, h:i A" }} &nbsp;|&nbsp; <strong>Total Records:</strong> {{ applications|length }}</div>
+                    <div class="meta-line"><strong>Generated By:</strong> {{ staff.name }} ({{ staff.role|default:"Scholarship Officer" }})</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="roster-table">
+        <thead>
+            <tr>
+                <th style="width: 20px;" class="text-center">#</th>
+                <th style="width: 75px;">Roll Number</th>
+                <th style="width: 105px;">Student Name</th>
+                <th style="width: 55px;">Program</th>
+                <th style="width: 35px;" class="text-center">Sem</th>
+                <th style="width: 35px;" class="text-center">Comm</th>
+                <th style="width: 50px;" class="text-center">AY</th>
+                <th style="width: 105px;">Scholarship Scheme</th>
+                <th style="width: 75px;">App Ref No</th>
+                <th style="width: 60px;" class="text-right">Income</th>
+                <th style="width: 95px;">Bank Account</th>
+                <th style="width: 65px;">IFSC</th>
+                <th style="width: 85px;">Stage Status</th>
+                <th style="width: 55px;" class="text-center">Reg Checked</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr class="{% cycle 'even' 'odd' %}">
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td class="roll-no">{{ app.student.roll_number }}</td>
+                <td><strong>{{ app.student.student_name }}</strong></td>
+                <td>{{ app.student.program_level }}</td>
+                <td class="text-center">{{ app.student.current_semester }}</td>
+                <td class="text-center">{{ app.student.personalinfo.community|default:"-" }}</td>
+                <td class="text-center" style="font-size: 6.8pt; font-weight: bold; color: #0369a1;">{{ app.academic_year|default:"2026-2027" }}</td>
+                <td>
+                    <strong>{{ app.get_scholarship_type_display }}</strong>
+                    {% if app.private_scholarship_name %}<br><span style="font-size: 6.5pt; color: #64748b;">{{ app.private_scholarship_name }}</span>{% endif %}
+                </td>
+                <td>{{ app.application_no|default:"N/A" }}</td>
+                <td class="text-right">
+                    {% if app.annual_income %}Rs. {{ app.annual_income }}{% else %}N/A{% endif %}
+                </td>
+                <td class="bank-acc">{{ app.bank_account_no|default:"N/A" }}</td>
+                <td>{{ app.bank_ifsc|default:"N/A" }}</td>
+                <td>
+                    {% if app.status == 'Pending Office Verification' %}
+                        <span class="badge-status status-pending">Pending Verification</span>
+                    {% elif app.status == 'Verified & Recommended' %}
+                        <span class="badge-status status-verified">Verified &amp; Recommended</span>
+                    {% elif app.status == 'Govt Sanctioned / Amount Received' %}
+                        <span class="badge-status status-sanctioned">Sanctioned &amp; Disbursed</span>
+                    {% elif app.status == 'Rejected / Ineligible' %}
+                        <span class="badge-status status-rejected">Rejected / Ineligible</span>
+                    {% else %}
+                        <span class="badge-status status-other">{{ app.status }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if app.is_checked_in_registration %}
+                        <span class="reg-badge">Yes (In Reg)</span>
+                    {% else %}
+                        <span class="portal-badge">No (Portal)</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="14" class="text-center" style="padding: 20px; color: #64748b;">
+                    No scholarship records found matching criteria.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer-summary">
+        Total Applications in this export: <strong>{{ applications|length }}</strong> | Official Institutional Verification Document
+    </div>
+
+</body>
+</html>

@@ -1312,3 +1312,257 @@ class ClassInchargeBatchTestCase(TestCase):
         with self.assertRaises(ValidationError):
             ci_all.clean()
 
+
+class ScholarshipDistributionDashboardTestCase(TestCase):
+    def setUp(self):
+        Staff.objects.all().delete()
+        from students.models import Student, ScholarshipInfo, ScholarshipApplication
+        Student.objects.all().delete()
+
+        import datetime
+        from staffs.models import StaffQualification
+        self.officer = Staff.objects.create(
+            staff_id="SCHOFFTEST",
+            name="Test Scholarship Officer",
+            email="schofficer@test.edu",
+            mobile_number="9876543210",
+            date_of_birth=datetime.date(1985, 1, 1),
+            date_of_joining=datetime.date(2015, 1, 1),
+            address="Campus Quarters",
+            salutation="Dr.",
+            role="Scholarship Officer",
+            is_profile_complete=True
+        )
+        StaffQualification.objects.create(
+            staff=self.officer,
+            degree="Ph.D.",
+            university="University"
+        )
+
+        # Student 1: Checked First Graduate and BC/MBC in registration
+        self.stud1 = Student.objects.create(
+            roll_number="STUDREG01",
+            student_name="Student Reg 1",
+            student_email="stud1@test.edu",
+            program_level="UG",
+            current_semester=1
+        )
+        ScholarshipInfo.objects.create(
+            student=self.stud1,
+            is_first_graduate=True,
+            sch_bcmbc=True
+        )
+
+        # Student 2: Checked Tamizh Puthalvan in registration
+        self.stud2 = Student.objects.create(
+            roll_number="STUDREG02",
+            student_name="Student Reg 2",
+            student_email="stud2@test.edu",
+            program_level="UG",
+            current_semester=2
+        )
+        ScholarshipInfo.objects.create(
+            student=self.stud2,
+            sch_tamizh=True
+        )
+
+        # Student 1 applied for First Graduate on portal
+        self.app_fg = ScholarshipApplication.objects.create(
+            student=self.stud1,
+            scholarship_type='FG',
+            application_no='APP-FG-001',
+            status='Pending Office Verification'
+        )
+
+        # Student 2 applied for Post-Matric on portal (was NOT checked in registration)
+        self.app_pm = ScholarshipApplication.objects.create(
+            student=self.stud2,
+            scholarship_type='POSTMATRIC',
+            application_no='APP-PM-002',
+            status='Pending Office Verification'
+        )
+
+    def test_scholarship_application_reg_property(self):
+        # app_fg: student1 checked FG in reg -> True
+        self.assertTrue(self.app_fg.is_checked_in_registration)
+        # app_pm: student2 did not check POSTMATRIC in reg -> False
+        self.assertFalse(self.app_pm.is_checked_in_registration)
+
+    def test_scholarship_distribution_dashboard_counts(self):
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        response = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer')
+        self.assertEqual(response.status_code, 200)
+
+        # Check applied counts in context
+        sch_scheme_counts = response.context['sch_scheme_counts']
+        self.assertEqual(sch_scheme_counts['FG'], 1)
+        self.assertEqual(sch_scheme_counts['POSTMATRIC'], 1)
+        self.assertEqual(sch_scheme_counts['BCMBC'], 0)
+        self.assertEqual(sch_scheme_counts['TAMIZH'], 0)
+
+        # Check checked during reg counts in context
+        sch_reg_counts = response.context['sch_reg_counts']
+        self.assertEqual(sch_reg_counts['FG'], 1)
+        self.assertEqual(sch_reg_counts['BCMBC'], 1)
+        self.assertEqual(sch_reg_counts['TAMIZH'], 1)
+        self.assertEqual(sch_reg_counts['POSTMATRIC'], 0)
+
+        # Check template rendering has both Applied and In Reg
+        content = response.content.decode('utf-8')
+        self.assertIn("Scholarship Scheme Distribution", content)
+        self.assertIn("Applied:</strong> Portal Applications", content)
+        self.assertIn("In Reg:</strong> Checked During Reg", content)
+        self.assertIn("Checked in Reg", content)
+        self.assertIn("Portal Application", content)
+
+    def test_scholarship_csv_export_excel_formatting(self):
+        # Configure large numeric roll number and bank account number (which Excel would otherwise turn into scientific notation 2.34E+09 / 4.32E+12)
+        from students.models import Student, ScholarshipApplication
+        stud_excel = Student.objects.create(
+            roll_number="2341101001",
+            student_name="Sachin A",
+            student_email="sachin.excel@test.edu",
+            program_level="UG",
+            current_semester=6
+        )
+        ScholarshipApplication.objects.create(
+            student=stud_excel,
+            scholarship_type='FG',
+            application_no='20240987654',
+            annual_income=120000,
+            bank_account_no='4321098765432',
+            bank_ifsc='ICIC0001234',
+            status='Pending Office Verification'
+        )
+
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        response = self.client.get(reverse('staffs:scholarship_manager') + '?export=csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('text/csv', response['Content-Type'])
+        self.assertIn('attachment; filename="scholarship_applications_audit.csv"', response['Content-Disposition'])
+
+        import csv, io
+        reader = list(csv.reader(io.StringIO(response.content.decode('utf-8-sig'))))
+        header = reader[0]
+        self.assertEqual(header[0], 'Roll Number')
+        self.assertEqual(header[6], 'Academic Year')
+        self.assertEqual(header[10], 'Bank Account')
+        # Ensure roll number and bank account are wrapped in f'="<val>"' so Excel does not convert to scientific notation
+        self.assertEqual(reader[1][0], '="2341101001"')
+        self.assertEqual(reader[1][6], '2026-2027')
+        self.assertEqual(reader[1][10], '="4321098765432"')
+        self.assertEqual(reader[1][11], 'ICIC0001234')
+
+    def test_scholarship_pdf_export_full(self):
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        response = self.client.get(reverse('staffs:scholarship_manager') + '?export=pdf')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertIn('attachment; filename="scholarship_applications_audit.pdf"', response['Content-Disposition'])
+        self.assertTrue(response.content.startswith(b'%PDF-'))
+
+    def test_scholarship_batch_export_pdf_selected(self):
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        # Submit batch export for selected application checkbox
+        response = self.client.post(
+            reverse('staffs:scholarship_manager'),
+            {'action': 'export_pdf', 'app_ids': [self.app_fg.id]}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertIn('selected_scholarships_audit.pdf', response['Content-Disposition'])
+        self.assertTrue(response.content.startswith(b'%PDF-'))
+
+    def test_scholarship_batch_export_csv_selected(self):
+        from students.models import Student, ScholarshipApplication
+        stud_batch = Student.objects.create(
+            roll_number="2341101099",
+            student_name="Batch Student",
+            student_email="batch.stud@test.edu",
+            program_level="UG",
+            current_semester=6
+        )
+        app_batch = ScholarshipApplication.objects.create(
+            student=stud_batch,
+            scholarship_type='FG',
+            academic_year='2027-2028',
+            bank_account_no='4321098765432',
+            status='Pending Office Verification'
+        )
+
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        response = self.client.post(
+            reverse('staffs:scholarship_manager'),
+            {'action': 'export_csv', 'app_ids': [app_batch.id]}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('text/csv', response['Content-Type'])
+        self.assertIn('selected_scholarships_audit.csv', response['Content-Disposition'])
+
+        import csv, io
+        reader = list(csv.reader(io.StringIO(response.content.decode('utf-8-sig'))))
+        self.assertEqual(reader[1][0], '="2341101099"')
+        self.assertEqual(reader[1][6], '2027-2028')
+        self.assertEqual(reader[1][10], '="4321098765432"')
+
+    def test_scholarship_academic_year_filtering_and_application_reset(self):
+        """Test academic year scoping, application reset for new year, and officer dashboard filter."""
+        from students.models import ScholarshipApplication
+
+        # Create 2026-2027 application
+        app_26 = ScholarshipApplication.objects.create(
+            student=self.stud1,
+            scholarship_type='POSTMATRIC',
+            academic_year='2026-2027',
+            status='Verified & Recommended'
+        )
+        # Create 2027-2028 application for same student and same scheme (allowed because academic year changed)
+        app_27 = ScholarshipApplication.objects.create(
+            student=self.stud1,
+            scholarship_type='POSTMATRIC',
+            academic_year='2027-2028',
+            status='Pending Office Verification'
+        )
+
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        # 1. Scholarship Manager filter by 2026-2027
+        resp_26 = self.client.get(reverse('staffs:scholarship_manager') + '?academic_year=2026-2027')
+        self.assertEqual(resp_26.status_code, 200)
+        apps_26 = list(resp_26.context['applications'])
+        self.assertIn(app_26, apps_26)
+        self.assertNotIn(app_27, apps_26)
+
+        # 2. Scholarship Manager filter by 2027-2028
+        resp_27 = self.client.get(reverse('staffs:scholarship_manager') + '?academic_year=2027-2028')
+        self.assertEqual(resp_27.status_code, 200)
+        apps_27 = list(resp_27.context['applications'])
+        self.assertIn(app_27, apps_27)
+        self.assertNotIn(app_26, apps_27)
+
+        # 3. Staff Dashboard filter by 2027-2028
+        dash_resp = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&academic_year=2027-2028')
+        self.assertEqual(dash_resp.status_code, 200)
+        recent_sch = list(dash_resp.context['recent_sch_apps'])
+        self.assertIn(app_27, recent_sch)
+        self.assertNotIn(app_26, recent_sch)
+        self.assertEqual(dash_resp.context['selected_academic_year'], '2027-2028')
+
+

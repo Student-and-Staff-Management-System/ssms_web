@@ -161,6 +161,16 @@ class Student(models.Model):
         """Checks if the raw password matches the hashed one."""
         return check_password(raw_password, self.password)
 
+    @property
+    def registration_scholarships(self):
+        """Returns list of scholarship names checked by the student during registration."""
+        try:
+            if hasattr(self, 'scholarshipinfo') and self.scholarshipinfo:
+                return self.scholarshipinfo.get_checked_scholarships()
+        except Exception:
+            pass
+        return []
+
     def __str__(self):
         return f"{self.student_name} ({self.roll_number})"
 
@@ -295,6 +305,32 @@ class ScholarshipInfo(models.Model):
     private_scholarship_name = models.CharField(max_length=100, blank=True)
     is_7_5_reservation = models.BooleanField(default=False)
 
+    def get_checked_scholarships(self):
+        """Returns a list of scholarship names selected by the student during registration."""
+        checked = []
+        if self.is_first_graduate:
+            checked.append("First Graduate")
+        if self.sch_bcmbc:
+            checked.append("BC / MBC Welfare")
+        if self.sch_postmetric:
+            checked.append("Post-Matric (SC/ST/SCC)")
+        if self.sch_pm:
+            checked.append("PM Central / Pragati")
+        if self.sch_govt:
+            checked.append("Govt 7.5% Quota")
+        elif self.is_7_5_reservation:
+            checked.append("Govt 7.5% Quota")
+        if self.sch_pudhumai:
+            checked.append("Pudhumai Penn Scheme")
+        if self.sch_tamizh:
+            checked.append("Tamizh Puthalvan Scheme")
+        if self.sch_private:
+            name = f"Private ({self.private_scholarship_name})" if self.private_scholarship_name else "Private / Endowment"
+            checked.append(name)
+        elif self.private_scholarship_name:
+            checked.append(f"Private ({self.private_scholarship_name})")
+        return checked
+
 SCHOLARSHIP_TYPE_CHOICES = [
     ('FG', 'First Graduate Scholarship'),
     ('BCMBC', 'BC / MBC Welfare Scholarship'),
@@ -334,6 +370,34 @@ class ScholarshipApplication(models.Model):
 
     class Meta:
         ordering = ['-applied_at']
+
+    @property
+    def is_checked_in_registration(self):
+        """Returns True if the student checked this scheme during admission/registration."""
+        try:
+            sch_info = getattr(self.student, 'scholarshipinfo', None)
+            if not sch_info:
+                return False
+            st = self.scholarship_type
+            if st == 'POSTMATRIC':
+                return bool(sch_info.sch_postmetric)
+            elif st == 'BCMBC':
+                return bool(sch_info.sch_bcmbc)
+            elif st == 'FG':
+                return bool(sch_info.is_first_graduate)
+            elif st == 'PUDHUMAI':
+                return bool(sch_info.sch_pudhumai)
+            elif st == 'TAMIZH':
+                return bool(sch_info.sch_tamizh)
+            elif st == 'GOVT_7_5':
+                return bool(sch_info.sch_govt or sch_info.is_7_5_reservation)
+            elif st == 'PM':
+                return bool(sch_info.sch_pm)
+            elif st == 'PRIVATE':
+                return bool(sch_info.sch_private or sch_info.private_scholarship_name)
+        except Exception:
+            pass
+        return False
 
     def __str__(self):
         return f"{self.student.student_name} - {self.get_scholarship_type_display()} ({self.status})"

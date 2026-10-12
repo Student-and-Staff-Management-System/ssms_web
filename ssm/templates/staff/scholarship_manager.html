@@ -345,6 +345,12 @@
             <button type="button" onclick="submitBatchForm('bulk_disburse')" style="background: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="ri-coins-line"></i> Bulk Mark Sanctioned
             </button>
+            <button type="button" onclick="submitBatchForm('export_pdf')" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ri-file-pdf-line"></i> Export PDF (Selected)
+            </button>
+            <button type="button" onclick="submitBatchForm('export_csv')" style="background: #0f766e; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ri-file-excel-line"></i> Export CSV (Selected)
+            </button>
             <button type="button" onclick="clearBatchSelection()" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.82rem; cursor: pointer;">
                 Clear Selection
             </button>
@@ -361,6 +367,14 @@
                 <i class="ri-search-line search-icon"></i>
                 <input type="text" name="q" value="{{ filters.q|default:'' }}" placeholder="Search name, roll no, application ref...">
             </div>
+
+            <!-- Academic Year Dropdown -->
+            <select name="academic_year" class="toolbar-select">
+                <option value="">All Academic Years</option>
+                {% for ay in available_academic_years %}
+                <option value="{{ ay }}" {% if ay == filters.academic_year %}selected{% endif %}>AY {{ ay }}</option>
+                {% endfor %}
+            </select>
 
             <!-- 2. Primary Status Dropdown -->
             <select name="status" class="toolbar-select">
@@ -389,12 +403,17 @@
             <!-- 5. Submit Filter Button -->
             <button type="submit" class="btn-toolbar-primary"><i class="ri-search-2-line"></i> Filter Records</button>
 
-            <!-- 6. Export CSV Button -->
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}export=csv" class="btn-export-csv">
-                <i class="ri-file-excel-line"></i> Export CSV
-            </a>
+            <!-- 6. Export Buttons (PDF & CSV) -->
+            <div style="display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap;">
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}export=pdf" style="background: #dc2626; color: #ffffff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 0.86rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; white-space: nowrap;">
+                    <i class="ri-file-pdf-line"></i> Export PDF
+                </a>
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}export=csv" class="btn-export-csv" style="margin-left: 0;">
+                    <i class="ri-file-excel-line"></i> Export CSV
+                </a>
+            </div>
 
-            {% if filters.q or filters.status or filters.scholarship_type or filters.scholarship_types or filters.max_income or filters.community or filters.program_level or filters.semester or filters.is_hosteler or filters.is_7_5 or filters.is_fg %}
+            {% if filters.q or filters.status or filters.scholarship_type or filters.scholarship_types or filters.max_income or filters.community or filters.program_level or filters.semester or filters.is_hosteler or filters.is_7_5 or filters.is_fg or filters.academic_year %}
             <a href="{% url 'staffs:scholarship_manager' %}" class="btn-toolbar-secondary" style="color: #dc2626; border-color: #fca5a5;">
                 Clear ✕
             </a>
@@ -403,10 +422,16 @@
         </div>
 
         <!-- Active Applied Filter Chips Bar -->
-        {% if filters.q or filters.status or filters.scholarship_type or filters.scholarship_types or filters.max_income or filters.community or filters.program_level or filters.semester or filters.is_hosteler or filters.is_7_5 or filters.is_fg %}
+        {% if filters.q or filters.status or filters.scholarship_type or filters.scholarship_types or filters.max_income or filters.community or filters.program_level or filters.semester or filters.is_hosteler or filters.is_7_5 or filters.is_fg or filters.academic_year %}
         <div class="active-chips-bar" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border, #e2e8f0);">
             <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase;">Active Filters:</span>
             
+            {% if filters.academic_year %}
+            <a href="?{% for k,v in request.GET.items %}{% if k != 'academic_year' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
+                <i class="ri-calendar-line"></i> AY {{ filters.academic_year }} &times;
+            </a>
+            {% endif %}
+
             {% if filters.q %}
             <a href="?{% for k,v in request.GET.items %}{% if k != 'q' %}{{k}}={{v}}&{% endif %}{% endfor %}" class="chip-item" style="text-decoration: none;">
                 <i class="ri-search-line"></i> "{{ filters.q }}" &times;
@@ -565,8 +590,9 @@
                                 <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" style="cursor: pointer;">
                             </th>
                             <th style="padding: 14px 12px; min-width: 200px;">Student Details</th>
-                            <th style="padding: 14px 12px; min-width: 200px;">Scholarship Scheme</th>
-                            <th style="padding: 14px 12px; min-width: 190px;">App Ref / Income / Proof</th>
+                            <th style="padding: 14px 12px; min-width: 100px;">Academic Year</th>
+                            <th style="padding: 14px 12px; min-width: 190px;">Scholarship Scheme</th>
+                            <th style="padding: 14px 12px; min-width: 180px;">App Ref / Income / Proof</th>
                             <th style="padding: 14px 12px; min-width: 150px;">Bank / DBT Info</th>
                             <th style="padding: 14px 12px; min-width: 160px;">Stage Status</th>
                             <th style="padding: 14px 12px; text-align: right; min-width: 220px;">Actions</th>
@@ -591,6 +617,20 @@
                                 <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
                                     {{ app.student.program_level }} | Sem {{ app.student.current_semester }} | Category: <strong>{{ app.student.personalinfo.community|default:"N/A" }}</strong>
                                 </div>
+                                {% with reg_schs=app.student.registration_scholarships %}
+                                {% if reg_schs %}
+                                <div style="font-size: 0.73rem; color: var(--primary, #5a7d7c); margin-top: 4px;" title="Scholarships checked during registration">
+                                    <i class="ri-checkbox-circle-line"></i> Reg: {{ reg_schs|join:", " }}
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+
+                            <!-- Academic Year -->
+                            <td style="padding: 14px 12px;">
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; white-space: nowrap;">
+                                    AY {{ app.academic_year|default:"2026-2027" }}
+                                </span>
                             </td>
 
                             <!-- Scholarship Scheme -->
@@ -690,7 +730,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">
+                            <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">
                                 No scholarship audit records found matching your active filter criteria.
                             </td>
                         </tr>
@@ -887,7 +927,13 @@
             alert('Please select at least one student application checkbox.');
             return;
         }
-        if (confirm(`Execute batch action (${actionType}) on ${checked.length} selected applications?`)) {
+        if (actionType.startsWith('export')) {
+            document.getElementById('batchActionField').value = actionType;
+            document.getElementById('batchActionForm').submit();
+            return;
+        }
+        let actionLabel = actionType === 'bulk_approve' ? 'Bulk Verify & Recommend' : (actionType === 'bulk_disburse' ? 'Bulk Mark Sanctioned' : actionType);
+        if (confirm(`Execute batch action (${actionLabel}) on ${checked.length} selected applications?`)) {
             document.getElementById('batchActionField').value = actionType;
             document.getElementById('batchActionForm').submit();
         }

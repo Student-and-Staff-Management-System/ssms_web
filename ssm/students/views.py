@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.contrib import messages
@@ -2486,6 +2487,7 @@ def apply_scholarship(request):
             return redirect('apply_scholarship')
 
         scholarship_type = request.POST.get('scholarship_type', '').strip()
+        academic_year = request.POST.get('academic_year', '2026-2027').strip() or '2026-2027'
         private_name = request.POST.get('private_scholarship_name', '').strip()
         application_no = request.POST.get('application_no', '').strip()
         annual_income = request.POST.get('annual_income', '').strip()
@@ -2501,10 +2503,11 @@ def apply_scholarship(request):
             messages.error(request, 'Please specify the name of the Private / Endowment scholarship.')
             return redirect('apply_scholarship')
 
-        # Check duplicate active/pending request for same scholarship type
+        # Check duplicate active/pending request for same scholarship type in the SAME academic year
         existing = ScholarshipApplication.objects.filter(
             student=student,
             scholarship_type=scholarship_type,
+            academic_year=academic_year,
             status__in=['Pending Office Verification', 'Verified & Recommended']
         ).first()
 
@@ -2512,9 +2515,9 @@ def apply_scholarship(request):
             messages.warning(
                 request,
                 f"You already have an active declaration for '{existing.get_scholarship_type_display()}' "
-                f"(Status: {existing.get_status_display()}). Simultaneous duplicate entries for the same scheme are not allowed."
+                f"for Academic Year {academic_year} (Status: {existing.get_status_display()}). Simultaneous duplicate entries for the same scheme in the same academic year are not allowed."
             )
-            return redirect('apply_scholarship')
+            return redirect(f"{reverse('apply_scholarship')}?academic_year={academic_year}")
 
         # Parse income
         income_val = None
@@ -2527,13 +2530,13 @@ def apply_scholarship(request):
         # Supporting document
         supp_doc = request.FILES.get('supporting_document')
 
-        # Create application record
+        # Create application record for the specified academic year
         sch_app = ScholarshipApplication.objects.create(
             student=student,
             scholarship_type=scholarship_type,
             private_scholarship_name=private_name if scholarship_type == 'PRIVATE' else '',
             application_no=application_no,
-            academic_year='2026-2027',
+            academic_year=academic_year,
             annual_income=income_val,
             income_certificate_no=income_cert_no,
             bank_account_no=bank_acc,
@@ -2551,10 +2554,11 @@ def apply_scholarship(request):
         if recipient_emails:
             try:
                 send_mail(
-                    subject=f"New Scholarship Declaration: {student.student_name} ({student.roll_number})",
+                    subject=f"New Scholarship Declaration ({academic_year}): {student.student_name} ({student.roll_number})",
                     message=(
-                        f"A new scholarship application record has been declared by {student.student_name} ({student.roll_number}).\n\n"
+                        f"A new scholarship application record has been declared by {student.student_name} ({student.roll_number}) for Academic Year {academic_year}.\n\n"
                         f"Scholarship Scheme: {sch_app.get_scholarship_type_display()}\n"
+                        f"Academic Year: {academic_year}\n"
                         f"Application Ref No: {application_no or 'N/A'}\n"
                         f"Annual Income: ₹{income_val or 'N/A'}\n\n"
                         f"Please log in to the SSMS Scholarship Verification Manager to verify and record."
@@ -2568,21 +2572,38 @@ def apply_scholarship(request):
 
         messages.success(
             request,
-            f"Your scholarship declaration for '{sch_app.get_scholarship_type_display()}' has been recorded successfully for Office Verification!"
+            f"Your scholarship declaration for '{sch_app.get_scholarship_type_display()}' (AY {academic_year}) has been recorded successfully for Office Verification!"
         )
-        return redirect('apply_scholarship')
+        return redirect(f"{reverse('apply_scholarship')}?academic_year={academic_year}")
 
     # GET handling
-    applications = ScholarshipApplication.objects.filter(student=student).order_by('-applied_at')
+    filter_ay = request.GET.get('academic_year', '').strip()
+    all_apps = ScholarshipApplication.objects.filter(student=student).order_by('-applied_at')
     
+    if filter_ay and filter_ay != 'all':
+        applications = all_apps.filter(academic_year=filter_ay)
+    else:
+        applications = all_apps
+
+    # Distinct academic years for switcher
+    recorded_ays = list(all_apps.values_list('academic_year', flat=True).distinct())
+    available_academic_years = ['2026-2027', '2027-2028', '2025-2026', '2024-2025']
+    for y in recorded_ays:
+        if y and y not in available_academic_years:
+            available_academic_years.append(y)
+
     # Try pre-filling bank details
     bank_info = BankDetails.objects.filter(student=student).first()
 
     context = {
         'student': student,
         'applications': applications,
+        'all_applications_count': all_apps.count(),
         'bank_info': bank_info,
         'type_choices': SCHOLARSHIP_TYPE_CHOICES,
+        'available_academic_years': available_academic_years,
+        'selected_academic_year': filter_ay or '',
+        'default_academic_year': '2026-2027',
     }
     return render(request, 'students/apply_scholarship.html', context)
 
