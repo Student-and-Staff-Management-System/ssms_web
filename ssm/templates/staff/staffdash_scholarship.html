@@ -409,7 +409,7 @@
                     <i class="ri-user-search-line" style="color: var(--primary, #5a7d7c);"></i> Scholarship Applications Roster
                 </h3>
                 <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
-                    Total <strong>{{ roster_total_count|default:0 }}</strong> student records found 
+                    Total <strong>{{ roster_student_count|default:recent_sch_apps.paginator.count }}</strong> students (<strong>{{ roster_total_count|default:0 }}</strong> scholarship schemes) 
                     {% if req_sch_type %}&bull; Scheme: <strong style="color: var(--primary);">{{ req_sch_type }}</strong>{% endif %}
                     {% if req_sch_tag %}&bull; Tag: <strong style="color: #0284c7;">{{ req_sch_tag|title }}</strong>{% endif %}
                 </div>
@@ -559,84 +559,145 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for app in recent_sch_apps %}
+                        {% for record in recent_sch_apps %}
                         <tr style="border-bottom: 1px solid var(--border-light, #f1f5f9);">
-                            <td style="padding: 12px 8px; text-align: center;">
-                                {% if app.has_application or app.id and not app.is_reg_only %}
-                                <input type="checkbox" name="app_ids" value="{{ app.id }}" class="dash-sch-checkbox" onchange="updateDashBatchBar()" style="cursor: pointer;">
+                            <!-- 1. CHECKBOX -->
+                            <td style="padding: 12px 8px; text-align: center; vertical-align: top;">
+                                {% if record.has_any_applied %}
+                                <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                                    {% for sch in record.scholarships %}
+                                    <div style="min-height: 38px; display: flex; align-items: center; justify-content: center; {% if not forloop.first %}padding-top: 6px; border-top: 1px dashed transparent;{% endif %}">
+                                        {% if sch.id %}
+                                        <input type="checkbox" name="app_ids" value="{{ sch.id }}" class="dash-sch-checkbox" onchange="updateDashBatchBar()" style="cursor: pointer;" title="Select {{ sch.get_scholarship_type_display }}">
+                                        {% else %}
+                                        <input type="checkbox" disabled title="In Reg only (portal application not submitted yet)" style="cursor: not-allowed; opacity: 0.35;">
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
                                 {% else %}
-                                <input type="checkbox" disabled title="In Reg only (portal application not submitted yet)" style="cursor: not-allowed; opacity: 0.35;">
+                                <div style="min-height: 38px; display: flex; align-items: center; justify-content: center;">
+                                    <input type="checkbox" disabled title="In Reg only (portal application not submitted yet)" style="cursor: not-allowed; opacity: 0.35;">
+                                </div>
                                 {% endif %}
                             </td>
-                            <td style="padding: 12px;">
+
+                            <!-- 2. STUDENT -->
+                            <td style="padding: 12px; vertical-align: top;">
                                 <div style="font-weight: 700; color: var(--text-main);">
-                                    <a href="{% url 'staffs:student_detail' app.student.roll_number %}" style="text-decoration: none; color: inherit;">{{ app.student.student_name }}</a>
+                                    <a href="{% url 'staffs:student_detail' record.student.roll_number %}" style="text-decoration: none; color: inherit;">{{ record.student.student_name }}</a>
                                 </div>
-                                <div style="font-size: 0.76rem; color: var(--text-muted);">
-                                    Roll: <strong>{{ app.student.roll_number }}</strong> 
-                                    | {% if app.application_no %}Ref: {{ app.application_no }}{% else %}<span style="color: #0284c7;">Reg Verified</span>{% endif %}
-                                </div>
-                            </td>
-                            <td style="padding: 12px;">
-                                <span style="font-weight: 600;">Sem {{ app.student.current_semester }}</span>
-                                <div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.student.department|default:"Dept" }}</div>
-                            </td>
-                            <td style="padding: 12px;">
-                                <span style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; white-space: nowrap;">
-                                    AY {{ app.academic_year|default:"2026-2027" }}
-                                </span>
-                            </td>
-                            <td style="padding: 12px;">
-                                <span style="font-weight: 600; color: var(--primary);">{{ app.get_scholarship_type_display }}</span>
-                                {% if app.private_scholarship_name %}<div style="font-size: 0.76rem; color: var(--text-muted);">{{ app.private_scholarship_name }}</div>{% endif %}
-                                
-                                <!-- SOURCE TAGS (Applied / In Reg / Not Applied) -->
-                                <div style="display: flex; gap: 5px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
-                                    {% if app.is_applied %}
-                                    <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: rgba(90, 125, 124, 0.14); color: var(--primary, #5a7d7c); border: 1px solid rgba(90, 125, 124, 0.35); padding: 1px 6px; border-radius: 4px; font-weight: 700;" title="Portal Application">
-                                        <i class="ri-file-check-line"></i> Applied
-                                    </span>
-                                    {% endif %}
-                                    {% if app.is_in_reg or app.is_checked_in_registration %}
-                                    <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 1px 6px; border-radius: 4px; font-weight: 700;" title="Checked in Reg">
-                                        <i class="ri-checkbox-circle-line"></i> In Reg
-                                    </span>
-                                    {% endif %}
-                                    {% if not app.is_applied and app.is_in_reg %}
-                                    <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 1px 6px; border-radius: 4px; font-weight: 700;" title="Checked in registration but portal application not yet submitted">
-                                        <i class="ri-alert-line"></i> Not Applied
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td style="padding: 12px;">
-                                {% if app.annual_income %}₹{{ app.annual_income }}{% else %}<span style="color: var(--text-muted);">Not Specified</span>{% endif %}
-                            </td>
-                            <td style="padding: 12px;">
-                                {% if app.is_applied %}
-                                    {% if app.status == 'Pending Office Verification' %}
-                                    <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">⏳ Pending Verification</span>
-                                    {% elif app.status == 'Verified & Recommended' %}
-                                    <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">✅ Recommended to Govt</span>
-                                    {% elif app.status == 'Govt Sanctioned / Amount Received' %}
-                                    <span style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">💰 Sanctioned & Disbursed</span>
+                                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                                    Roll: <strong>{{ record.student.roll_number }}</strong>
+                                    {% if record.has_any_applied %}
+                                        {% for sch in record.scholarships %}
+                                            {% if sch.application_no %}
+                                            <div style="margin-top: 2px; color: var(--text-secondary);"><span style="color: var(--text-muted);">Ref:</span> {{ sch.application_no }}</div>
+                                            {% endif %}
+                                        {% endfor %}
                                     {% else %}
-                                    <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">❌ {{ app.status }}</span>
+                                        | <span style="color: #0284c7; font-weight: 600;">Reg Verified</span>
                                     {% endif %}
-                                {% else %}
-                                    <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Selected in registration; portal application not yet submitted">
-                                        <i class="ri-alert-line"></i> Not Applied (Checked in Reg)
-                                    </span>
-                                {% endif %}
+                                </div>
                             </td>
-                            <td style="padding: 12px; text-align: right;">
-                                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                    <a href="{% url 'staffs:student_detail' app.student.roll_number %}" style="background: var(--surface-subtle); border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; color: var(--text-main); font-weight: 600;">Profile</a>
-                                    {% if app.is_applied %}
-                                    <a href="{% url 'staffs:scholarship_manager' %}?q={{ app.student.roll_number }}" style="background: var(--primary, #5a7d7c); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; font-weight: 600;">Action &rarr;</a>
-                                    {% else %}
-                                    <a href="{% url 'staffs:scholarship_manager' %}?mode=potential_eligible{% if app.scheme_filter_key %}&scheme={{ app.scheme_filter_key }}{% endif %}&q={{ app.student.roll_number }}" style="background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 5px 10px; border-radius: 4px; font-size: 0.78rem; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Open Potential Eligible Desk for this student">Desk &rarr;</a>
-                                    {% endif %}
+
+                            <!-- 3. SEM & DEPT -->
+                            <td style="padding: 12px; vertical-align: top;">
+                                <span style="font-weight: 600;">Sem {{ record.student.current_semester }}</span>
+                                <div style="font-size: 0.76rem; color: var(--text-muted);">{{ record.student.department|default:"Dept" }}</div>
+                            </td>
+
+                            <!-- 4. ACADEMIC YEAR -->
+                            <td style="padding: 12px; vertical-align: top;">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for sch in record.scholarships %}
+                                    <div style="min-height: 38px; display: flex; align-items: center; {% if not forloop.first %}padding-top: 6px; border-top: 1px dashed transparent;{% endif %}">
+                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; white-space: nowrap;">
+                                            AY {{ sch.academic_year|default:record.academic_year|default:"2026-2027" }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                            <!-- 5. SCHOLARSHIP SCHEME (LISTED DOWN IN ONE LIST) -->
+                            <td style="padding: 12px; vertical-align: top;">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for sch in record.scholarships %}
+                                    <div style="min-height: 38px; display: flex; flex-direction: column; justify-content: center; {% if not forloop.first %}padding-top: 6px; border-top: 1px dashed var(--border-light, #f1f5f9);{% endif %}">
+                                        <div style="font-weight: 600; color: var(--primary);">{{ sch.get_scholarship_type_display }}</div>
+                                        {% if sch.private_scholarship_name %}<div style="font-size: 0.76rem; color: var(--text-muted);">{{ sch.private_scholarship_name }}</div>{% endif %}
+                                        
+                                        <!-- SOURCE TAGS (Applied / In Reg / Not Applied) -->
+                                        <div style="display: flex; gap: 5px; align-items: center; margin-top: 3px; flex-wrap: wrap;">
+                                            {% if sch.is_applied %}
+                                            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: rgba(90, 125, 124, 0.14); color: var(--primary, #5a7d7c); border: 1px solid rgba(90, 125, 124, 0.35); padding: 1px 6px; border-radius: 4px; font-weight: 700;" title="Portal Application">
+                                                <i class="ri-file-check-line"></i> Applied
+                                            </span>
+                                            {% endif %}
+                                            {% if sch.is_in_reg or sch.is_checked_in_registration %}
+                                            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 1px 6px; border-radius: 4px; font-weight: 700;" title="Checked in Reg">
+                                                <i class="ri-checkbox-circle-line"></i> In Reg
+                                            </span>
+                                            {% endif %}
+                                            {% if not sch.is_applied and sch.is_in_reg %}
+                                            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 1px 6px; border-radius: 4px; font-weight: 700;" title="Checked in registration but portal application not yet submitted">
+                                                <i class="ri-alert-line"></i> Not Applied
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                            <!-- 6. FAMILY INCOME -->
+                            <td style="padding: 12px; vertical-align: top;">
+                                <div style="min-height: 38px; display: flex; align-items: center;">
+                                    {% if record.annual_income %}₹{{ record.annual_income }}{% else %}<span style="color: var(--text-muted);">Not Specified</span>{% endif %}
+                                </div>
+                            </td>
+
+                            <!-- 7. STAGE STATUS -->
+                            <td style="padding: 12px; vertical-align: top;">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for sch in record.scholarships %}
+                                    <div style="min-height: 38px; display: flex; align-items: center; {% if not forloop.first %}padding-top: 6px; border-top: 1px dashed transparent;{% endif %}">
+                                        {% if sch.is_applied %}
+                                            {% if sch.status == 'Pending Office Verification' %}
+                                            <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; white-space: nowrap;">⏳ Pending Verification</span>
+                                            {% elif sch.status == 'Verified & Recommended' %}
+                                            <span style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; white-space: nowrap;">✅ Recommended to Govt</span>
+                                            {% elif sch.status == 'Govt Sanctioned / Amount Received' %}
+                                            <span style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; white-space: nowrap;">💰 Sanctioned & Disbursed</span>
+                                            {% else %}
+                                            <span style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; white-space: nowrap;">❌ {{ sch.status }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;" title="Selected in registration; portal application not yet submitted">
+                                                <i class="ri-alert-line"></i> Not Applied (Checked in Reg)
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                            <!-- 8. ACTION -->
+                            <td style="padding: 12px; text-align: right; vertical-align: top;">
+                                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                                    {% for sch in record.scholarships %}
+                                    <div style="min-height: 38px; display: flex; gap: 6px; justify-content: flex-end; align-items: center; {% if not forloop.first %}padding-top: 6px; border-top: 1px dashed transparent;{% endif %}">
+                                        {% if forloop.first %}
+                                        <a href="{% url 'staffs:student_detail' record.student.roll_number %}" style="background: var(--surface-subtle); border: 1px solid var(--border); padding: 4px 9px; border-radius: 4px; font-size: 0.75rem; text-decoration: none; color: var(--text-main); font-weight: 600;">Profile</a>
+                                        {% endif %}
+                                        {% if sch.is_applied %}
+                                        <a href="{% url 'staffs:scholarship_manager' %}?q={{ record.student.roll_number }}" style="background: var(--primary, #5a7d7c); color: white; padding: 4px 9px; border-radius: 4px; font-size: 0.75rem; text-decoration: none; font-weight: 600; white-space: nowrap;">Action &rarr;</a>
+                                        {% else %}
+                                        <a href="{% url 'staffs:scholarship_manager' %}?mode=potential_eligible{% if sch.scheme_filter_key %}&scheme={{ sch.scheme_filter_key }}{% endif %}&q={{ record.student.roll_number }}" style="background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 4px 9px; border-radius: 4px; font-size: 0.75rem; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;" title="Open Potential Eligible Desk for this student">Desk &rarr;</a>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
                                 </div>
                             </td>
                         </tr>
@@ -674,7 +735,7 @@
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
                     {% if recent_sch_apps.has_previous %}
-                    <a href="?page={{ recent_sch_apps.previous_page_number }}&active_role=Scholarship+Officer{% if req_sch_type %}&scholarship_type={{ req_sch_type }}{% endif %}{% if req_sch_tag %}&source_tag={{ req_sch_tag }}{% endif %}{% if req_sch_ay %}&academic_year={{ req_sch_ay }}{% endif %}{% if req_sch_status %}&status={{ req_sch_status }}{% endif %}{% if req_sch_sem %}&semester={{ req_sch_sem }}{% endif %}{% if req_sch_q %}&q={{ req_sch_q }}{% endif %}" 
+                    <a href="?page={{ recent_sch_apps.previous_page_number }}{% if sch_pagination_query %}&{{ sch_pagination_query }}{% else %}&active_role=Scholarship+Officer{% if req_sch_type %}&scholarship_type={{ req_sch_type }}{% endif %}{% if req_sch_tag %}&source_tag={{ req_sch_tag }}{% endif %}{% if req_sch_ay %}&academic_year={{ req_sch_ay }}{% endif %}{% if req_sch_status %}&status={{ req_sch_status }}{% endif %}{% if req_sch_sem %}&semester={{ req_sch_sem }}{% endif %}{% if req_sch_q %}&q={{ req_sch_q }}{% endif %}{% endif %}" 
                        style="padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.78rem; text-decoration: none; color: var(--text-main); background: var(--surface);">&laquo; Previous</a>
                     {% endif %}
                     
@@ -683,7 +744,7 @@
                     </span>
 
                     {% if recent_sch_apps.has_next %}
-                    <a href="?page={{ recent_sch_apps.next_page_number }}&active_role=Scholarship+Officer{% if req_sch_type %}&scholarship_type={{ req_sch_type }}{% endif %}{% if req_sch_tag %}&source_tag={{ req_sch_tag }}{% endif %}{% if req_sch_ay %}&academic_year={{ req_sch_ay }}{% endif %}{% if req_sch_status %}&status={{ req_sch_status }}{% endif %}{% if req_sch_sem %}&semester={{ req_sch_sem }}{% endif %}{% if req_sch_q %}&q={{ req_sch_q }}{% endif %}" 
+                    <a href="?page={{ recent_sch_apps.next_page_number }}{% if sch_pagination_query %}&{{ sch_pagination_query }}{% else %}&active_role=Scholarship+Officer{% if req_sch_type %}&scholarship_type={{ req_sch_type }}{% endif %}{% if req_sch_tag %}&source_tag={{ req_sch_tag }}{% endif %}{% if req_sch_ay %}&academic_year={{ req_sch_ay }}{% endif %}{% if req_sch_status %}&status={{ req_sch_status }}{% endif %}{% if req_sch_sem %}&semester={{ req_sch_sem }}{% endif %}{% if req_sch_q %}&q={{ req_sch_q }}{% endif %}{% endif %}" 
                        style="padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.78rem; text-decoration: none; color: var(--text-main); background: var(--surface);">Next &raquo;</a>
                     {% endif %}
                 </div>

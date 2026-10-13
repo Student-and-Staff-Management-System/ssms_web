@@ -1069,6 +1069,107 @@ class DepartmentTaskTestCase(TestCase):
         session = self.client.session
         session['staff_id'] = self.hod.staff_id
         session.save()
+        response = self.client.get(reverse('staffs:export_task_matrix_csv'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv; charset=utf-8')
+
+    def test_add_department_task_dynamically(self):
+        from staffs.models import DepartmentTask
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        # Test standard POST
+        post_data = {
+            'name': 'NAAC Criterion 2 Incharge',
+            'category': 'Accreditation & Quality',
+            'assigned_staff': [self.faculty1.staff_id]
+        }
+        response = self.client.post(reverse('staffs:add_department_task'), post_data)
+        self.assertRedirects(response, reverse('staffs:manage_department_tasks'))
+
+        new_task = DepartmentTask.objects.filter(name='NAAC Criterion 2 Incharge').first()
+        self.assertIsNotNone(new_task)
+        self.assertEqual(new_task.category, 'Accreditation & Quality')
+        self.assertEqual(new_task.assigned_staff.count(), 1)
+        self.assertIn(self.faculty1, new_task.assigned_staff.all())
+
+        # Test AJAX POST
+        ajax_data = {
+            'name': 'NBA Committee Lead',
+            'category': 'Accreditation & Quality',
+            'assigned_staff': [self.faculty2.staff_id]
+        }
+        ajax_resp = self.client.post(
+            reverse('staffs:add_department_task'),
+            ajax_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(ajax_resp.status_code, 200)
+        json_data = ajax_resp.json()
+        self.assertTrue(json_data['success'])
+        self.assertEqual(json_data['task']['name'], 'NBA Committee Lead')
+
+    def test_edit_department_task_dynamically(self):
+        from staffs.models import DepartmentTask
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        task1 = DepartmentTask.objects.get(task_number=1)
+        edit_data = {
+            'name': 'Updated Department Administration Role',
+            'category': 'Executive Governance',
+            'task_number': '1'
+        }
+        resp = self.client.post(
+            reverse('staffs:edit_department_task', args=[task1.id]),
+            edit_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()['success'])
+        task1.refresh_from_db()
+        self.assertEqual(task1.name, 'Updated Department Administration Role')
+        self.assertEqual(task1.category, 'Executive Governance')
+
+    def test_delete_department_task_dynamically(self):
+        from staffs.models import DepartmentTask
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        task_to_del = DepartmentTask.objects.create(name='Temp Task To Remove', category='Temp')
+        task_id = task_to_del.id
+
+        resp = self.client.post(
+            reverse('staffs:delete_department_task', args=[task_id]),
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()['success'])
+        self.assertFalse(DepartmentTask.objects.filter(id=task_id).exists())
+
+    def test_manage_department_tasks_ajax_save(self):
+        from staffs.models import DepartmentTask
+        session = self.client.session
+        session['staff_id'] = self.hod.staff_id
+        session.save()
+
+        task1 = DepartmentTask.objects.get(task_number=1)
+        post_data = {
+            f'task_{task1.id}': [self.faculty1.staff_id]
+        }
+        resp = self.client.post(
+            reverse('staffs:manage_department_tasks'),
+            post_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()['success'])
+        task1.refresh_from_db()
+        self.assertIn(self.faculty1, task1.assigned_staff.all())
+
 
     def test_technical_officer_role_dashboard_and_live_visualisation(self):
         to_staff = Staff.objects.create(
@@ -1625,7 +1726,9 @@ class ScholarshipDistributionDashboardTestCase(TestCase):
         resp_in_reg = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&source_tag=in_reg')
         self.assertEqual(resp_in_reg.status_code, 200)
         roster_in_reg = list(resp_in_reg.context['recent_sch_apps'])
-        self.assertEqual(len(roster_in_reg), 3)
+        # 2 unique students (stud1 with multiple in-reg schemes grouped in 1 record, stud2 with 1 scheme)
+        self.assertEqual(len(roster_in_reg), 2)
+        self.assertEqual(sum(x.scholarship_count for x in roster_in_reg), 3)
 
         # 5. Filter by source_tag=both (both applied and checked during registration: FG for stud1)
         resp_both = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&source_tag=both')
@@ -1703,6 +1806,105 @@ class ScholarshipDistributionDashboardTestCase(TestCase):
         students_q = list(resp_q.context['students'])
         self.assertEqual(len(students_q), 1)
         self.assertEqual(students_q[0].roll_number, self.stud2.roll_number)
+
+    def test_multiple_scholarships_grouped_in_single_record(self):
+        """Tests that a student with multiple scholarships (applied/in-reg) appears as one record with all scholarships listed down."""
+        from students.models import Student, PersonalInfo, ScholarshipInfo, ScholarshipApplication
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        # Create student with 3 scholarships in registration like in screenshot
+        stud_multi = Student.objects.create(
+            roll_number="2338010002",
+            student_name="AARTHI S",
+            current_semester=7,
+            program_level="UG"
+        )
+        PersonalInfo.objects.create(
+            student=stud_multi,
+            community="BC",
+            gender="Female"
+        )
+        ScholarshipInfo.objects.create(
+            student=stud_multi,
+            sch_bcmbc=True,
+            is_first_graduate=True,
+            sch_pudhumai=True
+        )
+
+        resp = self.client.get(reverse('staffs:staff_dashboard') + '?active_role=Scholarship+Officer&q=2338010002')
+        self.assertEqual(resp.status_code, 200)
+        roster = list(resp.context['recent_sch_apps'])
+
+        # Exactly 1 student record
+        self.assertEqual(len(roster), 1)
+        record = roster[0]
+        self.assertEqual(record.student.roll_number, "2338010002")
+        self.assertEqual(record.student.student_name, "AARTHI S")
+
+        # All 3 scholarships listed in that record
+        self.assertEqual(record.scholarship_count, 3)
+        scheme_types = {s.scholarship_type for s in record.scholarships}
+        self.assertEqual(scheme_types, {'BCMBC', 'FG', 'PUDHUMAI'})
+
+        content = resp.content.decode('utf-8')
+        # Student roll appears in table
+        self.assertIn("2338010002", content)
+        self.assertIn("AARTHI S", content)
+        # All 3 scholarship scheme names appear
+        self.assertIn("BC / MBC Welfare Scholarship", content)
+        self.assertIn("First Graduate Scholarship", content)
+        self.assertIn("Pudhumai Penn Scheme (Higher Ed for Girls)", content)
+
+    def test_pagination_preserves_filter_parameters(self):
+        """Tests that moving to the next page preserves applied filters and does not reset them."""
+        from students.models import Student, ScholarshipInfo
+        session = self.client.session
+        session['staff_id'] = self.officer.staff_id
+        session.save()
+
+        # Create 35 distinct students with semester 7 and BCMBC to exceed 30 per page
+        for i in range(35):
+            st = Student.objects.create(
+                roll_number=f"23380199{i:02d}",
+                student_name=f"Paginate Stud {i}",
+                current_semester=7,
+                program_level="UG"
+            )
+            ScholarshipInfo.objects.create(
+                student=st,
+                sch_bcmbc=True
+            )
+
+        filter_url = (
+            reverse('staffs:staff_dashboard') +
+            '?active_role=Scholarship+Officer&scholarship_type=BCMBC&semester=7&source_tag=in_reg&academic_year=2026-2027'
+        )
+        resp_p1 = self.client.get(filter_url)
+        self.assertEqual(resp_p1.status_code, 200)
+        page1_obj = resp_p1.context['recent_sch_apps']
+        self.assertTrue(page1_obj.has_next())
+
+        # Check that Next page link contains page=2 and all filter query parameters
+        content = resp_p1.content.decode('utf-8')
+        self.assertIn("page=2", content)
+        self.assertIn("scholarship_type=BCMBC", content)
+        self.assertIn("semester=7", content)
+        self.assertIn("source_tag=in_reg", content)
+        self.assertIn("academic_year=2026-2027", content)
+
+        # Move to page 2 with preserved query params
+        next_page_url = filter_url + '&page=2'
+        resp_p2 = self.client.get(next_page_url)
+        self.assertEqual(resp_p2.status_code, 200)
+        self.assertEqual(resp_p2.context['recent_sch_apps'].number, 2)
+        # Filters are still retained
+        self.assertEqual(resp_p2.context['req_sch_type'], 'BCMBC')
+        self.assertEqual(resp_p2.context['req_sch_sem'], '7')
+        self.assertEqual(resp_p2.context['req_sch_tag'], 'in_reg')
+        self.assertEqual(resp_p2.context['selected_academic_year'], '2026-2027')
+
 
 
 

@@ -1,534 +1,1411 @@
 {% extends 'base2.html' %}
 
-{% block title %}Department Tasks & Roles Management - Annamalai University{% endblock %}
+{% block title %}Department Tasks & Roles Allocation — Annamalai University{% endblock %}
 
 {% block content %}
 <style>
-    .tasks-container {
-        max-width: 1400px;
-        margin: 25px auto;
-        padding: 0 20px;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* ==========================================================================
+       SSMS Design System — Department Tasks & Roles Management
+       Institutional, functional, high-density, accessible, mobile-first
+       ========================================================================== */
+
+    :root {
+        --dtr-primary: #5a7d7c;
+        --dtr-primary-hover: #4a6b69;
+        --dtr-primary-active: #405e5c;
+        --dtr-primary-surface: rgba(90, 125, 124, 0.08);
+        --dtr-primary-border: rgba(90, 125, 124, 0.3);
+        --dtr-gold: #c5a059;
+        --dtr-gold-surface: rgba(197, 160, 89, 0.12);
+
+        --dtr-bg-body: #f8fafc;
+        --dtr-surface: #ffffff;
+        --dtr-surface-subtle: #f8fafc;
+        --dtr-surface-hover: #f1f5f9;
+
+        --dtr-border: #e2e8f0;
+        --dtr-border-strong: #cbd5e1;
+
+        --dtr-text-main: #0f172a;
+        --dtr-text-primary: #1e293b;
+        --dtr-text-secondary: #475569;
+        --dtr-text-muted: #64748b;
+
+        --dtr-success: #15803d;
+        --dtr-success-surface: rgba(21, 128, 61, 0.1);
+        --dtr-warning: #b45309;
+        --dtr-warning-surface: rgba(180, 83, 9, 0.1);
+        --dtr-danger: #b91c1c;
+        --dtr-danger-surface: rgba(185, 28, 28, 0.1);
+
+        --dtr-radius-sm: 6px;
+        --dtr-radius-md: 8px;
+        --dtr-radius-lg: 12px;
+        --dtr-motion: 160ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .page-header {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        color: white;
-        padding: 24px 30px;
-        border-radius: 16px;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+    /* Obsidian Dark Theme Support */
+    .dark-theme {
+        --dtr-bg-body: #0b0f19;
+        --dtr-surface: #111827;
+        --dtr-surface-subtle: #151d2b;
+        --dtr-surface-hover: #1f2937;
+        --dtr-border: #263244;
+        --dtr-border-strong: #334155;
+        --dtr-text-main: #f8fafc;
+        --dtr-text-primary: #e2e8f0;
+        --dtr-text-secondary: #cbd5e1;
+        --dtr-text-muted: #7f8ea3;
+        --dtr-primary: #6f9290;
+        --dtr-primary-hover: #7da19f;
+        --dtr-primary-active: #587b79;
+        --dtr-primary-surface: rgba(90, 125, 124, 0.16);
+        --dtr-primary-border: rgba(111, 146, 144, 0.45);
+    }
+
+    .dtr-page-wrap {
+        max-width: 1440px;
+        margin: 20px auto 100px auto;
+        padding: 0 20px;
+        font-family: inherit;
+        color: var(--dtr-text-main);
+    }
+
+    /* --- Page Header --- */
+    .dtr-header-card {
+        background: var(--dtr-surface);
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-md);
+        padding: 20px 24px;
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 16px;
     }
 
-    .page-header h2 {
-        margin: 0;
-        font-size: 1.6rem;
+    .dtr-header-content {
+        flex: 1;
+        min-width: 280px;
+    }
+
+    .dtr-institutional-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dtr-primary);
+        margin-bottom: 4px;
+    }
+
+    .dtr-institutional-kicker svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .dtr-header-title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--dtr-text-main);
+        letter-spacing: -0.01em;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
     }
 
-    .page-header p {
-        margin: 6px 0 0 0;
-        color: #94a3b8;
-        font-size: 0.95rem;
+    .dtr-header-subtitle {
+        margin: 4px 0 0 0;
+        font-size: 0.88rem;
+        color: var(--dtr-text-secondary);
+        max-width: 780px;
+        line-height: 1.45;
     }
 
-    .header-actions {
+    .dtr-header-actions {
         display: flex;
+        align-items: center;
         gap: 10px;
         flex-wrap: wrap;
     }
 
-    .btn-action {
+    /* --- Buttons --- */
+    .dtr-btn {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px 18px;
-        border-radius: 10px;
+        justify-content: center;
+        gap: 7px;
+        padding: 8px 14px;
+        border-radius: var(--dtr-radius-sm);
+        font-size: 0.85rem;
         font-weight: 600;
-        font-size: 0.9rem;
         text-decoration: none;
-        transition: all 0.2s ease;
-        border: none;
         cursor: pointer;
+        border: 1px solid transparent;
+        transition: background var(--dtr-motion), border-color var(--dtr-motion), color var(--dtr-motion);
+        white-space: nowrap;
+        height: 38px;
     }
 
-    .btn-export-staff {
-        background: #0ea5e9;
-        color: white;
-    }
-    .btn-export-staff:hover {
-        background: #0284c7;
-        color: white;
+    .dtr-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2;
     }
 
-    .btn-export-matrix {
-        background: #10b981;
-        color: white;
+    .dtr-btn-primary {
+        background: var(--dtr-primary);
+        color: #ffffff;
+        border-color: var(--dtr-primary);
     }
-    .btn-export-matrix:hover {
-        background: #059669;
-        color: white;
+    .dtr-btn-primary:hover {
+        background: var(--dtr-primary-hover);
+        border-color: var(--dtr-primary-hover);
+        color: #ffffff;
     }
-
-    .btn-save-main {
-        background: #6366f1;
-        color: white;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-    .btn-save-main:hover {
-        background: #4f46e5;
-        transform: translateY(-1px);
-        color: white;
+    .dtr-btn-primary:active {
+        background: var(--dtr-primary-active);
     }
 
-    .filter-bar {
-        background: white;
-        padding: 18px 24px;
-        border-radius: 14px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-        margin-bottom: 24px;
+    .dtr-btn-secondary {
+        background: var(--dtr-surface);
+        border-color: var(--dtr-border-strong);
+        color: var(--dtr-text-primary);
+    }
+    .dtr-btn-secondary:hover {
+        background: var(--dtr-surface-hover);
+        border-color: var(--dtr-primary);
+        color: var(--dtr-primary);
+    }
+
+    .dtr-btn-ghost {
+        background: transparent;
+        color: var(--dtr-text-secondary);
+        border-color: transparent;
+        padding: 6px 10px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    .dtr-btn-ghost:hover {
+        background: var(--dtr-surface-hover);
+        color: var(--dtr-text-main);
+    }
+
+    .dtr-btn-danger-ghost {
+        color: var(--dtr-danger);
+    }
+    .dtr-btn-danger-ghost:hover {
+        background: var(--dtr-danger-surface);
+        color: var(--dtr-danger);
+    }
+
+    /* --- Metric Cards --- */
+    .dtr-metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .dtr-metric-card {
+        background: var(--dtr-surface);
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-md);
+        padding: 14px 18px;
         display: flex;
-        gap: 16px;
         align-items: center;
+        gap: 14px;
+        cursor: pointer;
+        transition: border-color var(--dtr-motion), background var(--dtr-motion);
+    }
+
+    .dtr-metric-card:hover {
+        border-color: var(--dtr-primary-border);
+        background: var(--dtr-surface-subtle);
+    }
+
+    .dtr-metric-icon-box {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--dtr-radius-sm);
+        background: var(--dtr-primary-surface);
+        color: var(--dtr-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .dtr-metric-icon-box svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+    }
+
+    .dtr-metric-icon-box.gold {
+        background: var(--dtr-gold-surface);
+        color: var(--dtr-gold);
+    }
+
+    .dtr-metric-icon-box.warning {
+        background: var(--dtr-warning-surface);
+        color: var(--dtr-warning);
+    }
+
+    .dtr-metric-val {
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--dtr-text-main);
+    }
+
+    .dtr-metric-lbl {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--dtr-text-muted);
+        margin-top: 2px;
+    }
+
+    /* --- Data Filter Toolbar --- */
+    .dtr-toolbar {
+        background: var(--dtr-surface);
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-md);
+        padding: 12px 18px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
         flex-wrap: wrap;
     }
 
-    .search-input {
+    .dtr-search-box {
         flex: 1;
         min-width: 260px;
-        padding: 10px 16px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        outline: none;
-        transition: border-color 0.2s;
-    }
-    .search-input:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-    }
-
-    .cat-select {
-        padding: 10px 16px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        outline: none;
-        background-color: #f8fafc;
-    }
-
-    .stats-summary {
+        position: relative;
         display: flex;
-        gap: 20px;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
+        align-items: center;
     }
 
-    .stat-card {
-        background: white;
-        padding: 16px 20px;
-        border-radius: 12px;
-        flex: 1;
-        min-width: 200px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        border-left: 4px solid #6366f1;
+    .dtr-search-icon {
+        position: absolute;
+        left: 12px;
+        width: 16px;
+        height: 16px;
+        color: var(--dtr-text-muted);
+        pointer-events: none;
     }
-    .stat-card.green { border-left-color: #10b981; }
-    .stat-card.blue { border-left-color: #0ea5e9; }
 
-    .stat-card .num {
-        font-size: 1.6rem;
-        font-weight: 800;
-        color: #1e293b;
+    .dtr-input {
+        width: 100%;
+        height: 38px;
+        padding: 8px 34px 8px 36px;
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-sm);
+        background: var(--dtr-surface);
+        color: var(--dtr-text-main);
+        font-size: 0.86rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color var(--dtr-motion);
     }
-    .stat-card .label {
+
+    .dtr-input:focus {
+        border-color: var(--dtr-primary);
+        box-shadow: 0 0 0 2px var(--dtr-primary-surface);
+    }
+
+    .dtr-search-clear {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        color: var(--dtr-text-muted);
+        cursor: pointer;
+        padding: 4px;
+        display: none;
+    }
+
+    .dtr-search-clear svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .dtr-select {
+        height: 38px;
+        padding: 0 32px 0 12px;
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-sm);
+        background: var(--dtr-surface);
+        color: var(--dtr-text-main);
         font-size: 0.85rem;
-        color: #64748b;
-        font-weight: 500;
-
+        font-family: inherit;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
     }
 
-    .task-table-wrapper {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    .dtr-select:focus {
+        border-color: var(--dtr-primary);
+    }
+
+    .dtr-filter-meta {
+        font-size: 0.82rem;
+        color: var(--dtr-text-muted);
+        white-space: nowrap;
+        margin-left: auto;
+    }
+
+    /* --- Table Structure --- */
+    .dtr-table-card {
+        background: var(--dtr-surface);
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-md);
         overflow: hidden;
     }
 
-    .task-table {
+    .dtr-table-scroll {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .dtr-table {
         width: 100%;
         border-collapse: collapse;
+        text-align: left;
+        font-size: 0.88rem;
     }
 
-    .task-table th {
-        background: #f1f5f9;
-        color: #334155;
+    .dtr-table thead th {
+        background: var(--dtr-surface-subtle);
+        color: var(--dtr-text-secondary);
         font-weight: 700;
-        font-size: 0.85rem;
+        font-size: 0.76rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        padding: 14px 18px;
-        text-align: left;
-        border-bottom: 2px solid #e2e8f0;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--dtr-border);
+        white-space: nowrap;
     }
 
-    .task-table td {
-        padding: 14px 18px;
-        border-bottom: 1px solid #f1f5f9;
+    .dtr-table tbody tr {
+        border-bottom: 1px solid var(--dtr-border);
+        transition: background var(--dtr-motion);
+    }
+
+    .dtr-table tbody tr:hover {
+        background: var(--dtr-surface-hover);
+    }
+
+    .dtr-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .dtr-table td {
+        padding: 14px 16px;
         vertical-align: top;
-        font-size: 0.93rem;
     }
 
-    .task-table tr:hover {
-        background: #f8fafc;
-    }
-
-    .task-num-badge {
-        display: inline-block;
-        background: #e0e7ff;
-        color: #3730a3;
-        font-weight: 700;
-        width: 32px;
-        height: 32px;
-        line-height: 32px;
+    .dtr-cell-number {
+        width: 54px;
         text-align: center;
-        border-radius: 50%;
-        font-size: 0.85rem;
     }
 
-    .cat-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
+    .dtr-num-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--dtr-radius-sm);
+        background: var(--dtr-surface-subtle);
+        border: 1px solid var(--dtr-border);
+        color: var(--dtr-text-secondary);
+        font-weight: 700;
+        font-size: 0.78rem;
+    }
+
+    .dtr-cell-details {
+        min-width: 260px;
+        max-width: 320px;
+    }
+
+    .dtr-task-title {
         font-weight: 600;
-        background: #f1f5f9;
-        color: #475569;
+        color: var(--dtr-text-main);
+        font-size: 0.92rem;
+        line-height: 1.35;
+        margin-bottom: 6px;
     }
 
-    .staff-checkbox-grid {
+    .dtr-cat-pill {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--dtr-primary);
+        background: var(--dtr-primary-surface);
+        padding: 2px 8px;
+        border-radius: var(--dtr-radius-sm);
+        border: 1px solid var(--dtr-primary-border);
+        margin-bottom: 8px;
+    }
+
+    .dtr-row-quick-tools {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+    }
+
+    .dtr-btn-micro {
+        padding: 3px 8px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        border-radius: var(--dtr-radius-sm);
+        border: 1px solid var(--dtr-border);
+        background: var(--dtr-surface);
+        color: var(--dtr-text-secondary);
+        cursor: pointer;
+        transition: all var(--dtr-motion);
+    }
+    .dtr-btn-micro:hover {
+        background: var(--dtr-surface-hover);
+        color: var(--dtr-text-main);
+        border-color: var(--dtr-border-strong);
+    }
+
+    .dtr-row-filter-input {
+        height: 24px;
+        padding: 2px 8px;
+        font-size: 0.72rem;
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-sm);
+        background: var(--dtr-surface);
+        color: var(--dtr-text-main);
+        width: 120px;
+        outline: none;
+    }
+    .dtr-row-filter-input:focus {
+        border-color: var(--dtr-primary);
+    }
+
+    /* --- Faculty Selection Grid --- */
+    .dtr-faculty-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 8px 12px;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 6px 10px;
     }
 
-    .staff-check-item {
+    .dtr-faculty-item {
         display: flex;
         align-items: center;
         gap: 8px;
-        background: #f8fafc;
+        background: var(--dtr-surface-subtle);
         padding: 6px 10px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        transition: all 0.15s ease;
+        border-radius: var(--dtr-radius-sm);
+        border: 1px solid var(--dtr-border);
         cursor: pointer;
         user-select: none;
+        transition: background var(--dtr-motion), border-color var(--dtr-motion);
+        min-height: 36px;
     }
-    .staff-check-item:hover {
-        background: #eef2ff;
-        border-color: #c7d2fe;
+
+    .dtr-faculty-item:hover {
+        background: var(--dtr-surface-hover);
+        border-color: var(--dtr-border-strong);
     }
-    .staff-check-item.is-checked {
-        background: #ecfdf5;
-        border-color: #A7F3D0;
-        color: #047857;
+
+    .dtr-faculty-item.is-selected {
+        background: var(--dtr-primary-surface);
+        border-color: var(--dtr-primary);
     }
-    .staff-check-item.is-checked span {
-        font-weight: 700;
-        color: #047857;
-    }
-    .staff-check-item input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        accent-color: #10b981;
+
+    .dtr-faculty-item input[type="checkbox"] {
+        width: 15px;
+        height: 15px;
+        accent-color: var(--dtr-primary);
         cursor: pointer;
+        flex-shrink: 0;
     }
-    .staff-check-item span {
-        font-size: 0.88rem;
-        color: #1e293b;
+
+    .dtr-faculty-name {
+        font-size: 0.82rem;
+        color: var(--dtr-text-primary);
         font-weight: 500;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .count-badge {
-        background: #e0f2fe;
-        color: #0369a1;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 0.8rem;
-    }
-
-    .row-tools {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 6px;
-        flex-wrap: wrap;
-    }
-    .btn-tiny {
-        padding: 4px 10px;
-        font-size: 0.74rem;
+    .dtr-faculty-item.is-selected .dtr-faculty-name {
         font-weight: 600;
-        border-radius: 6px;
-        border: 1px solid #cbd5e1;
-        background: #ffffff;
-        color: #475569;
-        cursor: pointer;
-        transition: background 0.15s;
-    }
-    .btn-tiny:hover {
-        background: #e2e8f0;
-    }
-    .search-input-sm {
-        padding: 4px 10px;
-        font-size: 0.75rem;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        width: 140px;
-        outline: none;
-    }
-    .search-input-sm:focus {
-        border-color: #6366f1;
+        color: var(--dtr-primary-hover);
     }
 
-    .sticky-footer {
-        position: sticky;
+    .dtr-cell-count {
+        width: 70px;
+        text-align: center;
+    }
+
+    .dtr-count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 6px;
+        border-radius: var(--dtr-radius-sm);
+        font-size: 0.78rem;
+        font-weight: 700;
+        background: var(--dtr-surface-subtle);
+        border: 1px solid var(--dtr-border);
+        color: var(--dtr-text-muted);
+    }
+
+    .dtr-count-badge.has-assigned {
+        background: var(--dtr-primary-surface);
+        border-color: var(--dtr-primary-border);
+        color: var(--dtr-primary);
+    }
+
+    .dtr-cell-actions {
+        width: 80px;
+        text-align: right;
+    }
+
+    .dtr-action-btns {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .dtr-btn-icon {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--dtr-radius-sm);
+        border: 1px solid var(--dtr-border);
+        background: var(--dtr-surface);
+        color: var(--dtr-text-secondary);
+        cursor: pointer;
+        transition: all var(--dtr-motion);
+    }
+    .dtr-btn-icon svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 2;
+    }
+    .dtr-btn-icon:hover {
+        background: var(--dtr-surface-hover);
+        color: var(--dtr-primary);
+        border-color: var(--dtr-primary-border);
+    }
+    .dtr-btn-icon.delete:hover {
+        background: var(--dtr-danger-surface);
+        color: var(--dtr-danger);
+        border-color: rgba(185, 28, 28, 0.3);
+    }
+
+    /* --- Empty State --- */
+    .dtr-empty-state {
+        padding: 48px 20px;
+        text-align: center;
+        display: none;
+    }
+
+    .dtr-empty-icon {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 12px auto;
+        color: var(--dtr-text-muted);
+    }
+
+    .dtr-empty-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dtr-text-main);
+        margin: 0 0 6px 0;
+    }
+
+    .dtr-empty-desc {
+        font-size: 0.85rem;
+        color: var(--dtr-text-secondary);
+        margin: 0;
+    }
+
+    /* --- Sticky Save Action Bar --- */
+    .dtr-sticky-footer {
+        position: fixed;
         bottom: 20px;
-        background: rgba(15, 23, 42, 0.92);
-        backdrop-filter: blur(10px);
-        color: white;
-        padding: 14px 24px;
-        border-radius: 14px;
-        margin-top: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 40px);
+        max-width: 1400px;
+        background: var(--dtr-surface);
+        border: 1px solid var(--dtr-border-strong);
+        border-radius: var(--dtr-radius-md);
+        padding: 12px 20px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        z-index: 100;
+        z-index: 1000;
+        gap: 16px;
     }
 
+    .dtr-sticky-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.86rem;
+        color: var(--dtr-text-secondary);
+    }
+
+    .dtr-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--dtr-text-muted);
+    }
+
+    .dtr-status-dot.dirty {
+        background: var(--dtr-gold);
+        box-shadow: 0 0 0 3px var(--dtr-gold-surface);
+    }
+
+    .dtr-status-dot.saved {
+        background: var(--dtr-success);
+    }
+
+    .dtr-sticky-buttons {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* --- Modals --- */
+    .dtr-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(3px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 16px;
+    }
+
+    .dtr-modal-backdrop.is-open {
+        display: flex;
+    }
+
+    .dtr-modal-card {
+        background: var(--dtr-surface);
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-md);
+        width: 100%;
+        max-width: 580px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+        animation: dtrModalFadeIn 180ms ease-out;
+    }
+
+    @keyframes dtrModalFadeIn {
+        from { opacity: 0; transform: scale(0.97) translateY(6px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .dtr-modal-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--dtr-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .dtr-modal-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--dtr-text-main);
+    }
+
+    .dtr-modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .dtr-modal-footer {
+        padding: 14px 20px;
+        border-top: 1px solid var(--dtr-border);
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        background: var(--dtr-surface-subtle);
+        border-bottom-left-radius: var(--dtr-radius-md);
+        border-bottom-right-radius: var(--dtr-radius-md);
+    }
+
+    .dtr-form-group {
+        margin-bottom: 16px;
+    }
+
+    .dtr-form-label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--dtr-text-primary);
+        margin-bottom: 6px;
+    }
+
+    .dtr-form-label .required {
+        color: var(--dtr-danger);
+    }
+
+    .dtr-form-hint {
+        font-size: 0.75rem;
+        color: var(--dtr-text-muted);
+        margin-top: 4px;
+    }
+
+    .dtr-modal-staff-search {
+        margin-bottom: 10px;
+    }
+
+    .dtr-modal-staff-list {
+        max-height: 180px;
+        overflow-y: auto;
+        border: 1px solid var(--dtr-border);
+        border-radius: var(--dtr-radius-sm);
+        padding: 6px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 6px;
+        background: var(--dtr-surface-subtle);
+    }
+
+    /* --- Toast Notification --- */
+    .dtr-toast {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        background: var(--dtr-surface);
+        border: 1px solid var(--dtr-border);
+        border-left: 4px solid var(--dtr-primary);
+        border-radius: var(--dtr-radius-sm);
+        padding: 12px 16px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 3000;
+        font-size: 0.86rem;
+        font-weight: 500;
+        color: var(--dtr-text-main);
+        transform: translateY(-20px);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform var(--dtr-motion), opacity var(--dtr-motion);
+    }
+
+    .dtr-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .dtr-toast.error {
+        border-left-color: var(--dtr-danger);
+    }
+
+    /* --- Mobile Responsive Rules (< 768px) --- */
     @media (max-width: 768px) {
-        .tasks-container {
-            padding: 0 10px;
-            margin: 12px auto;
+        .dtr-page-wrap {
+            padding: 0 12px;
+            margin: 12px auto 100px auto;
         }
-        .page-header {
-            padding: 16px 18px;
-            flex-direction: column;
-            align-items: stretch;
+
+        .dtr-header-card {
+            padding: 16px;
         }
-        .header-actions {
+
+        .dtr-header-title {
+            font-size: 1.15rem;
+        }
+
+        .dtr-header-actions {
             width: 100%;
-            flex-direction: column;
         }
-        .btn-action {
-            width: 100%;
+
+        .dtr-header-actions .dtr-btn {
+            flex: 1;
             justify-content: center;
         }
-        .filter-bar {
+
+        .dtr-metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .dtr-metric-card {
             padding: 12px;
+        }
+
+        .dtr-toolbar {
+            padding: 10px;
             flex-direction: column;
             align-items: stretch;
         }
-        .search-input, .cat-select {
-            width: 100%;
-            min-width: unset;
-        }
-        .task-table-wrapper {
-            overflow-x: auto;
-        }
-        .staff-checkbox-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 6px;
-        }
-        .search-input-sm {
+
+        .dtr-search-box {
             width: 100%;
         }
-        .sticky-footer {
+
+        .dtr-select {
+            width: 100%;
+        }
+
+        .dtr-filter-meta {
+            margin-left: 0;
+            text-align: center;
+        }
+
+        .dtr-faculty-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dtr-sticky-footer {
+            width: calc(100% - 24px);
+            padding: 10px 14px;
             flex-direction: column;
             gap: 10px;
             text-align: center;
         }
+
+        .dtr-sticky-buttons {
+            width: 100%;
+        }
+
+        .dtr-sticky-buttons .dtr-btn {
+            flex: 1;
+        }
     }
 </style>
 
-<div class="tasks-container">
-    <div class="page-header">
-        <div>
-            <h2>📋 Department Tasks & Roles Management</h2>
-            <p>Assign official department tasks & responsibilities to staff members and export assignment reports.</p>
+<div class="dtr-page-wrap">
+    <!-- Header Section -->
+    <div class="dtr-header-card">
+        <div class="dtr-header-content">
+            <div class="dtr-institutional-kicker">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                Annamalai University &bull; Dept. of Information Technology
+            </div>
+            <h1 class="dtr-header-title">Department Tasks & Roles Management</h1>
+            <p class="dtr-header-subtitle">
+                Institutional allocation of administrative portfolios, departmental responsibilities, and faculty duty assignments.
+            </p>
         </div>
-        <div class="header-actions">
-            <a href="{% url 'staffs:export_staff_tasks_csv' %}" class="btn-action btn-export-staff" title="Export Staff List with Assigned Roles">
-                📥 Export Staff Roles (CSV)
+        <div class="dtr-header-actions">
+            <button type="button" class="dtr-btn dtr-btn-primary" onclick="openAddTaskModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Task / Role
+            </button>
+            <a href="{% url 'staffs:export_staff_tasks_csv' %}" class="dtr-btn dtr-btn-secondary" title="Export Staff Roles CSV">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Staff Report (CSV)
             </a>
-            <a href="{% url 'staffs:export_task_matrix_csv' %}" class="btn-action btn-export-matrix" title="Export Complete Staff vs Task Matrix">
-                📊 Export Task Matrix (CSV)
+            <a href="{% url 'staffs:export_task_matrix_csv' %}" class="dtr-btn dtr-btn-secondary" title="Export Allocation Matrix CSV">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="3" y1="15" x2="21" y2="15"></line>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                    <line x1="15" y1="3" x2="15" y2="21"></line>
+                </svg>
+                Task Matrix (CSV)
             </a>
-            <button type="submit" form="tasks-form" class="btn-action btn-save-main">
-                💾 Save All Allocations
+        </div>
+    </div>
+
+    <!-- Institutional Metric Cards -->
+    <div class="dtr-metrics-grid">
+        <div class="dtr-metric-card" onclick="filterByStatus('ALL')" title="Click to view all tasks">
+            <div class="dtr-metric-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="dtr-metric-val" id="metricTotalTasks">{{ total_tasks }}</div>
+                <div class="dtr-metric-lbl">Total Tasks & Roles</div>
+            </div>
+        </div>
+
+        <div class="dtr-metric-card" title="Active departmental faculty members">
+            <div class="dtr-metric-icon-box gold">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="dtr-metric-val" id="metricTotalStaff">{{ total_staff }}</div>
+                <div class="dtr-metric-lbl">Active Faculty Members</div>
+            </div>
+        </div>
+
+        <div class="dtr-metric-card" onclick="filterByStatus('ASSIGNED')" title="Click to view allocated tasks">
+            <div class="dtr-metric-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <div>
+                <div class="dtr-metric-val" id="metricAssignedTasks">{{ assigned_tasks_count }}</div>
+                <div class="dtr-metric-lbl">Assigned Portfolios</div>
+            </div>
+        </div>
+
+        <div class="dtr-metric-card" onclick="filterByStatus('UNASSIGNED')" title="Click to view unassigned tasks">
+            <div class="dtr-metric-icon-box warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <div>
+                <div class="dtr-metric-val" id="metricUnassignedTasks">{{ unassigned_tasks_count }}</div>
+                <div class="dtr-metric-lbl">Unassigned Portfolios</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Controls & Toolbar -->
+    <div class="dtr-toolbar">
+        <div class="dtr-search-box">
+            <svg class="dtr-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="taskSearchInput" class="dtr-input" placeholder="Search by task number, role title, category, or assigned faculty..." onkeyup="handleSearchInput(event)">
+            <button type="button" id="searchClearBtn" class="dtr-search-clear" onclick="clearSearch()" title="Clear Search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
             </button>
         </div>
-    </div>
 
-    <!-- Quick Stats Summary -->
-    <div class="stats-summary">
-        <div class="stat-card">
-            <div class="num">{{ tasks|length }}</div>
-            <div class="label">Total Department Tasks & Roles</div>
-        </div>
-        <div class="stat-card green">
-            <div class="num">{{ staff_members|length }}</div>
-            <div class="label">Active Staff Members</div>
-        </div>
-        <div class="stat-card blue">
-            <div class="num">{{ categories|length }}</div>
-            <div class="label">Task Categories</div>
-        </div>
-    </div>
-
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <input type="text" id="taskSearch" class="search-input" placeholder="🔍 Search tasks by number, title, or assigned staff..." onkeyup="filterTasks()">
-        <select id="catFilter" class="cat-select" onchange="filterTasks()">
+        <select id="categorySelect" class="dtr-select" onchange="applyFilters()">
             <option value="ALL">All Categories ({{ categories|length }})</option>
             {% for cat in categories %}
                 <option value="{{ cat }}">{{ cat }}</option>
             {% endfor %}
         </select>
-        <button type="button" class="btn-tiny" onclick="resetFilters()">Reset Search</button>
+
+        <select id="statusFilterSelect" class="dtr-select" onchange="applyFilters()">
+            <option value="ALL">All Statuses</option>
+            <option value="ASSIGNED">Assigned Only</option>
+            <option value="UNASSIGNED">Unassigned Only</option>
+        </select>
+
+        <button type="button" class="dtr-btn dtr-btn-ghost" onclick="resetAllFilters()" title="Reset Filters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+            Reset
+        </button>
+
+        <div class="dtr-filter-meta">
+            Showing <strong id="visibleTasksCount">{{ tasks|length }}</strong> of <strong id="totalTasksCount">{{ tasks|length }}</strong> tasks
+        </div>
     </div>
 
-    <form method="POST" id="tasks-form">
+    <!-- Tasks Allocation Form -->
+    <form method="POST" id="tasksAllocationForm" action="{% url 'staffs:manage_department_tasks' %}" onsubmit="handleFormSubmit(event)">
         {% csrf_token %}
-        <div class="task-table-wrapper">
-            <table class="task-table" id="tasksTable">
-                <thead>
-                    <tr>
-                        <th style="width: 60px;">No.</th>
-                        <th style="width: 280px;">Task / Role Name</th>
-                        <th style="width: 160px;">Category</th>
-                        <th>Assigned Staff Members (Select Checkboxes)</th>
-                        <th style="width: 80px; text-align: center;">Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for task in tasks %}
-                        <tr class="task-row" data-category="{{ task.category }}" data-search="{{ task.task_number }} {{ task.name|lower }} {{ task.category|lower }} {% for s in task.assigned_staff.all %}{{ s.name|lower }} {% endfor %}">
-                            <td>
-                                <span class="task-num-badge">{{ task.task_number }}</span>
-                            </td>
-                            <td>
-                                <strong>{{ task.name }}</strong>
-                                <div class="row-tools">
-                                    <button type="button" class="btn-tiny" onclick="selectAllInRow('task_{{ task.id }}', true)">Select All</button>
-                                    <button type="button" class="btn-tiny" onclick="selectAllInRow('task_{{ task.id }}', false)">Clear All</button>
-                                    <input type="text" class="search-input-sm" placeholder="🔍 Filter staff..." onkeyup="filterStaffInRow({{ task.id }}, this.value)">
-                                </div>
-                            </td>
-                            <td>
-                                <span class="cat-badge">{{ task.category }}</span>
-                            </td>
-                            <td>
-                                <div class="staff-checkbox-grid" id="grid_{{ task.id }}">
-                                    {% for member in staff_members %}
-                                        <label class="staff-check-item {% if member in task.assigned_staff.all %}is-checked{% endif %}">
-                                            <input type="checkbox" 
-                                                   name="task_{{ task.id }}" 
-                                                   value="{{ member.staff_id }}" 
-                                                   {% if member in task.assigned_staff.all %}checked{% endif %}
-                                                   onchange="toggleCheckState(this); updateRowCount({{ task.id }})">
-                                            <span title="{{ member.name }} ({{ member.staff_id }})">{{ member.name }}</span>
-                                        </label>
-                                    {% endfor %}
-                                </div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="count-badge" id="count_{{ task.id }}">{{ task.assigned_staff_count }}</span>
-                            </td>
+        <div class="dtr-table-card">
+            <div class="dtr-table-scroll">
+                <table class="dtr-table" id="tasksTable">
+                    <thead>
+                        <tr>
+                            <th class="dtr-cell-number">No.</th>
+                            <th style="width: 320px;">Task / Role Portfolio</th>
+                            <th>Faculty Assignment (Select Checkboxes)</th>
+                            <th class="dtr-cell-count">Assigned</th>
+                            <th class="dtr-cell-actions">Actions</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody id="tasksTableBody">
+                        {% for task in tasks %}
+                            <tr class="dtr-task-row" 
+                                id="task-row-{{ task.id }}"
+                                data-task-id="{{ task.id }}"
+                                data-task-number="{{ task.task_number }}"
+                                data-task-name="{{ task.name }}"
+                                data-category="{{ task.category }}"
+                                data-assigned-count="{{ task.assigned_staff_count }}"
+                                data-search-blob="{{ task.task_number }} {{ task.name|lower }} {{ task.category|lower }} {% for s in task.assigned_staff.all %}{{ s.name|lower }} {{ s.staff_id|lower }} {% endfor %}">
+                                
+                                <td class="dtr-cell-number">
+                                    <span class="dtr-num-badge" id="badge-num-{{ task.id }}">{{ task.task_number }}</span>
+                                </td>
+
+                                <td class="dtr-cell-details">
+                                    <div class="dtr-task-title" id="title-{{ task.id }}">{{ task.name }}</div>
+                                    <span class="dtr-cat-pill" id="cat-pill-{{ task.id }}">{{ task.category }}</span>
+                                    
+                                    <div class="dtr-row-quick-tools">
+                                        <button type="button" class="dtr-btn-micro" onclick="toggleAllInRow({{ task.id }}, true)">Select All</button>
+                                        <button type="button" class="dtr-btn-micro" onclick="toggleAllInRow({{ task.id }}, false)">Clear All</button>
+                                        <input type="text" class="dtr-row-filter-input" placeholder="Filter faculty..." onkeyup="filterFacultyInRow({{ task.id }}, this.value)">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="dtr-faculty-grid" id="grid_{{ task.id }}">
+                                        {% for member in staff_members %}
+                                            <label class="dtr-faculty-item {% if member in task.assigned_staff.all %}is-selected{% endif %}" id="item_{{ task.id }}_{{ member.staff_id }}">
+                                                <input type="checkbox" 
+                                                       name="task_{{ task.id }}" 
+                                                       value="{{ member.staff_id }}" 
+                                                       {% if member in task.assigned_staff.all %}checked{% endif %}
+                                                       onchange="onFacultyCheckboxChange(this, {{ task.id }})">
+                                                <span class="dtr-faculty-name" title="{{ member.name }} ({{ member.staff_id }})">
+                                                    {{ member.name }}
+                                                </span>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+
+                                <td class="dtr-cell-count">
+                                    <span class="dtr-count-badge {% if task.assigned_staff_count > 0 %}has-assigned{% endif %}" id="count_{{ task.id }}">
+                                        {{ task.assigned_staff_count }}
+                                    </span>
+                                </td>
+
+                                <td class="dtr-cell-actions">
+                                    <div class="dtr-action-btns">
+                                        <button type="button" class="dtr-btn-icon" onclick="openEditTaskModal({{ task.id }})" title="Edit Task / Role">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M12 20h9"></path>
+                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                            </svg>
+                                        </button>
+                                        <button type="button" class="dtr-btn-icon delete" onclick="openDeleteTaskModal({{ task.id }})" title="Delete Task / Role">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="dtr-empty-state" id="tasksEmptyState">
+                    <svg class="dtr-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <h3 class="dtr-empty-title">No matching tasks or roles found</h3>
+                    <p class="dtr-empty-desc">Try clearing your search query or adjusting your category/status filters.</p>
+                </div>
+            </div>
         </div>
 
-        <div class="sticky-footer">
-            <div>
-                <strong>💡 Tip:</strong> Checkboxes allow multiple staff members to be assigned to the same task/role. Use search to quickly find faculty.
+        <!-- Sticky Save Action Bar -->
+        <div class="dtr-sticky-footer" id="stickyFooter">
+            <div class="dtr-sticky-status">
+                <span class="dtr-status-dot" id="saveStatusDot"></span>
+                <span id="saveStatusText">All department task allocations up to date</span>
             </div>
-            <div>
-                <button type="submit" class="btn-action btn-save-main">
-                    💾 Save All Allocations
+            <div class="dtr-sticky-buttons">
+                <button type="button" class="dtr-btn dtr-btn-ghost" id="discardChangesBtn" style="display:none;" onclick="discardChanges()">
+                    Discard
+                </button>
+                <button type="submit" class="dtr-btn dtr-btn-primary" id="saveAllocationsBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Save All Allocations
                 </button>
             </div>
         </div>
     </form>
 </div>
 
+<!-- ==========================================================================
+     MODALS: Add, Edit, Delete
+     ========================================================================== -->
+
+<!-- 1. Add Task / Role Modal -->
+<div class="dtr-modal-backdrop" id="addTaskModal">
+    <div class="dtr-modal-card">
+        <div class="dtr-modal-header">
+            <h3 class="dtr-modal-title">Add Department Task / Role</h3>
+            <button type="button" class="dtr-btn-icon" onclick="closeModal('addTaskModal')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <form id="addTaskForm" onsubmit="handleAddTaskSubmit(event)">
+            <div class="dtr-modal-body">
+                <div class="dtr-form-group">
+                    <label class="dtr-form-label" for="newTaskName">Task / Role Name <span class="required">*</span></label>
+                    <input type="text" id="newTaskName" class="dtr-input" placeholder="e.g. NAAC Criterion 3 Incharge" required>
+                </div>
+
+                <div class="dtr-form-group">
+                    <label class="dtr-form-label" for="newTaskCategory">Category</label>
+                    <input type="text" id="newTaskCategory" list="categoriesDatalist" class="dtr-input" placeholder="Select or type new category" value="Department Administration">
+                    <datalist id="categoriesDatalist">
+                        {% for cat in categories %}
+                            <option value="{{ cat }}">
+                        {% endfor %}
+                    </datalist>
+                    <div class="dtr-form-hint">Choose an existing category or enter a new one to group this task dynamically.</div>
+                </div>
+
+                <div class="dtr-form-group">
+                    <label class="dtr-form-label" for="newTaskNumber">Task Number (Optional)</label>
+                    <input type="number" id="newTaskNumber" class="dtr-input" placeholder="Auto-assigned (Next: {{ next_task_number }})" value="{{ next_task_number }}">
+                    <div class="dtr-form-hint">Leave blank to assign the next available number automatically.</div>
+                </div>
+
+                <div class="dtr-form-group">
+                    <label class="dtr-form-label">Initial Faculty Assignment (Optional)</label>
+                    <input type="text" class="dtr-input dtr-modal-staff-search" placeholder="Search faculty to pre-assign..." onkeyup="filterModalStaff('modalAddStaffList', this.value)">
+                    <div class="dtr-modal-staff-list" id="modalAddStaffList">
+                        {% for member in staff_members %}
+                            <label class="dtr-faculty-item modal-staff-item">
+                                <input type="checkbox" name="add_assigned_staff" value="{{ member.staff_id }}">
+                                <span class="dtr-faculty-name">{{ member.name }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="dtr-modal-footer">
+                <button type="button" class="dtr-btn dtr-btn-secondary" onclick="closeModal('addTaskModal')">Cancel</button>
+                <button type="submit" class="dtr-btn dtr-btn-primary" id="btnSubmitAddTask">
+                    Create Task / Role
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. Edit Task / Role Modal -->
+<div class="dtr-modal-backdrop" id="editTaskModal">
+    <div class="dtr-modal-card">
+        <div class="dtr-modal-header">
+            <h3 class="dtr-modal-title">Edit Department Task / Role</h3>
+            <button type="button" class="dtr-btn-icon" onclick="closeModal('editTaskModal')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <form id="editTaskForm" onsubmit="handleEditTaskSubmit(event)">
+            <input type="hidden" id="editTaskId">
+            <div class="dtr-modal-body">
+                <div class="dtr-form-group">
+                    <label class="dtr-form-label" for="editTaskName">Task / Role Name <span class="required">*</span></label>
+                    <input type="text" id="editTaskName" class="dtr-input" required>
+                </div>
+
+                <div class="dtr-form-group">
+                    <label class="dtr-form-label" for="editTaskCategory">Category</label>
+                    <input type="text" id="editTaskCategory" list="categoriesDatalist" class="dtr-input" required>
+                </div>
+
+                <div class="dtr-form-group">
+                    <label class="dtr-form-label" for="editTaskNumber">Task Number <span class="required">*</span></label>
+                    <input type="number" id="editTaskNumber" class="dtr-input" required>
+                </div>
+            </div>
+            <div class="dtr-modal-footer">
+                <button type="button" class="dtr-btn dtr-btn-secondary" onclick="closeModal('editTaskModal')">Cancel</button>
+                <button type="submit" class="dtr-btn dtr-btn-primary" id="btnSubmitEditTask">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. Delete Task / Role Confirmation Modal -->
+<div class="dtr-modal-backdrop" id="deleteTaskModal">
+    <div class="dtr-modal-card">
+        <div class="dtr-modal-header">
+            <h3 class="dtr-modal-title">Confirm Delete Portfolio</h3>
+            <button type="button" class="dtr-btn-icon" onclick="closeModal('deleteTaskModal')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="dtr-modal-body">
+            <input type="hidden" id="deleteTaskId">
+            <p style="margin: 0 0 12px 0; font-size: 0.92rem; color: var(--dtr-text-primary);">
+                Are you sure you want to permanently delete task:
+            </p>
+            <div style="background: var(--dtr-surface-subtle); border: 1px solid var(--dtr-border); border-radius: var(--dtr-radius-sm); padding: 12px; font-size: 0.9rem;">
+                <strong id="deleteTaskNameDisplay"></strong>
+                <div style="font-size: 0.8rem; color: var(--dtr-text-muted); margin-top: 4px;" id="deleteTaskMetaDisplay"></div>
+            </div>
+            <p style="margin: 12px 0 0 0; font-size: 0.8rem; color: var(--dtr-danger);">
+                This action cannot be undone. Any current staff allocations for this portfolio will be removed.
+            </p>
+        </div>
+        <div class="dtr-modal-footer">
+            <button type="button" class="dtr-btn dtr-btn-secondary" onclick="closeModal('deleteTaskModal')">Cancel</button>
+            <button type="button" class="dtr-btn dtr-btn-primary" style="background: var(--dtr-danger); border-color: var(--dtr-danger);" id="btnConfirmDeleteTask" onclick="confirmDeleteTask()">
+                Delete Task
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Feedback Container -->
+<div class="dtr-toast" id="dtrToast" role="alert">
+    <svg id="toastIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastMessage">Action completed successfully</span>
+</div>
+
+<!-- ==========================================================================
+     FRONTEND CONTROLLER & DYNAMIC CRUD
+     ========================================================================== -->
 <script>
-    function filterTasks() {
-        const query = document.getElementById('taskSearch').value.toLowerCase().trim();
-        const selectedCat = document.getElementById('catFilter').value;
-        const rows = document.querySelectorAll('.task-row');
+    // Global State
+    let isDirty = false;
+    let modifiedTaskIds = new Set();
+    const CSRF_TOKEN = "{{ csrf_token }}";
+
+    // Staff reference list for dynamic additions
+    const ALL_STAFF_MEMBERS = [
+        {% for member in staff_members %}
+            { staff_id: "{{ member.staff_id|escapejs }}", name: "{{ member.name|escapejs }}" },
+        {% endfor %}
+    ];
+
+    // --- Search & Filter Controller ---
+    function handleSearchInput(e) {
+        const input = document.getElementById('taskSearchInput');
+        const clearBtn = document.getElementById('searchClearBtn');
+        if (input.value.trim().length > 0) {
+            clearBtn.style.display = 'block';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+        applyFilters();
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('taskSearchInput');
+        input.value = '';
+        document.getElementById('searchClearBtn').style.display = 'none';
+        applyFilters();
+        input.focus();
+    }
+
+    function filterByStatus(status) {
+        document.getElementById('statusFilterSelect').value = status;
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const query = document.getElementById('taskSearchInput').value.toLowerCase().trim();
+        const category = document.getElementById('categorySelect').value;
+        const status = document.getElementById('statusFilterSelect').value;
+
+        const rows = document.querySelectorAll('.dtr-task-row');
+        let visibleCount = 0;
 
         rows.forEach(row => {
-            const rowSearch = row.getAttribute('data-search') || '';
+            const blob = row.getAttribute('data-search-blob') || '';
             const rowCat = row.getAttribute('data-category') || '';
+            const assignedCount = parseInt(row.getAttribute('data-assigned-count') || '0', 10);
 
-            const matchesQuery = !query || rowSearch.includes(query);
-            const matchesCat = (selectedCat === 'ALL') || (rowCat === selectedCat);
+            const matchesQuery = !query || blob.includes(query);
+            const matchesCat = (category === 'ALL') || (rowCat === category);
+            
+            let matchesStatus = true;
+            if (status === 'ASSIGNED') {
+                matchesStatus = assignedCount > 0;
+            } else if (status === 'UNASSIGNED') {
+                matchesStatus = assignedCount === 0;
+            }
 
-            if (matchesQuery && matchesCat) {
+            if (matchesQuery && matchesCat && matchesStatus) {
                 row.style.display = '';
+                visibleCount++;
             } else {
                 row.style.display = 'none';
             }
         });
-    }
 
-    function resetFilters() {
-        document.getElementById('taskSearch').value = '';
-        document.getElementById('catFilter').value = 'ALL';
-        filterTasks();
-    }
-
-    function selectAllInRow(taskFieldName, checkState) {
-        const checkboxes = document.querySelectorAll(`input[name="${taskFieldName}"]`);
-        checkboxes.forEach(cb => {
-            cb.checked = checkState;
-            toggleCheckState(cb);
-        });
-        const taskId = taskFieldName.replace('task_', '');
-        updateRowCount(taskId);
-    }
-
-    function toggleCheckState(cb) {
-        const parent = cb.closest('.staff-check-item');
-        if (parent) {
-            if (cb.checked) {
-                parent.classList.add('is-checked');
-            } else {
-                parent.classList.remove('is-checked');
-            }
+        document.getElementById('visibleTasksCount').textContent = visibleCount;
+        const emptyState = document.getElementById('tasksEmptyState');
+        if (emptyState) {
+            emptyState.style.display = (visibleCount === 0) ? 'block' : 'none';
         }
     }
 
-    function filterStaffInRow(taskId, query) {
+    function resetAllFilters() {
+        document.getElementById('taskSearchInput').value = '';
+        document.getElementById('searchClearBtn').style.display = 'none';
+        document.getElementById('categorySelect').value = 'ALL';
+        document.getElementById('statusFilterSelect').value = 'ALL';
+        applyFilters();
+    }
+
+    // --- In-Row Staff Tools ---
+    function toggleAllInRow(taskId, checkState) {
+        const checkboxes = document.querySelectorAll(`input[name="task_${taskId}"]`);
+        checkboxes.forEach(cb => {
+            cb.checked = checkState;
+            updateFacultyItemState(cb);
+        });
+        updateRowAssignmentCount(taskId);
+        markDirty(taskId);
+    }
+
+    function filterFacultyInRow(taskId, query) {
         query = query.toLowerCase().trim();
         const grid = document.getElementById(`grid_${taskId}`);
         if (!grid) return;
-        const items = grid.querySelectorAll('.staff-check-item');
+        const items = grid.querySelectorAll('.dtr-faculty-item');
         items.forEach(item => {
             const name = item.textContent.toLowerCase();
             if (!query || name.includes(query)) {
@@ -539,12 +1416,498 @@
         });
     }
 
-    function updateRowCount(taskId) {
-        const checkboxes = document.querySelectorAll(`input[name="task_${taskId}"]:checked`);
-        const badge = document.getElementById(`count_${taskId}`);
-        if (badge) {
-            badge.textContent = checkboxes.length;
+    function onFacultyCheckboxChange(cb, taskId) {
+        updateFacultyItemState(cb);
+        updateRowAssignmentCount(taskId);
+        markDirty(taskId);
+    }
+
+    function updateFacultyItemState(cb) {
+        const parent = cb.closest('.dtr-faculty-item');
+        if (parent) {
+            if (cb.checked) {
+                parent.classList.add('is-selected');
+            } else {
+                parent.classList.remove('is-selected');
+            }
         }
+    }
+
+    function updateRowAssignmentCount(taskId) {
+        const checkedCount = document.querySelectorAll(`input[name="task_${taskId}"]:checked`).length;
+        const badge = document.getElementById(`count_${taskId}`);
+        const row = document.getElementById(`task-row-${taskId}`);
+
+        if (badge) {
+            badge.textContent = checkedCount;
+            if (checkedCount > 0) {
+                badge.classList.add('has-assigned');
+            } else {
+                badge.classList.remove('has-assigned');
+            }
+        }
+
+        if (row) {
+            row.setAttribute('data-assigned-count', checkedCount);
+            // Recompute search blob with assigned staff
+            const taskNum = row.getAttribute('data-task-number') || '';
+            const taskName = row.getAttribute('data-task-name') || '';
+            const category = row.getAttribute('data-category') || '';
+            let staffNames = [];
+            row.querySelectorAll('input:checked').forEach(cb => {
+                staffNames.push(cb.value);
+            });
+            row.setAttribute('data-search-blob', `${taskNum} ${taskName.toLowerCase()} ${category.toLowerCase()} ${staffNames.join(' ')}`);
+        }
+
+        recalculateKPISummary();
+    }
+
+    function recalculateKPISummary() {
+        const rows = document.querySelectorAll('.dtr-task-row');
+        let total = rows.length;
+        let assigned = 0;
+
+        rows.forEach(r => {
+            const count = parseInt(r.getAttribute('data-assigned-count') || '0', 10);
+            if (count > 0) assigned++;
+        });
+
+        const unassigned = total - assigned;
+
+        const elTotal = document.getElementById('metricTotalTasks');
+        const elAssigned = document.getElementById('metricAssignedTasks');
+        const elUnassigned = document.getElementById('metricUnassignedTasks');
+
+        if (elTotal) elTotal.textContent = total;
+        if (elAssigned) elAssigned.textContent = assigned;
+        if (elUnassigned) elUnassigned.textContent = unassigned;
+        document.getElementById('totalTasksCount').textContent = total;
+    }
+
+    // --- Dirty State & Unsaved Tracking ---
+    function markDirty(taskId) {
+        isDirty = true;
+        if (taskId) modifiedTaskIds.add(taskId);
+        const dot = document.getElementById('saveStatusDot');
+        const text = document.getElementById('saveStatusText');
+        const discardBtn = document.getElementById('discardChangesBtn');
+
+        if (dot) {
+            dot.className = 'dtr-status-dot dirty';
+        }
+        if (text) {
+            text.innerHTML = `<strong>${modifiedTaskIds.size}</strong> task allocations modified (unsaved)`;
+        }
+        if (discardBtn) {
+            discardBtn.style.display = 'inline-flex';
+        }
+    }
+
+    function markSaved() {
+        isDirty = false;
+        modifiedTaskIds.clear();
+        const dot = document.getElementById('saveStatusDot');
+        const text = document.getElementById('saveStatusText');
+        const discardBtn = document.getElementById('discardChangesBtn');
+
+        if (dot) {
+            dot.className = 'dtr-status-dot saved';
+        }
+        if (text) {
+            text.textContent = 'All department task allocations saved successfully.';
+        }
+        if (discardBtn) {
+            discardBtn.style.display = 'none';
+        }
+    }
+
+    function discardChanges() {
+        if (confirm("Discard all unsaved allocation changes and reload original assignments?")) {
+            window.location.reload();
+        }
+    }
+
+    window.addEventListener('beforeunload', function(e) {
+        if (isDirty) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // --- Form Batch Submit (AJAX with fallback) ---
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const form = document.getElementById('tasksAllocationForm');
+        const saveBtn = document.getElementById('saveAllocationsBtn');
+        const originalText = saveBtn.innerHTML;
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `
+            <svg class="dtr-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" stroke-width="4" stroke-dasharray="32" stroke-linecap="round"></circle>
+            </svg> Saving...
+        `;
+
+        const formData = new FormData(form);
+        formData.append('ajax', '1');
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Server returned an error");
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                markSaved();
+                showToast(data.message || "All department task allocations saved successfully!");
+            } else {
+                showToast(data.error || "Unable to save allocations", true);
+            }
+        })
+        .catch(err => {
+            // Fallback: standard submit
+            console.warn("AJAX save failed, submitting traditionally:", err);
+            form.submit();
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+        });
+    }
+
+    // --- Modal Management ---
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('is-open');
+    }
+
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('is-open');
+    }
+
+    function openAddTaskModal() {
+        document.getElementById('addTaskForm').reset();
+        document.querySelectorAll('#modalAddStaffList input').forEach(cb => cb.checked = false);
+        openModal('addTaskModal');
+        document.getElementById('newTaskName').focus();
+    }
+
+    function filterModalStaff(listId, query) {
+        query = query.toLowerCase().trim();
+        const list = document.getElementById(listId);
+        if (!list) return;
+        list.querySelectorAll('.modal-staff-item').forEach(item => {
+            const txt = item.textContent.toLowerCase();
+            item.style.display = (!query || txt.includes(query)) ? '' : 'none';
+        });
+    }
+
+    // --- Dynamic Add Task / Role ---
+    function handleAddTaskSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmitAddTask');
+        btn.disabled = true;
+
+        const name = document.getElementById('newTaskName').value.trim();
+        const category = document.getElementById('newTaskCategory').value.trim() || 'Department Administration';
+        const taskNumber = document.getElementById('newTaskNumber').value.trim();
+
+        const selectedStaff = [];
+        document.querySelectorAll('input[name="add_assigned_staff"]:checked').forEach(cb => {
+            selectedStaff.push(cb.value);
+        });
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('category', category);
+        if (taskNumber) formData.append('task_number', taskNumber);
+        selectedStaff.forEach(id => formData.append('assigned_staff', id));
+        formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+        formData.append('ajax', '1');
+
+        fetch("{% url 'staffs:add_department_task' %}", {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('addTaskModal');
+                insertTaskRowIntoDOM(data.task, selectedStaff);
+                showToast(data.message);
+                updateCategoryDropdown(category);
+                recalculateKPISummary();
+                applyFilters();
+            } else {
+                showToast(data.error || "Failed to add task", true);
+            }
+        })
+        .catch(err => {
+            showToast("An error occurred while creating task", true);
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
+    }
+
+    function insertTaskRowIntoDOM(task, assignedStaffIds) {
+        const tbody = document.getElementById('tasksTableBody');
+        const tr = document.createElement('tr');
+        tr.className = 'dtr-task-row';
+        tr.id = `task-row-${task.id}`;
+        tr.setAttribute('data-task-id', task.id);
+        tr.setAttribute('data-task-number', task.task_number);
+        tr.setAttribute('data-task-name', task.name);
+        tr.setAttribute('data-category', task.category);
+        tr.setAttribute('data-assigned-count', assignedStaffIds.length);
+
+        const assignedSet = new Set(assignedStaffIds);
+
+        // Build Faculty grid HTML
+        let facultyGridHtml = '';
+        ALL_STAFF_MEMBERS.forEach(m => {
+            const isChecked = assignedSet.has(m.staff_id);
+            facultyGridHtml += `
+                <label class="dtr-faculty-item ${isChecked ? 'is-selected' : ''}" id="item_${task.id}_${m.staff_id}">
+                    <input type="checkbox" 
+                           name="task_${task.id}" 
+                           value="${m.staff_id}" 
+                           ${isChecked ? 'checked' : ''}
+                           onchange="onFacultyCheckboxChange(this, ${task.id})">
+                    <span class="dtr-faculty-name" title="${m.name} (${m.staff_id})">
+                        ${m.name}
+                    </span>
+                </label>
+            `;
+        });
+
+        tr.setAttribute('data-search-blob', `${task.task_number} ${task.name.toLowerCase()} ${task.category.toLowerCase()} ${assignedStaffIds.join(' ')}`);
+
+        tr.innerHTML = `
+            <td class="dtr-cell-number">
+                <span class="dtr-num-badge" id="badge-num-${task.id}">${task.task_number}</span>
+            </td>
+            <td class="dtr-cell-details">
+                <div class="dtr-task-title" id="title-${task.id}">${task.name}</div>
+                <span class="dtr-cat-pill" id="cat-pill-${task.id}">${task.category}</span>
+                <div class="dtr-row-quick-tools">
+                    <button type="button" class="dtr-btn-micro" onclick="toggleAllInRow(${task.id}, true)">Select All</button>
+                    <button type="button" class="dtr-btn-micro" onclick="toggleAllInRow(${task.id}, false)">Clear All</button>
+                    <input type="text" class="dtr-row-filter-input" placeholder="Filter faculty..." onkeyup="filterFacultyInRow(${task.id}, this.value)">
+                </div>
+            </td>
+            <td>
+                <div class="dtr-faculty-grid" id="grid_${task.id}">
+                    ${facultyGridHtml}
+                </div>
+            </td>
+            <td class="dtr-cell-count">
+                <span class="dtr-count-badge ${assignedStaffIds.length > 0 ? 'has-assigned' : ''}" id="count_${task.id}">
+                    ${assignedStaffIds.length}
+                </span>
+            </td>
+            <td class="dtr-cell-actions">
+                <div class="dtr-action-btns">
+                    <button type="button" class="dtr-btn-icon" onclick="openEditTaskModal(${task.id})" title="Edit Task / Role">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </button>
+                    <button type="button" class="dtr-btn-icon delete" onclick="openDeleteTaskModal(${task.id})" title="Delete Task / Role">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </td>
+        `;
+
+        tbody.appendChild(tr);
+    }
+
+    function updateCategoryDropdown(newCategory) {
+        const select = document.getElementById('categorySelect');
+        const datalist = document.getElementById('categoriesDatalist');
+        let exists = false;
+        for (let opt of select.options) {
+            if (opt.value === newCategory) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists && newCategory) {
+            const opt = document.createElement('option');
+            opt.value = newCategory;
+            opt.textContent = newCategory;
+            select.appendChild(opt);
+
+            if (datalist) {
+                const dlOpt = document.createElement('option');
+                dlOpt.value = newCategory;
+                datalist.appendChild(dlOpt);
+            }
+        }
+    }
+
+    // --- Dynamic Edit Task / Role ---
+    function openEditTaskModal(taskId) {
+        const row = document.getElementById(`task-row-${taskId}`);
+        if (!row) return;
+
+        const name = row.getAttribute('data-task-name');
+        const category = row.getAttribute('data-category');
+        const taskNumber = row.getAttribute('data-task-number');
+
+        document.getElementById('editTaskId').value = taskId;
+        document.getElementById('editTaskName').value = name;
+        document.getElementById('editTaskCategory').value = category;
+        document.getElementById('editTaskNumber').value = taskNumber;
+
+        openModal('editTaskModal');
+        document.getElementById('editTaskName').focus();
+    }
+
+    function handleEditTaskSubmit(e) {
+        e.preventDefault();
+        const taskId = document.getElementById('editTaskId').value;
+        const name = document.getElementById('editTaskName').value.trim();
+        const category = document.getElementById('editTaskCategory').value.trim();
+        const taskNumber = document.getElementById('editTaskNumber').value.trim();
+        const btn = document.getElementById('btnSubmitEditTask');
+
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('category', category);
+        formData.append('task_number', taskNumber);
+        formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+        formData.append('ajax', '1');
+
+        fetch(`/staffs/department-tasks/${taskId}/edit/`, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('editTaskModal');
+                const row = document.getElementById(`task-row-${taskId}`);
+                if (row) {
+                    row.setAttribute('data-task-name', data.task.name);
+                    row.setAttribute('data-category', data.task.category);
+                    row.setAttribute('data-task-number', data.task.task_number);
+
+                    document.getElementById(`title-${taskId}`).textContent = data.task.name;
+                    document.getElementById(`cat-pill-${taskId}`).textContent = data.task.category;
+                    document.getElementById(`badge-num-${taskId}`).textContent = data.task.task_number;
+
+                    updateRowAssignmentCount(taskId);
+                    updateCategoryDropdown(data.task.category);
+                }
+                showToast(data.message);
+                applyFilters();
+            } else {
+                showToast(data.error || "Failed to update task", true);
+            }
+        })
+        .catch(err => {
+            showToast("An error occurred while updating task", true);
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
+    }
+
+    // --- Dynamic Delete Task / Role ---
+    function openDeleteTaskModal(taskId) {
+        const row = document.getElementById(`task-row-${taskId}`);
+        if (!row) return;
+
+        const name = row.getAttribute('data-task-name');
+        const num = row.getAttribute('data-task-number');
+        const count = row.getAttribute('data-assigned-count');
+
+        document.getElementById('deleteTaskId').value = taskId;
+        document.getElementById('deleteTaskNameDisplay').textContent = `#${num} — ${name}`;
+        document.getElementById('deleteTaskMetaDisplay').textContent = `Currently assigned to ${count} faculty members.`;
+
+        openModal('deleteTaskModal');
+    }
+
+    function confirmDeleteTask() {
+        const taskId = document.getElementById('deleteTaskId').value;
+        const btn = document.getElementById('btnConfirmDeleteTask');
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+        formData.append('ajax', '1');
+
+        fetch(`/staffs/department-tasks/${taskId}/delete/`, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('deleteTaskModal');
+                const row = document.getElementById(`task-row-${taskId}`);
+                if (row) {
+                    row.remove();
+                }
+                modifiedTaskIds.delete(parseInt(taskId, 10));
+                showToast(data.message);
+                recalculateKPISummary();
+                applyFilters();
+            } else {
+                showToast(data.error || "Failed to delete task", true);
+            }
+        })
+        .catch(err => {
+            showToast("An error occurred while deleting task", true);
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
+    }
+
+    // --- Toast Controller ---
+    let toastTimeout;
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('dtrToast');
+        const msgEl = document.getElementById('toastMessage');
+        const icon = document.getElementById('toastIcon');
+
+        if (!toast || !msgEl) return;
+
+        clearTimeout(toastTimeout);
+        msgEl.textContent = message;
+
+        if (isError) {
+            toast.className = 'dtr-toast error show';
+            icon.innerHTML = '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>';
+        } else {
+            toast.className = 'dtr-toast show';
+            icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+        }
+
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3600);
     }
 </script>
 {% endblock %}

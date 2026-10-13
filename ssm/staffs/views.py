@@ -134,6 +134,142 @@ class ScholarshipRegCandidate:
         )
 
 
+class ScholarshipStudentRecord:
+    """Represents a student record in the scholarship roster, grouping all their scholarships (applied and registered)."""
+    def __init__(self, student):
+        self.student = student
+        self.scholarships = []
+
+    def add_scholarship(self, item):
+        self.scholarships.append(item)
+
+    @property
+    def scholarship_count(self):
+        return len(self.scholarships)
+
+    @property
+    def has_any_applied(self):
+        return any(getattr(s, 'is_applied', False) for s in self.scholarships)
+
+    @property
+    def has_application(self):
+        return self.has_any_applied
+
+    @property
+    def is_applied(self):
+        return self.has_any_applied
+
+    @property
+    def is_in_reg(self):
+        return any(getattr(s, 'is_in_reg', False) for s in self.scholarships)
+
+    @property
+    def applied_scholarships(self):
+        return [s for s in self.scholarships if getattr(s, 'is_applied', False)]
+
+    @property
+    def candidate_scholarships(self):
+        return [s for s in self.scholarships if not getattr(s, 'is_applied', False)]
+
+    @property
+    def academic_year(self):
+        for s in self.scholarships:
+            ay = getattr(s, 'academic_year', None)
+            if ay:
+                return ay
+        return getattr(self.student, 'batch', '2026-2027')
+
+    @property
+    def academic_years(self):
+        ays = []
+        for s in self.scholarships:
+            ay = getattr(s, 'academic_year', None)
+            if ay and ay not in ays:
+                ays.append(ay)
+        return ays or ['2026-2027']
+
+    @property
+    def annual_income(self):
+        for s in self.scholarships:
+            inc = getattr(s, 'annual_income', None)
+            if inc is not None:
+                return inc
+        pi = getattr(self.student, 'personalinfo', None)
+        return getattr(pi, 'parent_annual_income', None) if pi else None
+
+    # Delegation properties for single-scholarship compatibility
+    @property
+    def id(self):
+        for s in self.scholarships:
+            if getattr(s, 'id', None):
+                return s.id
+        return None
+
+    @property
+    def scholarship_type(self):
+        return self.scholarships[0].scholarship_type if self.scholarships else ''
+
+    def get_scholarship_type_display(self):
+        if not self.scholarships:
+            return ''
+        return self.scholarships[0].get_scholarship_type_display()
+
+    @property
+    def status(self):
+        return self.scholarships[0].status if self.scholarships else ''
+
+    @property
+    def application_no(self):
+        for s in self.scholarships:
+            app_no = getattr(s, 'application_no', '')
+            if app_no:
+                return app_no
+        return ''
+
+    @property
+    def scheme_filter_key(self):
+        return self.scholarships[0].scheme_filter_key if self.scholarships else ''
+
+    @property
+    def private_scholarship_name(self):
+        for s in self.scholarships:
+            psn = getattr(s, 'private_scholarship_name', '')
+            if psn:
+                return psn
+        return ''
+
+    def __iter__(self):
+        return iter(self.scholarships)
+
+    def __len__(self):
+        return len(self.scholarships)
+
+    def __getitem__(self, idx):
+        return self.scholarships[idx]
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        if hasattr(other, 'student_id') or hasattr(other, 'scholarship_type'):
+            for s in self.scholarships:
+                s_id = getattr(s, 'id', None)
+                other_id = getattr(other, 'id', None)
+                if s_id is not None and other_id is not None:
+                    if s_id == other_id:
+                        return True
+                elif s_id is None and other_id is None:
+                    if (
+                        getattr(self.student, 'pk', None) == getattr(other.student, 'pk', None) and
+                        getattr(s, 'scholarship_type', None) == getattr(other, 'scholarship_type', None)
+                    ):
+                        return True
+            return False
+        if isinstance(other, ScholarshipStudentRecord):
+            return getattr(self.student, 'pk', None) == getattr(other.student, 'pk', None)
+        return False
+
+
+
 def staff_dashboard(request):
     """Displays the staff dashboard. Requires login."""
     if 'staff_id' not in request.session:
@@ -508,13 +644,39 @@ def staff_dashboard(request):
             ])
         return response
 
+    # Group by student so multiple scholarships appear in one list down within a single student record
+    from collections import OrderedDict
+    grouped_dict = OrderedDict()
+    for item in filtered_roster:
+        s_id = item.student.pk if item.student else None
+        if s_id not in grouped_dict:
+            rec = ScholarshipStudentRecord(item.student)
+            grouped_dict[s_id] = rec
+        grouped_dict[s_id].add_scholarship(item)
+
+    grouped_roster = list(grouped_dict.values())
+    grouped_roster.sort(key=lambda rec: (
+        0 if any(getattr(s, 'status', '') == 'Pending Office Verification' for s in rec.scholarships) else (
+            1 if rec.has_any_applied else 2
+        ),
+        getattr(rec.student, 'current_semester', 0) if rec.student else 0,
+        getattr(rec.student, 'roll_number', '') if rec.student else ''
+    ))
+
+    # Pagination query string to preserve all active filter parameters across page links
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        query_params.pop('page')
+    sch_pagination_query = query_params.urlencode()
+
     from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
     page_num = request.GET.get('page', 1)
-    paginator = Paginator(filtered_roster, 30)
+    paginator = Paginator(grouped_roster, 30)
     try:
         recent_sch_apps = paginator.page(page_num)
     except (PageNotAnInteger, EmptyPage):
         recent_sch_apps = paginator.page(1)
+
 
     if staff.role == 'Scholarship Officer' or staff.role == 'Office Staff' or staff.is_scholarship_officer or active_role == 'Scholarship Officer':
         scholarship_qs = ScholarshipInfo.objects.select_related('student')
@@ -996,14 +1158,20 @@ def staff_dashboard(request):
         'recent_sch_apps': recent_sch_apps,
         'selected_academic_year': req_sch_ay,
         'available_academic_years': available_academic_years,
+        'req_sch_ay': req_sch_ay,
         'req_sch_type': req_sch_type,
+        'req_sch_status': req_sch_status,
+        'req_sch_sem': req_sch_sem,
+        'req_sch_q': req_sch_q,
         'req_sch_tag': req_sch_tag,
+        'sch_pagination_query': sch_pagination_query,
         'roster_total_count': roster_total_count,
         'roster_applied_count': roster_applied_count,
         'roster_in_reg_count': roster_in_reg_count,
         'roster_both_count': roster_both_count,
         'roster_in_reg_only_count': roster_in_reg_only_count,
         'roster_not_applied_count': roster_in_reg_only_count,
+        'roster_student_count': len(grouped_roster),
         'profile_completion_percentage': _completion_data['percentage'],
         'profile_missing_fields': _completion_data['missing_fields'],
         # Research Scholar Context
@@ -9942,6 +10110,8 @@ def manage_department_tasks(request):
 
     from .models import DepartmentTask
     from django.db import transaction
+    from django.http import JsonResponse
+    from django.db.models import Max
 
     # Ensure default tasks exist
     DepartmentTask.seed_default_tasks()
@@ -9952,6 +10122,10 @@ def manage_department_tasks(request):
             for task in tasks:
                 selected_staff_ids = request.POST.getlist(f'task_{task.id}')
                 task.assigned_staff.set(Staff.objects.filter(staff_id__in=selected_staff_ids))
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+            return JsonResponse({'success': True, 'message': 'Department Tasks & Roles allocations updated successfully!'})
+
         messages.success(request, "Department Tasks & Roles allocations updated successfully!")
         return redirect('staffs:manage_department_tasks')
 
@@ -9959,14 +10133,201 @@ def manage_department_tasks(request):
     staff_members = Staff.objects.filter(is_active=True).order_by('name')
 
     categories = sorted(list(set(t.category for t in tasks if t.category)))
+    total_tasks = tasks.count()
+    total_staff = staff_members.count()
+    assigned_tasks_count = sum(1 for t in tasks if t.assigned_staff.exists())
+    unassigned_tasks_count = total_tasks - assigned_tasks_count
+
+    max_num = tasks.aggregate(Max('task_number'))['task_number__max'] or 0
+    next_task_number = max_num + 1
 
     context = {
         'staff': staff,
         'tasks': tasks,
         'staff_members': staff_members,
         'categories': categories,
+        'total_tasks': total_tasks,
+        'total_staff': total_staff,
+        'assigned_tasks_count': assigned_tasks_count,
+        'unassigned_tasks_count': unassigned_tasks_count,
+        'next_task_number': next_task_number,
     }
     return render(request, 'staff/department_tasks.html', context)
+
+
+def add_department_task(request):
+    """View to dynamically add a new Department Task / Role."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not staff or (staff.role != 'HOD' and not staff.is_admin):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'error': 'Access Denied: Only HOD or Admin can add department tasks.'}, status=403)
+        messages.error(request, "Access Denied: Only HOD or Admin can add department tasks.")
+        return redirect('staffs:manage_department_tasks')
+
+    from .models import DepartmentTask
+    from django.http import JsonResponse
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        category = request.POST.get('category', '').strip() or "Department Administration"
+        task_number_str = request.POST.get('task_number', '').strip()
+        assigned_staff_ids = request.POST.getlist('assigned_staff')
+
+        if not name:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+                return JsonResponse({'success': False, 'error': 'Task / Role Name is required.'}, status=400)
+            messages.error(request, "Task / Role Name is required.")
+            return redirect('staffs:manage_department_tasks')
+
+        task_number = None
+        if task_number_str:
+            try:
+                task_number = int(task_number_str)
+                if DepartmentTask.objects.filter(task_number=task_number).exists():
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+                        return JsonResponse({'success': False, 'error': f'Task number {task_number} is already in use.'}, status=400)
+                    messages.error(request, f'Task number {task_number} is already in use.')
+                    return redirect('staffs:manage_department_tasks')
+            except ValueError:
+                task_number = None
+
+        task = DepartmentTask(name=name, category=category)
+        if task_number is not None:
+            task.task_number = task_number
+        task.save()
+
+        if assigned_staff_ids:
+            assigned_staff = Staff.objects.filter(staff_id__in=assigned_staff_ids)
+            task.assigned_staff.set(assigned_staff)
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+            assigned_list = [{'staff_id': s.staff_id, 'name': s.name} for s in task.assigned_staff.all()]
+            return JsonResponse({
+                'success': True,
+                'message': f'Task #{task.task_number} ("{task.name}") created successfully!',
+                'task': {
+                    'id': task.id,
+                    'task_number': task.task_number,
+                    'name': task.name,
+                    'category': task.category,
+                    'assigned_count': task.assigned_staff.count(),
+                    'assigned_staff': assigned_list
+                }
+            })
+
+        messages.success(request, f'Department Task "{task.name}" created successfully!')
+        return redirect('staffs:manage_department_tasks')
+
+    return redirect('staffs:manage_department_tasks')
+
+
+def edit_department_task(request, task_id):
+    """View to dynamically edit an existing Department Task / Role."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not staff or (staff.role != 'HOD' and not staff.is_admin):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'error': 'Access Denied.'}, status=403)
+        messages.error(request, "Access Denied.")
+        return redirect('staffs:manage_department_tasks')
+
+    from .models import DepartmentTask
+    from django.http import JsonResponse
+
+    task = get_object_or_404(DepartmentTask, id=task_id)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        category = request.POST.get('category', '').strip() or "Department Administration"
+        task_number_str = request.POST.get('task_number', '').strip()
+
+        if not name:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+                return JsonResponse({'success': False, 'error': 'Task / Role Name is required.'}, status=400)
+            messages.error(request, "Task / Role Name is required.")
+            return redirect('staffs:manage_department_tasks')
+
+        if task_number_str:
+            try:
+                task_number = int(task_number_str)
+                if DepartmentTask.objects.filter(task_number=task_number).exclude(id=task.id).exists():
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+                        return JsonResponse({'success': False, 'error': f'Task number {task_number} is already in use.'}, status=400)
+                    messages.error(request, f'Task number {task_number} is already in use.')
+                    return redirect('staffs:manage_department_tasks')
+                task.task_number = task_number
+            except ValueError:
+                pass
+
+        task.name = name
+        task.category = category
+        task.save()
+
+        if 'assigned_staff' in request.POST:
+            assigned_staff_ids = request.POST.getlist('assigned_staff')
+            task.assigned_staff.set(Staff.objects.filter(staff_id__in=assigned_staff_ids))
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+            assigned_list = [{'staff_id': s.staff_id, 'name': s.name} for s in task.assigned_staff.all()]
+            return JsonResponse({
+                'success': True,
+                'message': f'Task #{task.task_number} updated successfully.',
+                'task': {
+                    'id': task.id,
+                    'task_number': task.task_number,
+                    'name': task.name,
+                    'category': task.category,
+                    'assigned_count': task.assigned_staff.count(),
+                    'assigned_staff': assigned_list
+                }
+            })
+
+        messages.success(request, f'Department Task "{task.name}" updated successfully!')
+        return redirect('staffs:manage_department_tasks')
+
+    return redirect('staffs:manage_department_tasks')
+
+
+def delete_department_task(request, task_id):
+    """View to dynamically delete a Department Task / Role."""
+    if 'staff_id' not in request.session:
+        return redirect('staffs:stafflogin')
+
+    staff = Staff.objects.filter(staff_id=request.session['staff_id']).first()
+    if not staff or (staff.role != 'HOD' and not staff.is_admin):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'error': 'Access Denied.'}, status=403)
+        messages.error(request, "Access Denied.")
+        return redirect('staffs:manage_department_tasks')
+
+    from .models import DepartmentTask
+    from django.http import JsonResponse
+
+    task = get_object_or_404(DepartmentTask, id=task_id)
+
+    if request.method == 'POST':
+        task_name = task.name
+        task_num = task.task_number
+        task.delete()
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1':
+            return JsonResponse({
+                'success': True,
+                'message': f'Task #{task_num} ("{task_name}") deleted successfully.'
+            })
+
+        messages.success(request, f'Task #{task_num} ("{task_name}") deleted successfully.')
+        return redirect('staffs:manage_department_tasks')
+
+    return redirect('staffs:manage_department_tasks')
 
 
 def export_staff_tasks_csv(request):

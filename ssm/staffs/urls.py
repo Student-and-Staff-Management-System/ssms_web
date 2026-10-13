@@ -164,6 +164,9 @@ urlpatterns = [
     
     # Department Tasks & Roles Management
     path('department-tasks/', views.manage_department_tasks, name='manage_department_tasks'),
+    path('department-tasks/create/', views.add_department_task, name='add_department_task'),
+    path('department-tasks/<int:task_id>/edit/', views.edit_department_task, name='edit_department_task'),
+    path('department-tasks/<int:task_id>/delete/', views.delete_department_task, name='delete_department_task'),
     path('department-tasks/export-staff/', views.export_staff_tasks_csv, name='export_staff_tasks_csv'),
     path('department-tasks/export-matrix/', views.export_task_matrix_csv, name='export_task_matrix_csv'),
 
