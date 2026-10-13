@@ -354,6 +354,13 @@
 
     .dtr-select:focus {
         border-color: var(--dtr-primary);
+        box-shadow: 0 0 0 2px var(--dtr-primary-surface);
+    }
+
+    .dtr-select option {
+        background-color: var(--dtr-surface);
+        color: var(--dtr-text-main);
+        padding: 8px 12px;
     }
 
     .dtr-filter-meta {
@@ -1190,14 +1197,30 @@
                 </div>
 
                 <div class="dtr-form-group">
-                    <label class="dtr-form-label" for="newTaskCategory">Category</label>
-                    <input type="text" id="newTaskCategory" list="categoriesDatalist" class="dtr-input" placeholder="Select or type new category" value="Department Administration">
-                    <datalist id="categoriesDatalist">
-                        {% for cat in categories %}
-                            <option value="{{ cat }}">
-                        {% endfor %}
-                    </datalist>
-                    <div class="dtr-form-hint">Choose an existing category or enter a new one to group this task dynamically.</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="dtr-form-label" for="newTaskCategorySelect" style="margin-bottom: 0;">Category <span class="required">*</span></label>
+                        <button type="button" class="dtr-btn-micro" id="btnToggleAddCategoryMode" onclick="toggleCustomCategoryMode('add')">
+                            + Type New Category
+                        </button>
+                    </div>
+
+                    <div id="addCategorySelectWrap">
+                        <select id="newTaskCategorySelect" class="dtr-select" style="width: 100%;" onchange="handleCategorySelectChange('add', this)">
+                            <option value="" disabled>-- Select a Category --</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if cat == "Department Administration" %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                            <option value="__CUSTOM__">+ Create / Type New Category...</option>
+                        </select>
+                    </div>
+
+                    <div id="addCategoryCustomWrap" style="display: none; margin-top: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="newTaskCategoryCustom" class="dtr-input" placeholder="Enter new category name...">
+                            <button type="button" class="dtr-btn dtr-btn-secondary" style="height: 38px; padding: 0 12px; white-space: nowrap;" onclick="cancelCustomCategoryMode('add')">Back to Dropdown</button>
+                        </div>
+                    </div>
+                    <div class="dtr-form-hint">Choose from existing department categories or click '+ Type New Category'.</div>
                 </div>
 
                 <div class="dtr-form-group">
@@ -1247,8 +1270,28 @@
                 </div>
 
                 <div class="dtr-form-group">
-                    <label class="dtr-form-label" for="editTaskCategory">Category</label>
-                    <input type="text" id="editTaskCategory" list="categoriesDatalist" class="dtr-input" required>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="dtr-form-label" for="editTaskCategorySelect" style="margin-bottom: 0;">Category <span class="required">*</span></label>
+                        <button type="button" class="dtr-btn-micro" id="btnToggleEditCategoryMode" onclick="toggleCustomCategoryMode('edit')">
+                            + Type New Category
+                        </button>
+                    </div>
+
+                    <div id="editCategorySelectWrap">
+                        <select id="editTaskCategorySelect" class="dtr-select" style="width: 100%;" onchange="handleCategorySelectChange('edit', this)">
+                            {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                            <option value="__CUSTOM__">+ Create / Type New Category...</option>
+                        </select>
+                    </div>
+
+                    <div id="editCategoryCustomWrap" style="display: none; margin-top: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="editTaskCategoryCustom" class="dtr-input" placeholder="Enter new category name...">
+                            <button type="button" class="dtr-btn dtr-btn-secondary" style="height: 38px; padding: 0 12px; white-space: nowrap;" onclick="cancelCustomCategoryMode('edit')">Back to Dropdown</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="dtr-form-group">
@@ -1582,6 +1625,54 @@
         });
     }
 
+    // --- Category Mode Toggles ---
+    function toggleCustomCategoryMode(mode) {
+        if (mode === 'add') {
+            document.getElementById('addCategorySelectWrap').style.display = 'none';
+            document.getElementById('addCategoryCustomWrap').style.display = 'block';
+            document.getElementById('btnToggleAddCategoryMode').style.display = 'none';
+            const customInput = document.getElementById('newTaskCategoryCustom');
+            if (customInput) customInput.focus();
+        } else if (mode === 'edit') {
+            document.getElementById('editCategorySelectWrap').style.display = 'none';
+            document.getElementById('editCategoryCustomWrap').style.display = 'block';
+            document.getElementById('btnToggleEditCategoryMode').style.display = 'none';
+            const customInput = document.getElementById('editTaskCategoryCustom');
+            if (customInput) customInput.focus();
+        }
+    }
+
+    function cancelCustomCategoryMode(mode) {
+        if (mode === 'add') {
+            document.getElementById('addCategoryCustomWrap').style.display = 'none';
+            document.getElementById('addCategorySelectWrap').style.display = 'block';
+            document.getElementById('btnToggleAddCategoryMode').style.display = 'inline-block';
+            const select = document.getElementById('newTaskCategorySelect');
+            if (select && select.value === '__CUSTOM__') {
+                select.value = 'Department Administration';
+                if (!select.value && select.options.length > 0) select.selectedIndex = 0;
+            }
+            const customInput = document.getElementById('newTaskCategoryCustom');
+            if (customInput) customInput.value = '';
+        } else if (mode === 'edit') {
+            document.getElementById('editCategoryCustomWrap').style.display = 'none';
+            document.getElementById('editCategorySelectWrap').style.display = 'block';
+            document.getElementById('btnToggleEditCategoryMode').style.display = 'inline-block';
+            const select = document.getElementById('editTaskCategorySelect');
+            if (select && select.value === '__CUSTOM__') {
+                select.selectedIndex = 0;
+            }
+            const customInput = document.getElementById('editTaskCategoryCustom');
+            if (customInput) customInput.value = '';
+        }
+    }
+
+    function handleCategorySelectChange(mode, selectEl) {
+        if (selectEl.value === '__CUSTOM__') {
+            toggleCustomCategoryMode(mode);
+        }
+    }
+
     // --- Modal Management ---
     function openModal(id) {
         const el = document.getElementById(id);
@@ -1595,6 +1686,14 @@
 
     function openAddTaskModal() {
         document.getElementById('addTaskForm').reset();
+        cancelCustomCategoryMode('add');
+        const addSelect = document.getElementById('newTaskCategorySelect');
+        if (addSelect) {
+            addSelect.value = "Department Administration";
+            if (!addSelect.value && addSelect.options.length > 0) {
+                addSelect.selectedIndex = 0;
+            }
+        }
         document.querySelectorAll('#modalAddStaffList input').forEach(cb => cb.checked = false);
         openModal('addTaskModal');
         document.getElementById('newTaskName').focus();
@@ -1617,7 +1716,16 @@
         btn.disabled = true;
 
         const name = document.getElementById('newTaskName').value.trim();
-        const category = document.getElementById('newTaskCategory').value.trim() || 'Department Administration';
+        const customWrap = document.getElementById('addCategoryCustomWrap');
+        let category = '';
+        if (customWrap && customWrap.style.display !== 'none') {
+            category = document.getElementById('newTaskCategoryCustom').value.trim();
+        } else {
+            category = document.getElementById('newTaskCategorySelect').value.trim();
+        }
+        if (!category || category === '__CUSTOM__') {
+            category = 'Department Administration';
+        }
         const taskNumber = document.getElementById('newTaskNumber').value.trim();
 
         const selectedStaff = [];
@@ -1737,27 +1845,29 @@
     }
 
     function updateCategoryDropdown(newCategory) {
-        const select = document.getElementById('categorySelect');
-        const datalist = document.getElementById('categoriesDatalist');
-        let exists = false;
-        for (let opt of select.options) {
-            if (opt.value === newCategory) {
-                exists = true;
-                break;
+        if (!newCategory || newCategory === '__CUSTOM__') return;
+        ['categorySelect', 'newTaskCategorySelect', 'editTaskCategorySelect'].forEach(id => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            let exists = false;
+            for (let opt of select.options) {
+                if (opt.value === newCategory) {
+                    exists = true;
+                    break;
+                }
             }
-        }
-        if (!exists && newCategory) {
-            const opt = document.createElement('option');
-            opt.value = newCategory;
-            opt.textContent = newCategory;
-            select.appendChild(opt);
-
-            if (datalist) {
-                const dlOpt = document.createElement('option');
-                dlOpt.value = newCategory;
-                datalist.appendChild(dlOpt);
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = newCategory;
+                opt.textContent = newCategory;
+                const customOpt = select.querySelector('option[value="__CUSTOM__"]');
+                if (customOpt) {
+                    select.insertBefore(opt, customOpt);
+                } else {
+                    select.appendChild(opt);
+                }
             }
-        }
+        });
     }
 
     // --- Dynamic Edit Task / Role ---
@@ -1771,7 +1881,31 @@
 
         document.getElementById('editTaskId').value = taskId;
         document.getElementById('editTaskName').value = name;
-        document.getElementById('editTaskCategory').value = category;
+
+        cancelCustomCategoryMode('edit');
+        const select = document.getElementById('editTaskCategorySelect');
+        if (select) {
+            let exists = false;
+            for (let opt of select.options) {
+                if (opt.value === category) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists && category) {
+                const newOpt = document.createElement('option');
+                newOpt.value = category;
+                newOpt.textContent = category;
+                const customOpt = select.querySelector('option[value="__CUSTOM__"]');
+                if (customOpt) {
+                    select.insertBefore(newOpt, customOpt);
+                } else {
+                    select.appendChild(newOpt);
+                }
+            }
+            select.value = category;
+        }
+
         document.getElementById('editTaskNumber').value = taskNumber;
 
         openModal('editTaskModal');
@@ -1782,7 +1916,18 @@
         e.preventDefault();
         const taskId = document.getElementById('editTaskId').value;
         const name = document.getElementById('editTaskName').value.trim();
-        const category = document.getElementById('editTaskCategory').value.trim();
+
+        const customWrap = document.getElementById('editCategoryCustomWrap');
+        let category = '';
+        if (customWrap && customWrap.style.display !== 'none') {
+            category = document.getElementById('editTaskCategoryCustom').value.trim();
+        } else {
+            category = document.getElementById('editTaskCategorySelect').value.trim();
+        }
+        if (!category || category === '__CUSTOM__') {
+            category = 'Department Administration';
+        }
+
         const taskNumber = document.getElementById('editTaskNumber').value.trim();
         const btn = document.getElementById('btnSubmitEditTask');
 
