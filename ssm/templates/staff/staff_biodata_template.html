@@ -189,9 +189,13 @@
     <div class="header">
         <table class="header-table">
             <tr>
-                {% if staff.photo %}
+                {% if staff_photo_b64 %}
                 <td class="photo-td">
-                    <img src="{{ staff.photo.path }}" class="photo-img" />
+                    <img src="{{ staff_photo_b64 }}" class="photo-img" />
+                </td>
+                {% elif staff.photo %}
+                <td class="photo-td">
+                    <img src="{{ staff.photo.url }}" class="photo-img" />
                 </td>
                 {% endif %}
                 <td>

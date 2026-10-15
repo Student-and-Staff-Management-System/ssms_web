@@ -7078,8 +7078,27 @@ def generate_biodata_pdf(request):
             'current_stage_label': current_stage_label,
         })
 
+    # Photo handling for PDF (base64 encoded so remote storages like Cloudflare R2 / S3 work seamlessly)
+    staff_photo_b64 = None
+    if staff.photo:
+        try:
+            with staff.photo.open('rb') as f:
+                photo_bytes = f.read()
+            import mimetypes
+            import base64
+            mime_type, _ = mimetypes.guess_type(staff.photo.name)
+            if not mime_type:
+                mime_type = 'image/jpeg'
+            staff_photo_b64 = f"data:{mime_type};base64,{base64.b64encode(photo_bytes).decode('utf-8')}"
+        except Exception:
+            try:
+                staff_photo_b64 = staff.photo.url
+            except Exception:
+                staff_photo_b64 = None
+
     context = {
         'staff': staff,
+        'staff_photo_b64': staff_photo_b64,
         'publications': publications,
         'awards': awards,
         'seminars': seminars,
