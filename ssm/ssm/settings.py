@@ -136,7 +136,7 @@ else:
             "ENGINE": "django.db.backends.postgresql",
             "NAME": "ssm",
             "USER": "postgres",
-            "PASSWORD": "dbms",
+            "PASSWORD": "root",
             "HOST": "localhost",
             "PORT": "5432",
         }
